@@ -1,0 +1,4 @@
+# Codex should replace these with exact tested versions from the local environment.
+flet
+pyyaml
+pytest
