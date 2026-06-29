@@ -32,9 +32,14 @@ settings
 CREATE TABLE IF NOT EXISTS works (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     work_code TEXT,
+    work_code_raw TEXT,
+    work_code_norm TEXT,
+    work_type TEXT,
+    work_number INTEGER,
     title TEXT,
     folder_path TEXT UNIQUE,
     folder_name TEXT,
+    folder_status TEXT DEFAULT 'recognized',
     source_profile TEXT DEFAULT 'local_scan',
     detected_by TEXT,
     confidence REAL DEFAULT 0,
@@ -50,7 +55,12 @@ CREATE TABLE IF NOT EXISTS works (
 
 ```text
 work_code：RJ/BJ/VJ，可为空
+work_code_raw：原始作品号字符串（如 RJ1003555）
+work_code_norm：规范化作品号（如 rj1003555）
+work_type：作品类型 rj / bj / vj
+work_number：作品编号（如 1003555）
 folder_path：唯一，一作一目录的主约束
+folder_status：recognized / duplicate / mixed，默认 recognized
 warning_flags：duplicate_rj / mixed / metadata_missing 等
 external_url：M6 预留
 ```
@@ -75,6 +85,13 @@ CREATE TABLE IF NOT EXISTS media_files (
     updated_at TEXT NOT NULL,
     FOREIGN KEY(work_id) REFERENCES works(id)
 );
+```
+
+唯一约束：
+
+```sql
+CREATE UNIQUE INDEX IF NOT EXISTS idx_media_files_unique_path
+ON media_files(folder_path, relative_path);
 ```
 
 file_type 枚举：
@@ -103,6 +120,10 @@ CREATE TABLE IF NOT EXISTS unknown_folders (
     image_count INTEGER DEFAULT 0,
     subtitle_count INTEGER DEFAULT 0,
     text_count INTEGER DEFAULT 0,
+    video_count INTEGER DEFAULT 0,
+    archive_count INTEGER DEFAULT 0,
+    other_count INTEGER DEFAULT 0,
+    total_files INTEGER DEFAULT 0,
     total_size INTEGER DEFAULT 0,
     candidate_codes TEXT,
     warning_flags TEXT,
@@ -169,10 +190,35 @@ CREATE INDEX IF NOT EXISTS idx_works_work_code ON works(work_code);
 CREATE INDEX IF NOT EXISTS idx_works_folder_path ON works(folder_path);
 CREATE INDEX IF NOT EXISTS idx_media_files_work_id ON media_files(work_id);
 CREATE INDEX IF NOT EXISTS idx_media_files_file_type ON media_files(file_type);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_media_files_unique_path ON media_files(folder_path, relative_path);
 CREATE INDEX IF NOT EXISTS idx_unknown_folders_folder_path ON unknown_folders(folder_path);
 ```
 
-## 8. M6 后续表预留
+## 8. M1.1 schema hardening (2026-06-29)
+
+本轮新增字段和约束：
+
+```text
+works:
+  + work_code_raw TEXT
+  + work_code_norm TEXT
+  + work_type TEXT
+  + work_number INTEGER
+  + folder_status TEXT DEFAULT 'recognized'
+
+media_files:
+  + UNIQUE(folder_path, relative_path) via idx_media_files_unique_path
+
+unknown_folders:
+  + video_count INTEGER DEFAULT 0
+  + archive_count INTEGER DEFAULT 0
+  + other_count INTEGER DEFAULT 0
+  + total_files INTEGER DEFAULT 0
+```
+
+迁移方式：`migrations.py` 通过 `PRAGMA table_info` 检测列是否存在，按需执行 `ALTER TABLE ADD COLUMN`。索引通过 `CREATE ... IF NOT EXISTS` 幂等建。
+
+## 9. M6 后续表预留
 
 M6 元数据增强阶段再增加：
 
@@ -235,7 +281,7 @@ report_path
 errors
 ```
 
-## 9. 写入安全
+## 10. 写入安全
 
 所有写入必须：
 

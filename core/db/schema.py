@@ -3,9 +3,14 @@ SCHEMA_STATEMENTS = [
     CREATE TABLE IF NOT EXISTS works (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         work_code TEXT,
+        work_code_raw TEXT,
+        work_code_norm TEXT,
+        work_type TEXT,
+        work_number INTEGER,
         title TEXT,
         folder_path TEXT UNIQUE,
         folder_name TEXT,
+        folder_status TEXT DEFAULT 'recognized',
         source_profile TEXT DEFAULT 'local_scan',
         detected_by TEXT,
         confidence REAL DEFAULT 0,
@@ -43,6 +48,10 @@ SCHEMA_STATEMENTS = [
         image_count INTEGER DEFAULT 0,
         subtitle_count INTEGER DEFAULT 0,
         text_count INTEGER DEFAULT 0,
+        video_count INTEGER DEFAULT 0,
+        archive_count INTEGER DEFAULT 0,
+        other_count INTEGER DEFAULT 0,
+        total_files INTEGER DEFAULT 0,
         total_size INTEGER DEFAULT 0,
         candidate_codes TEXT,
         warning_flags TEXT,
@@ -81,6 +90,7 @@ INDEX_STATEMENTS = [
     "CREATE INDEX IF NOT EXISTS idx_works_folder_path ON works(folder_path);",
     "CREATE INDEX IF NOT EXISTS idx_media_files_work_id ON media_files(work_id);",
     "CREATE INDEX IF NOT EXISTS idx_media_files_file_type ON media_files(file_type);",
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_media_files_unique_path ON media_files(folder_path, relative_path);",
     "CREATE INDEX IF NOT EXISTS idx_unknown_folders_folder_path ON unknown_folders(folder_path);",
 ]
 
@@ -97,5 +107,6 @@ EXPECTED_INDEXES = {
     "idx_works_folder_path",
     "idx_media_files_work_id",
     "idx_media_files_file_type",
+    "idx_media_files_unique_path",
     "idx_unknown_folders_folder_path",
 }
