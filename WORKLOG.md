@@ -286,4 +286,191 @@ Git 状态：准备提交 M1.1 二次审查修复
 
 ```text
 提交 M1.1 二次审查修复；保持在 M1.1，等待用户确认后再进入 M2 只读扫描器。
+
+```
+---
+
+## 2026-06-30 - M2 - 只读扫描器 MVP 第一轮
+
+执行者：Codex
+目标：实现 fixture-first 的本地资源库只读扫描器。第一轮只扫 tests/fixtures/library_sample，不写 DB，不接 UI。
+
+完成内容：
+
+```text
+1. 创建 core/scanner/ 模块：
+   - result.py: ScanResult, WorkEntry, MediaFileEntry, UnknownFolderEntry 数据类
+   - parser.py: 作品号解析 (RJ/BJ/VJ)，文件类型分类 (audio/video/image/subtitle/text/archive/other)
+   - scanner.py: scan_library_root() 主入口，只读目录扫描
+   - __init__.py: 公共导出
+
+2. 作品识别逻辑：
+   - 大小写不敏感匹配 RJ/BJ/VJ（正则: (RJ|BJ|VJ)(\d+)）
+   - 支持前导零归一化：RJ00323125 → rj323125
+   - 从文件夹名和文件名双重检测作品号
+   - work_code_raw: 原始字符串
+   - work_code_norm: 规范化小写+整数
+   - folder_status: recognized / duplicate / mixed
+
+3. 文件分类（7类）：
+   audio: .mp3 .wav .flac .m4a .ogg .aac
+   video: .mp4 .mkv .webm .avi
+   image: .jpg .jpeg .png .webp .bmp
+   subtitle: .lrc .srt .vtt .ass
+   text: .txt .md .pdf
+   archive: .zip .7z .rar
+   other: 其他
+
+4. 创建 tests/fixtures/library_sample/ 共 12 个目录：
+   - 正常 RJ (RJ323125)
+   - 小写 rj (rj100355)
+   - VJ / BJ 类型
+   - 无 RJ 但有音频 (unknown)
+   - 空目录 (skipped)
+   - mixed folder (同一目录多个 RJ)
+   - duplicate RJ (两个目录同一 work_number)
+   - 中文/日文目录名
+   - 全文件类型测试目录
+
+5. 创建 15 个扫描器测试：
+   - test_scan_fixture_no_error
+   - test_normal_rj_recognized
+   - test_lowercase_rj_recognized
+   - test_vj_recognized / test_bj_recognized
+   - test_rj_leading_zeros_normalized
+   - test_zero_padded_rj_preserves_raw_and_duplicates
+   - test_unknown_folder_identified
+   - test_mixed_folder_identified
+   - test_duplicate_rj_identified
+   - test_file_type_classification
+   - test_scanner_does_not_write_db
+   - test_scanner_works_without_real_arsm
+   - test_japanese_folder_recognized
+   - test_empty_folder_skipped
+
+6. 创建 tools/scan_fixture.py：命令行工具，只扫 fixture，不默认扫 E:\arsm。
+```
+
+修改文件：
+- core/scanner/__init__.py, core/scanner/result.py, core/scanner/parser.py, core/scanner/scanner.py
+- tests/fixtures/library_sample/ (12 dirs + 28 files)
+- tests/test_scanner.py
+- tools/scan_fixture.py
+
+是否改 DB：否（扫描器完全只读，不写 DB）
+是否删除文件：否
+是否移动/重命名文件：否
+是否联网：否
+是否扫描 E:\arsm：否（仅扫描 fixture）
+是否改 UI：否
+
+测试命令：
+
+```powershell
+python -B -m py_compile main.py core/db/*.py core/scanner/*.py ui/*.py tools/*.py tests/*.py
+python -B tools/scan_fixture.py
+python -B -m pytest -v
+python -B tools/db_init.py
+python -B tools/db_inspect.py
+rg "E:\\arsm" core ui tools tests
+rg "os\.remove|os\.rmdir|shutil\.move|shutil\.rmtree|unlink\(|rename\(" core ui tools tests
+rg "import flet|from flet" core
+```
+
+测试结果：
+
+```text
+py_compile: PASS
+scan_fixture: 12 dirs, 10 works, 1 unknown, 2 duplicate, 1 mixed, 28 media_files, 0 errors
+pytest: 25 passed (10 original DB tests + 15 scanner tests)
+db_init: integrity_check ok
+db_inspect: 5 tables, 6 indexes, integrity_check ok
+安全扫描: E:\arsm 仅在 tests/test_vault.py（预存 rollback 测试）；无破坏性文件操作；core 无 Flet import
+```
+
+Git 状态：core/scanner/__init__.py (modified), 6 new files untracked, no deletions, no DB committed
+
+风险/备注：
+
+```text
+1. 扫描器仅扫描一级子目录（不递归），与 M2 roadmap 说明一致。
+2. 作品号解析在文件夹名和文件名中都检测，可能导致文件名中含 RJ 时标记为 mixed。
+3. mixed folder 的 work_entry 使用逗号分隔多个 code_norm，work_number=0，识别度中等。
+4. fixture 文件为 0 字节占位文件，不影响文件类型分类测试。
+5. 后续 M3 入库时需关注 folder_path 唯一约束与 mixed/duplicate 冲突。
+```
+
+下一步：
+
+```text
+用户审查 M2 scanner MVP；确认后进入 M3 扫描结果入库（dry-run → execute）。
+```
+---
+
+## 2026-06-30 - M2 - Codex 二次审查与 fixture 补强
+
+执行者：Codex
+目标：审查 DeepSeek 完成的 M2 只读扫描器是否满足 fixture-first、只读、安全边界；不进入 M3，不写 DB，不扫描真实 E:\arsm。
+
+完成内容：
+
+```text
+1. 审查当前工作区 diff，确认变更范围限于 core/scanner、tests/fixtures/library_sample、tests/test_scanner.py、tools/scan_fixture.py、WORKLOG.md。
+2. 确认未修改 ui/，未修改 core/db/。
+3. 审查 scan_library_root(root_path)：只使用 pathlib iterdir/is_file/stat 读取目录和文件元数据，不写 DB，不删除/移动/重命名文件。
+4. 审查 RJ 规范化策略：work_code_raw 保留原始字符串，work_number 保留整数，work_code_norm 小写并去前导零，duplicate 检测按 norm 聚合。
+5. 发现 fixture 缺少 RJ00323125 -> rj323125 的显式覆盖，补充 tests/fixtures/library_sample/RJ00323125_zero_padded/RJ00323125_track.mp3。
+6. 新增 test_zero_padded_rj_preserves_raw_and_duplicates，验证 RJ00323125 raw/norm/number 保留与 RJ323125 duplicate 检测。
+7. 修复 WORKLOG.md 中 M1.1 代码块闭合和 M2 统计数字。
+```
+
+修改文件：core/scanner/__init__.py, core/scanner/parser.py, core/scanner/result.py, core/scanner/scanner.py, tests/fixtures/library_sample/, tests/test_scanner.py, tools/scan_fixture.py, WORKLOG.md
+是否改 DB：否；仅运行 db_init/db_inspect 创建测试 DB，已清理，未提交 DB
+是否删除文件：仅清理本轮测试生成的 pycache / pytest cache / 测试 DB
+是否移动/重命名文件：否
+是否联网：否
+是否扫描 E:\arsm：否，仅扫描 tests/fixtures/library_sample
+是否改 UI：否
+
+测试命令：
+
+```powershell
+python -B -m py_compile main.py core/db/*.py core/scanner/*.py ui/*.py tools/*.py tests/*.py
+python -B tools/scan_fixture.py
+python -B -m pytest -v
+python -B tools/db_init.py
+python -B tools/db_inspect.py
+rg "E:\\arsm" core ui tools tests
+rg "os\.remove|os\.rmdir|shutil\.move|shutil\.rmtree|unlink\(|rename\(" core ui tools tests
+rg "import flet|from flet" core
+rg "sqlite3\.connect|os\.walk" ui core tools tests
+```
+
+测试结果：
+
+```text
+py_compile: PASS（PowerShell 不展开通配符，使用等价显式文件列表执行）
+scan_fixture: 12 dirs, 10 works, 1 unknown, 2 duplicate, 1 mixed, 28 media_files, 0 errors
+pytest: 25 passed
+db_init: integrity_check ok
+db_inspect: 5 tables, 6 indexes, integrity_check ok
+E:\arsm 检查: 无命中
+破坏性文件操作检查: 无命中
+core Flet import: 无命中
+UI sqlite3.connect / os.walk: 无命中；sqlite3.connect 仅在 core/db/vault.py 和测试中出现
+```
+
+Git 状态：准备提交并推送 M2 fixture-first scanner
+风险/备注：
+
+```text
+1. M2 扫描器当前为 fixture-first 和一级目录扫描，不进入 M3 入库。
+2. work_code_norm 去前导零可满足 duplicate 检测；外部元数据查询未来进入 M6 时应优先携带 work_code_raw，避免 provider 对前导零格式敏感。
+3. mixed folder 当前用逗号连接多个 norm，work_type=mixed，work_number=0；M3 入库前需要明确 mixed 的写入策略。
+```
+
+下一步：
+
+```text
+允许提交 M2 fixture-first read-only scanner。进入 M3 前应先做 dry-run 入库方案审查。
 ```
