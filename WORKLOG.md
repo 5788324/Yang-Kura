@@ -473,4 +473,176 @@ Git 状态：准备提交并推送 M2 fixture-first scanner
 
 ```text
 允许提交 M2 fixture-first read-only scanner。进入 M3 前应先做 dry-run 入库方案审查。
+
+---
+
+## 2026-06-30 - M3.0 - 入库方案 dry-run ImportPlan
+
+执行者：Codex
+目标：把 M2 的 ScanResult 转成入库计划 ImportPlan，本轮不写真实 DB，不扫描真实 E:\arsm，不接 UI。
+
+完成内容：
+
+```text
+1. 创建 core/library/import_plan.py：
+   - WorkToUpsert: work_code, work_code_raw, work_code_norm, work_type, work_number, folder_path, folder_name, folder_status, source_profile, detected_by, confidence, warning_flags
+   - MediaFileToUpsert: folder_path, relative_path, file_name, file_type, extension, size, mtime
+   - UnknownFolderToUpsert: folder_path, folder_name, reason, audio_count, image_count, subtitle_count, text_count, video_count, archive_count, other_count, total_files, total_size
+   - ImportPlan: works_to_upsert, media_files_to_upsert, unknown_folders_to_upsert, scan_run_summary, warnings, errors, dry_run
+
+2. 创建 core/library/importer.py：
+   - build_import_plan(scan_result: ScanResult) -> ImportPlan
+   - 纯函数，不连接 DB，不写 DB，不依赖 Flet
+   - 处理策略：
+     - recognized → works_to_upsert, folder_status='recognized', warning_flags=''
+     - duplicate → works_to_upsert, folder_status='duplicate', warning_flags='duplicate_rj'
+     - mixed → works_to_upsert, folder_status='mixed', warning_flags='mixed_folder'
+     - unknown → unknown_folders_to_upsert
+   - media_files 从 WorkEntry.media_files 直接映射
+   - scan_run_summary 包含 recognized_works, duplicate_works, mixed_works, unknown_folders, media_files 等统计
+
+3. 更新 core/library/__init__.py：导出 ImportPlan, MediaFileToUpsert, UnknownFolderToUpsert, WorkToUpsert, build_import_plan
+
+4. 创建 tools/plan_fixture_import.py：
+   - 扫描 fixture → 构建 ImportPlan → 打印 dry-run summary
+   - 只扫 tests/fixtures/library_sample，不写 DB
+
+5. 创建 11 个 ImportPlan 测试：
+   - test_build_import_plan_from_fixture
+   - test_works_to_upsert_count
+   - test_media_files_to_upsert_count
+   - test_unknown_folders_to_upsert_count
+   - test_duplicate_has_warning_flags
+   - test_mixed_has_warning_flags
+   - test_recognized_no_warning_flags
+   - test_import_plan_does_not_write_db
+   - test_import_plan_copy_not_mutate
+   - test_media_file_fields_complete
+   - test_scan_run_summary_fields
+```
+
+修改文件：
+- core/library/__init__.py, core/library/import_plan.py, core/library/importer.py
+- tests/test_import_plan.py
+- tools/plan_fixture_import.py
+
+是否改 DB：否（ImportPlan 纯内存 dataclass，不写 DB）
+是否删除文件：否
+是否移动/重命名文件：否
+是否联网：否
+是否扫描 E:\arsm：否（仅扫描 fixture）
+是否改 UI：否
+
+测试命令：
+
+```powershell
+python -B -m py_compile main.py core/db/*.py core/scanner/*.py core/library/*.py ui/*.py tools/*.py tests/*.py
+python -B tools/plan_fixture_import.py
+python -B -m pytest -v
+python -B tools/db_init.py
+python -B tools/db_inspect.py
+rg "E:\\arsm" core ui tools tests
+rg "os\.remove|os\.rmdir|shutil\.move|shutil\.rmtree|unlink\(|rename\(" core ui tools tests
+rg "sqlite3\.connect" core ui tools tests
+rg "import flet|from flet" core
+```
+
+测试结果：
+
+```text
+py_compile: PASS
+plan_fixture_import: 12 dirs, 10 works (5 recognized + 4 dup + 1 mixed), 28 media_files, 1 unknown, 2 duplicate code groups
+pytest: 36 passed (10 DB + 15 scanner + 11 import_plan)
+db_init: integrity_check ok
+db_inspect: 5 tables, 6 indexes, integrity_check ok
+E:\arsm: 仅 tests/test_vault.py（预存 rollback 测试）
+破坏性文件操作: 无
+sqlite3.connect: 仅 core/db/vault.py + tests/test_db_schema.py（合规）
+core Flet import: 无
+```
+
+Git 状态：core/library/__init__.py (modified), 4 new files untracked, no DB committed
+
+风险/备注：
+
+```text
+1. build_import_plan 是纯函数，不依赖 DB 或网络，M3.1 接入 Vault 时可直接复用。
+2. mixed_folder 的 work_code_norm 为逗号分隔多个 norm（如 "rj111111,rj222222"），入库时需注意 work_code 字段语义。
+3. duplicate 的每个目录都单独生成一条 WorkToUpsert，由 folder_status + warning_flags 标记；M3.1 写入 works 表时需处理 folder_path UNIQUE 约束（duplicate 多个文件夹共享同一 work_code_norm 但不同 folder_path，应无冲突）。
+4. ImportPlan 的 scan_run_summary 已预留所有 scan_runs 表字段，M3.1 可直接映射为 INSERT 语句。
+```
+
+下一步：
+
+```text
+用户审查 M3.0 ImportPlan 方案；确认后进入 M3.1 实际入库（通过 Vault 写入 DB）。
+```
+---
+
+## 2026-06-30 - M3.0 - Codex 审查与 ImportPlan dry-run 小修
+
+执行者：Codex
+目标：审查 DeepSeek 完成的 M3.0 ImportPlan dry-run 是否只做扫描结果入库计划；不进入 M3.1，不写 DB，不扫描真实 E:\arsm，不接 UI。
+
+完成内容：
+
+```text
+1. 审查当前 diff，确认变更范围限于 core/library、tests/test_import_plan.py、tools/plan_fixture_import.py、WORKLOG.md。
+2. 确认未修改 ui/、core/db/、core/scanner/。
+3. 审查 build_import_plan(scan_result)：纯内存 dataclass 映射，不连接 DB，不导入 Vault，不调用 sqlite3.connect。
+4. 审查 tools/plan_fixture_import.py：只扫描 tests/fixtures/library_sample，输出 dry-run ImportPlan，不写 DB。
+5. 审查 ImportPlan 策略：recognized 无 warning_flags；duplicate 标记 duplicate_rj；mixed 标记 mixed_folder；unknown 进入 unknown_folders_to_upsert；media_files 覆盖所有 WorkEntry.media_files；dry_run 默认 True；plan 包含 scan_run_summary / warnings / errors。
+6. 小修 scan_run_summary 字段名，使 duplicate_rj_count / mixed_folder_count / status / warnings / errors 与 scan_runs schema 更接近，减少 M3.1 入库转换风险。
+7. 新增 test_import_plan_module_has_no_db_dependency，静态确认 build_import_plan 不引用 sqlite3 / YangKuraVault / execute_write。
+```
+
+修改文件：core/library/__init__.py, core/library/import_plan.py, core/library/importer.py, tests/test_import_plan.py, tools/plan_fixture_import.py, WORKLOG.md
+是否改 DB：否；仅运行 db_init/db_inspect 创建测试 DB，已清理，未提交 DB
+是否删除文件：仅清理本轮测试生成的 pycache / pytest cache / 测试 DB
+是否移动/重命名文件：否
+是否联网：否
+是否扫描 E:\arsm：否，仅扫描 tests/fixtures/library_sample
+是否改 UI：否
+
+测试命令：
+
+```powershell
+python -B -m py_compile main.py core/db/*.py core/scanner/*.py core/library/*.py ui/*.py tools/*.py tests/*.py
+python -B tools/plan_fixture_import.py
+python -B -m pytest -v
+python -B tools/db_init.py
+python -B tools/db_inspect.py
+rg "E:\\arsm" core ui tools tests
+rg "os\.remove|os\.rmdir|shutil\.move|shutil\.rmtree|unlink\(|rename\(" core ui tools tests
+rg "sqlite3\.connect" core ui tools tests
+rg "import flet|from flet" core
+```
+
+测试结果：
+
+```text
+py_compile: PASS（PowerShell 不展开通配符，使用等价显式文件列表执行）
+plan_fixture_import: dry_run True；12 dirs；10 works_to_upsert；28 media_files_to_upsert；1 unknown_folders_to_upsert；0 errors
+pytest: 37 passed
+db_init: integrity_check ok
+db_inspect: 5 tables, 6 indexes, integrity_check ok
+E:\arsm 检查: 无命中
+破坏性文件操作检查: 无命中
+sqlite3.connect: 仅 core/db/vault.py 与 tests/test_db_schema.py 命中，ImportPlan 无命中
+core Flet import: 无命中
+```
+
+Git 状态：准备提交并推送 M3.0 ImportPlan dry-run
+风险/备注：
+
+```text
+1. M3.0 仍是 dry-run 计划层，不写 DB；M3.1 才能通过 Vault 执行 fixture DB 写入。
+2. mixed_folder 的 work_code_norm 仍是逗号分隔多个 norm，M3.1 入库前需要明确 mixed 的 work_code/work_code_norm 写入策略。
+3. scan_run_summary 现在使用更接近 scan_runs schema 的字段名，但 started_at/finished_at 应由 M3.1 执行层生成。
+```
+
+下一步：
+
+```text
+允许进入 M3.1 fixture DB execute，但必须只对 fixture/test DB 执行，继续禁止扫描真实 E:\arsm 和写真实资源库 DB。
 ```
