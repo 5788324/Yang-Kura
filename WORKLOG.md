@@ -997,4 +997,216 @@ Git 状态：准备提交并推送 M3.2 真实库只读扫描报告；tmp/report
 
 ```text
 允许进入 M3.3 preview/backup 方案；仍不允许直接真实 DB execute。
+
+---
+
+## 2026-06-30 - M3.3 - 真实库入库 preview / backup / confirmation
+
+执行者：Codex
+目标：为真实库 DB execute 做最后安全层。实现 preview、backup、confirmation 机制，不执行真实库入库。
+
+完成内容：
+
+```text
+1. core/library/preview.py：
+   - ImportPreview dataclass: dry_run, db_write, risk_level, blockers, requires_backup, requires_confirmation 等 16 字段
+   - build_import_preview(plan) -> ImportPreview
+   - risk_level 规则：errors>0→high; dup/mixed/unknown>0→medium; 否则 low
+   - blockers 规则：errors 非空 or plan.dry_run≠True
+
+2. core/library/backup.py：
+   - make_backup_path(db_path, backup_dir): 生成带微秒时间戳备份路径
+   - backup_db_file(db_path, backup_dir, confirm=False): confirm=False 只返回预览，不复制；confirm=True 才 shutil.copy2
+   - db_path 不存在返回明确错误
+   - 备份文件格式: {db_name}.backup-{timestamp}
+   - 不删除旧备份
+
+3. core/library/__init__.py 新增导出：ImportPreview, build_import_preview, backup_db_file, make_backup_path
+
+4. tools/preview_real_import.py：
+   - 参数 --root + --allow-real-root 安全门控
+   - 只调 scan_library_root + build_import_plan + build_import_preview
+   - 不含 execute_import_plan / YangKuraVault / sqlite3.connect
+   - 输出 console summary + JSON/MD 到 tmp/reports/
+   - 明确文案：This is preview only. No database write was performed.
+
+5. 14 个 preview/backup 测试：
+   - test_fixture_generates_preview
+   - test_preview_dry_run_true / db_write_false
+   - test_clean_fixture_risk_low
+   - test_preview_detects_high_risk_on_errors
+   - test_preview_estimated_tables
+   - test_preview_requires_backup_and_confirmation
+   - test_backup_confirm_false_does_not_copy
+   - test_backup_confirm_true_copies
+   - test_backup_does_not_delete_old
+   - test_backup_nonexistent_db
+   - test_make_backup_path_has_timestamp
+   - test_preview_tool_no_execute_import_plan
+   - test_preview_tool_prints_confirmation
+   - test_preview_tool_rejects_real_path
+```
+
+修改文件：core/library/preview.py, core/library/backup.py, core/library/__init__.py, tools/preview_real_import.py, tests/test_import_preview.py
+是否扫描 E:\arsm：是（只读，仅 scan + plan + preview，不写 DB）
+是否写真实 DB：否
+是否执行 execute_import_plan：否（preview 工具不含此函数）
+是否创建真实 DB：否
+是否联网：否
+是否删除/移动/重命名文件：否
+是否改 UI：否
+preview report 路径：tmp/reports/import_preview_*.json, tmp/reports/import_preview_*.md
+
+真实库 preview summary：
+
+```text
+E:\arsm: 281 works, 596 media_files, 0 unknown, 0 dup, 0 mixed
+dry_run=True, db_write=False, risk_level=low
+blockers: none, requires_backup=True, requires_confirmation=True
+confirmation: "This is preview only. No database write was performed."
+```
+
+测试命令：
+
+```powershell
+python -B -m py_compile main.py core/db/*.py core/scanner/*.py core/library/*.py ui/*.py tools/*.py tests/*.py
+python -B tools/preview_real_import.py --root tests/fixtures/library_sample
+python -B tools/preview_real_import.py --root "E:\arsm" --allow-real-root
+python -B -m pytest -v
+python -B tools/db_init.py
+python -B tools/db_inspect.py
+rg "execute_import_plan|YangKuraVault|sqlite3\.connect" tools/preview_real_import.py tools/scan_real_report.py core/scanner core/library tests
+rg "os\.remove|os\.rmdir|shutil\.move|shutil\.rmtree|unlink\(|rename\(" core ui tools tests
+```
+
+测试结果：
+
+```text
+py_compile: PASS
+preview_real_import (fixture): dry_run=True, risk_level=medium (dup+mixed+unknown)
+preview_real_import (E:\arsm): 281 works, 596 media, risk_level=low, "This is preview only."
+pytest: 70 passed
+db_init/db_inspect: integrity_check ok
+preview/scan 工具安全: 不含 execute_import_plan/YangKuraVault/sqlite3.connect
+破坏性文件操作: 无（shutil.copy2 仅在 backup.py confirm=True 时用于测试）
+core Flet import: 无
+```
+
+Git 状态：5 files (1 modified + 4 new), tmp/ gitignored, no DB committed
+
+风险/备注：
+
+```text
+1. preview 层与 executor 完全隔离；preview_real_import.py 不含 execute_import_plan。
+2. backup_db_file(confirm=False) 只返回预览 dict，不执行文件复制。
+3. backup 使用 shutil.copy2（保留元数据），微秒时间戳避免同秒覆盖。
+4. E:\arsm 当前无 dup/mixed/unknown/errors，risk_level=low；如后续扫描出现异常，preview 会自动提升 risk_level。
+5. 真实库 execute 链路：scan → plan → preview（risk gate）→ backup → confirm → execute（待 M4+ 决定）。
+```
+
+下一步：
+
+```text
+M3 全链路（scan + plan + preview + backup + execute）已完备。可进入 M4 管理 UI MVP，或决定是否对真实库执行入库。
+```
+```
+---
+
+## 2026-06-30 - M3.3 - Codex 审查 preview / backup / confirmation
+
+执行者：Codex
+阶段：M3.3 真实库入库 preview / backup / confirmation 审查
+目标：审查 DeepSeek M3.3 是否只实现真实库入库预览、安全备份机制、确认门控；不得执行真实 DB 入库。
+
+完成内容：
+
+```text
+1. 审查当前 diff：变更仅涉及 core/library/preview.py、core/library/backup.py、core/library/__init__.py、tools/preview_real_import.py、tests/test_import_preview.py、WORKLOG.md。
+2. 确认未修改 ui/、core/db/schema.py、core/db/vault.py、core/library/executor.py、core/scanner/。
+3. 确认 preview_real_import.py 只调用 scan_library_root / build_import_plan / build_import_preview；不调用 execute_import_plan，不创建 YangKuraVault，不 sqlite3.connect，不读取 config.yaml。
+4. 审查 build_import_preview：dry_run=True、db_write=False、requires_backup=True、requires_confirmation=True；estimated_tables_affected 包含 works/media_files/unknown_folders/scan_runs；风险规则符合 errors/blockers high，dup/mixed/unknown medium，否则 low。
+5. 审查 backup_db_file：confirm=False 不复制；confirm=True 只在测试 tmp_path DB 中复制；db_path 不存在明确失败；备份名带微秒时间戳；不删除旧备份。
+6. 小修 tests/test_import_preview.py：移除未使用 YangKuraVault 导入，强化 fixture 风险等级断言为 medium。
+```
+
+修改文件：core/library/preview.py, core/library/backup.py, core/library/__init__.py, tools/preview_real_import.py, tests/test_import_preview.py, WORKLOG.md
+是否改 DB：否（仅运行 db_init/db_inspect 验收，生成的 yang_kura.db 已清理，不提交）
+是否删除文件：仅清理本轮生成的 __pycache__、.pytest_cache、yang_kura.db；未删除用户资源文件
+是否移动/重命名文件：否
+是否联网：否
+是否扫描 E:\arsm：是，仅读取目录与文件元数据并生成 preview 报告
+是否改 UI：否
+是否写真实 DB：否
+是否调用 execute_import_plan：否
+是否创建真实 DB：否
+preview report 路径：
+
+```text
+G:\Codex\Yang Kura\tmp\reports\import_preview_2026-06-30T13-52-03.388142+00-00.json
+G:\Codex\Yang Kura\tmp\reports\import_preview_2026-06-30T13-52-03.388142+00-00.md
+```
+
+真实库 preview summary：
+
+```text
+root_path: E:\arsm
+dry_run: True
+db_write: False
+risk_level: low
+works_to_upsert_count: 281
+media_files_to_upsert_count: 596
+unknown_folders_to_upsert_count: 0
+duplicate_count: 0
+mixed_count: 0
+warning_count: 0
+error_count: 0
+blockers: none
+requires_backup: True
+requires_confirmation: True
+estimated_tables_affected: works, media_files, unknown_folders, scan_runs
+```
+
+测试命令：
+
+```powershell
+python -B -m py_compile main.py core/db/*.py core/scanner/*.py core/library/*.py ui/*.py tools/*.py tests/*.py
+python -B tools/preview_real_import.py --root tests/fixtures/library_sample
+python -B tools/preview_real_import.py --root "E:\arsm" --allow-real-root
+python -B -m pytest -v
+python -B tools/db_init.py
+python -B tools/db_inspect.py
+rg "execute_import_plan|YangKuraVault|sqlite3\.connect" tools/preview_real_import.py tools/scan_real_report.py core/scanner core/library tests
+rg "os\.remove|os\.rmdir|shutil\.move|shutil\.rmtree|unlink\(|rename\(" core ui tools tests
+rg "config\.yaml|yaml|yang_kura\.db" tools/preview_real_import.py core/library/preview.py core/library/backup.py tests/test_import_preview.py
+```
+
+测试结果：
+
+```text
+py_compile: PASS
+preview_real_import fixture: PASS，dry_run=True, db_write=False, risk_level=medium, 10 works, 28 media, 1 unknown, 4 duplicate entries, 1 mixed
+preview_real_import E:\arsm: PASS，dry_run=True, db_write=False, risk_level=low, 281 works, 596 media, 0 unknown/duplicate/mixed, 0 warnings/errors
+pytest: PASS，70 passed
+db_init: PASS，integrity_check ok
+db_inspect: PASS，5 tables, 6 indexes, integrity_check ok
+preview_real_import.py 安全搜索: 无 execute_import_plan / YangKuraVault / sqlite3.connect
+破坏性文件操作搜索: 无命中；backup.py 仅 shutil.copy2，且 preview 工具不调用 backup
+config/yaml/yang_kura.db 搜索: 无命中
+UI sqlite3.connect / os.walk: 无命中
+报告文件提交检查: tmp/reports 被 .gitignore 的 tmp/ 规则忽略，git ls-files 无报告文件
+```
+
+Git 状态：准备提交并推送 M3.3 preview / backup / confirmation；tmp/reports 保留为 gitignored 报告产物
+风险/备注：
+
+```text
+1. 当前 E:\arsm preview 为 281 works，较上一轮 M3.2 记录 279 works 多 2；这是本轮实时只读扫描结果，media_files 仍为 596，dup/mixed/unknown 仍为 0。
+2. core/library/__init__.py 继续导出既有 execute_import_plan；preview_real_import.py 没有导入或调用它。
+3. backup_db_file(confirm=True) 会复制 DB 文件，但本轮 preview_real_import.py 不调用 backup；真实执行工具进入 M3.4 前仍需独立审查 confirm/backup/execute 顺序。
+```
+
+下一步：
+
+```text
+允许进入 M3.4 真实 DB execute 工具设计；仍不允许直接对真实库执行入库，必须先设计并审查 execute 工具的 preview/backup/confirm/rollback 边界。
 ```
