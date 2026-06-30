@@ -807,3 +807,194 @@ Git 状态：准备提交并推送 M3.1 fixture/test DB execute
 ```text
 允许进入真实库只读扫描报告；仍不允许写真实 DB。进入真实库 execute 前必须新增备份、dry-run preview 和用户确认机制。
 ```
+
+---
+
+## 2026-06-30 - M3.2 - 真实库扫描报告
+
+执行者：Codex
+目标：对真实资源目录 E:\arsm 做只读扫描报告，只读不写 DB。工具必须带安全门控 --allow-real-root。
+
+完成内容：
+
+```text
+1. tools/scan_real_report.py：
+   - 参数 --root (required) + --allow-real-root (安全门控)
+   - 无 --allow-real-root 时拒绝非 fixture 路径（exit 1）
+   - 只调用 scan_library_root + build_import_plan，不调用 execute_import_plan
+   - 不创建 YangKuraVault，不连接 DB，不写 DB
+   - build_report(scan_result, plan, scanned_at) 构建报告 dict
+   - 21 个报告字段全覆盖：root_path, scanned_at, total_dirs, works_count, recognized_count, duplicate_code_count, mixed_folder_count, unknown_folders_count, media_files_count, file_type_counts, extension_distribution, warning_count, error_count, top_warnings, unknown_folder_examples(≤30), duplicate_examples(≤30), mixed_examples(≤30), scanner_mode="read_only", db_write=False
+   - 输出控制台 summary + JSON 报告 + Markdown 报告
+   - 报告写到 tmp/reports/（gitignored）
+
+2. 9 个扫描报告测试：
+   - test_fixture_generates_report
+   - test_report_marks_db_write_false
+   - test_report_fields_complete（21 个字段逐一校验）
+   - test_report_has_no_execute_import_plan（源码 + JSON 双重检查）
+   - test_cli_rejects_real_path_without_flag（subprocess 验证）
+   - test_fixture_mode_no_arsm_required
+   - test_report_does_not_write_db
+   - test_report_fixture_works_count_matches_plan
+   - test_report_json_serializable
+```
+
+修改文件：tools/scan_real_report.py, tests/test_scan_report.py
+是否扫描 E:\arsm：是（只读 scan_library_root，不写 DB）
+是否写 DB：否
+是否联网：否
+是否删除/移动/重命名文件：否
+是否改 UI：否
+报告路径：tmp/reports/scan_report_*.json, tmp/reports/scan_report_*.md
+
+真实库扫描 summary：
+
+```text
+E:\arsm: 279 dirs, 279 works (all recognized), 596 media files, 0 dup, 0 mixed, 0 unknown
+file types: audio 127, image 301, subtitle 71, text 82, video 7, other 8
+extensions: .jpg 263, .wav 86, .txt 74, .mp3 41, .png 38, .vtt 37, .lrc 34, .pdf 8, .mp4 7, .doc 6, .part 2
+scanner_mode: read_only, db_write: false, 0 warnings, 0 errors
+```
+
+测试命令：
+
+```powershell
+python -B -m py_compile main.py core/db/*.py core/scanner/*.py core/library/*.py ui/*.py tools/*.py tests/*.py
+python -B tools/scan_real_report.py --root tests/fixtures/library_sample
+python -B tools/scan_real_report.py --root "E:\arsm" --allow-real-root
+python -B -m pytest -v
+python -B tools/db_init.py
+python -B tools/db_inspect.py
+rg "execute_import_plan|YangKuraVault|sqlite3\.connect" tools/scan_real_report.py core/scanner core/library tests
+rg "os\.remove|os\.rmdir|shutil\.move|shutil\.rmtree|unlink\(|rename\(" core ui tools tests
+```
+
+测试结果：
+
+```text
+py_compile: PASS
+scan_real_report (fixture): 12 dirs, 10 works, 28 media, 1 unknown, 2 dup, 1 mixed
+scan_real_report --root "E:\arsm" without --allow-real-root: rejected (exit 1)
+scan_real_report (E:\arsm): 279 dirs, 279 works, 596 media, 0 dup/mixed/unknown
+pytest: 55 passed (10 DB + 15 scanner + 12 import_plan + 9 execute + 9 report)
+db_init/db_inspect: integrity_check ok
+扫描报告工具安全: 不含 execute_import_plan / YangKuraVault / sqlite3.connect
+破坏性文件操作: 无
+```
+
+Git 状态：2 new files untracked, tmp/ gitignored, no DB committed
+
+风险/备注：
+
+```text
+1. 真实 E:\arsm 扫描在 ~2s 内完成 279 目录 + 596 文件，性能可接受。
+2. scan_real_report.py 的 --allow-real-root 门控依赖路径前缀匹配 fixture；若 fixture 被移动需更新 FIXTURE_ROOT 常量。
+3. E:\arsm 当前全量 recognized（无 dup/mixed/unknown），说明目录命名规范、无冲突。
+4. 报告文件按时间戳命名，每次运行独立不覆盖；tmp/reports/ 目录已 gitignored。
+```
+
+下一步：
+
+```text
+M3 全链路（ScanResult → ImportPlan → execute_import_plan → scan_report）已完备。可进入 M4 管理 UI MVP 或决定是否对真实库执行入库。
+```
+```
+
+---
+
+## 2026-06-30 - M3.2 - Codex 审查与小修
+
+执行者：Codex
+阶段：M3.2 真实库只读扫描报告审查
+目标：审查 DeepSeek M3.2 是否仅生成真实库只读扫描报告，不写 DB、不调用 execute_import_plan、不接 UI、不做删除/移动/重命名。
+
+完成内容：
+
+```text
+1. 审查当前 diff：变更仅涉及 tools/scan_real_report.py、tests/test_scan_report.py、WORKLOG.md。
+2. 确认未修改 ui/、core/db/schema.py、core/db/vault.py、core/library/executor.py。
+3. 确认 scan_real_report.py 只使用 scan_library_root + build_import_plan 构建报告，不调用 execute_import_plan，不创建 YangKuraVault，不 sqlite3.connect，不读取 config.yaml。
+4. 小修 scan_real_report.py：真实路径门控从字符串 startswith 改为 Path.relative_to，避免 fixture 同名前缀路径误判。
+5. 小修 tests/test_scan_report.py：补充 sqlite3.connect 不在工具源码中的断言。
+6. 修正 WORKLOG Markdown 代码块收尾，并追加本轮审查日志。
+```
+
+修改文件：tools/scan_real_report.py, tests/test_scan_report.py, WORKLOG.md
+是否改 DB：否（仅运行 db_init/db_inspect 验收，生成的 yang_kura.db 已清理，不提交）
+是否删除文件：仅清理本轮生成的 __pycache__、.pytest_cache、yang_kura.db；未删除用户资源文件
+是否移动/重命名文件：否
+是否联网：否
+是否扫描 E:\arsm：是，仅读取目录与文件元数据并生成报告
+是否改 UI：否
+报告路径：
+
+```text
+G:\Codex\Yang Kura\tmp\reports\scan_report_2026-06-30T12-56-51.712833+00-00.json
+G:\Codex\Yang Kura\tmp\reports\scan_report_2026-06-30T12-56-51.712833+00-00.md
+```
+
+真实库扫描 summary：
+
+```text
+root_path: E:\arsm
+scanner_mode: read_only
+db_write: false
+total_dirs: 279
+works_count: 279
+recognized_count: 279
+duplicate_code_count: 0
+mixed_folder_count: 0
+unknown_folders_count: 0
+media_files_count: 596
+file_type_counts: audio 127, image 301, subtitle 71, text 82, video 7, other 8
+extension_distribution: .jpg 263, .wav 86, .txt 74, .mp3 41, .png 38, .vtt 37, .lrc 34, .pdf 8, .mp4 7, .doc 6, .part 2
+warning_count: 0
+error_count: 0
+```
+
+测试命令：
+
+```powershell
+python -B -m py_compile main.py core/db/*.py core/scanner/*.py core/library/*.py ui/*.py tools/*.py tests/*.py
+python -B tools/scan_real_report.py --root tests/fixtures/library_sample
+python -B tools/scan_real_report.py --root "E:\arsm"
+python -B tools/scan_real_report.py --root "E:\arsm" --allow-real-root
+python -B -m pytest -v
+python -B tools/db_init.py
+python -B tools/db_inspect.py
+rg "execute_import_plan|YangKuraVault|sqlite3\.connect" tools/scan_real_report.py core/scanner core/library tests
+rg "os\.remove|os\.rmdir|shutil\.move|shutil\.rmtree|unlink\(|rename\(" core ui tools tests
+rg "E:\\arsm" core ui tools tests
+```
+
+测试结果：
+
+```text
+py_compile: PASS
+scan_real_report fixture: PASS，12 dirs, 10 works, 28 media, 1 unknown, 2 duplicate groups, 1 mixed
+scan_real_report E:\arsm without --allow-real-root: PASS，拒绝扫描，exit 1
+scan_real_report E:\arsm --allow-real-root: PASS，279 dirs, 279 works, 596 media, 0 dup/mixed/unknown
+pytest: PASS，55 passed
+db_init: PASS，integrity_check ok
+db_inspect: PASS，5 tables, 6 indexes, integrity_check ok
+scan_real_report.py 安全搜索: 无 execute_import_plan / YangKuraVault / sqlite3.connect
+破坏性文件操作搜索: 无命中
+E:\arsm 字符串搜索: 无命中（除命令/日志外，代码无硬编码真实库扫描）
+报告文件提交检查: tmp/reports 被 .gitignore 的 tmp/ 规则忽略，git ls-files 无报告文件
+```
+
+Git 状态：准备提交并推送 M3.2 真实库只读扫描报告；tmp/reports 保留为 gitignored 报告产物
+风险/备注：
+
+```text
+1. 本轮允许扫描 E:\arsm，但仅执行 scan_library_root + build_import_plan + 报告写入；没有写 DB。
+2. 大范围 rg 中 execute_import_plan/YangKuraVault/sqlite3.connect 命中来自既有 executor 和 DB/execute 测试，不在 scan_real_report.py。
+3. 真实库当前没有 duplicate/mixed/unknown，后续真实入库前仍需要 M3.3 preview/backup/confirm 边界。
+```
+
+下一步：
+
+```text
+允许进入 M3.3 preview/backup 方案；仍不允许直接真实 DB execute。
+```
