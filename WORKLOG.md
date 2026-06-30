@@ -1209,4 +1209,223 @@ Git 状态：准备提交并推送 M3.3 preview / backup / confirmation；tmp/re
 
 ```text
 允许进入 M3.4 真实 DB execute 工具设计；仍不允许直接对真实库执行入库，必须先设计并审查 execute 工具的 preview/backup/confirm/rollback 边界。
+
+---
+
+## 2026-06-30 - M3.4 - 真实 DB execute 工具与门控
+
+执行者：Codex
+目标：实现 preview → backup → confirm → execute 安全链路工具。默认 preview-only，真实 execute 需多重显式确认。
+
+完成内容：
+
+```text
+1. core/library/confirm.py：
+   - build_confirmation_phrase(root, db, works, media): 生成需用户精确输入的确认短语
+   - validate_confirmation(input, expected): 精确字符串匹配
+   - can_execute_real_import(preview, backup_result, confirmation_ok): 五重门控
+     - db_write must be False
+     - blockers must be empty
+     - risk_level must be "low"
+     - backup_result["ok"] must be True
+     - confirmation_ok must be True
+     - 返回 (bool, reason)
+
+2. tools/execute_real_import.py：
+   三模式支持：
+   - preview 默认模式: scan + plan + preview，打印确认短语，不连接 DB，不写 DB
+   - backup-check: --execute 下验证 backup 计划
+   - execute: 全部门控通过后执行 re-scan → backup → init_db → execute → integrity_check
+
+   七重门控：
+   - --allow-real-root: 扫描非 fixture/tmp 路径必须
+   - --allow-real-db: 连接非 tmp 路径 DB 必须
+   - --db-path: execute 模式必须
+   - --confirm-backup: execute 模式必须
+   - --confirm-phrase: execute 模式必须且精确匹配
+   - risk_level=low: 必须
+   - blockers empty: 必须
+
+   is_real_path / is_tmp_or_fixture_db: 使用 tempfile.gettempdir() 识别 pytest/tmp 路径
+
+3. 15 个门控测试：
+   - test_preview_mode_does_not_write_db
+   - test_rejects_real_root_without_flag
+   - test_execute_without_db_path_fails
+   - test_execute_without_confirm_backup_fails
+   - test_wrong_confirm_phrase_rejects
+   - test_fixture_db_execute_succeeds (clean fixture, risk_level=low)
+   - test_execute_creates_backup
+   - test_execute_integrity_ok
+   - test_execute_counts_correct
+   - test_confirm_phrase_validation
+   - test_can_execute_rejects_high_risk
+   - test_can_execute_rejects_failed_backup
+   - test_can_execute_rejects_no_confirmation
+   - test_execute_tool_no_destructive_ops
+   - test_pytest_works_without_arsm
+```
+
+修改文件：core/library/confirm.py, core/library/__init__.py, tools/execute_real_import.py, tests/test_real_import_guard.py
+是否扫描 E:\arsm：是（preview 模式只读扫描，不写 DB）
+是否写真实 DB：否（本轮仅测试 DB execute）
+是否执行真实 execute：否（preview 模式对 E:\arsm；execute 模式仅对 tmp_path DB）
+是否创建/备份真实 DB：否
+是否联网：否
+是否删除/移动/重命名文件：否
+
+preview summary：
+
+```text
+E:\arsm: 281 works, 596 media, risk_level=low, blockers=none
+confirmation phrase: "I confirm: write 281 works + 596 media from 'E:\arsm' to '(not specified)'"
+This is preview only. No database write was performed.
+```
+
+测试 DB execute summary：
+
+```text
+clean fixture (3 works, 3 media): backup created, execute 3 works/3 media/0 unknown, scan_run=1, integrity_check=ok, all counts correct
+```
+
+测试命令：
+
+```powershell
+python -B -m py_compile main.py core/db/*.py core/scanner/*.py core/library/*.py ui/*.py tools/*.py tests/*.py
+python -B tools/execute_real_import.py --root tests/fixtures/library_sample
+python -B tools/execute_real_import.py --root "E:\arsm" --allow-real-root
+python -B -m pytest -v
+python -B tools/db_init.py
+python -B tools/db_inspect.py
+rg "os\.remove|os\.rmdir|shutil\.move|shutil\.rmtree|unlink\(|rename\(" core ui tools tests
+```
+
+测试结果：
+
+```text
+py_compile: PASS
+execute_real_import preview (fixture): risk_level=medium, confirmation phrase printed
+execute_real_import preview (E:\arsm): 281 works, 596 media, risk_level=low
+pytest: 85 passed
+db_init/db_inspect: integrity_check ok
+破坏性文件操作: 无（仅测试断言检查工具不含这些调用）
+core Flet import: 无
+```
+
+Git 状态：4 files (1 modified + 3 new), tmp/ gitignored, no DB committed
+
+风险/备注：
+
+```text
+1. execute 门控链路: --allow-real-root → --allow-real-db → --confirm-backup → --confirm-phrase → risk_level=low → blockers=empty → re-scan → backup → execute
+2. 真实库 E:\arsm 当前 risk_level=low（无 dup/mixed/unknown/errors），理论可执行真实入库，但本轮未执行。
+3. is_real_path / is_tmp_or_fixture_db 使用 tempfile.gettempdir() 识别测试 tmp_path，比硬编码路径更健壮。
+4. 确认短语要求精确匹配大小写和标点，防止 automation bypass。
+5. execute 模式内重新扫描（re-scan），避免 preview 和 execute 之间目录变化导致过期数据。
+```
+
+下一步：
+
+```text
+M3 入库全链路（scan + plan + preview + backup + confirm + execute）全部完成。用户可自主决定是否对真实库执行 --execute。M4 管理 UI MVP 可并行启动。
+```
+
+---
+
+## 2026-06-30 - M3.4 - Codex 审查 guarded real import executor
+
+执行者：Codex
+阶段：M3.4 真实 DB execute 工具设计审查
+目标：审查 DeepSeek M3.4 是否只实现真实 DB execute 工具和门控测试；允许真实 E:\arsm 只读 preview，禁止真实 DB execute。
+
+完成内容：
+
+```text
+1. 审查当前 diff：变更仅涉及 tools/execute_real_import.py、core/library/confirm.py、core/library/__init__.py、tests/test_real_import_guard.py、WORKLOG.md。
+2. 确认未修改 ui/、core/db/schema.py、core/db/vault.py、core/library/executor.py、core/scanner/。
+3. 确认默认模式为 preview-only：不带 --execute 时只 scan + plan + preview，未连接 DB、未写 DB、未备份 DB。
+4. 确认真实 root 门控：扫描 E:\arsm 必须 --allow-real-root。
+5. 确认真实 DB execute 门控：--execute 必须 --db-path、非 tmp DB 必须 --allow-real-db、必须 --confirm-backup、必须精确 --confirm-phrase、preview risk_level 必须 low、blockers 必须为空、backup 成功后才 execute。
+6. 确认 execute 前会重新 scan，不复用旧报告；小修 execute_real_import.py，使重新 scan 后重新生成确认短语、输出当前 counts、重新验证确认短语，再执行 backup/execute。
+7. 小修 tests/test_real_import_guard.py：强化 execute 前输出当前 counts/确认短语断言，并移除破坏性关键字 rg 误报。
+```
+
+修改文件：tools/execute_real_import.py, core/library/confirm.py, core/library/__init__.py, tests/test_real_import_guard.py, WORKLOG.md
+是否改 DB：否（仅测试 tmp_path DB execute；db_init/db_inspect 生成的 yang_kura.db 已清理，不提交）
+是否删除文件：仅清理本轮生成的 __pycache__、.pytest_cache、yang_kura.db；未删除用户资源文件
+是否移动/重命名文件：否
+是否联网：否
+是否扫描 E:\arsm：是，仅读取目录与文件元数据并执行 preview-only
+是否改 UI：否
+是否写真实 DB：否
+是否执行真实 execute：否
+是否创建/备份真实 DB：否
+
+preview summary：
+
+```text
+root_path: E:\arsm
+dry_run: True
+db_write: False
+risk_level: low
+blockers: none
+works_to_upsert_count: 281
+media_files_to_upsert_count: 596
+unknown_folders_to_upsert_count: 0
+duplicate_count: 0
+mixed_count: 0
+warning_count: 0
+error_count: 0
+confirmation phrase: I confirm: write 281 works + 596 media from 'E:\arsm' to '(not specified)'
+```
+
+测试 DB execute summary：
+
+```text
+clean fixture in pytest tmp_path: 3 works, 3 media, 0 unknown
+backup created before execute
+execute_import_plan wrote 3 works / 3 media / 0 unknown / 1 scan_run
+integrity_check: ok
+```
+
+测试命令：
+
+```powershell
+python -B -m py_compile main.py core/db/*.py core/scanner/*.py core/library/*.py ui/*.py tools/*.py tests/*.py
+python -B tools/execute_real_import.py --root tests/fixtures/library_sample
+python -B tools/execute_real_import.py --root "E:\arsm" --allow-real-root
+python -B -m pytest -v
+python -B tools/db_init.py
+python -B tools/db_inspect.py
+rg "os\.remove|os\.rmdir|shutil\.move|shutil\.rmtree|unlink\(|rename\(" core ui tools tests
+```
+
+测试结果：
+
+```text
+py_compile: PASS
+execute_real_import preview fixture: PASS，risk_level=medium，未连接/写入/备份 DB
+execute_real_import preview E:\arsm: PASS，281 works, 596 media, risk_level=low，未连接/写入/备份 DB
+pytest: PASS，85 passed
+db_init: PASS，integrity_check ok
+db_inspect: PASS，5 tables, 6 indexes, integrity_check ok
+破坏性文件操作搜索: 无命中
+core Flet import: 无命中
+UI sqlite3.connect / os.walk: 无命中
+DB/report/backup/cache 提交检查: 未提交；tmp/ 为 ignored
+```
+
+Git 状态：准备提交并推送 M3.4 guarded real import executor；tmp/ 保留为 ignored 产物目录
+风险/备注：
+
+```text
+1. execute_real_import.py 设计上具备真实执行能力，但本轮没有对 E:\arsm + 真实 DB 运行 --execute。
+2. 真实 execute 仍建议由用户手动决定，并在执行前再次确认命令、DB 路径、备份目录和确认短语。
+3. 当前 E:\arsm preview 仍为 risk_level=low、blockers=none，但这只是当前只读扫描结果，不等于自动执行授权。
+```
+
+下一步：
+
+```text
+允许用户手动决定是否执行真实 execute；如继续由 Codex 操作，应另开一轮并明确提供 DB 路径、backup 路径和确认短语，不应在审查轮自动执行。
 ```
