@@ -645,4 +645,165 @@ Git 状态：准备提交并推送 M3.0 ImportPlan dry-run
 
 ```text
 允许进入 M3.1 fixture DB execute，但必须只对 fixture/test DB 执行，继续禁止扫描真实 E:\arsm 和写真实资源库 DB。
+
+---
+
+## 2026-06-30 - M3.1 - fixture DB execute
+
+执行者：Codex
+目标：把 M3.0 ImportPlan 通过 YangKuraVault 写入临时测试 DB，验证 upsert、幂等、唯一约束。只写 tmp_path/test DB，不写真实库。
+
+完成内容：
+
+```text
+1. core/library/executor.py：
+   - ExecuteResult dataclass: works_upserted, media_files_upserted, unknown_folders_upserted, scan_run_inserted, errors
+   - execute_import_plan(vault, plan) -> ExecuteResult
+   - 使用 vault.transaction() 包裹全部写入
+   - works upsert: INSERT ... ON CONFLICT(folder_path) DO UPDATE, title=folder_name, metadata_status='none'
+   - media_files upsert: INSERT ... ON CONFLICT(folder_path, relative_path) DO UPDATE, work_id 通过 works.folder_path 查询绑定
+   - unknown_folders upsert: INSERT ... ON CONFLICT(folder_path) DO UPDATE
+   - scan_runs: 每次执行 INSERT，status='executed', started_at/finished_at 由 executor 生成
+   - 纯 Vault 依赖，不直接 sqlite3.connect
+
+2. core/library/__init__.py 新增导出：ExecuteResult, execute_import_plan
+
+3. tools/execute_fixture_import.py：
+   - 创建 tmp/ 目录，DB 路径 tmp/fixture_import_test.db
+   - scan fixture → build_import_plan → execute_import_plan → print counts + integrity_check
+   - tmp/ 已在 .gitignore，DB 不提交
+
+4. 9 个 execute 测试：
+   - test_fixture_import_writes_to_test_db
+   - test_works_warning_flags_preserved
+   - test_media_files_have_work_id
+   - test_scan_run_inserted
+   - test_double_execute_is_idempotent（works/media/unknown 不翻倍，scan_runs +1）
+   - test_execute_does_not_create_real_db
+   - test_works_fields_populated
+   - test_unknown_folders_fields_populated
+   - test_external_url_is_none
+```
+
+修改文件：core/library/executor.py, core/library/__init__.py, tools/execute_fixture_import.py, tests/test_import_execute.py
+是否改 DB：否（仅对 tmp_path/test DB 写入，不写真实资源库 DB）
+写的 DB 路径：tmp/fixture_import_test.db（工具），tmp_path/test.db（测试）
+是否删除文件：否
+是否移动/重命名文件：否
+是否联网：否
+是否扫描 E:\arsm：否（仅扫描 fixture）
+是否改 UI：否
+
+测试命令：
+
+```powershell
+python -B -m py_compile main.py core/db/*.py core/scanner/*.py core/library/*.py ui/*.py tools/*.py tests/*.py
+python -B tools/execute_fixture_import.py
+python -B -m pytest -v
+python -B tools/db_init.py
+python -B tools/db_inspect.py
+rg "E:\\arsm" core ui tools tests
+rg "os\.remove|os\.rmdir|shutil\.move|shutil\.rmtree|unlink\(|rename\(" core ui tools tests
+rg "sqlite3\.connect" core ui tools tests
+rg "import flet|from flet" core
+```
+
+测试结果：
+
+```text
+py_compile: PASS
+execute_fixture_import: 10 works, 28 media_files, 1 unknown, 1 scan_run, integrity_check ok
+pytest: 46 passed (10 DB + 15 scanner + 12 import_plan + 9 execute)
+db_init/db_inspect: integrity_check ok
+E:\arsm: 仅 tests/test_vault.py（预存 rollback 测试）
+破坏性文件操作: 无
+sqlite3.connect: 仅 core/db/vault.py + tests/test_db_schema.py（合规）
+core Flet import: 无
+```
+
+Git 状态：core/library/__init__.py (modified), 3 new files, tmp/ gitignored, no DB committed
+
+风险/备注：
+
+```text
+1. execute_import_plan 使用 vault.transaction() 包裹全部表操作，任一表写失败则全部 rollback。
+2. media_files ON CONFLICT 依赖唯一索引 idx_media_files_unique_path(folder_path, relative_path)；M1.1 已确保该索引创建。
+3. work_id 映射在 works upsert 之后从 DB 查询获取，确保使用写入后的真实 ID。
+4. 重复执行 media_files 幂等依赖于 (folder_path, relative_path) 唯一约束；同文件变更 size/mtime 会触发 UPDATE。
+5. 本轮未读取 config.yaml 真实库路径，工具只使用 tmp/ 路径。
+```
+
+下一步：
+
+```text
+M3 入库链路 ScanResult → ImportPlan → execute_import_plan 已全链路打通。用户审查后可进入 M4 管理 UI MVP。
+```
+---
+
+## 2026-06-30 - M3.1 - Codex 审查 fixture/test DB execute
+
+执行者：Codex
+目标：审查 DeepSeek 完成的 M3.1 是否只对 fixture/test DB 执行入库；不写真实 DB，不扫描真实 E:\arsm，不接 UI。
+
+完成内容：
+
+```text
+1. 审查当前 diff，确认变更范围限于 core/library/executor.py、core/library/__init__.py、tools/execute_fixture_import.py、tests/test_import_execute.py、WORKLOG.md。
+2. 确认未修改 ui/、core/scanner/、core/db/schema.py、core/db/vault.py。
+3. 审查 execute_import_plan(vault, plan)：只使用外部传入 vault，使用 vault.transaction() 包裹写入，不直接 sqlite3.connect。
+4. 审查 execute_fixture_import.py：只扫描 tests/fixtures/library_sample，只写 gitignored tmp/fixture_import_test.db，不读取 config.yaml。
+5. 验证 works 按 folder_path upsert；media_files 按 folder_path + relative_path upsert；media_files.work_id 通过写入后的 works.id 绑定；unknown_folders 按 folder_path upsert；scan_runs 每次插入一条。
+6. 验证 started_at / finished_at 由 executor 生成；重复执行 works/media_files/unknown_folders 不翻倍，scan_runs 可增加；duplicate/mixed warning_flags 保留；integrity_check ok。
+```
+
+修改文件：core/library/executor.py, core/library/__init__.py, tools/execute_fixture_import.py, tests/test_import_execute.py, WORKLOG.md
+是否改 DB：是，仅写 fixture/test DB；未写真实资源库 DB；测试生成 DB 已清理且未提交
+写的 DB 路径：G:\Codex\Yang Kura\tmp\fixture_import_test.db（工具，已清理），pytest tmp_path\test.db（测试临时目录）
+是否删除文件：仅清理本轮测试生成的 pycache / pytest cache / 测试 DB / tmp fixture DB
+是否移动/重命名文件：否
+是否联网：否
+是否扫描 E:\arsm：否，仅扫描 tests/fixtures/library_sample
+是否改 UI：否
+
+测试命令：
+
+```powershell
+python -B -m py_compile main.py core/db/*.py core/scanner/*.py core/library/*.py ui/*.py tools/*.py tests/*.py
+python -B tools/execute_fixture_import.py
+python -B -m pytest -v
+python -B tools/db_init.py
+python -B tools/db_inspect.py
+rg "E:\\arsm" core ui tools tests
+rg "os\.remove|os\.rmdir|shutil\.move|shutil\.rmtree|unlink\(|rename\(" core ui tools tests
+rg "sqlite3\.connect" core ui tools tests
+rg "config\.yaml|yaml|library_root|yang_kura\.db|E:" core ui tools tests
+```
+
+测试结果：
+
+```text
+py_compile: PASS（PowerShell 不展开通配符，使用等价显式文件列表执行）
+execute_fixture_import: 10 works, 28 media_files, 1 unknown, scan_runs 递增，media_files with work_id 28, integrity_check ok
+pytest: 46 passed
+db_init: integrity_check ok
+db_inspect: 5 tables, 6 indexes, integrity_check ok
+E:\arsm 检查: 无命中
+破坏性文件操作检查: 无命中
+sqlite3.connect: 仅 core/db/vault.py 与 tests/test_db_schema.py 命中
+真实配置/路径检查: 未发现 execute 工具读取 config.yaml 或真实库路径
+```
+
+Git 状态：准备提交并推送 M3.1 fixture/test DB execute
+风险/备注：
+
+```text
+1. execute_fixture_import.py 重复运行会复用 tmp/fixture_import_test.db，因此 scan_runs 会递增；works/media_files/unknown_folders 保持幂等。
+2. execute_import_plan 对传入 plan 执行写入，不检查 plan.dry_run；当前只由 fixture/test DB 工具和测试调用。未来真实库执行入口必须额外加显式确认/备份边界。
+3. mixed_folder 的 work_code_norm 仍为逗号分隔多个 norm，进入真实库前建议再确认 UI/查询展示策略。
+```
+
+下一步：
+
+```text
+允许进入真实库只读扫描报告；仍不允许写真实 DB。进入真实库 execute 前必须新增备份、dry-run preview 和用户确认机制。
 ```
