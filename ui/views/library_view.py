@@ -195,7 +195,7 @@ class LibraryView:
             border_radius=self.r["full"],
             border=ft.border.all(1, self.c["accent"]),
             content=ft.Text(
-                "E:\\arsm  /  ready", size=self.fs["xs"], color=self.c["accent"],
+                "E:\\arsm  /  已就绪", size=self.fs["xs"], color=self.c["accent"],
             ),
         )
 

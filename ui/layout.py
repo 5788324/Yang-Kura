@@ -22,7 +22,7 @@ def build_nav_rail(colors, spacing, radius, font_size, on_select):
                 padding=ft.padding.symmetric(horizontal=6, vertical=1),
                 border_radius=8,
                 bgcolor=colors["surface_alt"],
-                content=ft.Text("Soon", size=9, color=colors["text_dim"]),
+                content=ft.Text("未开放", size=9, color=colors["text_dim"]),
             )
 
         btn_content = ft.Row(

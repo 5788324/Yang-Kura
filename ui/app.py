@@ -28,7 +28,7 @@ class AppShell:
 
         self.body = ft.Container(
             expand=True,
-            content=ft.Text("Loading...", color=self.colors["text_muted"]),
+            content=ft.Text("加载中...", color=self.colors["text_muted"]),
         )
 
         self.nav = build_nav_rail(
