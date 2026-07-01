@@ -2407,3 +2407,139 @@ Test-Path "G:\Codex\Yang Kura\data\yang_kura_real.db"
 ```text
 需要先创建或初始化 G:\Codex\Yang Kura\data\yang_kura_real.db，然后重新执行真实 DB 入库门控流程。
 ```
+
+---
+
+## 2026-07-01 - Real DB initialize and import PASS
+
+执行者：Codex
+阶段：真实 DB 初始化 + 真实入库
+目标：严格分阶段完成空真实 DB 初始化、空 DB 备份、重新 preview、confirmation、execute，并验证真实 DB 入库结果。
+
+结论：PASS
+
+执行前状态：
+```text
+HEAD: 97fcb51 docs: record stopped real db execute
+git status --short: clean
+DB path before: G:\Codex\Yang Kura\data\yang_kura_real.db did not exist
+```
+
+阶段 A - 初始化空真实 DB：
+```text
+是否初始化真实 DB: yes
+DB path: G:\Codex\Yang Kura\data\yang_kura_real.db
+初始化方式: YangKuraVault.init_db()
+integrity_check after init: ok
+works count after init: 0
+media_files count after init: 0
+unknown_folders count after init: 0
+scan_runs count after init: 0
+空 DB 备份路径: G:\Codex\Yang Kura\backups\yang_kura_real.db.backup-20260701T134406_745849Z
+空 DB 备份大小: 65536 bytes
+```
+
+阶段 B - 重新 readiness / blocker / preview：
+```text
+readiness_status: caution
+works: 267
+media_files: 21274
+audio: 8086
+incomplete files: 0
+zero-byte media: 0
+no-audio works: 0
+suspicious extensions: 6
+unknown: 0
+duplicate: 0
+mixed: 0
+preview risk_level: low
+preview blockers: none
+works_to_upsert: 267
+media_files_to_upsert: 21274
+unknown_folders: 0
+duplicate_entries: 0
+mixed_entries: 0
+confirmation phrase: I confirm: write 267 works + 21274 media from 'E:\arsm' to 'G:\Codex\Yang Kura\data\yang_kura_real.db'
+```
+
+阶段 C - 真实 execute：
+```text
+confirmation phrase matched: yes
+execute command included: --allow-real-root --allow-real-db --confirm-backup --execute --recursive --confirm-phrase
+execute tool re-scanned before write: yes
+execute 前备份路径: G:\Codex\Yang Kura\backups\yang_kura_real.db.backup-20260701T134449_238217Z
+execute 前备份大小: 65536 bytes
+works upserted: 267
+media_files upserted: 21274
+unknown_folders upserted: 0
+scan_run inserted: True
+execute errors: 0
+execute integrity_check: ok
+```
+
+阶段 D - 执行后 DB 验证：
+```text
+DB exists: yes
+DB size: 17514496 bytes
+integrity_check: ok
+works count: 267
+media_files count: 21274
+unknown_folders count: 0
+scan_runs count: 1
+duplicate folder_status count: 0
+mixed folder_status count: 0
+media_files null work_id count: 0
+media_files.work_id 全部非空: yes
+backups count requirement: PASS, found empty DB backup and execute-before backup
+```
+
+是否写真实 DB：是
+是否执行真实 DB execute：是
+是否调用 execute_import_plan：是（仅由 tools/execute_real_import.py 在确认、备份、低风险门控通过后调用）
+是否删除/移动/重命名资源文件：否
+是否联网：否
+是否改 UI：否
+是否修改源码：否
+是否提交 DB/backup/report/cache：否
+是否把 data/backups 加入本地 ignore：是，写入 .git/info/exclude，不修改项目源码
+
+报告/产物路径：
+```text
+readiness report: tmp/reports/readiness_audit_2026-07-01T13-44-24.945676+00-00.json
+blocker report: tmp/reports/blocker_detail_2026-07-01T13-44-27.390076+00-00.json
+real DB: data/yang_kura_real.db
+empty DB backup: backups/yang_kura_real.db.backup-20260701T134406_745849Z
+execute-before backup: backups/yang_kura_real.db.backup-20260701T134449_238217Z
+```
+
+Git 状态：
+```text
+git status --short: clean
+git status --short --ignored: data/, backups/, tmp/, pycache, yang_kura.db ignored
+git ls-files tmp data backups logs *.db: logs/.gitkeep only
+```
+
+验证命令：
+```powershell
+git status --short
+git log --oneline -5
+Test-Path "G:\Codex\Yang Kura\data\yang_kura_real.db"
+python -B tools\audit_library_readiness.py --root "E:\arsm" --allow-real-root --recursive
+python -B tools\report_readiness_blockers.py --root "E:\arsm" --allow-real-root --recursive
+python -B tools\execute_real_import.py --root "E:\arsm" --allow-real-root --db-path "G:\Codex\Yang Kura\data\yang_kura_real.db" --recursive
+python -B tools\execute_real_import.py --root "E:\arsm" --allow-real-root --db-path "G:\Codex\Yang Kura\data\yang_kura_real.db" --allow-real-db --backup-dir "G:\Codex\Yang Kura\backups" --confirm-backup --execute --recursive --confirm-phrase "I confirm: write 267 works + 21274 media from 'E:\arsm' to 'G:\Codex\Yang Kura\data\yang_kura_real.db'"
+DB verification query via YangKuraVault
+```
+
+风险/备注：
+```text
+1. 真实 DB 已写入 267 works / 21274 media_files。
+2. readiness 为 caution，剩余 6 个 suspicious extensions 是 warning，不阻断入库。
+3. 本轮没有清理或移动任何资源文件。
+4. DB、backup、report、cache 均为本地产物，不提交 Git。
+```
+
+下一步：
+```text
+允许进入 M4 UI MVP。M4 应只通过 service/Vault 读取真实 DB，不让 UI 直接 sqlite3.connect 或 os.walk。
+```
