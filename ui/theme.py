@@ -1,6 +1,6 @@
 APP_NAME = "Yang Kura"
 APP_SUBTITLE = "Local RJ / ASMR Library Manager"
-CURRENT_STAGE = "M0 + M1"
+CURRENT_STAGE = "M4 Library"
 
 LIGHT_THEME = {
     "bg": "#F7F3EA",
@@ -14,24 +14,30 @@ LIGHT_THEME = {
     "border": "#DECFBA",
     "danger": "#B84A4A",
     "warning": "#B7791F",
-    "success": "#4E8A5A",
+    "success": "#75B884",
     "shadow": "#22000000",
 }
 
 DARK_THEME = {
-    "bg": "#17130F",
-    "surface": "#211B15",
-    "surface_alt": "#2C241C",
-    "primary": "#D6A66D",
-    "primary_soft": "#6E4A2F",
-    "accent": "#E0A15F",
-    "text": "#F2E8D8",
-    "text_muted": "#B9A994",
-    "border": "#3A3027",
-    "danger": "#E06A6A",
-    "warning": "#E0B15F",
-    "success": "#75B884",
+    "bg": "#12141A",
+    "surface": "#1B1E26",
+    "surface_alt": "#272B36",
+    "primary": "#A855F7",
+    "primary_soft": "#7C3AED",
+    "accent": "#06B6D4",
+    "accent_soft": "#0891B2",
+    "text": "#F3F4F6",
+    "text_muted": "#9CA3AF",
+    "text_dim": "#6B7280",
+    "border": "#2D3240",
+    "danger": "#EF4444",
+    "warning": "#F59E0B",
+    "success": "#10B981",
     "shadow": "#55000000",
+    "badge_recognized": "#10B981",
+    "badge_duplicate": "#F59E0B",
+    "badge_mixed": "#EF4444",
+    "card_hover": "rgba(168, 85, 247, 0.06)",
 }
 
 SPACING = {
@@ -48,6 +54,7 @@ RADIUS = {
     "md": 10,
     "lg": 16,
     "xl": 24,
+    "full": 9999,
 }
 
 FONT_SIZE = {
@@ -57,11 +64,12 @@ FONT_SIZE = {
     "lg": 18,
     "xl": 24,
     "title": 34,
+    "stat": 26,
 }
 
 SIZES = {
-    "window_width": 980,
-    "window_height": 640,
+    "window_width": 1200,
+    "window_height": 780,
     "hero_width": 720,
-    "sidebar_width": 172,
+    "sidebar_width": 200,
 }

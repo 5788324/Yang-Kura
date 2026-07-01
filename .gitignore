@@ -34,6 +34,7 @@ logs/*.log
 output/
 cache/
 tmp/
+backups/
 *.tmp
 
 # IDE
