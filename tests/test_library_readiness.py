@@ -122,12 +122,12 @@ def test_tool_no_execute_or_db():
     assert not any(token in source for token in forbidden)
 
 
-def test_fixture_audit_cli_works():
+def test_fixture_audit_cli_works(tmp_path):
     result = subprocess.run(
         [
             sys.executable, "-B", str(AUDIT_TOOL),
             "--root", str(LIBRARY_SAMPLE),
-            "--output-dir", str(LIBRARY_SAMPLE.parent / "tmp_out"),
+            "--output-dir", str(tmp_path),
         ],
         capture_output=True, text=True,
     )
