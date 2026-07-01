@@ -2214,3 +2214,109 @@ Git 状态：准备提交 M3.7 blocker detail report；tmp/、yang_kura.db、pyc
 ```text
 允许用户基于 blocker report 人工处理资源库问题；处理完成后重新运行 recursive readiness/blocker report，再决定是否进入真实 DB execute 门控流程。
 ```
+
+---
+
+## 2026-07-01 - Real library blocker permanent delete cleanup
+
+执行者：Codex
+阶段：真实资源库 readiness blocker 清理
+目标：按用户明确授权，从最新 blocker JSON report 中提取问题作品目录，永久删除 E:\arsm 中对应作品目录，使真实库更接近可入库状态。
+
+结论：PASS
+
+执行前状态：
+```text
+HEAD: 17007cf feat: add readiness blocker report
+git status --short: clean
+before blocker report: tmp/reports/blocker_detail_2026-07-01T13-30-32.965490+00-00.json
+readiness_status before: blocked
+incomplete_files before: 5
+zero_byte_media before: 8
+no_audio_works before: 11
+suspicious_extensions before: 11
+```
+
+永久删除作品目录数量：14
+
+永久删除清单：
+```text
+1. E:\arsm\RJ01491538 【音声CG430分超_！】全キャラ溺愛不可避！！〇〇特化の未経験JKたちとP活よりLOVEしよ_♪今年の冬は、これ1本で心もカラダもぽかぽか♪【本編が更に楽しめる㊙特典付】 | reason: incomplete
+2. E:\arsm\RJ01505672 【简体中文版】将童贞与处女都献给因为太过喜欢你而忍不住在教会里自慰的清纯扶她修女的背德纯爱SEX | reason: no_audio
+3. E:\arsm\RJ01510511 【5周年超特大作品!!】孕ませ教室 ～妊娠率100%の幼馴染JKと婚約者先輩JKの溺愛ハメ比べ逆レイプ～《‼13大特典‼》 | reason: incomplete
+4. E:\arsm\RJ01519975 クイズ式オナサポダンジョン 〜間違え続けたら…、どうなっちゃうか分かってるよね♡〜 | reason: zero_byte
+5. E:\arsm\RJ01529215 【3周年記念×10時間半×4人ハーレム王×王族母乳女神官】～ ハメン・ラー ～ 神の生まれ変わりのボクと…その子種を孕みし…4人のドスケベ爆乳雌神官さまたち…♪ | reason: no_audio
+6. E:\arsm\RJ01529589 【简体中文版】与两位超喜欢舌吻的Coser进行优越感MAX的后宫3P-轮番浓情蜜意舌吻&优越感爆棚实况&一边舌吻一边无套内射-【接吻特化】 | reason: no_audio
+7. E:\arsm\RJ01530934 【母乳まみれ】母乳親娘丼♡ ～裏垢で人気の親娘は僕の親友の母と姉でした～ | reason: no_audio
+8. E:\arsm\RJ01532943 【简体中文版】『姐姐把身为清纯处女的怯懦邻居姐姐调教成最喜欢做爱的超下流小穴了。～成对姐姐小穴后宫～』 | reason: no_audio
+9. E:\arsm\RJ01549508 『クラスの爆乳陽キャギャル達が、眠れるまで囁き添い寝してくれると言うので、頼んだら、日に日にエッチなことをしてきて、寝かせてくれない。』 | reason: no_audio
+10. E:\arsm\RJ01552529 【たっぷり長編】敬礼！オマンコ軍人サクラとカレンの誇りある慰安任務活動♪【KU100】 | reason: no_audio
+11. E:\arsm\RJ01556689 【繁体中文版】【囁きハーレム濃厚4P！】こっそりしちゃお！～姪っ子三姉妹とワンルーム同棲性活～【KU100】 | reason: no_audio
+12. E:\arsm\RJ01561008 【简体中文版】淫乱魅魔和菜鸟治愈师双重内射后宫～被等级吸收性爱袭击后，拼命用小穴治愈抵抗的无止尽轮回～【KU100收录】 | reason: no_audio
+13. E:\arsm\RJ01562485 JK双人口交！清纯JK雏子与辣妹JK美佳的淫荡肉棒吮吸♪ | reason: no_audio
+14. E:\arsm\RJ01564776 【悩みがある夜に聞いてほしい】爆乳シスター姉妹がおちんぽシゴきながら悩みを親身に聞いてくれるお話 | reason: no_audio
+```
+
+安全检查：
+```text
+1. 删除目标全部来自最新 blocker JSON report 的 folder_path。
+2. 删除目标只来自 incomplete_files / zero_byte_media_files / no_audio_works。
+3. suspicious_extensions 未单独作为删除依据。
+4. 去重后删除目录数量 14，未超过 30。
+5. 每个路径均在 E:\arsm 下。
+6. 每个路径均为目录，且不是 E:\arsm 根目录。
+7. 删除后逐项确认源路径不存在。
+```
+
+执行后复查：
+```text
+readiness report: tmp/reports/readiness_audit_2026-07-01T13-33-10.098704+00-00.json
+blocker report after: tmp/reports/blocker_detail_2026-07-01T13-33-14.750719+00-00.json
+preview report: tmp/reports/import_preview_2026-07-01T13-33-11.389539+00-00.json
+readiness_status after: caution
+works count after: 267
+media_files count after: 21274
+audio count after: 8086
+incomplete files after: 0
+zero-byte media after: 0
+no-audio works after: 0
+suspicious extensions after: 6
+unknown count after: 0
+duplicate count after: 0
+mixed count after: 0
+preview risk_level: low
+preview blockers: none
+```
+
+是否写 DB：否
+是否执行真实 DB execute：否
+是否调用 execute_import_plan：否
+是否联网：否
+是否移动/隔离：否
+是否永久删除：是，用户明确授权
+是否删除 E:\arsm 以外路径：否
+是否修改源码：否
+是否提交 report/DB/backup/cache：否
+
+测试/验证命令：
+```powershell
+git status --short
+git log --oneline -5
+python -B tools\report_readiness_blockers.py --root "E:\arsm" --allow-real-root --recursive
+Remove-Item -LiteralPath <folder_path from latest blocker JSON> -Recurse -Force
+python -B tools\audit_library_readiness.py --root "E:\arsm" --allow-real-root --recursive
+python -B tools\report_readiness_blockers.py --root "E:\arsm" --allow-real-root --recursive
+python -B tools\preview_real_import.py --root "E:\arsm" --allow-real-root --recursive
+```
+
+风险/备注：
+```text
+1. 本轮为永久删除，不进回收站，不保留隔离副本。
+2. readiness 已从 blocked 变为 caution，剩余 6 个 suspicious extension 仅为警告，不属于本轮 blocker 删除依据。
+3. 本轮没有执行真实 DB 入库；如进入真实 execute，仍必须走 M3.4 preview/backup/confirmation 门控。
+```
+
+下一步：
+```text
+允许进入真实 DB execute 门控流程，但本轮未执行真实 DB execute。
+```
