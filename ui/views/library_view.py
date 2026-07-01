@@ -27,238 +27,195 @@ def _format_size(size_bytes):
     return f"{size_bytes / (1024 * 1024):.1f} MB"
 
 
-def _status_badge(status, colors):
+def _format_count(n):
+    if n >= 10000:
+        return f"{n / 1000:.0f}k"
+    return str(n)
+
+
+def _status_badge(status, c):
     color_map = {
-        "recognized": colors["badge_recognized"],
-        "duplicate": colors["badge_duplicate"],
-        "mixed": colors["badge_mixed"],
-    }
-    label_map = {
-        "recognized": "Recognized",
-        "duplicate": "Duplicate",
-        "mixed": "Mixed",
+        "recognized": c["badge_recognized"],
+        "duplicate": c["badge_duplicate"],
+        "mixed": c["badge_mixed"],
     }
     return ft.Container(
-        padding=ft.padding.symmetric(horizontal=8, vertical=3),
+        padding=ft.padding.symmetric(horizontal=8, vertical=2),
         border_radius=8,
-        bgcolor=color_map.get(status, colors["surface_alt"]),
+        bgcolor=color_map.get(status, c["surface_alt"]),
         content=ft.Text(
-            label_map.get(status, status),
-            size=11,
+            status.capitalize(),
+            size=10,
             weight=ft.FontWeight.W_600,
             color="#ffffff",
         ),
     )
 
 
-def _stat_card(icon, label, value, colors, spacing, radius):
-    return ft.Container(
-        padding=ft.padding.all(spacing["lg"]),
-        border_radius=radius["lg"],
-        bgcolor=colors["surface"],
-        border=ft.border.all(1, colors["border"]),
-        content=ft.Row(
-            spacing=spacing["md"],
-            controls=[
-                ft.Icon(name=icon, size=22, color=colors["accent"]),
-                ft.Column(
-                    spacing=2,
-                    controls=[
-                        ft.Text(
-                            label,
-                            size=11,
-                            color=colors["text_muted"],
-                            weight=ft.FontWeight.W_500,
-                        ),
-                        ft.Text(
-                            str(value),
-                            size=22,
-                            weight=ft.FontWeight.W_700,
-                            color=colors["text"],
-                        ),
-                    ],
-                ),
-            ],
-        ),
+def _compact_stat(label, value, color_value, c, sp):
+    return ft.Row(
+        spacing=6,
+        controls=[
+            ft.Text(label, size=11, color=c["text_dim"]),
+            ft.Text(str(value), size=14, weight=ft.FontWeight.W_700, color=color_value),
+        ],
     )
 
 
-def _drawer_detail(work, media_files, colors, spacing, radius, font_size):
-    if not work:
-        return ft.Container(
-            padding=spacing["xl"],
-            content=ft.Text("Select a work to view details", color=colors["text_muted"]),
-        )
-
-    type_icons = {
-        "audio": ft.icons.MUSIC_NOTE,
-        "video": ft.icons.VIDEO_FILE,
-        "image": ft.icons.IMAGE,
-        "subtitle": ft.icons.SUBTITLES,
-        "text": ft.icons.DESCRIPTION,
-        "archive": ft.icons.ARCHIVE,
-        "other": ft.icons.INSERT_DRIVE_FILE,
-    }
-
-    file_rows = []
-    for mf in media_files:
-        icon = type_icons.get(mf["file_type"], ft.icons.INSERT_DRIVE_FILE)
-        file_rows.append(
-            ft.Row(
-                spacing=spacing["sm"],
-                controls=[
-                    ft.Icon(name=icon, size=15, color=colors["text_muted"]),
-                    ft.Text(
-                        mf["relative_path"],
-                        size=font_size["xs"],
-                        color=colors["text"],
-                        expand=True,
-                    ),
-                    ft.Text(
-                        _format_size(mf["size"]),
-                        size=font_size["xs"],
-                        color=colors["text_dim"],
-                    ),
-                    ft.Text(
-                        mf["extension"],
-                        size=font_size["xs"],
-                        color=colors["text_muted"],
-                    ),
-                ],
-            )
-        )
-
-    return ft.Column(
-        spacing=spacing["lg"],
-        scroll=ft.ScrollMode.AUTO,
-        expand=True,
-        controls=[
-            ft.Row(
-                spacing=spacing["md"],
-                controls=[
-                    ft.Text(
-                        work.get("folder_name", ""),
-                        size=font_size["lg"],
-                        weight=ft.FontWeight.W_700,
-                        color=colors["text"],
-                        expand=True,
-                    ),
-                    _status_badge(work.get("folder_status", ""), colors),
-                ],
-            ),
-            ft.Row(
-                spacing=spacing["md"],
-                controls=[
-                    ft.Text(
-                        f"RJ: {work.get('work_code_raw', '-')}",
-                        size=font_size["sm"],
-                        color=colors["accent"],
-                    ),
-                    ft.Text(
-                        f"{work.get('work_type', '').upper()} #{work.get('work_number', 0)}",
-                        size=font_size["sm"],
-                        color=colors["text_muted"],
-                    ),
-                ],
-            ),
-            ft.Container(height=1, bgcolor=colors["border"]),
-            ft.Text(
-                f"Media Files ({len(media_files)})",
-                size=font_size["sm"],
-                weight=ft.FontWeight.W_600,
-                color=colors["text"],
-            ),
-            ft.Container(
-                expand=True,
-                content=ft.Column(
-                    spacing=spacing["xs"],
-                    controls=file_rows,
-                    scroll=ft.ScrollMode.AUTO,
-                ),
-            ),
-        ],
+def _cover_placeholder(name, size, c, r):
+    hue = abs(hash(name)) % 360
+    return ft.Container(
+        width=size,
+        height=size,
+        border_radius=r["md"],
+        gradient=ft.LinearGradient(
+            begin=ft.alignment.top_left,
+            end=ft.alignment.bottom_right,
+            colors=[f"hsl({hue},30%,18%)", f"hsl({(hue+40)%360},25%,12%)"],
+        ),
+        alignment=ft.alignment.center,
+        content=ft.Text(
+            name[:3].upper() if name else "RJ",
+            size=18,
+            weight=ft.FontWeight.W_700,
+            color=c["text_dim"],
+        ),
     )
 
 
 class LibraryView:
     def __init__(self, page: ft.Page, colors, spacing, radius, font_size):
         self.page = page
-        self.colors = colors
-        self.spacing = spacing
-        self.radius = radius
-        self.font_size = font_size
+        self.c = colors
+        self.sp = spacing
+        self.r = radius
+        self.fs = font_size
 
         self.vault = None
         self.db_found = False
         self.db_error = ""
-
         self.summary_data = {}
         self.works_data = []
         self.current_work_id = None
 
         self.search_field = ft.TextField(
-            hint_text="Search works...",
-            border_radius=self.radius["md"],
-            bgcolor=self.colors["surface"],
-            border_color=self.colors["border"],
-            text_size=self.font_size["sm"],
-            cursor_color=self.colors["accent"],
-            color=self.colors["text"],
-            hint_style=ft.TextStyle(color=self.colors["text_dim"]),
+            hint_text="Search...",
+            border_radius=self.r["md"],
+            bgcolor=self.c["surface"],
+            border_color=self.c["border"],
+            text_size=self.fs["sm"],
+            cursor_color=self.c["accent"],
+            color=self.c["text"],
+            hint_style=ft.TextStyle(color=self.c["text_dim"]),
+            prefix_icon=ft.icons.SEARCH,
             on_submit=lambda e: self._do_search(),
             expand=True,
         )
-
-        self.type_filter = ft.Dropdown(
-            hint_text="Type",
+        self.type_dd = ft.Dropdown(
             options=[
                 ft.dropdown.Option("", "All Types"),
                 ft.dropdown.Option("rj", "RJ"),
                 ft.dropdown.Option("bj", "BJ"),
                 ft.dropdown.Option("vj", "VJ"),
             ],
-            border_radius=self.radius["md"],
-            bgcolor=self.colors["surface"],
-            border_color=self.colors["border"],
-            color=self.colors["text"],
-            text_size=self.font_size["sm"],
+            border_radius=self.r["md"],
+            bgcolor=self.c["surface"],
+            border_color=self.c["border"],
+            color=self.c["text"],
+            text_size=self.fs["sm"],
             on_change=lambda e: self._do_search(),
-            width=120,
+            width=110,
+            value="",
         )
-
-        self.status_filter = ft.Dropdown(
-            hint_text="Status",
+        self.status_dd = ft.Dropdown(
             options=[
                 ft.dropdown.Option("", "All"),
                 ft.dropdown.Option("recognized", "Recognized"),
                 ft.dropdown.Option("duplicate", "Duplicate"),
                 ft.dropdown.Option("mixed", "Mixed"),
             ],
-            border_radius=self.radius["md"],
-            bgcolor=self.colors["surface"],
-            border_color=self.colors["border"],
-            color=self.colors["text"],
-            text_size=self.font_size["sm"],
+            border_radius=self.r["md"],
+            bgcolor=self.c["surface"],
+            border_color=self.c["border"],
+            color=self.c["text"],
+            text_size=self.fs["sm"],
             on_change=lambda e: self._do_search(),
-            width=130,
+            width=120,
+            value="",
         )
 
-        self.work_list = ft.ListView(
+        self.works_column = ft.Column(
+            spacing=self.sp["sm"],
+            scroll=ft.ScrollMode.AUTO,
             expand=True,
-            spacing=self.spacing["sm"],
-            padding=ft.padding.only(top=self.spacing["md"]),
+        )
+
+        self.detail_content = ft.Column(
+            spacing=self.sp["lg"],
+            scroll=ft.ScrollMode.AUTO,
+            expand=True,
+            controls=[
+                ft.Container(
+                    alignment=ft.alignment.center,
+                    padding=ft.padding.only(top=80),
+                    content=ft.Column(
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        spacing=self.sp["md"],
+                        controls=[
+                            ft.Icon(
+                                name=ft.icons.ARROW_BACK,
+                                size=32,
+                                color=self.c["text_dim"],
+                            ),
+                            ft.Text(
+                                "Select a work to view details",
+                                size=self.fs["sm"],
+                                color=self.c["text_dim"],
+                                text_align=ft.TextAlign.CENTER,
+                            ),
+                        ],
+                    ),
+                ),
+            ],
         )
 
         self.detail_panel = ft.Container(
-            width=380,
-            padding=self.spacing["xl"],
-            bgcolor=self.colors["surface"],
-            border=ft.border.only(left=ft.BorderSide(1, self.colors["border"])),
+            width=420,
+            padding=self.sp["xl"],
+            bgcolor=self.c["surface"],
+            border=ft.border.only(left=ft.BorderSide(1, self.c["border"])),
+            content=self.detail_content,
+        )
+
+        self.header_badge = ft.Container(
+            padding=ft.padding.symmetric(horizontal=12, vertical=4),
+            border_radius=self.r["full"],
+            border=ft.border.all(1, self.c["accent"]),
             content=ft.Text(
-                "Select a work to view details",
-                color=self.colors["text_muted"],
-                size=self.font_size["sm"],
+                "E:\\arsm  /  ready",
+                size=self.fs["xs"],
+                color=self.c["accent"],
             ),
+        )
+
+        self.stats_row = ft.Row(
+            spacing=self.sp["sm"],
+            wrap=True,
+            run_spacing=self.sp["xs"],
+        )
+
+        self.main_panel = ft.Container(
+            expand=True,
+            padding=ft.padding.all(self.sp["xl"]),
+            content=ft.Column(
+                expand=True,
+                spacing=self.sp["md"],
+            ),
+        )
+
+        self.body_row = ft.Row(
+            expand=True,
+            controls=[self.main_panel, self.detail_panel],
         )
 
         self.init_db()
@@ -269,7 +226,6 @@ class LibraryView:
             self.db_found = False
             self.db_error = f"DB not found: {db_path}"
             return
-
         try:
             self.vault = YangKuraVault(db_path)
             self.vault.connect()
@@ -283,125 +239,113 @@ class LibraryView:
     def _do_search(self):
         if not self.vault:
             return
-
         try:
             self.summary_data = get_library_summary(self.vault)
         except Exception:
             self.summary_data = {}
-
-        work_type = self.type_filter.value
-        if work_type == "":
-            work_type = None
-        folder_status = self.status_filter.value
-        if folder_status == "":
-            folder_status = None
-
+        wt = self.type_dd.value or None
+        fs = self.status_dd.value or None
         try:
             self.works_data = list_works(
                 self.vault,
                 search=self.search_field.value or "",
-                work_type=work_type,
-                folder_status=folder_status,
-                limit=200,
+                work_type=wt,
+                folder_status=fs,
+                limit=120,
             )
         except Exception:
             self.works_data = []
-
-        self._rebuild()
+        self._rebuild_main()
 
     def _select_work(self, work_id):
         self.current_work_id = work_id
-        self._rebuild()
+        self._rebuild_detail()
 
-    def _rebuild(self):
-        works = self.works_data
+    def _rebuild_main(self):
+        c = self.c
+        sp = self.sp
+        r = self.r
+        fs = self.fs
         s = self.summary_data
-        c = self.colors
-        sp = self.spacing
-        r = self.radius
-        fs = self.font_size
 
-        stats_row = ft.Row(
-            wrap=True,
-            spacing=sp["md"],
-            run_spacing=sp["sm"],
-            controls=[
-                _stat_card(ft.icons.LIBRARY_MUSIC, "Works", s.get("works_count", 0), c, sp, r),
-                _stat_card(ft.icons.MUSIC_NOTE, "Audio", s.get("audio_count", 0), c, sp, r),
-                _stat_card(ft.icons.IMAGE, "Images", s.get("image_count", 0), c, sp, r),
-                _stat_card(ft.icons.VIDEO_FILE, "Video", s.get("video_count", 0), c, sp, r),
-                _stat_card(ft.icons.SUBTITLES, "Subtitle", s.get("subtitle_count", 0), c, sp, r),
-                _stat_card(ft.icons.WARNING_AMBER, "Dup/Mixed",
-                           f"{s.get('duplicate_count', 0)}/{s.get('mixed_count', 0)}", c, sp, r),
-            ],
-        )
+        self.stats_row.controls = [
+            _compact_stat("Works", s.get("works_count", 0), c["accent"], c, sp),
+            _compact_stat("Audio", _format_count(s.get("audio_count", 0)), c["primary"], c, sp),
+            _compact_stat("Img", _format_count(s.get("image_count", 0)), c["text"], c, sp),
+            _compact_stat("Video", s.get("video_count", 0), c["text"], c, sp),
+            _compact_stat("Sub", s.get("subtitle_count", 0), c["text"], c, sp),
+            _compact_stat("Text", s.get("text_count", 0), c["text"], c, sp),
+        ]
 
-        filter_row = ft.Row(
-            spacing=sp["sm"],
-            controls=[
-                self.search_field,
-                self.type_filter,
-                self.status_filter,
-            ],
-        )
-
-        work_cards = []
-        type_icons_map = {
-            "audio": ft.icons.MUSIC_NOTE,
-            "video": ft.icons.VIDEO_FILE,
-            "image": ft.icons.IMAGE,
-            "subtitle": ft.icons.SUBTITLES,
-            "text": ft.icons.DESCRIPTION,
-            "archive": ft.icons.ARCHIVE,
-        }
-
-        for w in works:
+        cards = []
+        for w in self.works_data:
             wid = w["id"]
             selected = wid == self.current_work_id
-            border_side = ft.BorderSide(
-                2, c["accent"] if selected else c["border"]
+            border_c = c["accent"] if selected else c["border"]
+            border_w = 2 if selected else 1
+
+            cover = _cover_placeholder(
+                w.get("folder_name", "RJ"), 56, c, r
             )
 
-            work_cards.append(
+            cards.append(
                 ft.Container(
-                    padding=sp["lg"],
                     border_radius=r["lg"],
                     bgcolor=c["surface"],
-                    border=ft.border.all(1, border_side),
+                    border=ft.border.all(border_w, border_c),
+                    padding=sp["md"],
                     ink=True,
                     on_click=lambda e, work_id=wid: self._select_work(work_id),
-                    content=ft.Column(
-                        spacing=sp["sm"],
+                    content=ft.Row(
+                        spacing=sp["md"],
                         controls=[
-                            ft.Row(
-                                spacing=sp["md"],
-                                controls=[
-                                    ft.Text(
-                                        w.get("folder_name", "-"),
-                                        size=fs["md"],
-                                        weight=ft.FontWeight.W_600,
-                                        color=c["text"],
-                                        expand=True,
-                                        max_lines=1,
-                                        overflow=ft.TextOverflow.ELLIPSIS,
-                                    ),
-                                    _status_badge(w.get("folder_status", ""), c),
-                                ],
-                            ),
-                            ft.Row(
-                                spacing=sp["md"],
+                            cover,
+                            ft.Column(
+                                spacing=4,
+                                expand=True,
                                 controls=[
                                     ft.Row(
-                                        spacing=4,
+                                        spacing=sp["sm"],
                                         controls=[
-                                            ft.Icon(name=type_icons_map.get("audio", ft.icons.MUSIC_NOTE), size=13, color=c["accent"]),
-                                            ft.Text(f"{w.get('work_code_raw', '-')}", size=fs["xs"], color=c["accent"], weight=ft.FontWeight.W_500),
+                                            ft.Text(
+                                                w.get("folder_name", "-"),
+                                                size=fs["sm"],
+                                                weight=ft.FontWeight.W_600,
+                                                color=c["text"],
+                                                expand=True,
+                                                max_lines=1,
+                                                overflow=ft.TextOverflow.ELLIPSIS,
+                                            ),
+                                            _status_badge(
+                                                w.get("folder_status", "recognized"), c
+                                            ),
                                         ],
                                     ),
                                     ft.Text(
-                                        f"{w.get('work_type', '').upper()} #{w.get('work_number', 0)}",
+                                        w.get("work_code_raw", "-"),
                                         size=fs["xs"],
-                                        color=c["text_muted"],
+                                        color=c["accent"],
+                                        weight=ft.FontWeight.W_500,
+                                    ),
+                                    ft.Row(
+                                        spacing=sp["md"],
+                                        controls=[
+                                            ft.Text(
+                                                f"files {w['media_count']}",
+                                                size=10,
+                                                color=c["text_dim"],
+                                            ),
+                                            ft.Text(
+                                                f"audio {w['audio_count']}",
+                                                size=10,
+                                                color=c["text_dim"],
+                                            ),
+                                            ft.Text(
+                                                f"img {w['image_count']}",
+                                                size=10,
+                                                color=c["text_dim"],
+                                            ),
+                                        ],
                                     ),
                                 ],
                             ),
@@ -410,101 +354,209 @@ class LibraryView:
                 )
             )
 
-        self.work_list.controls = work_cards
+        self.works_column.controls = cards
 
-        media_files = []
-        if self.current_work_id and self.vault:
-            try:
-                media_files = list_media_files(self.vault, self.current_work_id)
-            except Exception:
-                pass
-
-        work_detail = None
-        if self.current_work_id and self.vault:
-            try:
-                work_detail = get_work_detail(self.vault, self.current_work_id)
-            except Exception:
-                pass
-
-        self.detail_panel.content = _drawer_detail(
-            work_detail, media_files, c, sp, r, fs
+        header_col = ft.Column(
+            spacing=sp["sm"],
+            controls=[
+                ft.Row(
+                    spacing=sp["md"],
+                    controls=[
+                        ft.Text("Library", size=fs["xl"], weight=ft.FontWeight.W_700,
+                                color=c["text"]),
+                        self.header_badge,
+                    ],
+                ),
+                ft.Container(content=self.stats_row),
+                ft.Row(
+                    spacing=sp["sm"],
+                    controls=[self.search_field, self.type_dd, self.status_dd],
+                ),
+                ft.Container(height=1, bgcolor=c["border"]),
+            ],
         )
-        self.detail_panel.visible = True
 
-        if works:
-            self.content = ft.Column(
-                spacing=sp["xl"],
+        if self.works_data:
+            col = ft.Column(
                 expand=True,
-                scroll=ft.ScrollMode.AUTO,
+                spacing=sp["md"],
                 controls=[
-                    ft.Text("Library", size=fs["xl"], weight=ft.FontWeight.W_700,
-                            color=c["text"]),
-                    stats_row,
-                    filter_row,
-                    ft.Container(
-                        height=1,
-                        bgcolor=c["border"],
-                    ),
-                    self.work_list,
+                    header_col,
+                    self.works_column,
                 ],
             )
         elif not self.db_found:
-            self.content = ft.Container(
+            col = ft.Column(
                 expand=True,
-                alignment=ft.alignment.center,
-                content=ft.Column(
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=sp["lg"],
-                    controls=[
-                        ft.Icon(name=ft.icons.ERROR_OUTLINE, size=48, color=c["text_dim"]),
-                        ft.Text("Database not found", size=fs["xl"], weight=ft.FontWeight.W_700, color=c["text"]),
-                        ft.Text(self.db_error, size=fs["sm"], color=c["text_muted"]),
-                        ft.Text(
-                            "Set YANG_KURA_DB_PATH environment variable or\nplace yang_kura_real.db in data/",
-                            size=fs["xs"],
-                            color=c["text_dim"],
-                            text_align=ft.TextAlign.CENTER,
+                spacing=sp["md"],
+                controls=[
+                    header_col,
+                    ft.Container(
+                        expand=True,
+                        alignment=ft.alignment.center,
+                        content=ft.Column(
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            spacing=sp["lg"],
+                            controls=[
+                                ft.Icon(name=ft.icons.ERROR_OUTLINE, size=48,
+                                        color=c["text_dim"]),
+                                ft.Text("Database not found", size=fs["lg"],
+                                        weight=ft.FontWeight.W_700, color=c["text"]),
+                                ft.Text(self.db_error, size=fs["sm"],
+                                        color=c["text_muted"]),
+                                ft.Text(
+                                    "Set YANG_KURA_DB_PATH or\nplace yang_kura_real.db in data/",
+                                    size=fs["xs"], color=c["text_dim"],
+                                    text_align=ft.TextAlign.CENTER,
+                                ),
+                            ],
                         ),
-                    ],
-                ),
+                    ),
+                ],
             )
-            self.detail_panel.visible = False
         else:
-            self.content = ft.Container(
+            col = ft.Column(
                 expand=True,
-                alignment=ft.alignment.center,
-                content=ft.Column(
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=sp["md"],
-                    controls=[
-                        ft.Icon(name=ft.icons.LIBRARY_MUSIC, size=48, color=c["text_dim"]),
-                        ft.Text("No works found", size=fs["lg"], color=c["text_muted"]),
-                    ],
-                ),
+                spacing=sp["md"],
+                controls=[
+                    header_col,
+                    ft.Container(
+                        expand=True,
+                        alignment=ft.alignment.center,
+                        content=ft.Column(
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            spacing=sp["md"],
+                            controls=[
+                                ft.Icon(name=ft.icons.LIBRARY_MUSIC, size=48,
+                                        color=c["text_dim"]),
+                                ft.Text("No works found", size=fs["lg"],
+                                        color=c["text_muted"]),
+                            ],
+                        ),
+                    ),
+                ],
             )
-            self.detail_panel.visible = False
 
+        self.main_panel.content = col
+        self.page.update()
+
+    def _rebuild_detail(self):
+        c = self.c
+        sp = self.sp
+        fs = self.fs
+
+        if not self.current_work_id or not self.vault:
+            self.detail_content.controls = [
+                ft.Container(
+                    alignment=ft.alignment.center,
+                    padding=ft.padding.only(top=80),
+                    content=ft.Column(
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        spacing=sp["md"],
+                        controls=[
+                            ft.Icon(name=ft.icons.ARROW_BACK, size=32, color=c["text_dim"]),
+                            ft.Text("Select a work to view details",
+                                    size=fs["sm"], color=c["text_dim"],
+                                    text_align=ft.TextAlign.CENTER),
+                        ],
+                    ),
+                ),
+            ]
+            self.page.update()
+            return
+
+        try:
+            work = get_work_detail(self.vault, self.current_work_id)
+            media_files = list_media_files(self.vault, self.current_work_id)
+        except Exception:
+            work = None
+            media_files = []
+
+        if not work:
+            self.detail_content.controls = [
+                ft.Text("Work not found", size=fs["sm"], color=c["text_muted"]),
+            ]
+            self.page.update()
+            return
+
+        type_icons = {
+            "audio": ft.icons.MUSIC_NOTE,
+            "video": ft.icons.VIDEO_FILE,
+            "image": ft.icons.IMAGE,
+            "subtitle": ft.icons.SUBTITLES,
+            "text": ft.icons.DESCRIPTION,
+            "archive": ft.icons.ARCHIVE,
+            "other": ft.icons.INSERT_DRIVE_FILE,
+        }
+
+        file_rows = []
+        for mf in media_files:
+            icon = type_icons.get(mf["file_type"], ft.icons.INSERT_DRIVE_FILE)
+            file_rows.append(
+                ft.Container(
+                    padding=ft.padding.symmetric(vertical=3),
+                    content=ft.Row(
+                        spacing=sp["sm"],
+                        controls=[
+                            ft.Icon(name=icon, size=14, color=c["text_dim"]),
+                            ft.Text(
+                                mf["relative_path"],
+                                size=fs["xs"],
+                                color=c["text"],
+                                expand=True,
+                                max_lines=1,
+                                overflow=ft.TextOverflow.ELLIPSIS,
+                            ),
+                            ft.Text(
+                                _format_size(mf["size"]),
+                                size=10,
+                                color=c["text_dim"],
+                            ),
+                        ],
+                    ),
+                )
+            )
+
+        folder_status = work.get("folder_status", "")
+        detail_controls = [
+            ft.Row(
+                spacing=sp["md"],
+                controls=[
+                    ft.Text(
+                        work.get("folder_name", "-"),
+                        size=fs["lg"],
+                        weight=ft.FontWeight.W_700,
+                        color=c["text"],
+                        expand=True,
+                    ),
+                    _status_badge(folder_status, c),
+                ],
+            ),
+            ft.Text(
+                work.get("work_code_raw", "-"),
+                size=fs["sm"],
+                color=c["accent"],
+                weight=ft.FontWeight.W_500,
+            ),
+            ft.Container(height=1, bgcolor=c["border"]),
+            ft.Text(
+                f"Media Files ({len(media_files)})",
+                size=fs["sm"],
+                weight=ft.FontWeight.W_600,
+                color=c["text"],
+            ),
+            ft.Column(
+                spacing=2,
+                controls=file_rows,
+                scroll=ft.ScrollMode.AUTO,
+                expand=True,
+            ),
+        ]
+
+        self.detail_content.controls = detail_controls
         self.page.update()
 
     def build(self):
-        if not hasattr(self, "content"):
-            self.content = ft.Container(
-                expand=True,
-                alignment=ft.alignment.center,
-                content=ft.ProgressRing(color=self.colors["accent"]),
-            )
-        self.detail_panel.visible = bool(self.db_found and self.works_data)
-
-        return ft.Row(
-            expand=True,
-            controls=[
-                ft.Container(
-                    expand=True,
-                    padding=ft.padding.all(self.spacing["xl"]),
-                    content=self.content,
-                ),
-                self.detail_panel,
-            ],
-        )
+        return self.body_row

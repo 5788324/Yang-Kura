@@ -1,6 +1,7 @@
 APP_NAME = "Yang Kura"
 APP_SUBTITLE = "Local RJ / ASMR Library Manager"
 CURRENT_STAGE = "M4 Library"
+LIBRARY_ROOT = "E:\\arsm"
 
 LIGHT_THEME = {
     "bg": "#F7F3EA",
