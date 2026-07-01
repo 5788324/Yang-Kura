@@ -175,3 +175,9 @@ def test_report_json_serializable(tmp_path):
 
 def test_pytest_works_without_arsm():
     assert LIBRARY_SAMPLE.is_dir()
+
+
+def test_recursive_readiness_reduces_no_audio():
+    nonrec = build_readiness_report(scan_library_root(LIBRARY_SAMPLE, recursive=False))
+    rec = build_readiness_report(scan_library_root(LIBRARY_SAMPLE, recursive=True))
+    assert rec.no_audio_work_count <= nonrec.no_audio_work_count

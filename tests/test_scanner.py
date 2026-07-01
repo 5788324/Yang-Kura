@@ -193,3 +193,51 @@ def test_zero_padded_rj_preserves_raw_and_duplicates():
     assert original is not None
     assert original.work_code_norm == "rj323125"
     assert original.folder_status == "duplicate"
+
+
+def test_recursive_false_keeps_old_behavior():
+    result = scan_library_root(LIBRARY_SAMPLE)
+    result_rec = scan_library_root(LIBRARY_SAMPLE, recursive=False)
+    assert result.total_dirs == result_rec.total_dirs
+    assert result.media_files_count == result_rec.media_files_count
+
+
+def test_recursive_finds_nested_media():
+    result = scan_library_root(LIBRARY_SAMPLE, recursive=True)
+    w = _by_norm(result, "rj777777")
+    assert w is not None
+    assert len(w.media_files) >= 3
+    rel_paths = {mf.relative_path for mf in w.media_files}
+    assert any("/" in r or "\\" in r for r in rel_paths)
+    assert any("CD1" in r for r in rel_paths)
+    assert any("track01.wav" in r for r in rel_paths)
+
+
+def test_recursive_folder_path_is_work_dir():
+    result = scan_library_root(LIBRARY_SAMPLE, recursive=True)
+    w = _by_norm(result, "rj777777")
+    assert w is not None
+    work_path = w.folder_path
+    for mf in w.media_files:
+        assert mf.folder_path == work_path
+
+
+def test_recursive_relative_path_contains_subdirs():
+    result = scan_library_root(LIBRARY_SAMPLE, recursive=True)
+    w = _by_norm(result, "rj777777")
+    subdir_files = [
+        mf for mf in w.media_files
+        if "CD1" in mf.relative_path or "CD2" in mf.relative_path or "scans" in mf.relative_path
+    ]
+    assert len(subdir_files) >= 2
+    assert any(mf.relative_path.endswith("track01.wav") for mf in subdir_files)
+
+
+def test_recursive_subdirs_not_independent_works():
+    result = scan_library_root(LIBRARY_SAMPLE, recursive=True)
+    w = _by_folder_name(result, "CD1")
+    assert w is None
+    w = _by_folder_name(result, "CD2")
+    assert w is None
+    w = _by_folder_name(result, "scans")
+    assert w is None

@@ -23,7 +23,7 @@ def is_real_path(path_str):
     return False
 
 
-def build_report(scan_result, plan, scanned_at):
+def build_report(scan_result, plan, scanned_at, recursive=False):
     file_type_counts = {}
     extension_dist = {}
     for w in scan_result.works:
@@ -95,6 +95,7 @@ def build_report(scan_result, plan, scanned_at):
         "mixed_examples": mixed_examples[:30],
         "scanner_mode": "read_only",
         "db_write": False,
+        "recursive": recursive,
     }
 
 
@@ -214,6 +215,7 @@ def main():
         action="store_true",
         help="Required to scan non-fixture paths (e.g. E:\\arsm)",
     )
+    parser.add_argument("--recursive", action="store_true")
     parser.add_argument(
         "--output-dir", default=None, help="Output directory for JSON/MD reports"
     )
@@ -228,12 +230,12 @@ def main():
         print(f"  fixture: {FIXTURE_ROOT}")
         return 1
 
-    print(f"Scanning: {args.root} ...")
-    scan_result = scan_library_root(args.root)
+    print(f"Scanning: {args.root} (recursive={args.recursive}) ...")
+    scan_result = scan_library_root(args.root, recursive=args.recursive)
     plan = build_import_plan(scan_result)
     scanned_at = datetime.now(timezone.utc).isoformat()
 
-    report = build_report(scan_result, plan, scanned_at)
+    report = build_report(scan_result, plan, scanned_at, recursive=args.recursive)
     print_summary(report)
 
     out_dir = Path(args.output_dir) if args.output_dir else (ROOT / "tmp" / "reports")

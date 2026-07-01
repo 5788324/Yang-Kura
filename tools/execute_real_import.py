@@ -89,6 +89,7 @@ def main():
     parser.add_argument("--confirm-backup", action="store_true")
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--confirm-phrase", default=None)
+    parser.add_argument("--recursive", action="store_true")
 
     args = parser.parse_args()
 
@@ -97,8 +98,8 @@ def main():
         print(f"  root: {args.root}")
         return 1
 
-    print(f"Scanning: {args.root} ...")
-    scan_result = scan_library_root(args.root)
+    print(f"Scanning: {args.root} (recursive={args.recursive}) ...")
+    scan_result = scan_library_root(args.root, recursive=args.recursive)
     plan = build_import_plan(scan_result)
     preview = build_import_preview(plan)
 
@@ -145,7 +146,7 @@ def main():
         return 1
 
     print("Re-scanning before execute ...")
-    scan_result = scan_library_root(args.root)
+    scan_result = scan_library_root(args.root, recursive=args.recursive)
     plan = build_import_plan(scan_result)
     preview = build_import_preview(plan)
     confirm_phrase = build_confirmation_phrase(

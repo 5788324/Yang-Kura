@@ -34,6 +34,38 @@ def _scan_files(dir_path):
     return files
 
 
+def _scan_files_recursive(dir_path):
+    files = []
+    work_dir = Path(dir_path).resolve()
+    try:
+        for entry in sorted(work_dir.rglob("*"), key=lambda p: str(p).lower()):
+            if entry.is_file():
+                suffix = entry.suffix.lower()
+                file_type = classify_file(suffix)
+                try:
+                    stat = entry.stat()
+                    size = stat.st_size
+                    mtime = stat.st_mtime
+                except OSError:
+                    size = 0
+                    mtime = 0
+                rel = str(entry.relative_to(work_dir))
+                files.append(
+                    MediaFileEntry(
+                        folder_path=str(work_dir),
+                        relative_path=rel,
+                        file_name=entry.name,
+                        file_type=file_type,
+                        extension=suffix,
+                        size=size,
+                        mtime=mtime,
+                    )
+                )
+    except OSError:
+        pass
+    return files
+
+
 def _build_unknown(dir_path, folder_name, reason, media_files):
     counts = {}
     total_size = 0
@@ -57,7 +89,7 @@ def _build_unknown(dir_path, folder_name, reason, media_files):
     )
 
 
-def scan_library_root(root_path):
+def scan_library_root(root_path, recursive=False):
     root = Path(root_path).resolve()
     result = ScanResult(root_path=str(root), total_dirs=0)
 
@@ -80,7 +112,10 @@ def scan_library_root(root_path):
     for dir_path in entries:
         folder_name = dir_path.name
         codes = parse_work_codes(folder_name)
-        media_files = _scan_files(dir_path)
+        if recursive:
+            media_files = _scan_files_recursive(dir_path)
+        else:
+            media_files = _scan_files(dir_path)
 
         file_code_norms = set()
         for mf in media_files:

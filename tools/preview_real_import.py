@@ -50,7 +50,7 @@ def print_summary(preview, scan_result):
     )
 
 
-def save_preview(preview, scan_result, out_dir):
+def save_preview(preview, scan_result, out_dir, recursive=False):
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).isoformat().replace(":", "-")
@@ -73,6 +73,7 @@ def save_preview(preview, scan_result, out_dir):
         "root_path": scan_result.root_path,
         "total_dirs": scan_result.total_dirs,
         "scanner_mode": "read_only",
+        "recursive": recursive,
         "confirmation_note": "This is preview only. No database write was performed. "
         "Real execute requires separate command, DB backup, and explicit confirmation.",
     }
@@ -124,6 +125,7 @@ def main():
         action="store_true",
         help="Required to scan non-fixture paths (e.g. E:\\arsm)",
     )
+    parser.add_argument("--recursive", action="store_true")
     parser.add_argument(
         "--output-dir", default=None, help="Output directory for preview reports"
     )
@@ -135,15 +137,15 @@ def main():
         print(f"  fixture: {FIXTURE_ROOT}")
         return 1
 
-    print(f"Scanning: {args.root} ...")
-    scan_result = scan_library_root(args.root)
+    print(f"Scanning: {args.root} (recursive={args.recursive}) ...")
+    scan_result = scan_library_root(args.root, recursive=args.recursive)
     plan = build_import_plan(scan_result)
     preview = build_import_preview(plan)
 
     print_summary(preview, scan_result)
 
     out_dir = args.output_dir if args.output_dir else str(ROOT / "tmp" / "reports")
-    json_path, md_path = save_preview(preview, scan_result, out_dir)
+    json_path, md_path = save_preview(preview, scan_result, out_dir, recursive=args.recursive)
 
     print(f"\nJSON preview: {json_path}")
     print(f"Markdown preview: {md_path}")

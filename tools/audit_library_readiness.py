@@ -173,6 +173,7 @@ def main():
     parser = argparse.ArgumentParser(description="Yang Kura library readiness audit")
     parser.add_argument("--root", required=True, help="Root path to audit")
     parser.add_argument("--allow-real-root", action="store_true")
+    parser.add_argument("--recursive", action="store_true")
     parser.add_argument("--output-dir", default=None)
     args = parser.parse_args()
 
@@ -181,8 +182,8 @@ def main():
         print(f"  root: {args.root}")
         return 1
 
-    print(f"Auditing: {args.root} ...")
-    scan_result = scan_library_root(args.root)
+    print(f"Auditing: {args.root} (recursive={args.recursive}) ...")
+    scan_result = scan_library_root(args.root, recursive=args.recursive)
     report = build_readiness_report(scan_result)
 
     print_summary(report)
