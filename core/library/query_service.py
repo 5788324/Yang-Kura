@@ -138,3 +138,32 @@ def list_media_files(vault, work_id):
         (work_id,),
     )
     return [dict(row) for row in rows]
+
+
+def count_works(vault, search="", work_type=None, folder_status=None):
+    conditions = []
+    params = []
+
+    if search:
+        conditions.append(
+            "(work_code_norm LIKE ? OR work_code_raw LIKE ? "
+            "OR folder_name LIKE ? OR title LIKE ?)"
+        )
+        like = f"%{search}%"
+        params.extend([like, like, like, like])
+
+    if work_type:
+        conditions.append("work_type = ?")
+        params.append(work_type)
+
+    if folder_status:
+        conditions.append("folder_status = ?")
+        params.append(folder_status)
+
+    where = ""
+    if conditions:
+        where = "WHERE " + " AND ".join(conditions)
+
+    sql = f"SELECT COUNT(*) AS cnt FROM works {where}"
+    row = vault.execute_read(sql, params)
+    return row[0]["cnt"] if row else 0

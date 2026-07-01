@@ -5,6 +5,7 @@ import flet as ft
 
 from core.db import YangKuraVault
 from core.library import (
+    count_works,
     get_library_summary,
     get_work_detail,
     list_media_files,
@@ -74,9 +75,11 @@ class LibraryView:
         self.summary_data = {}
         self.works_data = []
         self.current_work_id = None
+        self._search_wt = None
+        self._search_fs = None
 
         self.search_field = ft.TextField(
-            hint_text="Search...",
+            hint_text="搜索 RJ号 / 文件夹名...",
             border_radius=self.r["md"],
             bgcolor=self.c["surface"],
             border_color=self.c["border"],
@@ -90,7 +93,7 @@ class LibraryView:
         )
         self.type_dd = ft.Dropdown(
             options=[
-                ft.dropdown.Option("", "All Types"),
+                ft.dropdown.Option("", "全部类型"),
                 ft.dropdown.Option("rj", "RJ"),
                 ft.dropdown.Option("bj", "BJ"),
                 ft.dropdown.Option("vj", "VJ"),
@@ -106,7 +109,7 @@ class LibraryView:
         )
         self.status_dd = ft.Dropdown(
             options=[
-                ft.dropdown.Option("", "All"),
+                ft.dropdown.Option("", "全部状态"),
                 ft.dropdown.Option("recognized", "Recognized"),
                 ft.dropdown.Option("duplicate", "Duplicate"),
                 ft.dropdown.Option("mixed", "Mixed"),
@@ -128,7 +131,7 @@ class LibraryView:
         )
 
         self.count_hint = ft.Text(
-            "", size=11, color=self.c["text_dim"], italic=True,
+            "", size=11, color=self.c["text_dim"],
         )
 
         self.stats_row = ft.Row(
@@ -220,6 +223,8 @@ class LibraryView:
 
         wt = self.type_dd.value or None
         fs_st = self.status_dd.value or None
+        self._search_wt = wt
+        self._search_fs = fs_st
         try:
             self.works_data = list_works(
                 self.vault,
@@ -263,7 +268,18 @@ class LibraryView:
         else:
             self.error_banner.visible = False
 
-        self.count_hint.value = f"Showing {len(self.works_data)} works"
+        total = self.summary_data.get("works_count", 0)
+        if total == 0:
+            try:
+                total = count_works(
+                    self.vault,
+                    search=self.search_field.value or "",
+                    work_type=self._search_wt,
+                    folder_status=self._search_fs,
+                )
+            except Exception:
+                pass
+        self.count_hint.value = f"显示 {len(self.works_data)} / {total} 个作品"
 
         card_controls = []
         for w in self.works_data:
@@ -477,6 +493,12 @@ class LibraryView:
 
         total_media = len(media_files)
         show_media = media_files[:300]
+
+        type_counts = {}
+        for mf in media_files:
+            ft_key = mf["file_type"]
+            type_counts[ft_key] = type_counts.get(ft_key, 0) + 1
+
         file_rows = []
         for mf in show_media:
             icon = type_icons.get(mf["file_type"], ft.icons.INSERT_DRIVE_FILE)
@@ -504,7 +526,28 @@ class LibraryView:
 
         media_title = f"Media Files ({total_media})"
         if total_media > 300:
-            media_title += f" — showing first 300"
+            media_title += f" — 显示前 300"
+
+        def _type_pill(ft_key, label, ic):
+            cnt = type_counts.get(ft_key, 0)
+            return ft.Row(
+                spacing=3,
+                controls=[
+                    ft.Icon(name=ic, size=11, color=c["text_dim"]),
+                    ft.Text(f"{label}:{cnt}", size=10, color=c["text_dim"]),
+                ],
+            )
+
+        type_icons_compact = {
+            "audio": ft.icons.MUSIC_NOTE,
+            "image": ft.icons.IMAGE,
+            "video": ft.icons.VIDEO_FILE,
+            "subtitle": ft.icons.SUBTITLES,
+            "text": ft.icons.DESCRIPTION,
+            "archive": ft.icons.ARCHIVE,
+            "other": ft.icons.INSERT_DRIVE_FILE,
+        }
+        type_pills = [_type_pill(k, k[:4], v) for k, v in type_icons_compact.items()]
 
         detail_controls = [
             ft.Row(
@@ -521,15 +564,10 @@ class LibraryView:
                 ],
             ),
             ft.Text(work.get("work_code_raw", "-"), size=fs["sm"], color=c["accent"], weight=ft.FontWeight.W_500),
-            ft.Text(work.get("folder_path", "-"), size=10, color=c["text_dim"]),
+            ft.Text(work.get("folder_path", "-"), size=10, color=c["text_dim"], max_lines=2, overflow=ft.TextOverflow.ELLIPSIS),
             ft.Container(height=1, bgcolor=c["border"]),
             ft.Text(media_title, size=fs["sm"], weight=ft.FontWeight.W_600, color=c["text"]),
-            ft.Row(
-                spacing=sp["md"],
-                controls=[
-                    ft.Text(f"files:{total_media}", size=10, color=c["text_dim"]),
-                ],
-            ),
+            ft.Row(spacing=sp["md"], wrap=True, run_spacing=2, controls=type_pills),
         ]
 
         if detail_error:

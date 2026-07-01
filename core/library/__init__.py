@@ -14,6 +14,7 @@ from .import_plan import (
 from .importer import build_import_plan
 from .preview import ImportPreview, build_import_preview
 from .query_service import (
+    count_works,
     get_library_summary,
     get_work_detail,
     list_media_files,
@@ -32,6 +33,7 @@ __all__ = [
     "build_import_plan",
     "build_import_preview",
     "can_execute_real_import",
+    "count_works",
     "execute_import_plan",
     "get_library_summary",
     "get_work_detail",
