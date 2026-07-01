@@ -2320,3 +2320,90 @@ python -B tools\preview_real_import.py --root "E:\arsm" --allow-real-root --recu
 ```text
 允许进入真实 DB execute 门控流程，但本轮未执行真实 DB execute。
 ```
+
+---
+
+## 2026-07-01 - Real DB execute STOP because DB missing
+
+执行者：Codex
+阶段：真实 DB 入库门控
+目标：严格按 M3.4 preview / backup / confirmation 门控，将 E:\arsm recursive scan 结果写入真实 Yang-Kura SQLite DB。
+
+结论：STOP
+
+完成内容：
+- 确认仓库状态 clean。
+- 确认 HEAD 为 11654d2 docs: record deleted readiness blockers。
+- 复跑 E:\arsm recursive readiness：readiness_status=caution，未 blocked。
+- 复跑 E:\arsm recursive blocker report：incomplete=0，zero-byte=0，no-audio=0，剩余 suspicious_ext=6 warning。
+- 运行 execute_real_import.py preview-only，未写 DB。
+- 检查真实 DB 路径 G:\Codex\Yang Kura\data\yang_kura_real.db，结果不存在。
+- 按用户明确规则 STOP：真实 DB 不存在，无法先备份后 execute；未创建 DB，未 execute。
+
+修改文件：WORKLOG.md
+是否改 DB：否
+是否写真实 DB：否
+是否执行真实 DB execute：否
+是否创建真实 DB：否
+是否备份 DB：否
+是否删除/移动/重命名资源文件：否
+是否联网：否
+是否改 UI：否
+是否提交 DB/backup/report/cache：否
+
+readiness summary：
+```text
+readiness_status: caution
+works: 267
+media_files: 21274
+audio: 8086
+incomplete files: 0
+zero-byte media: 0
+no-audio works: 0
+suspicious extensions: 6
+unknown: 0
+duplicate: 0
+mixed: 0
+```
+
+preview summary：
+```text
+dry_run: True
+db_write: False
+risk_level: low
+blockers: none
+works_to_upsert: 267
+media_files_to_upsert: 21274
+unknown_folders: 0
+duplicate_entries: 0
+mixed_entries: 0
+confirmation phrase: I confirm: write 267 works + 21274 media from 'E:\arsm' to 'G:\Codex\Yang Kura\data\yang_kura_real.db'
+```
+
+停止原因：
+```text
+真实 DB 不存在，无法先备份后 execute。
+DB path: G:\Codex\Yang Kura\data\yang_kura_real.db
+```
+
+测试/验证命令：
+```powershell
+git status --short
+git log --oneline -5
+python -B tools\audit_library_readiness.py --root "E:\arsm" --allow-real-root --recursive
+python -B tools\report_readiness_blockers.py --root "E:\arsm" --allow-real-root --recursive
+python -B tools\execute_real_import.py --root "E:\arsm" --allow-real-root --db-path "G:\Codex\Yang Kura\data\yang_kura_real.db" --recursive
+Test-Path "G:\Codex\Yang Kura\data\yang_kura_real.db"
+```
+
+风险/备注：
+```text
+1. 本轮没有绕过备份门控。
+2. 本轮没有创建真实 DB。
+3. 如要继续真实入库，需要先由用户决定如何创建/初始化真实 DB，再重新走 preview / backup / confirmation 门控。
+```
+
+下一步：
+```text
+需要先创建或初始化 G:\Codex\Yang Kura\data\yang_kura_real.db，然后重新执行真实 DB 入库门控流程。
+```
