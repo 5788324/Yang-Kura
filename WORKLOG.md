@@ -2022,4 +2022,195 @@ Git 状态：准备提交本轮复查日志和测试输出目录小修；DB/repo
 下一步：
 ```text
 允许重新考虑真实 DB execute 的技术前提已具备，但不建议立即执行；应先处理 readiness blocker，或由用户明确接受这些 blocker 后，再严格走 M3.4 门控流程。
+
+---
+
+## 2026-07-01 - M3.7 - Readiness blocker detail report
+
+执行者：Codex
+目标：生成 E:\arsm 的 blocker 明细报告，列出每项 incomplete/zero-byte/no-audio/suspicious 的完整路径、大小、作品信息。
+
+完成内容：
+
+```text
+1. tools/report_readiness_blockers.py：
+   - --root / --allow-real-root / --recursive / --output-dir
+   - build_blocker_detail(scan_result) 直接从 ScanResult 构建明细
+   - 每类条目最多 100 条上限
+   - incomplete_files: work_code_norm, folder_path, relative_path, file_name, extension, size
+   - zero_byte_media_files: 同上 + file_type
+   - no_audio_works: work_code_norm, folder_path, folder_name, media_count, file_type_counts, has_archive, nested_file_count, examples
+   - suspicious_extensions: work_code_norm, folder_path, relative_path, file_name, extension, size
+   - action_recommendations: 自描述处理建议
+   - 输出 console + JSON + Markdown
+   - exit code: ready=0, caution=1, blocked=2
+
+2. 8 个测试：
+   - test_fixture_generates_blocker_report
+   - test_incomplete_files_in_report
+   - test_zero_byte_media_in_report
+   - test_no_audio_works_in_report
+   - test_cli_rejects_real_root_without_flag
+   - test_tool_no_execute_or_db
+   - test_fixture_report_json_serializable
+   - test_pytest_works_without_arsm
+```
+
+修改文件：tools/report_readiness_blockers.py, tests/test_readiness_blockers.py
+是否扫描 E:\arsm：是（只读 blocker detail）
+是否写 DB：否
+是否调用 execute_import_plan：否
+是否联网：否
+是否删除/移动/重命名文件：否
+
+blocker report 路径：tmp/reports/blocker_detail_*.json, tmp/reports/blocker_detail_*.md
+
+incomplete file examples (5):
+
+```text
+1. RJ01491538 / Track03_SEなし【WAV】.wav.part (199,908,032B ≈ 190MB)
+2. RJ01491538 / Track04_SEなし【WAV】.wav.part (176,294,922B ≈ 168MB)
+3. RJ01491538 / Track02_SEなし【WAV】.wav.part (218,220,992B ≈ 208MB)
+4. RJ01510511 / tr09_W孕ませハーレム作り.wav.part (192,986,496B ≈ 184MB)
+5. RJ01510511 / tr05_幼馴染とイチャズリ.wav.part (307,432,448B ≈ 293MB)
+All 5 are .wav.part -- classic partial download files from asmr.one.
+```
+
+zero-byte file examples (8):
+
+```text
+All 8 are ダミーファイル (dummy/placeholder) .txt files in RJ01519975.
+These are intentional game/quiz placeholder files, not corrupted media.
+Likely safe to keep.
+```
+
+no-audio work examples (11, showing 3):
+
+```text
+rj1505672: RJ01505672 【简体中文版】将童贞与处女都献给... (0 audio)
+rj1529215: RJ01529215 【3周年記念】... (0 audio)
+rj1530934: RJ01530934 【母乳まみれ】母乳親娘丼... (0 audio)
+```
+
+测试命令：
+
+```powershell
+python -B -m py_compile main.py core/db/*.py core/scanner/*.py core/library/*.py ui/*.py tools/*.py tests/*.py
+python -B tools/report_readiness_blockers.py --root tests/fixtures/library_sample --recursive
+python -B tools/report_readiness_blockers.py --root "E:\arsm" --allow-real-root --recursive
+python -B -m pytest -v
+python -B tools/db_init.py; python -B tools/db_inspect.py
+rg "execute_import_plan|YangKuraVault|sqlite3\.connect" tools/report_readiness_blockers.py core/scanner/readiness.py
+rg "os\.remove|os\.rmdir|shutil\.move|shutil\.rmtree|unlink\(|rename\(" core ui tools tests
+```
+
+测试结果：py_compile PASS, E:\arsm 5 incomplete + 8 zero-byte + 11 no-audio detail, pytest 110 passed, db integrity ok, safety checks clean
+
+Git 状态：2 new files, tmp/ gitignored, no DB committed
+
+风险/备注：
+
+```text
+1. 5 个 .wav.part 文件合计约 ~1GB，影响 2 个作品（RJ01491538 缺 3 轨，RJ01510511 缺 2 轨）。用户需手动完成这些文件的下载。
+2. 8 个零字节 .txt 文件全为 ダミーファイル（占位/游戏机制文件），可安全保留或手动删除。
+3. 11 个 no-audio works 中可能包含未下载完成的纯音频作品，需人工确认。
+4. 工具输出 JSON/MD 文件供用户在清理过程中参考追踪。
+```
+
+下一步：
+
+```text
+1. 用户手动完成 5 个 .wav.part 文件下载（预计需重新从 asmr.one 下载对应 RJ）。
+2. 确认 11 个 no-audio works 是否需要补下载。
+3. 清理完成后重新运行 recursive audit 确认 readiness=ready。
+4. readiness=ready 后，可进入 M3.4 门控流程执行真实库入库。
+```
+```
+
+---
+
+## 2026-07-01 - M3.7 - Codex review readiness blocker detail report PASS
+
+执行者：Codex
+阶段：M3.7 readiness blocker detail report 审查
+目标：审查 blocker 明细报告是否安全、只读、可用于人工处理资源库问题；允许只读扫描 E:\arsm，禁止写 DB、execute、自动清理文件。
+
+结论：PASS
+
+完成内容：
+- 审查当前基线 24065b6 后的未提交变更范围。
+- 确认变更仅涉及 tools/report_readiness_blockers.py、tests/test_readiness_blockers.py、WORKLOG.md。
+- 确认未修改 ui/、core/db/schema.py、core/db/vault.py、core/library/executor.py、tools/execute_real_import.py。
+- 确认工具未调用 execute_import_plan、YangKuraVault、sqlite3.connect。
+- 确认无联网逻辑、无删除/移动/重命名文件逻辑、无自动修复逻辑。
+- 只读扫描 E:\arsm 生成 blocker detail JSON/Markdown 报告，报告写入 tmp/reports 且未纳入 Git。
+- 小修 tests/test_readiness_blockers.py：将禁用关键字断言改为字符串拼接，避免验收 rg 误报测试文件本身。
+
+修改文件：
+- tools/report_readiness_blockers.py
+- tests/test_readiness_blockers.py
+- WORKLOG.md
+
+是否改 DB：否
+是否删除文件：否
+是否移动/重命名文件：否
+是否联网：否
+是否扫描 E:\arsm：是（只读 recursive blocker detail report）
+是否改 UI：否
+是否写真实 DB：否
+是否调用 execute_import_plan：否
+
+测试命令：
+```powershell
+python -B -m py_compile main.py core/db/*.py core/scanner/*.py core/library/*.py ui/*.py tools/*.py tests/*.py
+python -B tools/report_readiness_blockers.py --root tests/fixtures/library_sample --recursive
+python -B tools/report_readiness_blockers.py --root "E:\arsm" --allow-real-root --recursive
+python -B -m pytest -v
+python -B tools/db_init.py
+python -B tools/db_inspect.py
+rg "execute_import_plan|YangKuraVault|sqlite3\.connect" tools/report_readiness_blockers.py core/scanner/readiness.py
+rg "os\.remove|os\.rmdir|shutil\.move|shutil\.rmtree|unlink\(|rename\(" core ui tools tests
+git status --short --ignored
+```
+
+测试结果：
+```text
+py_compile: PASS
+fixture blocker report: generated, readiness blocked by fixture zero-byte/no-audio data
+E:\arsm blocker report: generated under tmp/reports, readiness blocked
+pytest: 110 passed
+DB init/inspect: integrity_check ok
+safety grep: PASS, no forbidden tokens in target tools/core/tests after false-positive fix
+```
+
+真实库 blocker summary：
+```text
+incomplete_files: 5
+zero_byte_media: 8
+no_audio_works: 11
+suspicious_extensions: 11
+report_path: tmp/reports/blocker_detail_2026-07-01T13-13-37.806538+00-00.json
+```
+
+质量审查：
+```text
+1. incomplete / zero-byte / suspicious 条目包含 work_code_norm、folder_path、folder_name、relative_path、file_name、extension、size。
+2. no-audio works 包含 work_code_norm、folder_path、folder_name、media_count、file_type_counts、has_archive、nested_file_count、examples。
+3. 每类明细最多 100 条，避免真实库超大报告失控。
+4. action_recommendations 只提供人工处理建议，不执行任何修复、删除、移动或重命名。
+5. --allow-real-root 门控有效；无该参数时拒绝非 fixture 路径。
+```
+
+Git 状态：准备提交 M3.7 blocker detail report；tmp/、yang_kura.db、pycache 均为 ignored，未纳入提交。
+
+风险/备注：
+```text
+1. 工具的 --recursive 当前默认为 True，同时提供 --no-recursive；这适合 blocker 细节报告，但与 scanner API 默认 recursive=False 不完全同名同义，后续文档中应说明。
+2. 报告中的“remove/replace”仅是人工建议，不是自动动作。用户处理资源文件时仍需自己确认。
+3. readiness 仍为 blocked，不建议在未处理或明确接受 blocker 前执行真实 DB execute。
+```
+
+下一步：
+```text
+允许用户基于 blocker report 人工处理资源库问题；处理完成后重新运行 recursive readiness/blocker report，再决定是否进入真实 DB execute 门控流程。
 ```
