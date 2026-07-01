@@ -44,10 +44,7 @@ def _status_badge(status, c):
         border_radius=8,
         bgcolor=color_map.get(status, c["surface_alt"]),
         content=ft.Text(
-            status.capitalize(),
-            size=10,
-            weight=ft.FontWeight.W_600,
-            color="#ffffff",
+            status.capitalize(), size=10, weight=ft.FontWeight.W_600, color="#ffffff",
         ),
     )
 
@@ -62,27 +59,6 @@ def _compact_stat(label, value, color_value, c, sp):
     )
 
 
-def _cover_placeholder(name, size, c, r):
-    hue = abs(hash(name)) % 360
-    return ft.Container(
-        width=size,
-        height=size,
-        border_radius=r["md"],
-        gradient=ft.LinearGradient(
-            begin=ft.alignment.top_left,
-            end=ft.alignment.bottom_right,
-            colors=[f"hsl({hue},30%,18%)", f"hsl({(hue+40)%360},25%,12%)"],
-        ),
-        alignment=ft.alignment.center,
-        content=ft.Text(
-            name[:3].upper() if name else "RJ",
-            size=18,
-            weight=ft.FontWeight.W_700,
-            color=c["text_dim"],
-        ),
-    )
-
-
 class LibraryView:
     def __init__(self, page: ft.Page, colors, spacing, radius, font_size):
         self.page = page
@@ -94,6 +70,7 @@ class LibraryView:
         self.vault = None
         self.db_found = False
         self.db_error = ""
+        self.load_error = ""
         self.summary_data = {}
         self.works_data = []
         self.current_work_id = None
@@ -144,14 +121,39 @@ class LibraryView:
             value="",
         )
 
-        self.works_column = ft.Column(
-            spacing=self.sp["sm"],
-            scroll=ft.ScrollMode.AUTO,
+        self.works_list = ft.ListView(
             expand=True,
+            spacing=6,
+            padding=ft.padding.only(right=8),
+        )
+
+        self.count_hint = ft.Text(
+            "", size=11, color=self.c["text_dim"], italic=True,
+        )
+
+        self.stats_row = ft.Row(
+            spacing=self.sp["sm"], wrap=True, run_spacing=self.sp["xs"],
+        )
+
+        self.header_badge = ft.Container(
+            padding=ft.padding.symmetric(horizontal=12, vertical=4),
+            border_radius=self.r["full"],
+            border=ft.border.all(1, self.c["accent"]),
+            content=ft.Text(
+                "E:\\arsm  /  ready", size=self.fs["xs"], color=self.c["accent"],
+            ),
+        )
+
+        self.error_banner = ft.Container(
+            visible=False,
+            padding=self.sp["md"],
+            border_radius=self.r["md"],
+            bgcolor="#3B1A1A",
+            border=ft.border.all(1, self.c["danger"]),
         )
 
         self.detail_content = ft.Column(
-            spacing=self.sp["lg"],
+            spacing=self.sp["md"],
             scroll=ft.ScrollMode.AUTO,
             expand=True,
             controls=[
@@ -162,17 +164,8 @@ class LibraryView:
                         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                         spacing=self.sp["md"],
                         controls=[
-                            ft.Icon(
-                                name=ft.icons.ARROW_BACK,
-                                size=32,
-                                color=self.c["text_dim"],
-                            ),
-                            ft.Text(
-                                "Select a work to view details",
-                                size=self.fs["sm"],
-                                color=self.c["text_dim"],
-                                text_align=ft.TextAlign.CENTER,
-                            ),
+                            ft.Icon(name=ft.icons.ARROW_BACK, size=32, color=self.c["text_dim"]),
+                            ft.Text("Select a work", size=self.fs["sm"], color=self.c["text_dim"]),
                         ],
                     ),
                 ),
@@ -187,31 +180,7 @@ class LibraryView:
             content=self.detail_content,
         )
 
-        self.header_badge = ft.Container(
-            padding=ft.padding.symmetric(horizontal=12, vertical=4),
-            border_radius=self.r["full"],
-            border=ft.border.all(1, self.c["accent"]),
-            content=ft.Text(
-                "E:\\arsm  /  ready",
-                size=self.fs["xs"],
-                color=self.c["accent"],
-            ),
-        )
-
-        self.stats_row = ft.Row(
-            spacing=self.sp["sm"],
-            wrap=True,
-            run_spacing=self.sp["xs"],
-        )
-
-        self.main_panel = ft.Container(
-            expand=True,
-            padding=ft.padding.all(self.sp["xl"]),
-            content=ft.Column(
-                expand=True,
-                spacing=self.sp["md"],
-            ),
-        )
+        self.main_panel = ft.Container(expand=True, padding=ft.padding.all(self.sp["xl"]))
 
         self.body_row = ft.Row(
             expand=True,
@@ -225,6 +194,7 @@ class LibraryView:
         if not Path(db_path).exists():
             self.db_found = False
             self.db_error = f"DB not found: {db_path}"
+            self._rebuild_main()
             return
         try:
             self.vault = YangKuraVault(db_path)
@@ -235,30 +205,38 @@ class LibraryView:
         except Exception as e:
             self.db_found = False
             self.db_error = f"DB error: {e}"
+            self._rebuild_main()
 
     def _do_search(self):
         if not self.vault:
             return
+
+        self.load_error = ""
         try:
             self.summary_data = get_library_summary(self.vault)
-        except Exception:
+        except Exception as e:
             self.summary_data = {}
+            self.load_error = f"summary load error: {e}"
+
         wt = self.type_dd.value or None
-        fs = self.status_dd.value or None
+        fs_st = self.status_dd.value or None
         try:
             self.works_data = list_works(
                 self.vault,
                 search=self.search_field.value or "",
                 work_type=wt,
-                folder_status=fs,
+                folder_status=fs_st,
                 limit=120,
             )
-        except Exception:
+        except Exception as e:
             self.works_data = []
+            self.load_error = f"works load error: {e}"
+
         self._rebuild_main()
 
     def _select_work(self, work_id):
         self.current_work_id = work_id
+        self._rebuild_main()
         self._rebuild_detail()
 
     def _rebuild_main(self):
@@ -277,75 +255,64 @@ class LibraryView:
             _compact_stat("Text", s.get("text_count", 0), c["text"], c, sp),
         ]
 
-        cards = []
+        if self.load_error:
+            self.error_banner.content = ft.Text(
+                self.load_error, size=fs["xs"], color=c["danger"],
+            )
+            self.error_banner.visible = True
+        else:
+            self.error_banner.visible = False
+
+        self.count_hint.value = f"Showing {len(self.works_data)} works"
+
+        card_controls = []
         for w in self.works_data:
             wid = w["id"]
             selected = wid == self.current_work_id
             border_c = c["accent"] if selected else c["border"]
             border_w = 2 if selected else 1
 
-            cover = _cover_placeholder(
-                w.get("folder_name", "RJ"), 56, c, r
-            )
-
-            cards.append(
+            card_controls.append(
                 ft.Container(
-                    border_radius=r["lg"],
+                    border_radius=r["md"],
                     bgcolor=c["surface"],
                     border=ft.border.all(border_w, border_c),
-                    padding=sp["md"],
-                    ink=True,
+                    padding=ft.padding.symmetric(horizontal=sp["md"], vertical=sp["sm"]),
                     on_click=lambda e, work_id=wid: self._select_work(work_id),
-                    content=ft.Row(
-                        spacing=sp["md"],
+                    content=ft.Column(
+                        spacing=2,
                         controls=[
-                            cover,
-                            ft.Column(
-                                spacing=4,
-                                expand=True,
+                            ft.Row(
+                                spacing=sp["sm"],
                                 controls=[
-                                    ft.Row(
-                                        spacing=sp["sm"],
-                                        controls=[
-                                            ft.Text(
-                                                w.get("folder_name", "-"),
-                                                size=fs["sm"],
-                                                weight=ft.FontWeight.W_600,
-                                                color=c["text"],
-                                                expand=True,
-                                                max_lines=1,
-                                                overflow=ft.TextOverflow.ELLIPSIS,
-                                            ),
-                                            _status_badge(
-                                                w.get("folder_status", "recognized"), c
-                                            ),
-                                        ],
+                                    ft.Text(
+                                        w["work_code_raw"],
+                                        size=fs["sm"],
+                                        weight=ft.FontWeight.W_600,
+                                        color=c["accent"],
                                     ),
                                     ft.Text(
-                                        w.get("work_code_raw", "-"),
-                                        size=fs["xs"],
-                                        color=c["accent"],
-                                        weight=ft.FontWeight.W_500,
+                                        w["folder_name"],
+                                        size=fs["sm"],
+                                        color=c["text"],
+                                        expand=True,
+                                        max_lines=1,
+                                        overflow=ft.TextOverflow.ELLIPSIS,
                                     ),
-                                    ft.Row(
-                                        spacing=sp["md"],
-                                        controls=[
-                                            ft.Text(
-                                                f"files {w['media_count']}",
-                                                size=10,
-                                                color=c["text_dim"],
-                                            ),
-                                            ft.Text(
-                                                f"audio {w['audio_count']}",
-                                                size=10,
-                                                color=c["text_dim"],
-                                            ),
-                                            ft.Text(
-                                                f"img {w['image_count']}",
-                                                size=10,
-                                                color=c["text_dim"],
-                                            ),
-                                        ],
+                                    _status_badge(w.get("folder_status", "recognized"), c),
+                                ],
+                            ),
+                            ft.Row(
+                                spacing=sp["md"],
+                                controls=[
+                                    ft.Text(
+                                        f"files:{w['media_count']}", size=10, color=c["text_dim"],
+                                    ),
+                                    ft.Text(
+                                        f"audio:{w['audio_count']}", size=10, color=c["text_dim"],
+                                    ),
+                                    ft.Text(
+                                        f"img:{w['image_count']}", size=10, color=c["text_dim"],
                                     ),
                                 ],
                             ),
@@ -354,16 +321,15 @@ class LibraryView:
                 )
             )
 
-        self.works_column.controls = cards
+        self.works_list.controls = card_controls
 
-        header_col = ft.Column(
+        header = ft.Column(
             spacing=sp["sm"],
             controls=[
                 ft.Row(
                     spacing=sp["md"],
                     controls=[
-                        ft.Text("Library", size=fs["xl"], weight=ft.FontWeight.W_700,
-                                color=c["text"]),
+                        ft.Text("Library", size=fs["xl"], weight=ft.FontWeight.W_700, color=c["text"]),
                         self.header_badge,
                     ],
                 ),
@@ -373,24 +339,17 @@ class LibraryView:
                     controls=[self.search_field, self.type_dd, self.status_dd],
                 ),
                 ft.Container(height=1, bgcolor=c["border"]),
+                self.count_hint,
+                self.error_banner,
             ],
         )
 
-        if self.works_data:
-            col = ft.Column(
+        if not self.db_found:
+            body = ft.Column(
                 expand=True,
                 spacing=sp["md"],
                 controls=[
-                    header_col,
-                    self.works_column,
-                ],
-            )
-        elif not self.db_found:
-            col = ft.Column(
-                expand=True,
-                spacing=sp["md"],
-                controls=[
-                    header_col,
+                    header,
                     ft.Container(
                         expand=True,
                         alignment=ft.alignment.center,
@@ -399,28 +358,24 @@ class LibraryView:
                             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                             spacing=sp["lg"],
                             controls=[
-                                ft.Icon(name=ft.icons.ERROR_OUTLINE, size=48,
-                                        color=c["text_dim"]),
-                                ft.Text("Database not found", size=fs["lg"],
-                                        weight=ft.FontWeight.W_700, color=c["text"]),
-                                ft.Text(self.db_error, size=fs["sm"],
-                                        color=c["text_muted"]),
+                                ft.Icon(name=ft.icons.ERROR_OUTLINE, size=48, color=c["text_dim"]),
+                                ft.Text("Database not found", size=fs["lg"], weight=ft.FontWeight.W_700, color=c["text"]),
+                                ft.Text(self.db_error, size=fs["sm"], color=c["text_muted"]),
                                 ft.Text(
-                                    "Set YANG_KURA_DB_PATH or\nplace yang_kura_real.db in data/",
-                                    size=fs["xs"], color=c["text_dim"],
-                                    text_align=ft.TextAlign.CENTER,
+                                    "Set YANG_KURA_DB_PATH or place yang_kura_real.db in data/",
+                                    size=fs["xs"], color=c["text_dim"], text_align=ft.TextAlign.CENTER,
                                 ),
                             ],
                         ),
                     ),
                 ],
             )
-        else:
-            col = ft.Column(
+        elif not self.works_data and not self.load_error:
+            body = ft.Column(
                 expand=True,
                 spacing=sp["md"],
                 controls=[
-                    header_col,
+                    header,
                     ft.Container(
                         expand=True,
                         alignment=ft.alignment.center,
@@ -429,17 +384,29 @@ class LibraryView:
                             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                             spacing=sp["md"],
                             controls=[
-                                ft.Icon(name=ft.icons.LIBRARY_MUSIC, size=48,
-                                        color=c["text_dim"]),
-                                ft.Text("No works found", size=fs["lg"],
-                                        color=c["text_muted"]),
+                                ft.Icon(name=ft.icons.LIBRARY_MUSIC, size=48, color=c["text_dim"]),
+                                ft.Text("No works found", size=fs["lg"], color=c["text_muted"]),
                             ],
                         ),
                     ),
                 ],
             )
+        else:
+            body = ft.Column(
+                expand=True,
+                spacing=sp["md"],
+                controls=[
+                    header,
+                    ft.Container(
+                        expand=True,
+                        bgcolor=c["bg"],
+                        border_radius=r["lg"],
+                        content=self.works_list,
+                    ),
+                ],
+            )
 
-        self.main_panel.content = col
+        self.main_panel.content = body
         self.page.update()
 
     def _rebuild_detail(self):
@@ -457,9 +424,7 @@ class LibraryView:
                         spacing=sp["md"],
                         controls=[
                             ft.Icon(name=ft.icons.ARROW_BACK, size=32, color=c["text_dim"]),
-                            ft.Text("Select a work to view details",
-                                    size=fs["sm"], color=c["text_dim"],
-                                    text_align=ft.TextAlign.CENTER),
+                            ft.Text("Select a work", size=fs["sm"], color=c["text_dim"]),
                         ],
                     ),
                 ),
@@ -467,12 +432,31 @@ class LibraryView:
             self.page.update()
             return
 
+        work = None
+        media_files = []
+        detail_error = ""
         try:
             work = get_work_detail(self.vault, self.current_work_id)
-            media_files = list_media_files(self.vault, self.current_work_id)
-        except Exception:
-            work = None
-            media_files = []
+        except Exception as e:
+            detail_error = f"detail load error: {e}"
+
+        if work:
+            try:
+                media_files = list_media_files(self.vault, self.current_work_id)
+            except Exception as e:
+                detail_error = f"media load error: {e}"
+
+        if detail_error and not work:
+            self.detail_content.controls = [
+                ft.Container(
+                    padding=sp["md"],
+                    border_radius=sp["md"],
+                    bgcolor="#3B1A1A",
+                    content=ft.Text(detail_error, size=fs["xs"], color=c["danger"]),
+                ),
+            ]
+            self.page.update()
+            return
 
         if not work:
             self.detail_content.controls = [
@@ -491,69 +475,81 @@ class LibraryView:
             "other": ft.icons.INSERT_DRIVE_FILE,
         }
 
+        total_media = len(media_files)
+        show_media = media_files[:300]
         file_rows = []
-        for mf in media_files:
+        for mf in show_media:
             icon = type_icons.get(mf["file_type"], ft.icons.INSERT_DRIVE_FILE)
             file_rows.append(
-                ft.Container(
-                    padding=ft.padding.symmetric(vertical=3),
-                    content=ft.Row(
-                        spacing=sp["sm"],
-                        controls=[
-                            ft.Icon(name=icon, size=14, color=c["text_dim"]),
-                            ft.Text(
-                                mf["relative_path"],
-                                size=fs["xs"],
-                                color=c["text"],
-                                expand=True,
-                                max_lines=1,
-                                overflow=ft.TextOverflow.ELLIPSIS,
-                            ),
-                            ft.Text(
-                                _format_size(mf["size"]),
-                                size=10,
-                                color=c["text_dim"],
-                            ),
-                        ],
-                    ),
+                ft.Row(
+                    spacing=sp["sm"],
+                    controls=[
+                        ft.Icon(name=icon, size=14, color=c["text_dim"]),
+                        ft.Text(
+                            mf["relative_path"],
+                            size=fs["xs"],
+                            color=c["text"],
+                            expand=True,
+                            max_lines=1,
+                            overflow=ft.TextOverflow.ELLIPSIS,
+                        ),
+                        ft.Text(
+                            _format_size(mf["size"]),
+                            size=10,
+                            color=c["text_dim"],
+                        ),
+                    ],
                 )
             )
 
-        folder_status = work.get("folder_status", "")
+        media_title = f"Media Files ({total_media})"
+        if total_media > 300:
+            media_title += f" — showing first 300"
+
         detail_controls = [
             ft.Row(
                 spacing=sp["md"],
                 controls=[
                     ft.Text(
                         work.get("folder_name", "-"),
-                        size=fs["lg"],
+                        size=fs["md"],
                         weight=ft.FontWeight.W_700,
                         color=c["text"],
                         expand=True,
                     ),
-                    _status_badge(folder_status, c),
+                    _status_badge(work.get("folder_status", ""), c),
                 ],
             ),
-            ft.Text(
-                work.get("work_code_raw", "-"),
-                size=fs["sm"],
-                color=c["accent"],
-                weight=ft.FontWeight.W_500,
-            ),
+            ft.Text(work.get("work_code_raw", "-"), size=fs["sm"], color=c["accent"], weight=ft.FontWeight.W_500),
+            ft.Text(work.get("folder_path", "-"), size=10, color=c["text_dim"]),
             ft.Container(height=1, bgcolor=c["border"]),
-            ft.Text(
-                f"Media Files ({len(media_files)})",
-                size=fs["sm"],
-                weight=ft.FontWeight.W_600,
-                color=c["text"],
+            ft.Text(media_title, size=fs["sm"], weight=ft.FontWeight.W_600, color=c["text"]),
+            ft.Row(
+                spacing=sp["md"],
+                controls=[
+                    ft.Text(f"files:{total_media}", size=10, color=c["text_dim"]),
+                ],
             ),
+        ]
+
+        if detail_error:
+            detail_controls.append(
+                ft.Container(
+                    padding=sp["sm"],
+                    border_radius=sp["sm"],
+                    bgcolor="#3B1A1A",
+                    content=ft.Text(detail_error, size=fs["xs"], color=c["warning"]),
+                ),
+            )
+
+        detail_controls.append(
             ft.Column(
                 spacing=2,
                 controls=file_rows,
                 scroll=ft.ScrollMode.AUTO,
                 expand=True,
             ),
-        ]
+        )
 
         self.detail_content.controls = detail_controls
         self.page.update()
