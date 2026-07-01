@@ -495,46 +495,49 @@ class LibraryView:
             if p:
                 pills.append(p)
 
-        folder_path = work.get("folder_path", "-")
+        folder_path = work.get("folder_status", "-")
+        fp = work.get("folder_path", "-")
+        folder_name = work.get("folder_name", "-")
+        work_code = work.get("work_code_raw", "-")
+        folder_status = work.get("folder_status", "")
 
-        detail_controls = [
-            ft.Row(
-                spacing=sp["md"],
-                controls=[
-                    ft.Text(work.get("folder_name", "-"), size=fs["md"], weight=ft.FontWeight.W_700, color=c["text"], expand=True),
-                    _status_badge(work.get("folder_status", ""), c),
-                ],
-            ),
-            ft.Text(work.get("work_code_raw", "-"), size=fs["sm"], color=c["accent"], weight=ft.FontWeight.W_500),
-            ft.Row(
+        info_card = ft.Container(
+            border_radius=sp["md"],
+            bgcolor=c["surface_alt"],
+            padding=ft.padding.all(sp["md"]),
+            content=ft.Column(
                 spacing=sp["sm"],
                 controls=[
-                    ft.Text(folder_path, size=10, color=c["text_dim"], expand=True, max_lines=2, overflow=ft.TextOverflow.ELLIPSIS),
-                    ft.IconButton(
-                        icon=ft.icons.COPY, icon_size=14,
-                        tooltip="复制路径",
-                        on_click=lambda e, fp=folder_path: self._copy_path(fp),
+                    ft.Row(
+                        spacing=sp["sm"],
+                        controls=[
+                            ft.Text(folder_name, size=fs["md"], weight=ft.FontWeight.W_700, color=c["text"], expand=True),
+                            _status_badge(folder_status, c),
+                        ],
+                    ),
+                    ft.Text(work_code, size=fs["sm"], color=c["accent"], weight=ft.FontWeight.W_500),
+                    ft.Row(
+                        spacing=sp["sm"],
+                        controls=[
+                            ft.Text(fp, size=10, color=c["text_dim"], expand=True, max_lines=2, overflow=ft.TextOverflow.ELLIPSIS),
+                            ft.IconButton(icon=ft.icons.COPY, icon_size=14, tooltip="复制路径",
+                                          on_click=lambda e, p=fp: self._copy_path(p)),
+                        ],
                     ),
                 ],
             ),
-            ft.Container(height=1, bgcolor=c["border"]),
-            ft.Row(spacing=sp["sm"], wrap=True, run_spacing=4, controls=pills),
-        ]
+        )
 
-        if detail_error:
-            detail_controls.append(
-                ft.Container(padding=sp["sm"], border_radius=sp["sm"], bgcolor="#3B1A1A",
-                             content=ft.Text(detail_error, size=fs["xs"], color=c["warning"])),
+        stat_card = None
+        if pills:
+            stat_card = ft.Container(
+                border_radius=sp["md"],
+                bgcolor=c["surface_alt"],
+                padding=ft.padding.all(sp["md"]),
+                content=ft.Row(spacing=sp["sm"], wrap=True, run_spacing=4, controls=pills),
             )
 
         media_limit = 300
-        media_title = f"媒体文件（{total_media}）"
-        if total_media > media_limit:
-            media_title = f"媒体文件 — 仅显示前 {media_limit} / 共 {total_media}"
-        detail_controls.append(
-            ft.Text(media_title, size=fs["sm"], weight=ft.FontWeight.W_600, color=c["text"]),
-        )
-
         show_media = media_files[:media_limit]
         grouped = _group_media(show_media)
         tree_rows = []
@@ -543,7 +546,7 @@ class LibraryView:
             grp_file = len(entries)
             tree_rows.append(
                 ft.Container(
-                    padding=ft.padding.only(top=sp["xs"], bottom=2),
+                    padding=ft.padding.only(top=4, bottom=2),
                     border=ft.border.only(bottom=ft.BorderSide(1, c["border"])),
                     content=ft.Row(
                         spacing=4,
@@ -568,9 +571,39 @@ class LibraryView:
                     )
                 )
 
-        detail_controls.append(
-            ft.Column(spacing=1, controls=tree_rows, scroll=ft.ScrollMode.AUTO, expand=True),
+        media_title = f"媒体文件（{total_media}）"
+        if total_media > media_limit:
+            media_title += f" — 仅显示前 {media_limit}"
+
+        tree_col = ft.Column(spacing=1, controls=tree_rows)
+
+        footer_text = f"已显示全部 {total_media} 个文件"
+        if total_media > media_limit:
+            footer_text = f"仅显示前 {media_limit} / 共 {total_media} 个文件"
+
+        tree_card = ft.Container(
+            border_radius=sp["md"],
+            bgcolor=c["surface_alt"],
+            padding=ft.padding.all(sp["md"]),
+            content=ft.Column(
+                spacing=sp["sm"],
+                controls=[
+                    ft.Text(media_title, size=fs["sm"], weight=ft.FontWeight.W_600, color=c["text"]),
+                    tree_col,
+                    ft.Text(footer_text, size=10, color=c["text_dim"]),
+                ],
+            ),
         )
+
+        detail_controls = [info_card]
+        if stat_card:
+            detail_controls.append(stat_card)
+        if detail_error:
+            detail_controls.append(
+                ft.Container(padding=sp["sm"], border_radius=sp["sm"], bgcolor="#3B1A1A",
+                             content=ft.Text(detail_error, size=fs["xs"], color=c["warning"])),
+            )
+        detail_controls.append(tree_card)
 
         self.detail_content.controls = detail_controls
         self.page.update()
