@@ -112,6 +112,40 @@ def _group_media(media_files):
     return [(k, groups[k]) for k in order]
 
 
+def _cover_widget(cover_path, folder_name, size, c, r, fs):
+    if cover_path and Path(cover_path).exists():
+        return ft.Container(
+            width=size,
+            height=size,
+            border_radius=r["sm"],
+            clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
+            content=ft.Image(
+                src=cover_path,
+                fit=ft.ImageFit.COVER,
+                width=size,
+                height=size,
+            ),
+        )
+    hue = abs(hash(folder_name)) % 360
+    return ft.Container(
+        width=size,
+        height=size,
+        border_radius=r["sm"],
+        gradient=ft.LinearGradient(
+            begin=ft.alignment.top_left,
+            end=ft.alignment.bottom_right,
+            colors=[f"hsl({hue},25%,16%)", f"hsl({(hue+60)%360},20%,10%)"],
+        ),
+        alignment=ft.alignment.center,
+        content=ft.Text(
+            folder_name[:2].upper() if folder_name else "RJ",
+            size=fs["xs"],
+            weight=ft.FontWeight.W_700,
+            color=c["text_dim"],
+        ),
+    )
+
+
 class LibraryView:
     def __init__(self, page: ft.Page, colors, spacing, radius, font_size):
         self.page = page
@@ -346,25 +380,32 @@ class LibraryView:
                     border_radius=r["md"],
                     bgcolor=c["surface"],
                     border=ft.border.all(border_w, border_c),
-                    padding=ft.padding.symmetric(horizontal=sp["md"], vertical=sp["sm"]),
+                    padding=ft.padding.all(sp["md"]),
                     on_click=lambda e, work_id=wid: self._select_work(work_id),
-                    content=ft.Column(
-                        spacing=2,
+                    content=ft.Row(
+                        spacing=sp["md"],
                         controls=[
-                            ft.Row(
-                                spacing=sp["sm"],
+                            _cover_widget(w.get("cover_path"), w["folder_name"], 68, c, r, fs),
+                            ft.Column(
+                                spacing=3,
+                                expand=True,
                                 controls=[
-                                    ft.Text(w["work_code_raw"], size=fs["sm"], weight=ft.FontWeight.W_600, color=c["accent"]),
-                                    ft.Text(w["folder_name"], size=fs["sm"], color=c["text"], expand=True, max_lines=1, overflow=ft.TextOverflow.ELLIPSIS),
-                                    _status_badge(w.get("folder_status", "recognized"), c),
-                                ],
-                            ),
-                            ft.Row(
-                                spacing=sp["md"],
-                                controls=[
-                                    ft.Text(f"文件:{w['media_count']}", size=10, color=c["text_dim"]),
-                                    ft.Text(f"音频:{w['audio_count']}", size=10, color=c["text_dim"]),
-                                    ft.Text(f"图片:{w['image_count']}", size=10, color=c["text_dim"]),
+                                    ft.Row(
+                                        spacing=sp["sm"],
+                                        controls=[
+                                            ft.Text(w["work_code_raw"], size=fs["sm"], weight=ft.FontWeight.W_600, color=c["accent"]),
+                                            ft.Text(w["folder_name"], size=fs["sm"], color=c["text"], expand=True, max_lines=1, overflow=ft.TextOverflow.ELLIPSIS),
+                                            _status_badge(w.get("folder_status", "recognized"), c),
+                                        ],
+                                    ),
+                                    ft.Row(
+                                        spacing=sp["md"],
+                                        controls=[
+                                            ft.Text(f"文件:{w['media_count']}", size=10, color=c["text_dim"]),
+                                            ft.Text(f"音频:{w['audio_count']}", size=10, color=c["text_dim"]),
+                                            ft.Text(f"图片:{w['image_count']}", size=10, color=c["text_dim"]),
+                                        ],
+                                    ),
                                 ],
                             ),
                         ],
@@ -495,33 +536,46 @@ class LibraryView:
             if p:
                 pills.append(p)
 
-        folder_path = work.get("folder_status", "-")
-        fp = work.get("folder_path", "-")
+        folder_path = work.get("folder_path", "-")
+        fp = folder_path
         folder_name = work.get("folder_name", "-")
         work_code = work.get("work_code_raw", "-")
         folder_status = work.get("folder_status", "")
+
+        cover_path = None
+        for wd in self.works_data:
+            if wd["id"] == self.current_work_id:
+                cover_path = wd.get("cover_path")
+                break
 
         info_card = ft.Container(
             border_radius=sp["md"],
             bgcolor=c["surface_alt"],
             padding=ft.padding.all(sp["md"]),
-            content=ft.Column(
-                spacing=sp["sm"],
+            content=ft.Row(
+                spacing=sp["md"],
                 controls=[
-                    ft.Row(
+                    _cover_widget(cover_path, folder_name, 100, c, r, fs),
+                    ft.Column(
                         spacing=sp["sm"],
+                        expand=True,
                         controls=[
-                            ft.Text(folder_name, size=fs["md"], weight=ft.FontWeight.W_700, color=c["text"], expand=True),
-                            _status_badge(folder_status, c),
-                        ],
-                    ),
-                    ft.Text(work_code, size=fs["sm"], color=c["accent"], weight=ft.FontWeight.W_500),
-                    ft.Row(
-                        spacing=sp["sm"],
-                        controls=[
-                            ft.Text(fp, size=10, color=c["text_dim"], expand=True, max_lines=2, overflow=ft.TextOverflow.ELLIPSIS),
-                            ft.IconButton(icon=ft.icons.COPY, icon_size=14, tooltip="复制路径",
-                                          on_click=lambda e, p=fp: self._copy_path(p)),
+                            ft.Row(
+                                spacing=sp["sm"],
+                                controls=[
+                                    ft.Text(folder_name, size=fs["md"], weight=ft.FontWeight.W_700, color=c["text"], expand=True),
+                                    _status_badge(folder_status, c),
+                                ],
+                            ),
+                            ft.Text(work_code, size=fs["sm"], color=c["accent"], weight=ft.FontWeight.W_500),
+                            ft.Row(
+                                spacing=sp["sm"],
+                                controls=[
+                                    ft.Text(fp, size=10, color=c["text_dim"], expand=True, max_lines=2, overflow=ft.TextOverflow.ELLIPSIS),
+                                    ft.IconButton(icon=ft.icons.COPY, icon_size=14, tooltip="复制路径",
+                                                  on_click=lambda e, p=fp: self._copy_path(p)),
+                                ],
+                            ),
                         ],
                     ),
                 ],

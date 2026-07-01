@@ -61,9 +61,12 @@ def list_works(vault, search="", work_type=None, folder_status=None,
     COVER_ORDER = (
         "(CASE WHEN file_name LIKE '%cover%' THEN 0 "
         "WHEN file_name LIKE '%jacket%' THEN 1 "
-        "WHEN file_name LIKE '%main%' THEN 2 "
-        "WHEN file_name LIKE '%thumb%' THEN 3 "
-        "ELSE 4 END)"
+        "WHEN file_name LIKE '%package%' THEN 2 "
+        "WHEN file_name LIKE '%main%' THEN 3 "
+        "WHEN file_name LIKE '%thumb%' THEN 4 "
+        "WHEN file_name LIKE '%パッケージ%' THEN 5 "
+        "WHEN file_name LIKE '%表紙%' THEN 6 "
+        "ELSE 7 END)"
     )
 
     sql = (
