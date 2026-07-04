@@ -1,47 +1,8 @@
-﻿# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-
-# Virtual environments
-.venv/
-venv/
-env/
-ENV/
-
-# Environment
-.env
-.env.*
-
-# SQLite / local DB
-*.db
-*.db-journal
-*.db-wal
-*.db-shm
-*.sqlite
-*.sqlite3
-
-# Logs
-logs/*.log
-!logs/.gitkeep
-
-# Local generated data
-.local_backups/
-output/
-cache/
-tmp/
-backups/
-*.tmp
-
-# IDE
-.vscode/
-.idea/
-
-# OS
+node_modules/
+build/
+dist/
+coverage/
 .DS_Store
-Thumbs.db
-
+*.log
+.env*
+!.env.example

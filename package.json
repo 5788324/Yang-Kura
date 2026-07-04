@@ -1,0 +1,51 @@
+{
+  "name": "yang-kura-audio-library-ui-prototype",
+  "private": true,
+  "version": "0.47.1-mvp08.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port=3000 --host=0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview",
+    "clean": "rm -rf dist server.js",
+    "lint": "tsc --noEmit",
+    "verify:handoff": "node scripts/verify-handoff.mjs",
+    "verify:all": "npm run verify:env && npm run lint && npm run verify:handoff && npm run verify:mvp01-demo-index && npm run verify:mvp02-fixture-scanner && npm run verify:mvp03-fixture-report && npm run verify:mvp04-fixture-report-ui && npm run verify:mvp05-fixture-cases && npm run verify:mvp06-fixture-harness && npm run verify:mvp07-scanner-ui-flow && npm run verify:mvp08-virtual-path-parser",
+    "verify:mvp01-demo-index": "node scripts/verify-mvp01-demo-index.mjs",
+    "verify:mvp02-fixture-scanner": "node scripts/verify-mvp02-fixture-scanner.mjs",
+    "verify:mvp03-fixture-report": "node scripts/verify-mvp03-fixture-report.mjs",
+    "verify:mvp04-fixture-report-ui": "node scripts/verify-mvp04-fixture-report-ui.mjs",
+    "verify:mvp05-fixture-cases": "node scripts/verify-mvp05-fixture-cases.mjs",
+    "verify:mvp06-fixture-harness": "node scripts/verify-mvp06-fixture-harness.mjs",
+    "verify:mvp07-scanner-ui-flow": "node scripts/verify-mvp07-scanner-ui-flow.mjs",
+    "verify:mvp08-virtual-path-parser": "node scripts/verify-mvp08-virtual-path-parser.mjs",
+    "verify:env": "node scripts/verify-env.mjs"
+  },
+  "dependencies": {
+    "@google/genai": "^2.4.0",
+    "@tailwindcss/vite": "^4.1.14",
+    "@vitejs/plugin-react": "^5.0.4",
+    "lucide-react": "^0.546.0",
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1",
+    "vite": "^6.2.3",
+    "express": "^4.21.2",
+    "dotenv": "^17.2.3",
+    "motion": "^12.23.24"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "autoprefixer": "^10.4.21",
+    "esbuild": "^0.25.0",
+    "tailwindcss": "^4.1.14",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.3",
+    "@types/express": "^4.17.21"
+  },
+  "description": "Yang-Kura React/Vite UI prototype with MVP-08.1 validation-friendly Windows package.",
+  "packageManager": "npm@10.9.2",
+  "engines": {
+    "node": ">=22 <23",
+    "npm": ">=10 <11"
+  }
+}

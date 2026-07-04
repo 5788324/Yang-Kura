@@ -1,0 +1,14 @@
+{
+  "note": "ASCII-safe manifest for packaging only. Runtime fixture entries live in src/services/fixtureLibrarySample.ts.",
+  "source": "fixture-only; no real filesystem scan",
+  "sampleKinds": [
+    "asmr-rj",
+    "music-album",
+    "duplicate-rj",
+    "video-asmr",
+    "image-cg",
+    "metadata-only",
+    "multi-disc",
+    "subtitle-match"
+  ]
+}

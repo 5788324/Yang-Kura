@@ -1,0 +1,6 @@
+{
+  "name": "Yang-Kura Audio Library",
+  "description": "一个现代化、高颜值的 Windows 桌面端本地音频媒体库 UI 原型，支持 ASMR/RJ 音声库和普通音乐管理。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
