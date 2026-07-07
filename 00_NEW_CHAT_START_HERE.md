@@ -1,3 +1,24 @@
+当前最新版本：0.129.0-mvp91。MVP-91：copy only 导入前执行合同 / 二次确认设计；冻结预检、OperationLog、失败列表、跳过列表和 disabled-preview-only 执行状态，不执行 copy / move / delete / rename。
+
+## MVP-91 / 0.129.0-mvp91
+
+Current baseline: `0.128.0-mvp90`.
+
+MVP-91 adds the copy only import execution readiness contract. It defines preflight checks, confirmation requirements, file execution plans, OperationLog preview fields, failureList and skippedList, while keeping the execution button disabled-preview-only. This round does not execute copy, move, delete, rename, SQLite writes, provider calls, mpv integration, absolutePath exposure, or file:// exposure.
+
+Next recommended task: MVP-92 copy only 最小真实样本准备；真实 copy 前建议 Codex 本机关键验收。
+
+当前最新版本：0.125.0-mvp87。MVP-87：RJ 专辑导入只读识别；只处理 sourceRootToken + relativePaths，生成 ImportTask preview，不执行文件操作。
+
+
+## MVP-86 / 0.124.0-mvp86
+
+Current baseline: `0.124.0-mvp86`.
+
+MVP-86 adds the 导入器 UI 壳 / ImporterPage preview shell. It shows mock ImportTask previews, source options, metadata candidates, conflict preview, target path plan, and guarded boundaries. This round does not execute import operations. No copy, move, delete, rename, real import IPC, SQLite, download Provider, absolutePath exposure, or file:// exposure was added.
+
+Next recommended task: MVP-87 RJ 专辑导入只读识别.
+
 # Yang-Kura MVP85 / 0.123.0-mvp85
 
 当前最新版本：0.123.0-mvp85。MVP-85：ImportTask / DownloadTask / DownloadManifest / MetadataSource 数据模型合同。本轮只冻结导入器、下载器、Manifest、MetadataSource、ImportTargetPlan、ImportConflictReport 的类型和文档；不接真实导入器、不接下载 Provider、不复制 / 移动 / 删除 / 重命名真实媒体文件，不改扫描 / 写 index / 播放内核链路。
@@ -371,3 +392,57 @@ GitHub 推送已用标准 git 路径尝试，但当前环境无法解析 `github
 
 后续建议：`MVP-85` 做 `ImportTask / DownloadTask / Manifest / MetadataSource` 数据模型合同。
 
+
+---
+
+## MVP-88 更新：音乐专辑 / 单曲只读识别
+
+当前版本：`0.126.0-mvp88`。
+
+本轮新增 `mvp88-music-import-readonly-detection`：导入器现在可以基于 tokenized `relativePaths` 生成普通音乐专辑 / 单曲集合的只读 ImportTask 预览，支持 `inferArtistAlbumFromFolder`、`classifyMusicImportRelativePath`、`isProtectedMusicDownload` 和 `buildMusicImportReadonlyPreview`。
+
+边界：不读取真实目录，不读取 ID3 / FLAC tag，不转换或解密受保护格式，不复制 / 移动 / 删除 / 重命名文件，不写 `library-index.json`，不接 SQLite / 下载 Provider / mpv，不暴露 `absolutePath` 或 `file://`。
+
+下一轮建议：MVP-89 冲突检测：同 RJ、同文件、同专辑、hash 策略。
+
+## MVP-89 最新基线
+
+当前最新源码为 `0.127.0-mvp89`。本轮完成导入冲突检测 / hash 策略预览。继续以本地 clean source / GitHub main 最新提交为基线，不回退旧 MVP 包。
+
+---
+
+## MVP-90：目标路径规划预览
+
+当前版本：`0.128.0-mvp90`。
+
+本轮新增 `importTargetPathPlanningPreviewService` 与 `mvp90-target-path-planning-preview`，统一 ASMR / Music / Singles / Mixed 的目标目录规则，提供 `sanitizePathSegment` / `sanitizeFileName`，预览非法字符清理、同目标文件名追加序号、长路径提醒和 `overwrite: false` 策略。
+
+本轮仍然只是 preview：不打开真实目录，不读取真实文件系统，不复制、不移动、不删除、不重命名真实媒体文件，不写 `library-index.json`，不接 SQLite / Provider / mpv，不向 Renderer 暴露 `absolutePath` 或 `file://`。
+
+推荐验证：
+
+```bash
+npm ci --ignore-scripts
+npm run lint
+npm run build:electron
+npm run verify:mvp90-target-path-planning
+npm run verify:all
+npm run build
+npm audit --audit-level=high
+```
+
+下一轮建议：MVP91：copy only 导入前执行合同 / 二次确认设计。仍不建议直接执行真实 copy。
+
+## MVP-92 更新：copy only 最小真实样本准备
+
+版本：`0.131.0-mvp93`。本轮新增 Codex 本机验收任务书、一次性样本目录要求、copy-only IPC 合同和 main-side copy contract。仍不执行真实 copy，不移动 / 删除 / 重命名文件，不写 `library-index.json`，不接 SQLite，不暴露 `absolutePath` 或 `file://`。
+
+
+
+## MVP-93 copy-only main-side stub
+
+version: `0.131.0-mvp93`
+
+本轮新增 copy-only main-side stub / preload methods / blocked result contract。真实 copy 仍不执行；不创建目录、不复制、不移动、不删除、不重命名、不覆盖、不写 OperationLog、不写 `library-index.json`，Renderer 仍不接收 `absolutePath` 或 `file://`。
+
+Codex 当前不需要介入；若下一轮进入真实 copy 前置验证，应暂停开发并使用 `docs/CODEX_COPY_ONLY_GATE_MVP93.md` 的提示词让 Codex 本机验收。

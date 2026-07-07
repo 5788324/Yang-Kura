@@ -627,6 +627,57 @@ declare global {
 
   type YangKuraOpenInFileManagerResult = YangKuraOpenInFileManagerSuccessResult | YangKuraOpenInFileManagerErrorResult;
 
+
+  interface YangKuraImportCopyOnlyStubRequest {
+    operationPlanId: string;
+    rootPathToken: string;
+    targetRootPathToken: string;
+    mode: 'copy-only-stub';
+    relativePaths?: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraImportCopyOnlyConfirmStubRequest {
+    operationPlanId: string;
+    confirmationText: string;
+    mode: 'copy-only-confirm-stub';
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraImportCopyOnlyCancelStubRequest {
+    operationPlanId: string;
+    mode: 'copy-only-cancel-stub';
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraImportCopyOnlyStubBlockedResult {
+    ok: false;
+    status:
+      | 'mvp93-copy-only-stub-blocked'
+      | 'mvp93-copy-only-preflight-stub-blocked'
+      | 'mvp93-copy-only-confirm-stub-blocked'
+      | 'mvp93-copy-only-cancel-stub-blocked';
+    operationPlanId: string;
+    rootPathToken?: string;
+    targetRootPathToken?: string;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    executeAllowed: false;
+    copiedCount?: 0;
+    skippedCount?: number;
+    failedCount?: number;
+    confirmationAccepted?: false;
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  type YangKuraImportCopyOnlyStubResult = YangKuraImportCopyOnlyStubBlockedResult;
+
   /* Legacy verifier token retained for MVP-26 compatibility: mvp26-shell-runtime-track-lyrics-read. Legacy verifier token retained for MVP-27 compatibility: mvp27-shell-runtime-external-open.
  * Legacy verifier token retained for MVP-20 compatibility: status: 'mvp20-shell-runtime-read-only-dry-run'. */
   interface YangKuraElectronShellStatus {
@@ -642,6 +693,8 @@ declare global {
     canReadTrackLyrics: true;
     canOpenExternalFile: true;
     canOpenInFileManager: true;
+    canUseCopyOnlyStub: true;
+    canExecuteCopyOnly: false;
     registersMediaProtocol: true;
     exposesAbsolutePaths: false;
   }
@@ -656,6 +709,10 @@ declare global {
     requestReadTrackLyrics(request: YangKuraReadTrackLyricsRequest): Promise<YangKuraReadTrackLyricsResult>;
     requestOpenExternalFile(request: YangKuraOpenExternalFileRequest): Promise<YangKuraOpenExternalFileResult>;
     requestOpenInFileManager(request: YangKuraOpenInFileManagerRequest): Promise<YangKuraOpenInFileManagerResult>;
+    requestImportCopyOnlyPreflight(request: YangKuraImportCopyOnlyStubRequest): Promise<YangKuraImportCopyOnlyStubResult>;
+    requestImportCopyOnlyConfirm(request: YangKuraImportCopyOnlyConfirmStubRequest): Promise<YangKuraImportCopyOnlyStubResult>;
+    requestImportCopyOnlyExecute(request: YangKuraImportCopyOnlyStubRequest): Promise<YangKuraImportCopyOnlyStubResult>;
+    requestImportCopyOnlyCancel(request: YangKuraImportCopyOnlyCancelStubRequest): Promise<YangKuraImportCopyOnlyStubResult>;
     getElectronShellStatus(): Promise<YangKuraElectronShellStatus>;
   }
 

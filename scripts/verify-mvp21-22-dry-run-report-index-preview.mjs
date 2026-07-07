@@ -58,7 +58,7 @@ for (const token of forbiddenMain) {
   }
 }
 
-const compatibleStage = /mvp(2[2-9]|3[0-9]|4[0-9]|5[0-9]|6[0-9]|7[0-9]|8[0-9])/.test(pkg.version) || pkg.version.includes('mvp28.1') || pkg.version.includes('mvp28.2') || pkg.version.includes('mvp29.1');
+const compatibleStage = /mvp(2[2-9]|3[0-9]|4[0-9]|5[0-9]|6[0-9]|7[0-9]|8[0-9]|9[0-9])/.test(pkg.version) || pkg.version.includes('mvp28.1') || pkg.version.includes('mvp28.2') || pkg.version.includes('mvp29.1');
 if (!compatibleStage) {
   throw new Error('[MVP-21/22] package version must include mvp22 or a later compatible stage');
 }

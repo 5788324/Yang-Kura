@@ -135,6 +135,26 @@ interface OpenInFileManagerRequest {
   mode: 'open-in-file-manager';
 }
 
+
+interface ImportCopyOnlyStubRequest {
+  operationPlanId: string;
+  rootPathToken: string;
+  targetRootPathToken: string;
+  mode: 'copy-only-stub';
+  relativePaths?: string[];
+}
+
+interface ImportCopyOnlyConfirmStubRequest {
+  operationPlanId: string;
+  confirmationText: string;
+  mode: 'copy-only-confirm-stub';
+}
+
+interface ImportCopyOnlyCancelStubRequest {
+  operationPlanId: string;
+  mode: 'copy-only-cancel-stub';
+}
+
 interface TokenizedRootRecord {
   rootPathToken: string;
   absolutePath: string;
@@ -1923,6 +1943,74 @@ function registerExternalOpenIpc(): void {
   });
 }
 
+
+function buildMvp93CopyOnlyStubBlockedResult(request: Partial<ImportCopyOnlyStubRequest> | undefined) {
+  return {
+    ok: false,
+    status: 'mvp93-copy-only-stub-blocked',
+    operationPlanId: request?.operationPlanId ?? 'mvp93-missing-operation-plan',
+    rootPathToken: request?.rootPathToken,
+    targetRootPathToken: request?.targetRootPathToken,
+    absolutePathReturned: false,
+    fileUrlReturned: false,
+    executeAllowed: false,
+    copiedCount: 0,
+    skippedCount: Array.isArray(request?.relativePaths) ? request.relativePaths.length : 0,
+    failedCount: 0,
+    message: 'MVP93 只注册 copy-only main-side stub；真实 copy 执行仍被阻断。',
+    safetyNotes: buildSafetyNotes().concat([
+      'mvp93-copy-only-main-side-stub',
+      'copy-only execute remains disabled-preview-only',
+      'renderer token only: no absolutePath, no file://',
+    ]),
+  } as const;
+}
+
+function registerCopyOnlyMainSideStubIpc(): void {
+  ipcMain.handle('yang-kura:import:copy-only:preflight', async (_event, request: unknown) => {
+    const payload = request as Partial<ImportCopyOnlyStubRequest> | undefined;
+    return {
+      ...buildMvp93CopyOnlyStubBlockedResult(payload),
+      status: 'mvp93-copy-only-preflight-stub-blocked',
+      message: 'MVP93 preflight 只返回 blocked stub，不检查真实文件系统。',
+    } as const;
+  });
+
+  ipcMain.handle('yang-kura:import:copy-only:confirm', async (_event, request: unknown) => {
+    const payload = request as Partial<ImportCopyOnlyConfirmStubRequest> | undefined;
+    return {
+      ok: false,
+      status: 'mvp93-copy-only-confirm-stub-blocked',
+      operationPlanId: payload?.operationPlanId ?? 'mvp93-missing-operation-plan',
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      executeAllowed: false,
+      confirmationAccepted: false,
+      message: 'MVP93 confirm 只保存合同语义，不允许触发真实 copy。',
+      safetyNotes: buildSafetyNotes().concat(['mvp93-copy-only-confirm-stub']),
+    } as const;
+  });
+
+  ipcMain.handle('yang-kura:import:copy-only:execute', async (_event, request: unknown) => {
+    const payload = request as Partial<ImportCopyOnlyStubRequest> | undefined;
+    return buildMvp93CopyOnlyStubBlockedResult(payload);
+  });
+
+  ipcMain.handle('yang-kura:import:copy-only:cancel', async (_event, request: unknown) => {
+    const payload = request as Partial<ImportCopyOnlyCancelStubRequest> | undefined;
+    return {
+      ok: false,
+      status: 'mvp93-copy-only-cancel-stub-blocked',
+      operationPlanId: payload?.operationPlanId ?? 'mvp93-missing-operation-plan',
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      executeAllowed: false,
+      message: 'MVP93 cancel 只返回 stub 状态；没有真实 copy 队列可取消。',
+      safetyNotes: buildSafetyNotes().concat(['mvp93-copy-only-cancel-stub']),
+    } as const;
+  });
+}
+
 async function createMainWindow(): Promise<BrowserWindow> {
   const mainWindow = new BrowserWindow({
     width: 1280,
@@ -1949,6 +2037,7 @@ async function createMainWindow(): Promise<BrowserWindow> {
   registerResolveTrackMediaUrlIpc();
   registerReadTrackLyricsIpc();
   registerExternalOpenIpc();
+  registerCopyOnlyMainSideStubIpc();
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();

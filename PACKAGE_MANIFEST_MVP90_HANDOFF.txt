@@ -1,0 +1,40 @@
+Yang-Kura MVP90 Package Manifest
+
+Version: 0.128.0-mvp90
+Baseline: 0.127.0-mvp89
+Theme: Import target path planning preview
+
+Added:
+- src/services/importTargetPathPlanningPreviewService.ts
+- docs/CURRENT_ROADMAP_MVP90.md
+- docs/TARGET_PATH_PLANNING_MVP90.md
+- scripts/verify-mvp90-target-path-planning.mjs
+- HANDOFF_MVP89_TO_MVP90.md
+- PACKAGE_MANIFEST_MVP90_HANDOFF.txt
+
+Modified:
+- src/components/ImporterPage.tsx
+- src/components/DiagnosticsPage.tsx
+- src/services/index.ts
+- package.json
+- package-lock.json
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+- docs/PROJECT_STATE.md
+- docs/NEXT_CHAT_HANDOFF.md
+- docs/RUN_ME_FIRST.md
+- 00_NEW_CHAT_START_HERE.md
+- NEW_CHAT_PROMPT.md
+- NEW_CHAT_PROMPT_FULL.md
+- CODEX_MINIMAL_PROMPTS.md
+- scripts/verify-*.mjs compatibility lists
+
+Excluded:
+- node_modules
+- dist
+- dist-electron
+- .git
+- logs
+- *.log

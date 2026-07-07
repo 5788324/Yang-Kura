@@ -1,0 +1,14 @@
+PACKAGE MANIFEST MVP92
+
+Version: 0.130.0-mvp92
+Theme: copy only minimal sample readiness / Codex local validation taskbook
+
+Added:
+- src/services/copyOnlySampleReadinessService.ts
+- docs/CURRENT_ROADMAP_MVP92.md
+- docs/COPY_SAMPLE_READINESS_MVP92.md
+- docs/CODEX_COPY_ONLY_VALIDATION_MVP92.md
+- scripts/verify-mvp92-copy-sample-readiness.mjs
+- HANDOFF_MVP91_TO_MVP92.md
+
+No real copy. No move. No delete. No rename. No SQLite. No absolutePath/file:// exposure.

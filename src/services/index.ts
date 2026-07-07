@@ -314,3 +314,27 @@ export type {
   Mvp85ModelCard,
   Mvp85ModelTone,
 } from './importDownloadModelContractService';
+
+export {importerPreviewShellService} from './importerPreviewShellService';
+export type {Mvp86ImporterUiShellModel, Mvp86ImporterMockTask, Mvp86ImporterSourceOption, Mvp86ImporterPreviewStep} from './importerPreviewShellService';
+
+export {rjImportReadOnlyDetectionService, buildRjImportReadonlyPreview, classifyImportRelativePath, normalizeRjCode} from './rjImportReadOnlyDetectionService';
+export type {Mvp87RjImportReadonlyDetectionModel, RjImportReadonlyDetectionResult, RjImportReadonlyInput, RjImportCategoryCount} from './rjImportReadOnlyDetectionService';
+
+export {musicImportReadOnlyDetectionService, buildMusicImportReadonlyPreview, classifyMusicImportRelativePath, inferArtistAlbumFromFolder, isProtectedMusicDownload} from './musicImportReadOnlyDetectionService';
+export type {Mvp88MusicImportReadonlyDetectionModel, MusicImportReadonlyDetectionResult, MusicImportReadonlyInput, MusicImportCategoryCount} from './musicImportReadOnlyDetectionService';
+
+export {importConflictDetectionPreviewService, buildImportConflictPreview} from './importConflictDetectionPreviewService';
+export type {ImportConflictDetectionInput, ImportConflictExistingCollectionPreview, Mvp89ConflictRuleCard, Mvp89ConflictTone, Mvp89HashStrategyStep, Mvp89ImportConflictDetectionModel, Mvp89ImportConflictDetectionResult} from './importConflictDetectionPreviewService';
+
+export {importTargetPathPlanningPreviewService, buildImportTargetPathPreview, sanitizeFileName, sanitizePathSegment} from './importTargetPathPlanningPreviewService';
+export type {ImportTargetPathPlanningResult, ImportTargetPathPreviewFile, ImportTargetPathPreviewOptions, Mvp90ImportTargetPathPlanningModel, Mvp90TargetPathRuleCard, Mvp90TargetPathTone} from './importTargetPathPlanningPreviewService';
+
+export {importCopyExecutionReadinessService, buildImportCopyExecutionReadinessPreview} from './importCopyExecutionReadinessService';
+export type {ImportCopyConfirmationPreview, ImportCopyExecutionReadinessResult, ImportCopyFailurePreviewItem, ImportCopyFileExecutionPlan, ImportCopyPreflightCheck, ImportCopySkipPreviewItem, ImportOperationLogPreviewEntry, Mvp91CopyReadinessCard, Mvp91CopyReadinessTone, Mvp91ImportCopyExecutionReadinessModel} from './importCopyExecutionReadinessService';
+
+export {copyOnlySampleReadinessService, buildCopyOnlySampleReadinessPreview} from './copyOnlySampleReadinessService';
+export type {Mvp92CodexValidationStep, Mvp92CopyExecutionGate, Mvp92CopyOnlyIpcContract, Mvp92CopyOnlySampleReadinessModel, Mvp92CopyOnlySampleReadinessPreview, Mvp92CopySampleCard, Mvp92CopySampleTone, Mvp92MainSideCopyContract, Mvp92MinimalSampleRequirement} from './copyOnlySampleReadinessService';
+
+export {copyOnlyMainSideStubService, buildCopyOnlyStubBlockedResult} from './copyOnlyMainSideStubService';
+export type {Mvp93CodexPromptLine, Mvp93CopyOnlyMainSideStubModel, Mvp93CopyOnlyStubBlockedResult, Mvp93CopyOnlyStubChannel, Mvp93CopyOnlyStubPreflightPreview, Mvp93CopyStubCard, Mvp93CopyStubStatus, Mvp93CopyStubTone, Mvp93MainSideStubGuard} from './copyOnlyMainSideStubService';

@@ -1,0 +1,25 @@
+Yang-Kura MVP-91 Package Manifest
+Version: 0.129.0-mvp91
+Theme: copy only import execution readiness contract
+
+Included source changes:
+- importCopyExecutionReadinessService
+- ImporterPage MVP91 preview section
+- DiagnosticsPage MVP91 diagnostics section
+- MVP91 verifier
+- MVP91 docs and handoff
+
+Excluded runtime artifacts:
+- node_modules
+- dist
+- dist-electron
+- .git
+- logs
+
+Safety:
+- 不复制
+- 不移动
+- 不删除
+- 不重命名
+- 不写 library-index.json
+- OperationLog preview only

@@ -85,6 +85,14 @@ import { uiBugSweepService } from "../services/uiBugSweepService";
 import { betaCloseoutPushPrepService } from "../services/betaCloseoutPushPrepService";
 import { importDownloadEcosystemStrategyService } from "../services/importDownloadEcosystemStrategyService";
 import { importDownloadModelContractService } from "../services/importDownloadModelContractService";
+import { importerPreviewShellService } from "../services/importerPreviewShellService";
+import { rjImportReadOnlyDetectionService } from "../services/rjImportReadOnlyDetectionService";
+import { musicImportReadOnlyDetectionService } from "../services/musicImportReadOnlyDetectionService";
+import { importConflictDetectionPreviewService } from "../services/importConflictDetectionPreviewService";
+import { importTargetPathPlanningPreviewService } from "../services/importTargetPathPlanningPreviewService";
+import { importCopyExecutionReadinessService } from "../services/importCopyExecutionReadinessService";
+import { copyOnlySampleReadinessService } from "../services/copyOnlySampleReadinessService";
+import { copyOnlyMainSideStubService } from "../services/copyOnlyMainSideStubService";
 import { coverArtworkService } from "../services/coverArtworkService";
 
 interface DiagnosticsPageProps {
@@ -132,6 +140,14 @@ function readStoredJson<T>(key: string): T | null {
 /* MVP-83 verifier marker: Beta 0.1 阶段性收口 / GitHub 推送准备 / mvp83-beta-closeout-push-prep / 公司网络不推送. */
 /* MVP-84 verifier marker: 导入器优先 / 下载生态策略 / mvp84-import-download-strategy / GitHub 推送尝试失败记录. */
 /* MVP-85 verifier marker: ImportTask / DownloadTask / DownloadManifest / MetadataSource / mvp85-import-download-models / only model contracts, no import/download execution. */
+/* MVP-86 verifier marker: 导入器 UI 壳 / ImportTask preview / mvp86-importer-ui-shell / mock preview only, no file operations. */
+/* MVP-87 verifier marker: RJ 专辑导入只读识别 / mvp87-rj-import-readonly-detection / relativePaths only, no file operations. */
+/* MVP-88 verifier marker: 音乐专辑 / 单曲只读识别 / mvp88-music-import-readonly-detection / no ID3 tag reading. */
+/* MVP-89 verifier marker: 导入冲突检测 / mvp89-import-conflict-detection-preview / no real hash calculation. */
+/* MVP-90 verifier marker: 目标路径规划预览 / mvp90-target-path-planning-preview / no copy move delete rename. */
+/* MVP-91 verifier marker: copy only 导入前执行合同 / mvp91-copy-execution-readiness / disabled-preview-only. */
+/* MVP-92 verifier marker: copy only 最小真实样本准备 / mvp92-copy-sample-readiness / Codex 本机验收任务书 / no real copy. */
+/* MVP-93 verifier marker: copy-only main-side stub / mvp93-copy-only-main-side-stub / blocked result / no real copy. */
 /* MVP-48 verifier marker: Beta 0.1 阶段收口 / 个人可用 Beta 0.1 / 阶段性收口包. */
 /* MVP-49 verifier marker: 播放器与首页视觉精修 / 听音频入口 / 底部播放器状态条. */
 /* MVP-50 verifier marker: 播放器视觉继续打磨 / 播放页状态 / 字幕空状态 / 不向 Renderer 暴露 absolutePath 或 file://. */
@@ -418,6 +434,39 @@ export default function DiagnosticsPage({
 
   const mvp85ImportDownloadModels = useMemo(
     () => importDownloadModelContractService.getModel(),
+    [],
+  );
+
+  const mvp86ImporterShell = useMemo(
+    () => importerPreviewShellService.getModel(),
+    [],
+  );
+  const mvp87RjReadonlyDetection = useMemo(
+    () => rjImportReadOnlyDetectionService.getModel(),
+    [],
+  );
+  const mvp88MusicReadonlyDetection = useMemo(
+    () => musicImportReadOnlyDetectionService.getModel(),
+    [],
+  );
+  const mvp89ImportConflictDetection = useMemo(
+    () => importConflictDetectionPreviewService.getModel(),
+    [],
+  );
+  const mvp90TargetPathPlanning = useMemo(
+    () => importTargetPathPlanningPreviewService.getModel(),
+    [],
+  );
+  const mvp91CopyExecutionReadiness = useMemo(
+    () => importCopyExecutionReadinessService.getModel(),
+    [],
+  );
+  const mvp92CopySampleReadiness = useMemo(
+    () => copyOnlySampleReadinessService.getModel(),
+    [],
+  );
+  const mvp93CopyOnlyMainSideStub = useMemo(
+    () => copyOnlyMainSideStubService.getModel(),
     [],
   );
 
@@ -1339,6 +1388,414 @@ export default function DiagnosticsPage({
           {mvp85ImportDownloadModels.nextSteps.join(' / ')}
         </div>
       </section>
+
+
+
+
+
+
+      <section id="mvp89-import-conflict-detection-diagnostics" className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-amber-500/10 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-amber-300 tracking-wider">MVP-89 导入冲突检测</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">{mvp89ImportConflictDetection.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp89ImportConflictDetection.summary}</p>
+          </div>
+          <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[9px] font-bold text-amber-100">{mvp89ImportConflictDetection.version}</span>
+        </div>
+        <div id="mvp89-conflict-rule-cards" className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          {mvp89ImportConflictDetection.ruleCards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 ${importConflictDetectionPreviewService.getToneClassName(card.tone)}`}>
+              <p className="text-[10px] font-bold text-text-primary">{card.title}</p>
+              <p className="mt-1 text-[9px] leading-relaxed opacity-80">{card.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp89-conflict-report-preview" className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          {mvp89ImportConflictDetection.sampleResults.map((result) => (
+            <details key={result.taskId} className="rounded-xl border border-white/10 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+              <summary className="cursor-pointer text-xs font-bold text-text-primary">{result.detectedTitle} / {result.detectedType}</summary>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <p>比较集合: {result.comparedCollections}</p>
+                <p>阻断: {result.report.blockers}</p>
+                <p>同 RJ: {result.duplicateCodeCount}</p>
+                <p>同专辑: {result.duplicateAlbumCount}</p>
+                <p>同文件名: {result.duplicateFileNameCount}</p>
+                <p>同大小疑似: {result.sameSizeSuspectCount}</p>
+              </div>
+              <p className="mt-2 text-[9px] text-amber-100/80">{result.report.summary}</p>
+            </details>
+          ))}
+        </div>
+        <details id="mvp89-hash-strategy-preview" className="rounded-xl border border-violet-500/15 bg-violet-500/5 p-3 text-[10px] text-violet-50/90 leading-relaxed">
+          <summary className="cursor-pointer text-xs font-bold text-violet-100">hash 策略：MVP89 不计算真实 hash</summary>
+          <ul className="mt-3 list-disc pl-4 space-y-1">
+            {mvp89ImportConflictDetection.hashStrategy.map((step) => (
+              <li key={step.id}>{step.title}：{step.detail}（{step.enabledInMvp89 ? 'MVP89 已启用' : '后续启用'}）</li>
+            ))}
+          </ul>
+        </details>
+        <div id="mvp89-conflict-guardrails" className="rounded-xl border border-rose-500/15 bg-rose-500/5 p-3 text-[10px] text-rose-50/90 leading-relaxed">
+          <p className="font-bold">安全边界</p>
+          <ul className="mt-2 list-disc pl-4 space-y-1">
+            {mvp89ImportConflictDetection.guardedBoundaries.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </div>
+        <div className="sr-only">mvp89-import-conflict-detection-preview / buildImportConflictPreview / duplicate-code / duplicate-file / target-exists / same-size-suspect / hash strategy / no real hash calculation / no file operations / absolutePath / file://</div>
+      </section>
+
+      <section id="mvp90-target-path-planning-diagnostics" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-emerald-500/10 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-emerald-300 tracking-wider">MVP-90 目标路径规划</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">{mvp90TargetPathPlanning.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp90TargetPathPlanning.summary}</p>
+          </div>
+          <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-bold text-emerald-100">{mvp90TargetPathPlanning.version}</span>
+        </div>
+        <div id="mvp90-target-path-rule-cards" className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-3">
+          {mvp90TargetPathPlanning.ruleCards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 ${importTargetPathPlanningPreviewService.getToneClassName(card.tone)}`}>
+              <p className="text-[10px] font-bold text-text-primary">{card.title}</p>
+              <p className="mt-1 text-[9px] leading-relaxed opacity-80">{card.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp90-target-path-plan-preview" className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          {mvp90TargetPathPlanning.sampleResults.map((result) => (
+            <details key={result.taskId} className="rounded-xl border border-white/10 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+              <summary className="cursor-pointer text-xs font-bold text-text-primary">{result.detectedTitle} / {result.detectedType}</summary>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <p>目标文件: {result.plannedFiles.length}</p>
+                <p>同名处理: {result.duplicateTargetNameCount}</p>
+                <p>非法字符: {result.invalidCharacterWarnings}</p>
+                <p>长路径: {result.longPathWarnings}</p>
+              </div>
+              <p className="mt-2 text-[9px] text-emerald-100/80">{result.sanitizedDirectory}</p>
+              <p className="mt-1 text-[9px] text-amber-100/80">{result.conflictReport.summary}</p>
+            </details>
+          ))}
+        </div>
+        <details id="mvp90-sanitized-path-examples" className="rounded-xl border border-sky-500/15 bg-sky-500/5 p-3 text-[10px] text-sky-50/90 leading-relaxed">
+          <summary className="cursor-pointer text-xs font-bold text-sky-100">非法字符清理示例</summary>
+          <ul className="mt-3 list-disc pl-4 space-y-1">
+            {mvp90TargetPathPlanning.sanitizingExamples.map((item) => (
+              <li key={item.input}>{item.input} → {item.output}：{item.note}</li>
+            ))}
+          </ul>
+        </details>
+        <div id="mvp90-target-path-guardrails" className="rounded-xl border border-rose-500/15 bg-rose-500/5 p-3 text-[10px] text-rose-50/90 leading-relaxed">
+          <p className="font-bold">安全边界</p>
+          <ul className="mt-2 list-disc pl-4 space-y-1">
+            {mvp90TargetPathPlanning.guardedBoundaries.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </div>
+        <div className="sr-only">mvp90-target-path-planning-preview / buildImportTargetPathPreview / sanitizePathSegment / sanitizeFileName / targetRelativePath / overwrite false / no copy move delete rename / absolutePath / file://</div>
+      </section>
+
+      <section id="mvp91-copy-execution-readiness-diagnostics" className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-violet-500/10 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-violet-300 tracking-wider">MVP-91 copy only 执行前合同</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">{mvp91CopyExecutionReadiness.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp91CopyExecutionReadiness.summary}</p>
+          </div>
+          <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-2 py-1 text-[9px] font-bold text-violet-100">{mvp91CopyExecutionReadiness.version}</span>
+        </div>
+        <div id="mvp91-copy-readiness-cards" className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          {mvp91CopyExecutionReadiness.readinessCards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 ${importCopyExecutionReadinessService.getToneClassName(card.tone)}`}>
+              <p className="text-[10px] font-bold text-text-primary">{card.title}</p>
+              <p className="mt-1 text-[9px] leading-relaxed opacity-80">{card.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp91-copy-preflight-checks" className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {mvp91CopyExecutionReadiness.sampleResults[0].preflightChecks.map((check) => (
+            <div key={check.id} className="rounded-xl border border-white/10 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+              <p className="font-bold text-text-primary">{check.label} / {check.status}</p>
+              <p className="mt-1">{check.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp91-confirmation-model" className="rounded-xl border border-sky-500/15 bg-sky-500/5 p-3 text-[10px] text-sky-50/90 leading-relaxed">
+          <p className="font-bold">二次确认：{mvp91CopyExecutionReadiness.sampleResults[0].confirmation.confirmationText}</p>
+          <p className="mt-1">按钮状态：{mvp91CopyExecutionReadiness.sampleResults[0].confirmation.executeButtonState}</p>
+        </div>
+        <div id="mvp91-operation-log-preview" className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+          {mvp91CopyExecutionReadiness.sampleResults[0].operationLogPreview.slice(0, 4).map((entry) => (
+            <div key={entry.id} className="rounded-xl border border-white/10 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+              <p className="font-bold text-text-primary">{entry.event} / {entry.level}</p>
+              <p className="mt-1">{entry.message}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp91-failure-skip-preview" className="rounded-xl border border-amber-500/15 bg-amber-500/5 p-3 text-[10px] text-amber-50/90 leading-relaxed">
+          <p className="font-bold">失败 / 跳过列表</p>
+          <p className="mt-1">skippedList: {mvp91CopyExecutionReadiness.sampleResults[0].skippedList.length} / failureList: {mvp91CopyExecutionReadiness.sampleResults[0].failureList.length}</p>
+        </div>
+        <div id="mvp91-copy-execution-guardrails" className="rounded-xl border border-rose-500/15 bg-rose-500/5 p-3 text-[10px] text-rose-50/90 leading-relaxed">
+          <p className="font-bold">安全边界</p>
+          <ul className="mt-2 list-disc pl-4 space-y-1">
+            {mvp91CopyExecutionReadiness.guardedBoundaries.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </div>
+        <div className="sr-only">mvp91-copy-execution-readiness / buildImportCopyExecutionReadinessPreview / OperationLog / skippedList / failureList / disabled-preview-only / no fs.copyFile / no copy move delete rename / absolutePath / file://</div>
+      </section>
+
+
+      <section id="mvp92-copy-sample-readiness-diagnostics" className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-cyan-500/10 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-cyan-300 tracking-wider">MVP-92 copy only 样本准备</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">{mvp92CopySampleReadiness.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp92CopySampleReadiness.summary}</p>
+          </div>
+          <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2 py-1 text-[9px] font-bold text-cyan-100">{mvp92CopySampleReadiness.version}</span>
+        </div>
+        <div id="mvp92-copy-sample-cards" className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          {mvp92CopySampleReadiness.sampleReadinessCards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 ${copyOnlySampleReadinessService.getToneClassName(card.tone)}`}>
+              <p className="text-[10px] font-bold text-text-primary">{card.title}</p>
+              <p className="mt-1 text-[9px] leading-relaxed opacity-80">{card.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp92-minimal-sample-requirements" className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {mvp92CopySampleReadiness.minimalSampleRequirements.slice(0, 4).map((item) => (
+            <div key={item.id} className="rounded-xl border border-white/10 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+              <p className="font-bold text-text-primary">{item.title}</p>
+              <p className="mt-1">{item.requirement}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp92-codex-validation-steps" className="rounded-xl border border-sky-500/15 bg-sky-500/5 p-3 text-[10px] text-sky-50/90 leading-relaxed">
+          <p className="font-bold">Codex 验收步骤</p>
+          <p className="mt-1">{mvp92CopySampleReadiness.codexValidationSteps.map((step) => step.title).join(' / ')}</p>
+        </div>
+        <div id="mvp92-copy-only-ipc-contract" className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+          {mvp92CopySampleReadiness.ipcContracts.slice(0, 4).map((ipc) => (
+            <div key={ipc.channel} className="rounded-xl border border-white/10 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+              <p className="font-bold text-text-primary">{ipc.channel}</p>
+              <p className="mt-1">{ipc.purpose}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp92-main-side-copy-contract" className="rounded-xl border border-amber-500/15 bg-amber-500/5 p-3 text-[10px] text-amber-50/90 leading-relaxed">
+          <p className="font-bold">main-side copy contract</p>
+          <p className="mt-1">{mvp92CopySampleReadiness.mainSideCopyContracts.map((item) => item.title).join(' / ')}</p>
+        </div>
+        <div id="mvp92-copy-sample-guardrails" className="rounded-xl border border-rose-500/15 bg-rose-500/5 p-3 text-[10px] text-rose-50/90 leading-relaxed">
+          <p className="font-bold">安全边界</p>
+          <ul className="mt-2 list-disc pl-4 space-y-1">
+            {mvp92CopySampleReadiness.guardedBoundaries.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </div>
+        <div className="sr-only">mvp92-copy-sample-readiness / copy-only IPC / Codex 本机验收任务书 / main-side copy contract / minimal sample directory / no real copy / no copyFile / absolutePath / file://</div>
+      </section>
+
+
+      <section id="mvp93-copy-only-main-side-stub-diagnostics" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-emerald-500/10 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-emerald-300 tracking-wider">MVP-93 copy-only main-side stub</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">{mvp93CopyOnlyMainSideStub.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp93CopyOnlyMainSideStub.summary}</p>
+          </div>
+          <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-bold text-emerald-100">{mvp93CopyOnlyMainSideStub.version}</span>
+        </div>
+        <div id="mvp93-copy-stub-cards" className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          {mvp93CopyOnlyMainSideStub.cards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 ${copyOnlyMainSideStubService.getToneClassName(card.tone)}`}>
+              <p className="text-[10px] font-bold text-text-primary">{card.title}</p>
+              <p className="mt-1 text-[9px] leading-relaxed opacity-80">{card.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp93-copy-stub-channels" className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+          {mvp93CopyOnlyMainSideStub.stubChannels.slice(0, 4).map((channel) => (
+            <div key={channel.channel} className="rounded-xl border border-white/10 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+              <p className="font-bold text-text-primary">{channel.channel}</p>
+              <p className="mt-1">{channel.methodName} / {channel.status}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp93-copy-stub-blocked-result" className="rounded-xl border border-violet-500/15 bg-violet-500/5 p-3 text-[10px] text-violet-50/90 leading-relaxed">
+          <p className="font-bold">blocked result</p>
+          <p className="mt-1">status: {mvp93CopyOnlyMainSideStub.preflightPreview.blockedResult.status}</p>
+          <p className="mt-1">executeAllowed: {String(mvp93CopyOnlyMainSideStub.preflightPreview.blockedResult.executeAllowed)} / copiedCount: {mvp93CopyOnlyMainSideStub.preflightPreview.blockedResult.copiedCount}</p>
+        </div>
+        <div id="mvp93-main-side-stub-guards" className="rounded-xl border border-amber-500/15 bg-amber-500/5 p-3 text-[10px] text-amber-50/90 leading-relaxed">
+          <p className="font-bold">main-side stub guards</p>
+          <p className="mt-1">{mvp93CopyOnlyMainSideStub.mainSideGuards.map((guard) => guard.title).join(' / ')}</p>
+        </div>
+        <div id="mvp93-codex-prompt-gate" className="rounded-xl border border-sky-500/15 bg-sky-500/5 p-3 text-[10px] text-sky-50/90 leading-relaxed">
+          <p className="font-bold">Codex gate</p>
+          <p className="mt-1">{mvp93CopyOnlyMainSideStub.codexPromptLines.map((line) => `${line.prompt} (${line.sendToCodexNow})`).join(' / ')}</p>
+        </div>
+        <div id="mvp93-copy-stub-guardrails" className="rounded-xl border border-rose-500/15 bg-rose-500/5 p-3 text-[10px] text-rose-50/90 leading-relaxed">
+          <p className="font-bold">安全边界</p>
+          <ul className="mt-2 list-disc pl-4 space-y-1">
+            {mvp93CopyOnlyMainSideStub.guardedBoundaries.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </div>
+        <div className="sr-only">mvp93-copy-only-main-side-stub / mvp93-copy-stub-channels / mvp93-copy-stub-blocked-result / mvp93-main-side-stub-guards / mvp93-codex-prompt-gate / no real copy / absolutePath / file://</div>
+      </section>
+
+      <section id="mvp88-music-import-readonly-detection-diagnostics" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-sky-500/10 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-sky-300 tracking-wider">MVP-88 音乐只读识别</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">{mvp88MusicReadonlyDetection.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp88MusicReadonlyDetection.summary}</p>
+          </div>
+          <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2 py-1 text-[9px] font-bold text-sky-100">{mvp88MusicReadonlyDetection.version}</span>
+        </div>
+        <div id="mvp88-music-detection-rule-cards" className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {mvp88MusicReadonlyDetection.ruleCards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 ${musicImportReadOnlyDetectionService.getToneClassName(card.tone)}`}>
+              <p className="text-[10px] font-bold text-text-primary">{card.title}</p>
+              <p className="mt-1 text-[9px] leading-relaxed opacity-80">{card.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp88-music-import-category-counts" className="grid grid-cols-2 md:grid-cols-7 gap-2">
+          {mvp88MusicReadonlyDetection.sampleResult.categoryCounts.map((item) => (
+            <div key={item.kind} className="rounded-xl border border-white/10 bg-black/10 p-2 text-center">
+              <p className="text-[9px] text-text-muted">{item.label}</p>
+              <p className="mt-1 text-sm font-black text-text-primary">{item.count}</p>
+            </div>
+          ))}
+        </div>
+        <details id="mvp88-music-readonly-import-task" className="rounded-xl border border-white/10 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+          <summary className="cursor-pointer text-xs font-bold text-text-primary">Music ImportTask 识别结果 / 标签后置</summary>
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+            <p>sourceRootToken: {mvp88MusicReadonlyDetection.sampleResult.task.sourceRootToken}</p>
+            <p>detectedType: {mvp88MusicReadonlyDetection.sampleResult.detectedType}</p>
+            <p>artist: {mvp88MusicReadonlyDetection.sampleResult.detectedArtist || '未识别'}</p>
+            <p>album: {mvp88MusicReadonlyDetection.sampleResult.detectedAlbum || '未识别'}</p>
+            <p>targetRelativeDirectory: {mvp88MusicReadonlyDetection.sampleResult.task.targetPlan.targetRelativeDirectory}</p>
+            <p>conflictReport: {mvp88MusicReadonlyDetection.sampleResult.task.conflictReport.summary}</p>
+          </div>
+        </details>
+        <div id="mvp88-music-readonly-guardrails" className="rounded-xl border border-rose-500/15 bg-rose-500/5 p-3 text-[10px] text-rose-50/90 leading-relaxed">
+          <p className="font-bold">安全边界</p>
+          <ul className="mt-2 list-disc pl-4 space-y-1">
+            {mvp88MusicReadonlyDetection.guardedBoundaries.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </div>
+        <div className="sr-only">mvp88-music-import-readonly-detection / inferArtistAlbumFromFolder / classifyMusicImportRelativePath / isProtectedMusicDownload / music-album / music-singles / no ID3 tag reading / absolutePath / file:// / no file operations</div>
+      </section>
+
+      <section id="mvp87-rj-import-readonly-detection-diagnostics" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-emerald-500/10 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-emerald-300 tracking-wider">MVP-87 RJ 只读识别</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">{mvp87RjReadonlyDetection.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp87RjReadonlyDetection.summary}</p>
+          </div>
+          <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-bold text-emerald-100">{mvp87RjReadonlyDetection.version}</span>
+        </div>
+        <div id="mvp87-rj-detection-rule-cards" className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {mvp87RjReadonlyDetection.ruleCards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 ${rjImportReadOnlyDetectionService.getToneClassName(card.tone)}`}>
+              <p className="text-[10px] font-bold text-text-primary">{card.title}</p>
+              <p className="mt-1 text-[9px] leading-relaxed opacity-80">{card.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp87-rj-import-category-counts" className="grid grid-cols-2 md:grid-cols-7 gap-2">
+          {mvp87RjReadonlyDetection.sampleResult.categoryCounts.map((item) => (
+            <div key={item.kind} className="rounded-xl border border-white/10 bg-black/10 p-2 text-center">
+              <p className="text-[9px] text-text-muted">{item.label}</p>
+              <p className="mt-1 text-sm font-black text-text-primary">{item.count}</p>
+            </div>
+          ))}
+        </div>
+        <details id="mvp87-rj-readonly-import-task" className="rounded-xl border border-white/10 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+          <summary className="cursor-pointer text-xs font-bold text-text-primary">ImportTask 识别结果 / 路径 token</summary>
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+            <p>sourceRootToken: {mvp87RjReadonlyDetection.sampleResult.task.sourceRootToken}</p>
+            <p>detectedCode: {mvp87RjReadonlyDetection.sampleResult.detectedCode || '未识别'}</p>
+            <p>targetRelativeDirectory: {mvp87RjReadonlyDetection.sampleResult.task.targetPlan.targetRelativeDirectory}</p>
+            <p>conflictReport: {mvp87RjReadonlyDetection.sampleResult.task.conflictReport.summary}</p>
+          </div>
+        </details>
+        <div id="mvp87-rj-readonly-guardrails" className="rounded-xl border border-rose-500/15 bg-rose-500/5 p-3 text-[10px] text-rose-50/90 leading-relaxed">
+          <p className="font-bold">安全边界</p>
+          <ul className="mt-2 list-disc pl-4 space-y-1">
+            {mvp87RjReadonlyDetection.guardedBoundaries.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </div>
+        <div className="sr-only">mvp87-rj-import-readonly-detection / normalizeRjCode / classifyImportRelativePath / sourceRootToken / relativePaths / absolutePath / file:// / no file operations</div>
+      </section>
+
+      <section id="mvp86-importer-ui-shell-diagnostics" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-emerald-300 tracking-wider">导入器 UI 壳 · 只预览不执行</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">{mvp86ImporterShell.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp86ImporterShell.summary}</p>
+            <p className="mt-2 text-[9px] text-emerald-100/80 leading-relaxed">基线：{mvp86ImporterShell.baseline}</p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-emerald-500/25 bg-emerald-500/10 text-[10px] font-bold text-emerald-100 whitespace-nowrap">不执行 copy / move</span>
+        </div>
+        <div id="mvp86-importer-source-options" className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {mvp86ImporterShell.sourceOptions.map((option) => (
+            <div key={option.id} className={`rounded-xl border p-3 text-[10px] leading-relaxed ${importerPreviewShellService.getToneClassName(option.tone)}`}>
+              <p className="text-[11px] font-bold text-text-primary">{option.label}</p>
+              <p className="mt-2 opacity-85">{option.description}</p>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {option.accepted.map((item) => (
+                  <span key={item} className="rounded-full border border-white/10 bg-black/10 px-2 py-0.5 text-[9px]">{item}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div id="mvp86-importer-preview-steps" className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          {mvp86ImporterShell.previewSteps.map((step) => (
+            <div key={step.id} className="rounded-xl border border-white/10 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+              <p className="text-[11px] font-bold text-text-primary">{step.title}</p>
+              <p className="mt-1">{step.description}</p>
+              <p className="mt-2 text-[9px] text-emerald-100/70">{step.status}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp86-import-preview-task" className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          {mvp86ImporterShell.taskSummaryCards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 text-[10px] ${importerPreviewShellService.getToneClassName(card.tone)}`}>
+              <p className="font-bold text-text-primary">{card.label}</p>
+              <p className="mt-1 opacity-85">{card.value}</p>
+            </div>
+          ))}
+        </div>
+        <details id="mvp86-import-target-plan-preview" className="rounded-xl border border-sky-500/15 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+          <summary className="cursor-pointer list-none font-bold text-sky-100">目标路径计划 / 冲突预览</summary>
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+            {mvp86ImporterShell.previewPanels.map((panel) => (
+              <div key={panel.id} className={`rounded-lg border p-3 ${importerPreviewShellService.getToneClassName(panel.tone)}`}>
+                <p className="font-bold text-text-primary">{panel.title}</p>
+                <ul className="mt-2 list-disc pl-4 space-y-1">
+                  {panel.items.map((item) => (<li key={item}>{item}</li>))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </details>
+        <div id="mvp86-importer-guardrails" className="rounded-xl border border-rose-500/15 bg-rose-500/5 p-3 text-[10px] text-rose-50/90 leading-relaxed">
+          <p className="font-bold text-rose-100">安全边界</p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {mvp86ImporterShell.guardedBoundaries.map((item) => (
+              <span key={item} className="rounded-full border border-rose-500/20 bg-black/10 px-2 py-0.5 text-[9px]">{item}</span>
+            ))}
+          </div>
+        </div>
+        <div className="sr-only">
+          mvp86-importer-ui-shell / mvp86-import-preview-task / mvp86-importer-guardrails / no file operations / {mvp86ImporterShell.disabledActions.join(' / ')}
+        </div>
+      </section>
+
       <details id="mvp75-diagnostics-history-folded" className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-5 space-y-4 shadow-sm">
         <summary className="cursor-pointer list-none flex flex-col md:flex-row md:items-start md:justify-between gap-3">
           <div>

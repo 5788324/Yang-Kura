@@ -1,0 +1,40 @@
+Yang-Kura MVP-88 handoff package
+Version: 0.126.0-mvp88
+Theme: MVP-88 音乐专辑 / 单曲只读识别
+
+Added:
+- src/services/musicImportReadOnlyDetectionService.ts
+- docs/CURRENT_ROADMAP_MVP88.md
+- docs/MUSIC_IMPORT_READONLY_DETECTION_MVP88.md
+- scripts/verify-mvp88-music-import-readonly-detection.mjs
+- HANDOFF_MVP87_TO_MVP88.md
+
+Modified:
+- src/components/ImporterPage.tsx
+- src/components/DiagnosticsPage.tsx
+- src/services/index.ts
+- package.json
+- package-lock.json
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+
+Safety:
+- no real directory read
+- no ID3 / FLAC tag reading
+- no protected-format conversion/decryption
+- no copy / move / delete / rename
+- no SQLite
+- no downloader Provider
+- no mpv
+- no absolutePath / file:// exposure
+
+Validation:
+- npm ci --ignore-scripts: PASS, Electron moderate advisory remains
+- npm run lint: PASS
+- npm run build:electron: PASS
+- npm run verify:mvp88-music-import-readonly-detection: PASS
+- npm run verify:all: PASS
+- npm run build: PASS, Vite chunk size warning remains
+- npm audit --audit-level=high: PASS, only moderate Electron advisory

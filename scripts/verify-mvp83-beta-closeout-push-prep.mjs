@@ -15,9 +15,9 @@ const assert = (condition, message) => {
 const pkg = JSON.parse(read('package.json'));
 const lock = JSON.parse(read('package-lock.json'));
 
-assert(['0.121.0-mvp83', '0.122.0-mvp84', '0.123.0-mvp85'].includes(pkg.version), `package.json version must be 0.121.0-mvp83 or compatible MVP-84, got ${pkg.version}`);
-assert(['0.121.0-mvp83', '0.122.0-mvp84', '0.123.0-mvp85'].includes(lock.version), `package-lock version must be 0.121.0-mvp83 or compatible MVP-84, got ${lock.version}`);
-assert(['0.121.0-mvp83', '0.122.0-mvp84', '0.123.0-mvp85'].includes(lock.packages?.['']?.version), 'package-lock root package version must be 0.121.0-mvp83 or compatible MVP-84');
+assert(['0.121.0-mvp83', '0.122.0-mvp84', '0.123.0-mvp85', '0.124.0-mvp86', '0.125.0-mvp87', '0.126.0-mvp88', '0.127.0-mvp89', '0.128.0-mvp90', '0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93'].includes(pkg.version), `package.json version must be 0.121.0-mvp83 or compatible MVP-84, got ${pkg.version}`);
+assert(['0.121.0-mvp83', '0.122.0-mvp84', '0.123.0-mvp85', '0.124.0-mvp86', '0.125.0-mvp87', '0.126.0-mvp88', '0.127.0-mvp89', '0.128.0-mvp90', '0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93'].includes(lock.version), `package-lock version must be 0.121.0-mvp83 or compatible MVP-84, got ${lock.version}`);
+assert(['0.121.0-mvp83', '0.122.0-mvp84', '0.123.0-mvp85', '0.124.0-mvp86', '0.125.0-mvp87', '0.126.0-mvp88', '0.127.0-mvp89', '0.128.0-mvp90', '0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93'].includes(lock.packages?.['']?.version), 'package-lock root package version must be 0.121.0-mvp83 or compatible MVP-84');
 assert(pkg.scripts?.['verify:mvp83-beta-closeout-push-prep'] === 'node scripts/verify-mvp83-beta-closeout-push-prep.mjs', 'package.json must expose MVP83 verifier script');
 assert(pkg.scripts?.['verify:all']?.includes('verify:mvp83-beta-closeout-push-prep'), 'verify:all must include MVP83 verifier');
 

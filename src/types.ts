@@ -1,4 +1,4 @@
-export type PageType = 'dashboard' | 'asmr-lib' | 'music-lib' | 'playlists' | 'downloader' | 'settings' | 'diagnostics';
+export type PageType = 'dashboard' | 'asmr-lib' | 'music-lib' | 'playlists' | 'importer' | 'downloader' | 'settings' | 'diagnostics';
 
 export type TrackType = 'asmr' | 'music';
 export type PlaybackCompletionMode = 'continue-queue' | 'stop-after-track' | 'stop-after-work';

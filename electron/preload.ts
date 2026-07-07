@@ -77,6 +77,26 @@ type OpenInFileManagerRequest = {
   mode: 'open-in-file-manager';
 };
 
+
+type ImportCopyOnlyStubRequest = {
+  operationPlanId: string;
+  rootPathToken: string;
+  targetRootPathToken: string;
+  mode: 'copy-only-stub';
+  relativePaths?: string[];
+};
+
+type ImportCopyOnlyConfirmStubRequest = {
+  operationPlanId: string;
+  confirmationText: string;
+  mode: 'copy-only-confirm-stub';
+};
+
+type ImportCopyOnlyCancelStubRequest = {
+  operationPlanId: string;
+  mode: 'copy-only-cancel-stub';
+};
+
 /* Legacy verifier token retained for MVP-26 compatibility: mvp26-shell-runtime-track-lyrics-read. Legacy verifier token retained for MVP-27 compatibility: mvp27-shell-runtime-external-open.
  * Legacy verifier token retained for MVP-20 compatibility: status: 'mvp20-shell-runtime-read-only-dry-run'. */
 const shellStatus = {
@@ -93,6 +113,8 @@ const shellStatus = {
   canReadTrackLyrics: true,
   canOpenExternalFile: true,
   canOpenInFileManager: true,
+  canUseCopyOnlyStub: true,
+  canExecuteCopyOnly: false,
   registersMediaProtocol: true,
   exposesAbsolutePaths: false,
 } as const;
@@ -132,6 +154,23 @@ const yangKuraApi = {
 
   async requestOpenInFileManager(request: OpenInFileManagerRequest) {
     return ipcRenderer.invoke('yang-kura:external:open-in-file-manager', request);
+  },
+
+
+  async requestImportCopyOnlyPreflight(request: ImportCopyOnlyStubRequest) {
+    return ipcRenderer.invoke('yang-kura:import:copy-only:preflight', request);
+  },
+
+  async requestImportCopyOnlyConfirm(request: ImportCopyOnlyConfirmStubRequest) {
+    return ipcRenderer.invoke('yang-kura:import:copy-only:confirm', request);
+  },
+
+  async requestImportCopyOnlyExecute(request: ImportCopyOnlyStubRequest) {
+    return ipcRenderer.invoke('yang-kura:import:copy-only:execute', request);
+  },
+
+  async requestImportCopyOnlyCancel(request: ImportCopyOnlyCancelStubRequest) {
+    return ipcRenderer.invoke('yang-kura:import:copy-only:cancel', request);
   },
 
   async getElectronShellStatus() {

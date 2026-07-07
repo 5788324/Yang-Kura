@@ -1,0 +1,31 @@
+Yang-Kura MVP89 package manifest
+
+Version: 0.127.0-mvp89
+Baseline: 0.126.0-mvp88
+
+New files:
+- src/services/importConflictDetectionPreviewService.ts
+- docs/CURRENT_ROADMAP_MVP89.md
+- docs/IMPORT_CONFLICT_DETECTION_MVP89.md
+- scripts/verify-mvp89-import-conflict-detection.mjs
+- HANDOFF_MVP88_TO_MVP89.md
+- PACKAGE_MANIFEST_MVP89_HANDOFF.txt
+
+Modified files include:
+- src/components/ImporterPage.tsx
+- src/components/DiagnosticsPage.tsx
+- src/services/index.ts
+- package.json
+- package-lock.json
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+- docs/PROJECT_STATE.md
+- docs/NEXT_CHAT_HANDOFF.md
+- docs/RUN_ME_FIRST.md
+- 00_NEW_CHAT_START_HERE.md
+- NEW_CHAT_PROMPT.md
+- NEW_CHAT_PROMPT_FULL.md
+- CODEX_MINIMAL_PROMPTS.md
+- scripts/verify-*.mjs compatibility lists as needed

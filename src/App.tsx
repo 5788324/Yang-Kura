@@ -7,6 +7,7 @@ import AsmrDetail from './components/AsmrDetail';
 import MusicLibrary from './components/MusicLibrary';
 import PlaylistPage from './components/PlaylistPage';
 import DownloaderPage from './components/DownloaderPage';
+import ImporterPage from './components/ImporterPage';
 import SettingsPage from './components/SettingsPage';
 import PlayerBar from './components/PlayerBar';
 import LyricsPanel from './components/LyricsPanel';
@@ -386,7 +387,7 @@ export default function App() {
         </div>
         <div className="flex items-center space-x-2 font-sans">
           <span className="text-[10px] text-text-muted bg-border-color/40 px-2 py-0.5 rounded font-mono">
-详情导航 / 媒体库体验
+导入器预览 / 详情导航 / 媒体库体验
           </span>
           <span className="text-emerald-500 flex items-center space-x-1 font-semibold text-[10px]">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -484,6 +485,10 @@ export default function App() {
               onDeletePlaylist={handleDeletePlaylist}
               onRemoveTrackFromPlaylist={handleRemoveTrackFromPlaylist}
             />
+          )}
+
+          {currentPage === 'importer' && (
+            <ImporterPage />
           )}
 
           {currentPage === 'downloader' && (

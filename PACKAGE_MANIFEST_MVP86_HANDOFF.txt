@@ -1,0 +1,27 @@
+Yang-Kura MVP-86 package manifest
+Version: 0.124.0-mvp86
+
+New files:
+- src/services/importerPreviewShellService.ts
+- src/components/ImporterPage.tsx
+- docs/CURRENT_ROADMAP_MVP86.md
+- docs/IMPORTER_UI_SHELL_MVP86.md
+- scripts/verify-mvp86-importer-ui-shell.mjs
+- HANDOFF_MVP85_TO_MVP86.md
+- PACKAGE_MANIFEST_MVP86_HANDOFF.txt
+
+Main verification:
+- npm ci --ignore-scripts
+- npm run lint
+- npm run build:electron
+- npm run verify:mvp86-importer-ui-shell
+- npm run verify:all
+- npm run build
+- npm audit --audit-level=high
+
+Safety:
+- no copy/move/delete/rename
+- no real import IPC
+- no SQLite
+- no network provider
+- no absolutePath/file:// exposure
