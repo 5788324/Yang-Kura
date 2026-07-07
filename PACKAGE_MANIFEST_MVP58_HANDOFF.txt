@@ -1,0 +1,19 @@
+Yang-Kura MVP-58 Source Package
+Version: 0.96.0-mvp58
+
+Primary changes:
+- src/services/settingsPersonalWorkflowService.ts
+- src/components/SettingsPage.tsx
+- src/components/DiagnosticsPage.tsx
+- docs/CURRENT_ROADMAP_MVP58.md
+- docs/SETTINGS_PERSONAL_WORKFLOW_MVP58.md
+- scripts/verify-mvp58-settings-personal-workflow.mjs
+- HANDOFF_MVP57_TO_MVP58.md
+
+Validation:
+- npm ci --ignore-scripts
+- npm run lint
+- npm run build:electron
+- npm run verify:all
+- npm run build
+- npm audit --audit-level=high

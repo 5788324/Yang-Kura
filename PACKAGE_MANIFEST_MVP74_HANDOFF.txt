@@ -1,0 +1,30 @@
+Yang-Kura MVP-74 handoff package
+
+Version: 0.112.0-mvp74
+Base: 0.111.0-mvp73
+Theme: player bar / home daily-surface cleanup
+
+Important files:
+- src/services/playerBarDailyCleanupService.ts
+- src/components/PlayerBar.tsx
+- src/components/Dashboard.tsx
+- src/services/index.ts
+- docs/CURRENT_ROADMAP_MVP74.md
+- docs/PLAYERBAR_HOME_CLEANUP_MVP74.md
+- scripts/verify-mvp74-playerbar-home-cleanup.mjs
+- HANDOFF_MVP73_TO_MVP74.md
+- PACKAGE_MANIFEST_MVP74_HANDOFF.txt
+
+Safety scope:
+- No SQLite
+- No downloader
+- No metadata scraping
+- No mpv
+- No media file delete/move/rename
+- No absolutePath exposure to renderer
+- No file:// exposure to renderer
+- No scanner/index/playback engine changes
+
+中文主题：MVP-74 播放器底栏 / 首页重复入口继续清理。
+
+安全边界中文记录：不接 SQLite；不删除 / 移动 / 重命名真实媒体文件；不向 Renderer 暴露 absolutePath；不向 Renderer 暴露 file://。

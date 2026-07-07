@@ -1,0 +1,40 @@
+Yang-Kura MVP-84 package manifest
+
+Version: 0.122.0-mvp84
+Theme: Importer / downloader ecosystem strategy absorption and Git push attempt record
+Baseline: 0.121.0-mvp83
+
+Added:
+- src/services/importDownloadEcosystemStrategyService.ts
+- docs/CURRENT_ROADMAP_MVP84.md
+- docs/IMPORT_DOWNLOAD_ECOSYSTEM_STRATEGY_MVP84.md
+- docs/GIT_PUSH_ATTEMPT_MVP84.md
+- docs/PROJECT_MASTER_PLAN_MVP84.md
+- scripts/verify-mvp84-import-download-strategy.mjs
+- HANDOFF_MVP83_TO_MVP84.md
+- PACKAGE_MANIFEST_MVP84_HANDOFF.txt
+
+Modified:
+- src/components/DiagnosticsPage.tsx
+- src/services/index.ts
+- package.json
+- package-lock.json
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+- docs/PROJECT_STATE.md
+- docs/NEXT_CHAT_HANDOFF.md
+- docs/RUN_ME_FIRST.md
+- 00_NEW_CHAT_START_HERE.md
+- NEW_CHAT_PROMPT.md
+- NEW_CHAT_PROMPT_FULL.md
+- CODEX_MINIMAL_PROMPTS.md
+
+Safety:
+- No SQLite implementation
+- No downloader implementation
+- No metadata Provider implementation
+- No mpv implementation
+- No real file copy / move / delete / rename
+- No scanner/index/playback core changes

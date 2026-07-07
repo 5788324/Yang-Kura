@@ -1,0 +1,37 @@
+export const electronWindowsValidationMvp28Service = {
+  status: 'mvp28-windows-desktop-validation' as const,
+  title: 'Windows 桌面验收与打包准备',
+  scripts: [
+    'npm ci',
+    'npm run electron:install',
+    'npm run desktop:validate-chain',
+    'npm run desktop:dev',
+    'npm run desktop:preview',
+    'npm run desktop:smoke-check',
+    'npm run desktop:prepare-validation-bundle',
+  ],
+  validationFlow: [
+    '打开 Electron 桌面窗口，确认不是浏览器预览。',
+    '选择一个小样本音声库或音乐库目录。',
+    '执行 dry-run 扫描并检查 Diagnostics 报告。',
+    '确认后写入 library-index.json，并读回映射到音声库 / 音乐库。',
+    '播放真实本地音频，检查 HTMLAudio 状态与中文错误提示。',
+    '读取 LRC / SRT / VTT / ASS 字幕并确认歌词页高亮。',
+    '视频 / 图片 / 其他文件通过系统默认应用外部打开。',
+  ],
+  packagingStatus: [
+    'MVP-28 不引入 electron-builder，避免为了打包先拉大依赖面。',
+    'desktop:prepare-validation-bundle 只生成验证包，不声称是安装包或便携 exe。',
+    '真正 Windows installer / portable exe 放到 MVP-29 或 Beta 打包轮。',
+  ],
+  stillBlocked: [
+    '不删除文件',
+    '不移动文件',
+    '不重命名文件',
+    '不接 SQLite',
+    '不接下载器',
+    '不联网抓元数据',
+    '不声明已经生成 Windows 安装包',
+  ],
+  next: 'MVP-29：本机实测后再决定是补打包配置，还是先做 UI 去工程化与播放器首页精修。',
+};

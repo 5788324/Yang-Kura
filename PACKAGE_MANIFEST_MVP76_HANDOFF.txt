@@ -1,0 +1,42 @@
+Yang-Kura MVP-76 handoff package
+
+Version: 0.114.0-mvp76
+Task: 音声库 / 音乐库卡片视觉统一
+
+Included important files:
+- package.json
+- package-lock.json
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+- src/components/AsmrLibrary.tsx
+- src/components/MusicLibrary.tsx
+- src/components/DiagnosticsPage.tsx
+- src/services/libraryCardLayoutPolishService.ts
+- src/services/index.ts
+- docs/CURRENT_ROADMAP_MVP76.md
+- docs/LIBRARY_CARD_LAYOUT_UNITY_MVP76.md
+- scripts/verify-mvp76-card-layout-unity.mjs
+- HANDOFF_MVP75_TO_MVP76.md
+
+Validation target:
+- npm ci --ignore-scripts
+- npm run lint
+- npm run build:electron
+- npm run verify:mvp76-card-layout-unity
+- npm run verify:all
+- npm run build
+- npm audit --audit-level=high
+
+Safety boundary:
+- 不接 SQLite
+- 不接下载器
+- 不接 ASMR.one / DLsite / 网易云元数据抓取
+- 不接 mpv
+- 不删除 / 移动 / 重命名真实媒体文件
+- 不向 Renderer 暴露 absolutePath
+- 不向 Renderer 暴露 file://
+- 不改真实扫描 / 写 index / 播放内核链路
+
+Layout note: MVP-76 布局统一覆盖音声库和音乐库卡片。

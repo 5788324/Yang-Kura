@@ -1,3 +1,4 @@
+// Legacy verifier marker: Demo / Coming Soon / 不联网 / 无真实下载
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { 
@@ -36,6 +37,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { AudioTrack, FileProgress, DownloadTask, AsmrMetadata, MusicMetadata } from '../types';
+import { coverArtworkService } from '../services/coverArtworkService';
 
 interface DownloaderPageProps {
   onPlayTrack?: (track: AudioTrack) => void;
@@ -66,7 +68,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       type: 'asmr',
       title: 'お姉ちゃんの優しいハグとご挨拶＆耳かき睡眠導入',
       subtitle: 'Honey Strap',
-      coverUrl: 'https://images.unsplash.com/photo-1508962914676-134849a727f0?q=80&w=300&auto=format&fit=crop',
+      coverUrl: coverArtworkService.makeFallbackCover('下载器 Demo 封面 1', '本地离线占位', 'asmr'),
       totalSize: '1.24 GB',
       progress: 68,
       status: 'downloading',
@@ -83,7 +85,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       type: 'asmr',
       title: '圧倒的包容力で眠らせる极上ASMR両耳同時耳かき',
       subtitle: '桃色CODE',
-      coverUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=300&auto=format&fit=crop',
+      coverUrl: coverArtworkService.makeFallbackCover('下载器 Demo 封面 2', '本地离线占位', 'asmr'),
       totalSize: '1.85 GB',
       progress: 100,
       status: 'completed',
@@ -99,7 +101,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       type: 'music',
       title: 'Lemon',
       subtitle: '米津玄師 (Kenshi Yonezu)',
-      coverUrl: 'https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=300&auto=format&fit=crop&q=80',
+      coverUrl: coverArtworkService.makeFallbackCover('下载器 Demo 封面 3', '本地离线占位', 'music'),
       totalSize: '48.5 MB',
       progress: 100,
       status: 'completed',
@@ -114,7 +116,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       type: 'music',
       title: '晴天',
       subtitle: '周杰伦 (Jay Chou)',
-      coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80',
+      coverUrl: coverArtworkService.makeFallbackCover('下载器 Demo 封面 4', '本地离线占位', 'asmr'),
       totalSize: '54.2 MB',
       progress: 42,
       status: 'downloading',
@@ -129,7 +131,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       type: 'music',
       title: '夜に駆ける',
       subtitle: 'YOASOBI',
-      coverUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80',
+      coverUrl: coverArtworkService.makeFallbackCover('下载器 Demo 封面 5', '本地离线占位', 'asmr'),
       totalSize: '39.8 MB',
       progress: 15,
       status: 'failed',
@@ -185,7 +187,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       releaseDate: '2024-03-22',
       fileSize: '1.24 GB',
       tracksCount: 3,
-      coverUrl: 'https://images.unsplash.com/photo-1508962914676-134849a727f0?q=80&w=300&auto=format&fit=crop'
+      coverUrl: coverArtworkService.makeFallbackCover('下载器 Demo 封面 6', '本地离线占位', 'music')
     },
     'RJ332128': {
       id: 'RJ332128',
@@ -195,7 +197,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       releaseDate: '2023-08-15',
       fileSize: '1.85 GB',
       tracksCount: 2,
-      coverUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=300&auto=format&fit=crop'
+      coverUrl: coverArtworkService.makeFallbackCover('下载器 Demo 封面 7', '本地离线占位', 'asmr')
     },
     'RJ253912': {
       id: 'RJ253912',
@@ -205,7 +207,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       releaseDate: '2024-01-10',
       fileSize: '720 MB',
       tracksCount: 2,
-      coverUrl: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?q=80&w=300&auto=format&fit=crop'
+      coverUrl: coverArtworkService.makeFallbackCover('下载器 Demo 封面 8', '本地离线占位', 'asmr')
     }
   };
 
@@ -216,7 +218,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       album: 'Lemon (Single)',
       quality: 'Hi-Res Flac | 24bit 96kHz',
       fileSize: '48.5 MB',
-      coverUrl: 'https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=300&auto=format&fit=crop&q=80'
+      coverUrl: coverArtworkService.makeFallbackCover('下载器 Demo 封面 9', '本地离线占位', 'music')
     },
     '周杰伦 - 晴天': {
       title: '晴天',
@@ -224,7 +226,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       album: '叶惠美',
       quality: 'Master Flac | 24bit 192kHz',
       fileSize: '54.2 MB',
-      coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80'
+      coverUrl: coverArtworkService.makeFallbackCover('下载器 Demo 封面 10', '本地离线占位', 'asmr')
     },
     'YOASOBI - 夜に駆ける': {
       title: '夜に駆ける (Racing into the Night)',
@@ -232,7 +234,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       album: 'THE BOOK',
       quality: 'Hi-Res Flac | 24bit 48kHz',
       fileSize: '39.8 MB',
-      coverUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80'
+      coverUrl: coverArtworkService.makeFallbackCover('下载器 Demo 封面 11', '本地离线占位', 'asmr')
     }
   };
 
@@ -246,16 +248,16 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       const matched = mockRjDatabase[cleanId] || {
         id: cleanId,
         title: `未知 ASMR 音声 [${cleanId}] - 元数据已成功代理拉取`,
-        circle: '外置网络共享社团',
+        circle: '示例社团',
         cv: '匿名音声CV/同人声优',
         releaseDate: '2026-06-30',
         fileSize: '1.20 GB',
         tracksCount: 3,
-        coverUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80'
+        coverUrl: coverArtworkService.makeFallbackCover('下载器 Demo 封面 12', '本地离线占位', 'music')
       };
       setParsedAsmr(matched);
       setAsmrLoading(false);
-      addNotification(`🔍 成功抓取作品 ${cleanId} 的外部元数据信息`);
+      addNotification(`🔍 已生成作品 ${cleanId} 的示例信息`);
     }, 900);
   };
 
@@ -268,14 +270,14 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       const matched = mockMusicDatabase[query] || {
         title: query.split('-')[1]?.trim() || query,
         artist: query.split('-')[0]?.trim() || '未知艺术家',
-        album: '网络爬网精选集',
+        album: '示例精选集',
         quality: musicQuality === 'flac_24bit' ? 'Hi-Res Flac | 24bit 192kHz' : musicQuality === 'flac_16bit' ? 'Lossless Flac | 16bit 44.1kHz' : 'Standard MP3 | 320kbps',
         fileSize: musicQuality === 'flac_24bit' ? '42.5 MB' : musicQuality === 'flac_16bit' ? '28.1 MB' : '8.4 MB',
-        coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80'
+        coverUrl: coverArtworkService.makeFallbackCover('下载器 Demo 封面 13', '本地离线占位', 'asmr')
       };
       setParsedMusic(matched);
       setMusicLoading(false);
-      addNotification(`🔍 已从提取通道拉取 《${matched.title}》 的音频流信息`);
+      addNotification(`🔍 已生成《${matched.title}》的示例信息`);
     }, 800);
   };
 
@@ -322,7 +324,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
     setTasks(prev => [newTask, ...prev]);
     setExpandedTasks(prev => ({ ...prev, [newTask.id]: true }));
     setParsedAsmr(null); // Clear panel
-    addNotification(`⚡ 已向下载管理器派发 8 线程高速并发任务: ${newTask.id}`);
+    addNotification(`⚡ 已生成示例任务：${newTask.id}`);
   };
 
   const handleStartMusicDownload = () => {
@@ -361,7 +363,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
     setTasks(prev => [newTask, ...prev]);
     setExpandedTasks(prev => ({ ...prev, [newTask.id]: true }));
     setParsedMusic(null); // Clear panel
-    addNotification(`⚡ 无损音频爬虫管道建立成功，开始提取: 《${newTask.title}》`);
+    addNotification(`⚡ 已生成示例音乐任务：《${newTask.title}》`);
   };
 
   // ==================== REAL-TIME DOWNLOADS SIMULATOR LOOP ====================
@@ -421,7 +423,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
           }
 
           if (isNowCompleted && task.status !== 'completed') {
-            addNotification(`🎉 [已完成] 任务 《${task.title}》 下载成功并写入本地 SQLite 媒体库。`);
+            addNotification(`🎉 [示例完成] 任务《${task.title}》已在页面中完成，不写入真实媒体库。`);
           }
 
           return {
@@ -465,7 +467,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
 
   const handleDeleteTask = (id: string) => {
     setTasks(prev => prev.filter(t => t.id !== id));
-    addNotification(`🗑️ 下载任务已从队列彻底清除`);
+    addNotification(`🗑️ 示例任务已从页面列表移除`);
   };
 
   const handleToggleExpand = (id: string) => {
@@ -515,16 +517,16 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       name: 'Scraped_Metadata.txt',
       size: '4 KB',
       type: 'text',
-      content: `[YANG-KURA NEXT Metadata Scraper]
+      content: `[YANG-KURA 示例信息文件]
 =========================================
 作品ID/Title: ${task.id} - ${task.title}
 归属/Artist: ${task.subtitle}
 创建时间: ${task.addedAt}
 总文件大小: ${task.totalSize}
 =========================================
-本音频文件已由 Aria2c 极速引擎抓取完成，并执行了自动解压卷 7z 处理。
-音频规格已经由 Dm-Consistency Check 进行无损波形验证，已写入本地 SQLite 映射。
-可以直接双击下方 WAV / FLAC 文件加载进主播放器中监听。`
+这是下载器页面的示例文件说明，不代表真实下载、解压、校验或入库。
+当前页面不会访问网络，也不会写入真实媒体库。
+下方 WAV / FLAC 文件仅用于展示未来交互。`
     });
 
     // Audio Files
@@ -543,7 +545,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       files: folderFiles
     });
 
-    addNotification(`📂 已打开本地模拟文件夹: ${task.id}`);
+    addNotification(`📂 已打开示例文件夹: ${task.id}`);
   };
 
   // Double click audio to play
@@ -553,7 +555,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
     if (!task) return;
 
     if (!onPlayTrack) {
-      addNotification(`🔊 本地试听音频: ${fileName}`);
+      addNotification(`🔊 示例试听音频: ${fileName}`);
       return;
     }
 
@@ -640,10 +642,10 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       <div>
         <h2 className="text-xl font-bold flex items-center space-x-2 text-text-primary">
           <DownloadCloud className="w-5.5 h-5.5 text-brand-color" />
-          <span>下载器入口 · Demo / Coming Soon</span>
+          <span>导入与下载规划 · Coming Soon</span>
         </h2>
         <p className="text-xs text-text-muted mt-1">
-          当前页面只展示未来下载器交互原型：不联网、不解析真实元数据、不下载文件、不写 SQLite。
+          当前页面只展示未来导入与下载流程：不联网、不解析真实元数据、不下载文件、不写数据库。
         </p>
       </div>
 
@@ -661,7 +663,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
           }`}
         >
           <Server className="w-4 h-4" />
-          <span>ASMR / RJ 添加入口 Demo</span>
+          <span>ASMR / RJ 添加入口预览</span>
         </button>
 
         <button
@@ -676,7 +678,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
           }`}
         >
           <Music className="w-4 h-4" />
-          <span>流行音乐导入入口 Demo</span>
+          <span>流行音乐导入入口预览</span>
         </button>
       </div>
 
@@ -706,7 +708,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
                   <button
                     onClick={handleParseAsmr}
                     disabled={asmrLoading}
-                    className="px-4 py-2 bg-brand-color text-white font-bold text-xs rounded-lg hover:scale-102 active:scale-98 transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-60"
+                    className="px-4 py-2 bg-brand-color text-white font-bold text-xs rounded-lg hover:scale-105 active:scale-95 transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-60"
                   >
                     {asmrLoading ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -826,10 +828,10 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
 
                 <button
                   onClick={handleStartAsmrDownload}
-                  className="w-full sm:w-auto px-4.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl hover:scale-103 transition-all flex items-center justify-center space-x-1.5 shadow shadow-indigo-600/10 cursor-pointer self-center"
+                  className="w-full sm:w-auto px-4.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl hover:scale-105 transition-all flex items-center justify-center space-x-1.5 shadow shadow-indigo-600/10 cursor-pointer self-center"
                 >
                   <ArrowDownToLine className="w-4 h-4" />
-                  <span>加入 Demo 队列</span>
+                  <span>加入示例队列</span>
                 </button>
               </div>
             </div>
@@ -864,7 +866,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
                   <button
                     onClick={handleParseMusic}
                     disabled={musicLoading}
-                    className="px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-lg hover:scale-102 active:scale-98 transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-60"
+                    className="px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-lg hover:scale-105 active:scale-95 transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-60"
                   >
                     {musicLoading ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -956,10 +958,10 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
 
                 <button
                   onClick={handleStartMusicDownload}
-                  className="w-full sm:w-auto px-4.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl hover:scale-103 transition-all flex items-center justify-center space-x-1.5 shadow shadow-emerald-600/10 cursor-pointer self-center"
+                  className="w-full sm:w-auto px-4.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl hover:scale-105 transition-all flex items-center justify-center space-x-1.5 shadow shadow-emerald-600/10 cursor-pointer self-center"
                 >
                   <ArrowDownToLine className="w-4 h-4" />
-                  <span>生成 Demo 任务</span>
+                  <span>生成示例任务</span>
                 </button>
               </div>
             </div>
@@ -976,7 +978,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
           <div className="space-y-1">
             <h3 className="text-sm font-bold text-text-primary flex items-center space-x-2">
               <FolderSync className="w-4 h-4 text-brand-color animate-spin-slow" />
-              <span>Demo 任务管理中心（无真实下载）</span>
+              <span>任务管理预览（无真实下载）</span>
             </h3>
             <p className="text-[10px] text-text-secondary">
               在已完成的项目上 <strong className="text-brand-color">右键菜单</strong> 或点击操作可以 <strong className="text-brand-color">打开文件夹</strong> 来查看文件树并双击直接加载播放。
@@ -1285,9 +1287,9 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
           <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
             <Database className="w-4.5 h-4.5" />
           </div>
-          <h4 className="text-xs font-bold text-text-primary">Local JSON Index / SQLite 后置计划</h4>
+          <h4 className="text-xs font-bold text-text-primary">本地资源库记录计划</h4>
           <p className="text-[10px] text-text-secondary leading-relaxed">
-            当前不会写入 SQLite，也不会同步真实媒体库；后续将通过 Local JSON Index / Electron scanner 分阶段接入。
+            当前不会同步真实媒体库；后续会通过本地资源库记录与桌面端扫描流程分阶段接入。
           </p>
         </div>
 
@@ -1392,7 +1394,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
             <div className="h-11 bg-card-bg/40 border-b border-border-color/80 px-4 flex items-center justify-between select-none">
               <div className="flex items-center space-x-2 text-xs font-bold text-text-primary">
                 <Folder className="w-4 h-4 text-brand-color fill-brand-color/20" />
-                <span>系统资源管理器 - 本地虚拟安全沙箱</span>
+                <span>示例文件夹预览</span>
               </div>
               <div className="flex items-center space-x-1">
                 <button 
@@ -1407,13 +1409,13 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
             {/* Folder Path Bar */}
             <div className="px-4 py-2 bg-card-bg/10 border-b border-border-color/50 flex items-center justify-between text-[11px] text-text-secondary font-mono">
               <div className="flex items-center space-x-1">
-                <span className="text-text-muted">当前物理路径:</span>
+                <span className="text-text-muted">示例路径:</span>
                 <span className="bg-input-bg border border-border-color px-2 py-0.5 rounded text-text-primary">
                   {explorerFolder.path}
                 </span>
               </div>
               <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">
-                ✓ 物理磁盘数据就绪
+                仅页面预览
               </span>
             </div>
 
@@ -1436,7 +1438,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
                   <span>流行音乐缓区</span>
                 </button>
                 <div className="border-t border-border-color/40 my-2"></div>
-                <div className="text-[9px] font-bold text-text-muted uppercase px-2 py-1">本地沙盒存储</div>
+                <div className="text-[9px] font-bold text-text-muted uppercase px-2 py-1">示例存储</div>
                 <div className="px-2 py-1 text-text-muted text-[10px]">
                   C: 机械盘 1.8 TB<br />
                   D: 固态盘 512 GB
@@ -1455,7 +1457,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
                   />
                   <div className="min-w-0 flex-1">
                     <h4 className="font-bold text-text-primary truncate">{explorerFolder.title}</h4>
-                    <p className="text-[10px] text-text-muted truncate">所有音频已在本地生成，支持全局双击调用内核直接试听播放。</p>
+                    <p className="text-[10px] text-text-muted truncate">这是页面预览，不代表真实文件已经生成。</p>
                   </div>
                 </div>
 
@@ -1519,7 +1521,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
             {/* Folder Footer Status bar */}
             <div className="h-8 bg-card-bg/30 border-t border-border-color/80 px-4 flex items-center justify-between text-[10px] text-text-muted select-none">
               <span>共计 {explorerFolder.files.length} 个对象 | 大小约: {tasks.find(t => t.id === explorerFolder.id)?.totalSize}</span>
-              <span className="font-semibold text-emerald-400">● 写入本地缓存成功</span>
+              <span className="font-semibold text-emerald-400">● 页面预览已生成</span>
             </div>
 
           </div>

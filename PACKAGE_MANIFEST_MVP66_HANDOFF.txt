@@ -1,0 +1,15 @@
+Yang-Kura MVP-66 handoff package
+Version: 0.104.0-mvp66
+
+Key additions:
+- src/services/betaGuiRegressionService.ts
+- docs/CURRENT_ROADMAP_MVP66.md
+- docs/BETA_GUI_REGRESSION_MVP66.md
+- scripts/verify-mvp66-beta-gui-regression.mjs
+- HANDOFF_MVP65_TO_MVP66.md
+
+Purpose:
+Beta 0.1 GUI full-chain regression confirmation without new features or backend changes.
+
+Safety:
+No SQLite, downloader, metadata scraping, mpv, real media delete/move/rename, Renderer absolutePath, Renderer file://, or large component split.

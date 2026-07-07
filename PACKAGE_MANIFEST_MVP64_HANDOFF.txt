@@ -1,0 +1,13 @@
+Yang-Kura MVP-64 source handoff
+version: 0.102.0-mvp64
+
+Key files:
+- src/components/DiagnosticsRuntimeBoundary.tsx
+- src/services/diagnosticsBlackViewFixService.ts
+- docs/CURRENT_ROADMAP_MVP64.md
+- docs/DIAGNOSTICS_BLACK_VIEW_FIX_MVP64.md
+- scripts/verify-mvp64-diagnostics-black-view-fix.mjs
+- HANDOFF_MVP63_TO_MVP64.md
+
+Purpose:
+Fix diagnostics page black view by adding a runtime fallback boundary around DiagnosticsPage.

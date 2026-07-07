@@ -1,0 +1,27 @@
+Yang-Kura MVP81 handoff package
+MVP-81: Offline demo cover cleanup
+Version: 0.119.0-mvp81
+Source baseline: MVP80 / 0.118.0-mvp80
+
+Main change:
+- Offline demo cover cleanup: remove Unsplash demo image requests from src and use generated local SVG data-url covers.
+
+Added:
+- src/services/offlineDemoCoverCleanupService.ts
+- docs/CURRENT_ROADMAP_MVP81.md
+- docs/OFFLINE_DEMO_COVER_CLEANUP_MVP81.md
+- scripts/verify-mvp81-offline-demo-cover-cleanup.mjs
+- HANDOFF_MVP80_TO_MVP81.md
+- PACKAGE_MANIFEST_MVP81_HANDOFF.txt
+
+Safety:
+- No SQLite
+- No downloader
+- No metadata scraping
+- No mpv
+- No file deletion / move / rename
+- No Renderer absolutePath
+- No Renderer file://
+- No scanner/index/playback core changes
+中文摘要：离线 Demo 封面清扫。
+不接 SQLite；不向 Renderer 暴露 absolutePath；不向 Renderer 暴露 file://。

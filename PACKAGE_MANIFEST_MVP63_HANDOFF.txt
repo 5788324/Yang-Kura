@@ -1,0 +1,13 @@
+Yang-Kura MVP-63 handoff package
+Version: 0.101.0-mvp63
+
+Key files:
+- scripts/setup-electron-desktop.mjs
+- scripts/desktop-smoke-check.mjs
+- src/services/electronBinaryPathFixService.ts
+- docs/ELECTRON_BINARY_PATH_FIX_MVP63.md
+- scripts/verify-mvp63-electron-binary-path-fix.mjs
+- HANDOFF_MVP62_TO_MVP63.md
+
+Purpose:
+Fix basename-only Electron path.txt false negative by resolving dist/electron.exe first.

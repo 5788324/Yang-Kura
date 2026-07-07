@@ -1,0 +1,15 @@
+Yang-Kura MVP-70 handoff manifest
+version: 0.108.0-mvp70
+
+New:
+- src/services/betaFinalHandoffService.ts
+- docs/CURRENT_ROADMAP_MVP70.md
+- docs/BETA_FINAL_HANDOFF_MVP70.md
+- scripts/verify-mvp70-beta-final-handoff.mjs
+- HANDOFF_MVP69_TO_MVP70.md
+- PACKAGE_MANIFEST_MVP70_HANDOFF.txt
+
+Anchors:
+- mvp70-beta-final-handoff
+- betaFinalHandoffService
+- Beta 0.1 最终交接包

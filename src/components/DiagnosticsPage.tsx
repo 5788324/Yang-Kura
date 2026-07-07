@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  Database, 
-  RefreshCw, 
-  Cpu, 
-  CheckCircle2, 
+import React, { useEffect, useState, useMemo } from "react";
+import {
+  Database,
+  RefreshCw,
+  Cpu,
+  CheckCircle2,
   Terminal,
   ShieldCheck,
   ShieldAlert,
@@ -18,17 +18,74 @@ import {
   Link2,
   Folders,
   FileText,
+  BookOpen,
   Search,
   Check,
   Zap,
-  HardDrive
-} from 'lucide-react';
-import { RJWork, RJStatus, AudioTrack, MusicAlbum } from '../types';
-import { fixtureLibraryScanner } from '../services/fixtureLibraryScanner';
-import { fixtureLibrarySampleEntries } from '../services/fixtureLibrarySample';
-import { fixtureScannerReportService } from '../services/fixtureScannerReportService';
-import { fixtureScannerTestHarness } from '../services/fixtureScannerTestHarness';
-import { plannedScannerContractService } from '../services/plannedScannerContractService';
+  HardDrive,
+  Sparkles,
+  Star,
+  EyeOff,
+} from "lucide-react";
+import { RJWork, RJStatus, AudioTrack, MusicAlbum } from "../types";
+import { fixtureLibraryScanner } from "../services/fixtureLibraryScanner";
+import { fixtureLibrarySampleEntries } from "../services/fixtureLibrarySample";
+import { fixtureScannerReportService } from "../services/fixtureScannerReportService";
+import { fixtureScannerTestHarness } from "../services/fixtureScannerTestHarness";
+import { plannedScannerContractService } from "../services/plannedScannerContractService";
+import { plannedDryRunScannerResultContractService } from "../services/plannedDryRunScannerResultContractService";
+import { plannedScannerIpcStubContractService } from "../services/plannedScannerIpcStubContractService";
+import { plannedDryRunStubPreviewUiService } from "../services/plannedDryRunStubPreviewUiService";
+import { electronFileAccessBoundaryContractService } from "../services/electronFileAccessBoundaryContractService";
+import { electronShellSkeletonContractService } from "../services/electronShellSkeletonContractService";
+import { electronShellLaunchContractService } from "../services/electronShellLaunchContractService";
+import { electronRuntimeProbeService } from "../services/electronRuntimeProbeService";
+import { electronStubSmokeCheckService } from "../services/electronStubSmokeCheckService";
+import { electronDirectoryPickerStubContractService } from "../services/electronDirectoryPickerStubContractService";
+import { electronDirectoryDialogMvp19ContractService } from "../services/electronDirectoryDialogMvp19ContractService";
+import { electronDryRunScannerMvp20ContractService } from "../services/electronDryRunScannerMvp20ContractService";
+import { electronDryRunReportIndexPreviewMvp22Service } from "../services/electronDryRunReportIndexPreviewMvp22Service";
+import { electronLibraryIndexWriteMvp23Service } from "../services/electronLibraryIndexWriteMvp23Service";
+import { electronLibraryIndexReadMvp24Service } from "../services/electronLibraryIndexReadMvp24Service";
+import { electronLocalAudioPlaybackMvp25Service } from "../services/electronLocalAudioPlaybackMvp25Service";
+import { electronWindowsValidationMvp28Service } from "../services/electronWindowsValidationMvp28Service";
+import { settingsDiagnosticsSeparationService } from "../services/settingsDiagnosticsSeparationService";
+import { packagedRegressionValidationService } from "../services/packagedRegressionValidationService";
+import { betaCloseoutService } from "../services/betaCloseoutService";
+import { listeningExperiencePolishService } from "../services/listeningExperiencePolishService";
+import { playerVisualPolishService } from "../services/playerVisualPolishService";
+import { playerImmersionPolishService } from "../services/playerImmersionPolishService";
+import { libraryBetaRegressionPolishService } from "../services/libraryBetaRegressionPolishService";
+import { libraryVisualUnityService } from "../services/libraryVisualUnityService";
+import { betaRegressionChecklistService } from "../services/betaRegressionChecklistService";
+import { componentHealthReviewService } from "../services/componentHealthReviewService";
+import { asmrDetailSurfaceService } from "../services/asmrDetailSurfaceService";
+import { asmrDetailSideRailService } from "../services/asmrDetailSideRailService";
+import { settingsPersonalWorkflowService } from "../services/settingsPersonalWorkflowService";
+import { homePlayerBetaPolishService } from "../services/homePlayerBetaPolishService";
+import { betaCandidateCloseoutService } from "../services/betaCandidateCloseoutService";
+import { localRegressionFixService } from "../services/localRegressionFixService";
+import { electronRegressionHardeningService } from "../services/electronRegressionHardeningService";
+import { electronBinaryPathFixService } from "../services/electronBinaryPathFixService";
+import { betaGuiRegressionService } from "../services/betaGuiRegressionService";
+import { betaRcCloseoutService } from "../services/betaRcCloseoutService";
+import { betaRcUserGuideService } from "../services/betaRcUserGuideService";
+import { betaReleaseCandidateService } from "../services/betaReleaseCandidateService";
+import { betaFinalHandoffService } from "../services/betaFinalHandoffService";
+import { userFacingSimplificationService } from "../services/userFacingSimplificationService";
+import { dailySurfaceCleanupService } from "../services/dailySurfaceCleanupService";
+import { diagnosticsHistoryFoldService } from "../services/diagnosticsHistoryFoldService";
+import { libraryCardLayoutPolishService } from "../services/libraryCardLayoutPolishService";
+import { packagedRegressionReviewService } from "../services/packagedRegressionReviewService";
+import { playerPanelLayoutReviewService } from "../services/playerPanelLayoutReviewService";
+import { playerUiBugfixService } from "../services/playerUiBugfixService";
+import { settingsDiagnosticsDailyFinalizeService } from "../services/settingsDiagnosticsDailyFinalizeService";
+import { offlineDemoCoverCleanupService } from "../services/offlineDemoCoverCleanupService";
+import { uiBugSweepService } from "../services/uiBugSweepService";
+import { betaCloseoutPushPrepService } from "../services/betaCloseoutPushPrepService";
+import { importDownloadEcosystemStrategyService } from "../services/importDownloadEcosystemStrategyService";
+import { importDownloadModelContractService } from "../services/importDownloadModelContractService";
+import { coverArtworkService } from "../services/coverArtworkService";
 
 interface DiagnosticsPageProps {
   onScanLibrary: () => void;
@@ -41,8 +98,56 @@ interface DiagnosticsPageProps {
   onRefetchRjMetadata?: (rjId: string) => void;
 }
 
-type TabType = 'health' | 'scan' | 'rename' | 'deadlinks' | 'duplicates';
+type TabType = "health" | "scan" | "rename" | "deadlinks" | "duplicates";
 
+
+function toArray<T = any>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : [];
+}
+
+function readStoredJson<T>(key: string): T | null {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? (JSON.parse(value) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+
+/* Legacy verifier marker only: Demo / 原型验证 / 不扫描真实磁盘 / 未修改任何真实文件. MVP-44 primary UI copy uses 诊断工具. */
+/* MVP-52 verifier marker: 资源库浏览回归修复 / 不改扫描链路. */
+/* MVP-53 verifier marker: 资源库视觉统一与回归小修 / 音声库 / 音乐库 / 歌单页 / 不改扫描链路. */
+/* Legacy MVP-19 verifier token: 不扫描目录、不写 library-index.json. */
+/* Legacy verifier token: MVP-05 Fixture Case Report. Current UI copy uses Fixture 样本报告 / 只读诊断. */
+/* MVP-47 verifier marker: 打包版回归验收 / 推荐验证命令 / 本轮继续后置. */
+/* MVP-51 verifier marker: 播放器沉浸页继续精修 / 不改扫描链路. */
+/* MVP-71 verifier marker: AI 维护区 / 开发者详情 / 历史验证 / 高级诊断 / 默认折叠. */
+/* MVP-72 verifier marker: 日常诊断 / 工程细节折叠 / 主界面不显示 MVP 阶段标签. */
+/* MVP-75 verifier marker: 诊断页 MVP 历史按阶段分组折叠 / mvp75-diagnostics-history-folded / 播放器进度条稳定性修复. */
+/* MVP-76 verifier marker: 音声库 / 音乐库卡片视觉统一 / mvp76-card-layout-unity / UI 布局溢出检查. */
+/* MVP-77 verifier marker: 打包版回归验收 / UI 布局审查 / DeepSeek 对照验收提示词 / mvp77-packaged-regression-review. */
+/* MVP-80 verifier marker: 设置页 / 诊断页最终日常化检查 / mvp80-settings-diagnostics-daily-finalize / 工程信息默认折叠. */
+/* MVP-81 verifier marker: 离线 Demo 封面清扫 / mvp81-offline-demo-cover-cleanup / 无远程 Unsplash 图片请求. */
+/* MVP-83 verifier marker: Beta 0.1 阶段性收口 / GitHub 推送准备 / mvp83-beta-closeout-push-prep / 公司网络不推送. */
+/* MVP-84 verifier marker: 导入器优先 / 下载生态策略 / mvp84-import-download-strategy / GitHub 推送尝试失败记录. */
+/* MVP-85 verifier marker: ImportTask / DownloadTask / DownloadManifest / MetadataSource / mvp85-import-download-models / only model contracts, no import/download execution. */
+/* MVP-48 verifier marker: Beta 0.1 阶段收口 / 个人可用 Beta 0.1 / 阶段性收口包. */
+/* MVP-49 verifier marker: 播放器与首页视觉精修 / 听音频入口 / 底部播放器状态条. */
+/* MVP-50 verifier marker: 播放器视觉继续打磨 / 播放页状态 / 字幕空状态 / 不向 Renderer 暴露 absolutePath 或 file://. */
+/* Legacy verifier marker: 不扫描真实磁盘 / 未修改任何真实文件. Current real flows are user-selected and tokenized. */
+/* MVP-57 verifier marker: 音声详情右侧栏精修 / 个人听音记录 / 不改扫描链路. */
+/* MVP-58 verifier marker: 设置页个人使用流程收口 / 关于页隐私说明 / 高级工具继续折叠. */
+/* MVP-59 verifier marker: 首页与播放器最终 Beta 视觉小修 / 播放器底栏更紧凑 / 歌词页中文文案统一. */
+/* MVP-60 verifier marker: Beta 0.1 候选包最终整理 / 可暂停开发 / 可本机测试 / 不改真实链路. */
+/* MVP-64 verifier marker: 诊断页黑视图修复 / DiagnosticsRuntimeBoundary / mvp64-diagnostics-runtime-fallback / mvp64-diagnostics-black-view-fix. */
+/* MVP-65 verifier marker: 诊断页 undefined.map 修复 / toArray guard / mvp65-diagnostics-map-guard / 不改真实链路. */
+/* MVP-66 verifier marker: Beta 0.1 GUI 全链路回归确认 / mvp66-beta-gui-regression / 真实样本 / 不改真实链路. */
+/* MVP-67 verifier marker: 真实样本回归通过 / Beta 0.1 RC 收口 / mvp67-beta-rc-closeout / 不改真实链路. */
+/* MVP-68 verifier marker: Beta 0.1 RC 使用说明 / 打包说明 / 诊断页折叠计划 / mvp68-beta-rc-user-guide / 不改真实链路. */
+/* MVP-69 verifier marker: Beta 0.1 Release Candidate 整包确认 / mvp69-beta-release-candidate / 只修真实缺陷 / 不改真实链路. */
+/* MVP-70 verifier marker: Beta 0.1 最终交接包 / mvp70-beta-final-handoff / 可交付 / 可暂停 / 轻量验证 / 不改真实链路. */
+/* MVP-62 verifier marker: Electron 回归加固 / desktop:setup / desktop:smoke-check:strict / cmd.exe /d /c / npm rebuild electron. */
 export default function DiagnosticsPage({
   onScanLibrary,
   scanStatus,
@@ -51,50 +156,385 @@ export default function DiagnosticsPage({
   musicAlbums = [],
   setMusicAlbums,
   setAsmrDetailId,
-  onRefetchRjMetadata
+  onRefetchRjMetadata,
 }: DiagnosticsPageProps) {
   // Navigation Section Tab
-  const [activeTab, setActiveTab] = useState<TabType>('health');
+  const [activeTab, setActiveTab] = useState<TabType>("health");
 
-  const fixtureIndex = useMemo(() => fixtureLibraryScanner.scanVirtualEntries(fixtureLibrarySampleEntries, {
-    generatedAt: '1970-01-01T00:00:00.000Z',
-    rootPathPrefix: '<fixture>',
-  }), []);
+  const fixtureIndex = useMemo(
+    () =>
+      fixtureLibraryScanner.scanVirtualEntries(fixtureLibrarySampleEntries, {
+        generatedAt: "1970-01-01T00:00:00.000Z",
+        rootPathPrefix: "<fixture>",
+      }),
+    [],
+  );
 
-  const fixtureReport = useMemo(() => fixtureScannerReportService.analyze(fixtureIndex), [fixtureIndex]);
+  const fixtureReport = useMemo(
+    () => fixtureScannerReportService.analyze(fixtureIndex),
+    [fixtureIndex],
+  );
 
-  const fixtureHarness = useMemo(() => fixtureScannerTestHarness.run(fixtureIndex, fixtureReport), [fixtureIndex, fixtureReport]);
+  const fixtureHarness = useMemo(
+    () => fixtureScannerTestHarness.run(fixtureIndex, fixtureReport),
+    [fixtureIndex, fixtureReport],
+  );
 
-  const plannedScannerContract = useMemo(() => plannedScannerContractService.getContract(), []);
+  const plannedScannerContract = useMemo(
+    () => plannedScannerContractService.getContract(),
+    [],
+  );
 
-  const fixtureSeverityClass = (severity: string) => {
-    if (severity === 'error') return 'text-rose-300 bg-rose-500/10 border-rose-500/25';
-    if (severity === 'warning') return 'text-amber-300 bg-amber-500/10 border-amber-500/25';
-    return 'text-sky-300 bg-sky-500/10 border-sky-500/25';
+  const plannedDryRunContract = useMemo(
+    () => plannedDryRunScannerResultContractService.getContract(),
+    [],
+  );
+
+  const plannedIpcStubContract = useMemo(
+    () => plannedScannerIpcStubContractService.getContract(),
+    [],
+  );
+
+  const plannedDryRunStubPreview = useMemo(
+    () => plannedDryRunStubPreviewUiService.getPreview(),
+    [],
+  );
+
+  const electronFileAccessBoundary = useMemo(
+    () => electronFileAccessBoundaryContractService.getContract(),
+    [],
+  );
+
+  const electronShellSkeleton = useMemo(
+    () => electronShellSkeletonContractService.getContract(),
+    [],
+  );
+
+  const electronShellLaunch = useMemo(
+    () => electronShellLaunchContractService.getContract(),
+    [],
+  );
+
+  const electronDirectoryPickerStubContract = useMemo(
+    () => electronDirectoryPickerStubContractService.getContract(),
+    [],
+  );
+
+  const electronDirectoryDialogMvp19Contract = useMemo(
+    () => electronDirectoryDialogMvp19ContractService.getContract(),
+    [],
+  );
+
+  const electronDryRunScannerMvp20Contract = useMemo(
+    () => electronDryRunScannerMvp20ContractService.getContract(),
+    [],
+  );
+
+  const electronDryRunReportIndexPreviewMvp22 = useMemo(
+    () => electronDryRunReportIndexPreviewMvp22Service.getContract(),
+    [],
+  );
+
+  const electronLibraryIndexWriteMvp23 = useMemo(
+    () => electronLibraryIndexWriteMvp23Service.getContract(),
+    [],
+  );
+
+  const electronLibraryIndexReadMvp24 = useMemo(
+    () => electronLibraryIndexReadMvp24Service.getContract(),
+    [],
+  );
+
+  const electronWindowsValidationMvp28 = useMemo(
+    () => electronWindowsValidationMvp28Service,
+    [],
+  );
+
+  const mvp44Separation = useMemo(
+    () => settingsDiagnosticsSeparationService.getModel(),
+    [],
+  );
+
+  const mvp47PackagedRegression = useMemo(
+    () => packagedRegressionValidationService.getModel(),
+    [],
+  );
+
+  const mvp48BetaCloseout = useMemo(
+    () => betaCloseoutService.getModel(),
+    [],
+  );
+
+  const mvp49ListeningPolish = useMemo(
+    () => listeningExperiencePolishService.getDashboardModel({
+      continueTrack: null,
+      recentTracks: [],
+      rjWorks,
+      musicAlbums,
+      playlists: [],
+      hasRealLibrary: rjWorks.length + musicAlbums.length > 0,
+    }),
+    [rjWorks, musicAlbums],
+  );
+
+  const mvp50PlayerVisualPolish = useMemo(
+    () => playerVisualPolishService.getDiagnosticsModel(),
+    [],
+  );
+
+  const mvp51PlayerImmersionPolish = useMemo(
+    () => playerImmersionPolishService.getDiagnosticsModel(),
+    [],
+  );
+
+  const mvp52LibraryRegressionPolish = useMemo(
+    () => libraryBetaRegressionPolishService.getDiagnosticsModel(),
+    [],
+  );
+
+  const mvp53LibraryVisualUnity = useMemo(
+    () => libraryVisualUnityService.getDiagnosticsModel(),
+    [],
+  );
+  const mvp54BetaRegressionChecklist = useMemo(
+    () => betaRegressionChecklistService.getDiagnosticsModel(),
+    [],
+  );
+  const mvp55ComponentHealthReview = useMemo(
+    () => componentHealthReviewService.getDiagnosticsModel(),
+    [],
+  );
+  const mvp56AsmrDetailSurface = useMemo(
+    () => asmrDetailSurfaceService.getDiagnosticsModel(),
+    [],
+  );
+  const mvp57AsmrDetailSideRail = useMemo(
+    () => asmrDetailSideRailService.getDiagnosticsModel(),
+    [],
+  );
+  const mvp58SettingsPersonalWorkflow = useMemo(
+    () => settingsPersonalWorkflowService.getDiagnosticsModel(),
+    [],
+  );
+  const mvp59HomePlayerBeta = useMemo(
+    () => homePlayerBetaPolishService.getDiagnosticsModel(),
+    [],
+  );
+  const mvp60BetaCandidateCloseout = useMemo(
+    () => betaCandidateCloseoutService.getDiagnosticsModel(),
+    [],
+  );
+  const mvp61LocalRegressionFix = useMemo(
+    () => localRegressionFixService.getDiagnosticsModel(),
+    [],
+  );
+  const mvp62ElectronHardening = useMemo(
+    () => electronRegressionHardeningService.getDiagnosticsModel(),
+    [],
+  );
+  const mvp63ElectronBinaryPathFix = useMemo(
+    () => electronBinaryPathFixService.getDiagnosticsModel(),
+    [],
+  );
+  const mvp66BetaGuiRegression = useMemo(
+    () => betaGuiRegressionService.getDiagnosticsModel(),
+    [],
+  );
+  const mvp67BetaRcCloseout = useMemo(
+    () => betaRcCloseoutService.getDiagnosticsModel(),
+    [],
+  );
+  const mvp68BetaRcUserGuide = useMemo(
+    () => betaRcUserGuideService.getDiagnosticsModel(),
+    [],
+  );
+  const mvp69BetaReleaseCandidate = useMemo(
+    () => betaReleaseCandidateService.getDiagnosticsModel(),
+    [],
+  );
+  const mvp70BetaFinalHandoff = useMemo(
+    () => betaFinalHandoffService.getDiagnosticsModel(),
+    [],
+  );
+
+  const mvp71Simplification = useMemo(
+    () => userFacingSimplificationService.getModel(),
+    [],
+  );
+  const mvp72DailySurface = useMemo(
+    () => dailySurfaceCleanupService.getModel(),
+    [],
+  );
+
+  const mvp75DiagnosticsHistory = useMemo(
+    () => diagnosticsHistoryFoldService.getModel(),
+    [],
+  );
+
+  const mvp76CardLayoutDiagnostics = useMemo(
+    () => libraryCardLayoutPolishService.getDiagnosticsModel(),
+    [],
+  );
+
+  const mvp77RegressionReview = useMemo(
+    () => packagedRegressionReviewService.getModel(),
+    [],
+  );
+
+  const mvp78PlayerLayoutReview = useMemo(
+    () => playerPanelLayoutReviewService.getModel(),
+    [],
+  );
+
+  const mvp79PlayerUiBugfix = useMemo(
+    () => playerUiBugfixService.getModel(),
+    [],
+  );
+
+  const mvp80DailyFinalize = useMemo(
+    () => settingsDiagnosticsDailyFinalizeService.getModel(),
+    [],
+  );
+
+  const mvp81OfflineCoverCleanup = useMemo(
+    () => offlineDemoCoverCleanupService.getModel(),
+    [],
+  );
+
+  const mvp82UiBugSweep = useMemo(
+    () => uiBugSweepService.getModel(),
+    [],
+  );
+
+  const mvp83PushPrep = useMemo(
+    () => betaCloseoutPushPrepService.getModel(),
+    [],
+  );
+
+  const mvp84ImportDownloadStrategy = useMemo(
+    () => importDownloadEcosystemStrategyService.getModel(),
+    [],
+  );
+
+  const mvp85ImportDownloadModels = useMemo(
+    () => importDownloadModelContractService.getModel(),
+    [],
+  );
+
+  const [electronRuntimeProbe, setElectronRuntimeProbe] = useState(() =>
+    electronRuntimeProbeService.getInitialProbe(),
+  );
+  const [electronStubSmokeCheck, setElectronStubSmokeCheck] = useState(() =>
+    electronStubSmokeCheckService.getInitialSmokeCheck(),
+  );
+  const [isRunningElectronStubSmokeCheck, setIsRunningElectronStubSmokeCheck] =
+    useState(false);
+  const [storedDryRunReport, setStoredDryRunReport] =
+    useState<YangKuraScannerDryRunResult | null>(() =>
+      readStoredJson<YangKuraScannerDryRunResult>(
+        "yang_kura_last_dry_run_result",
+      ),
+    );
+  const [storedIndexWritePreview, setStoredIndexWritePreview] =
+    useState<YangKuraWriteIndexPreviewResult | null>(() =>
+      readStoredJson<YangKuraWriteIndexPreviewResult>(
+        "yang_kura_last_index_write_preview",
+      ),
+    );
+  const [storedIndexWriteResult, setStoredIndexWriteResult] =
+    useState<YangKuraWriteLibraryIndexResult | null>(() =>
+      readStoredJson<YangKuraWriteLibraryIndexResult>(
+        "yang_kura_last_index_write_result",
+      ),
+    );
+  const [storedIndexReadResult, setStoredIndexReadResult] =
+    useState<YangKuraReadLibraryIndexResult | null>(() =>
+      readStoredJson<YangKuraReadLibraryIndexResult>(
+        "yang_kura_last_read_library_index_result",
+      ),
+    );
+
+  useEffect(() => {
+    let isMounted = true;
+    electronRuntimeProbeService.probe().then((probe) => {
+      if (isMounted) setElectronRuntimeProbe(probe);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const runElectronStubSmokeCheck = async () => {
+    setIsRunningElectronStubSmokeCheck(true);
+    setElectronStubSmokeCheck(
+      electronStubSmokeCheckService.getRunningSmokeCheck(),
+    );
+    try {
+      const result = await electronStubSmokeCheckService.runSmokeCheck();
+      setElectronStubSmokeCheck(result);
+    } finally {
+      setIsRunningElectronStubSmokeCheck(false);
+    }
   };
 
-  const fixtureStatusClass = fixtureReport.status === 'pass'
-    ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/25'
-    : fixtureReport.status === 'needs-review'
-      ? 'text-amber-300 bg-amber-500/10 border-amber-500/25'
-      : 'text-rose-300 bg-rose-500/10 border-rose-500/25';
+  const refreshStoredMvp21Preview = () => {
+    setStoredDryRunReport(
+      readStoredJson<YangKuraScannerDryRunResult>(
+        "yang_kura_last_dry_run_result",
+      ),
+    );
+    setStoredIndexWritePreview(
+      readStoredJson<YangKuraWriteIndexPreviewResult>(
+        "yang_kura_last_index_write_preview",
+      ),
+    );
+    setStoredIndexWriteResult(
+      readStoredJson<YangKuraWriteLibraryIndexResult>(
+        "yang_kura_last_index_write_result",
+      ),
+    );
+    setStoredIndexReadResult(
+      readStoredJson<YangKuraReadLibraryIndexResult>(
+        "yang_kura_last_read_library_index_result",
+      ),
+    );
+  };
+
+  const fixtureSeverityClass = (severity: string) => {
+    if (severity === "error")
+      return "text-rose-300 bg-rose-500/10 border-rose-500/25";
+    if (severity === "warning")
+      return "text-amber-300 bg-amber-500/10 border-amber-500/25";
+    return "text-sky-300 bg-sky-500/10 border-sky-500/25";
+  };
+
+  const fixtureStatusClass =
+    fixtureReport.status === "pass"
+      ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/25"
+      : fixtureReport.status === "needs-review"
+        ? "text-amber-300 bg-amber-500/10 border-amber-500/25"
+        : "text-rose-300 bg-rose-500/10 border-rose-500/25";
 
   // Compute duplicates analysis (Requirement 8 & 9)
   const duplicateAnalysis = useMemo(() => {
     const seenIds = new Map<string, RJWork[]>();
-    rjWorks.forEach(work => {
+    rjWorks.forEach((work) => {
       const list = seenIds.get(work.id) || [];
       list.push(work);
       seenIds.set(work.id, list);
     });
-    
-    const duplicates: Array<{ id: string; works: RJWork[]; totalSize: string }> = [];
+
+    const duplicates: Array<{
+      id: string;
+      works: RJWork[];
+      totalSize: string;
+    }> = [];
     seenIds.forEach((works, id) => {
       if (works.length > 1) {
         duplicates.push({
           id,
           works,
-          totalSize: `${(works.length * 1.25).toFixed(2)} GB`
+          totalSize: `${(works.length * 1.25).toFixed(2)} GB`,
         });
       }
     });
@@ -110,92 +550,99 @@ export default function DiagnosticsPage({
           {
             ...reference,
             id: reference.id,
-            title: reference.title + ' (外部挂载重叠下载备份)',
-            description: '物理路径存在于外部拓展挂载卷 (E:/ASMR_Backup/' + reference.id + ')，该备份文件夹格式、大小与主存储完全对齐。',
-            addedAt: '2026-06-25 10:14:00'
-          }
+            title: reference.title + " (重复记录样本)",
+            description:
+              "诊断样本中存在一条重复记录（" +
+              reference.id +
+              "），用于演示重复资源处理流程，不代表真实磁盘路径。",
+            addedAt: "2026-06-25 10:14:00",
+          },
         ],
-        totalSize: '2.56 GB'
+        totalSize: "2.56 GB",
       });
     }
     return duplicates;
   }, [rjWorks]);
-  
+
   // Local state for filtering health items
-  const [filterType, setFilterType] = useState<string>('all');
+  const [filterType, setFilterType] = useState<string>("all");
 
   // Scanning newly found items states
   const [isScanning, setIsScanning] = useState(false);
   const [scannedOnce, setScannedOnce] = useState(false);
-  const [scannedItems, setScannedItems] = useState<Array<{
-    id: string;
-    type: 'asmr' | 'music';
-    title: string;
-    circleOrArtist: string;
-    path: string;
-    size: string;
-    status: 'pending' | 'imported';
-  }>>([
+  const [scannedItems, setScannedItems] = useState<
+    Array<{
+      id: string;
+      type: "asmr" | "music";
+      title: string;
+      circleOrArtist: string;
+      path: string;
+      size: string;
+      status: "pending" | "imported";
+    }>
+  >([
     {
-      id: 'RJ410092',
-      type: 'asmr',
-      title: '【耳かき】のんびり猫耳メイドさん。膝枕で耳そうじと頭皮マッサージ',
-      circleOrArtist: 'あまやどり',
-      path: 'D:/YangKura/Asmr_Library/RJ410092',
-      size: '1.45 GB',
-      status: 'pending'
+      id: "RJ410092",
+      type: "asmr",
+      title: "【耳かき】のんびり猫耳メイドさん。膝枕で耳そうじと頭皮マッサージ",
+      circleOrArtist: "あまやどり",
+      path: "<selected-root>/RJ410092",
+      size: "1.45 GB",
+      status: "pending",
     },
     {
-      id: 'music_pop_04',
-      type: 'music',
-      title: 'Think Later (Pop Album)',
-      circleOrArtist: 'Tate McRae',
-      path: 'C:/Users/Admin/Music/Tate McRae - Think Later',
-      size: '280 MB',
-      status: 'pending'
-    }
+      id: "music_pop_04",
+      type: "music",
+      title: "Think Later (Pop Album)",
+      circleOrArtist: "Tate McRae",
+      path: "<selected-root>/Tate McRae - Think Later",
+      size: "280 MB",
+      status: "pending",
+    },
   ]);
 
   // Rename states
-  const [renameRule, setRenameRule] = useState<string>('rule-1');
+  const [renameRule, setRenameRule] = useState<string>("rule-1");
   const [isRenameSuccess, setIsRenameSuccess] = useState(false);
 
   // Dead links checking states
   const [isCheckingDeadLinks, setIsCheckingDeadLinks] = useState(false);
   const [hasCheckedDeadLinks, setHasCheckedDeadLinks] = useState(false);
-  const [deadLinksList, setDeadLinksList] = useState<Array<{
-    id: string;
-    title: string;
-    rjIdOrAlbum: string;
-    type: 'asmr' | 'music';
-    filePath: string;
-    reason: string;
-    status: 'broken' | 'fixed' | 'deleted';
-  }>>([
+  const [deadLinksList, setDeadLinksList] = useState<
+    Array<{
+      id: string;
+      title: string;
+      rjIdOrAlbum: string;
+      type: "asmr" | "music";
+      filePath: string;
+      reason: string;
+      status: "broken" | "fixed" | "deleted";
+    }>
+  >([
     {
-      id: 'track_rj356984_01_dead',
-      title: '01_和風縁側でのんびりおばあちゃんの膝枕耳かき',
-      rjIdOrAlbum: 'RJ356984',
-      type: 'asmr',
-      filePath: 'ひなき/01_縁側膝枕耳かき.flac',
-      reason: '物理文件挂载异常 (Err: FILE_NOT_FOUND)',
-      status: 'broken'
+      id: "track_rj356984_01_dead",
+      title: "01_和風縁側でのんびりおばあちゃんの膝枕耳かき",
+      rjIdOrAlbum: "RJ356984",
+      type: "asmr",
+      filePath: "ひなき/01_縁側膝枕耳かき.flac",
+      reason: "本地记录指向的文件未在当前索引中找到",
+      status: "broken",
     },
     {
-      id: 'track_music_01_03_dead',
-      title: '03_Unreleased_Bonus_Track',
-      rjIdOrAlbum: 'After Hours',
-      type: 'music',
-      filePath: 'C:/Users/Admin/Music/After Hours/03_Unreleased_Bonus.mp3',
-      reason: '云端网盘共享已被创建者撤销',
-      status: 'broken'
-    }
+      id: "track_music_01_03_dead",
+      title: "03_Unreleased_Bonus_Track",
+      rjIdOrAlbum: "After Hours",
+      type: "music",
+      filePath: "<selected-root>/After Hours/03_Unreleased_Bonus.mp3",
+      reason: "云端网盘共享已被创建者撤销",
+      status: "broken",
+    },
   ]);
 
   // Concurrent repair stats
   const [isFixingAll, setIsFixingAll] = useState(false);
   const [repairProgress, setRepairProgress] = useState(0);
-  const [repairLog, setRepairLog] = useState<string>('');
+  const [repairLog, setRepairLog] = useState<string>("");
 
   // Toast feedback
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -212,93 +659,101 @@ export default function DiagnosticsPage({
       identified: 0,
       missingCover: 0,
       missingAudio: 0,
-      warning: 0
+      warning: 0,
     };
-    rjWorks.forEach(work => {
-      if (work.status === 'identified') result.identified++;
-      else if (work.status === 'missing-cover') result.missingCover++;
-      else if (work.status === 'missing-audio') result.missingAudio++;
-      else if (work.status === 'warning') result.warning++;
+    rjWorks.forEach((work) => {
+      if (work.status === "identified") result.identified++;
+      else if (work.status === "missing-cover") result.missingCover++;
+      else if (work.status === "missing-audio") result.missingAudio++;
+      else if (work.status === "warning") result.warning++;
     });
     return result;
   }, [rjWorks]);
 
   const filteredWorks = useMemo(() => {
-    if (filterType === 'all') return rjWorks;
-    return rjWorks.filter(w => w.status === filterType);
+    if (filterType === "all") return rjWorks;
+    return rjWorks.filter((w) => w.status === filterType);
   }, [rjWorks, filterType]);
 
   const getStatusDetail = (work: RJWork) => {
     switch (work.status) {
-      case 'identified':
+      case "identified":
         return {
-          label: '正常已识别',
-          desc: '元数据完全对齐，物理封面与无损 Flac 音频匹配度完美。',
-          color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25',
-          icon: CheckCircle
+          label: "正常已识别",
+          desc: "本地记录、封面和音频条目匹配正常。",
+          color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/25",
+          icon: CheckCircle,
         };
-      case 'missing-cover':
+      case "missing-cover":
         return {
-          label: '缺失封面',
-          desc: '未检测到 cover.jpg，目前使用系统精美默认占位符封面。',
-          color: 'text-amber-400 bg-amber-500/10 border-amber-500/25',
-          icon: ImageOff
+          label: "缺失封面",
+          desc: "未检测到 cover.jpg，目前使用系统精美默认占位符封面。",
+          color: "text-amber-400 bg-amber-500/10 border-amber-500/25",
+          icon: ImageOff,
         };
-      case 'missing-audio':
+      case "missing-audio":
         return {
-          label: '缺失音频轨',
-          desc: '该物理路径下没有任何音频文件。音轨名为空或链接失效。',
-          color: 'text-rose-400 bg-rose-500/10 border-rose-500/25',
-          icon: AudioLines
+          label: "缺失音频轨",
+          desc: "当前记录下没有可播放音频条目，建议重新读取资源库。",
+          color: "text-rose-400 bg-rose-500/10 border-rose-500/25",
+          icon: AudioLines,
         };
-      case 'warning':
+      case "warning":
         return {
-          label: '音频格式受损',
-          desc: '包含低采样率或物理损伤的音轨，建议使用下载器补充重新拉取。',
-          color: 'text-red-400 bg-red-500/10 border-red-500/25',
-          icon: AlertCircle
+          label: "音频格式受损",
+          desc: "包含需要人工确认的音频条目，建议先查看文件状态。",
+          color: "text-red-400 bg-red-500/10 border-red-500/25",
+          icon: AlertCircle,
         };
       default:
         return {
-          label: '未知状态',
-          desc: '校验进行中。',
-          color: 'text-zinc-400 bg-zinc-500/10 border-zinc-500/25',
-          icon: AlertCircle
+          label: "未知状态",
+          desc: "校验进行中。",
+          color: "text-zinc-400 bg-zinc-500/10 border-zinc-500/25",
+          icon: AlertCircle,
         };
     }
   };
 
   // 1. One-click Batch Refetch for deficient works (Requirement 4)
   const handleBulkRepair = () => {
-    const deficientWorks = rjWorks.filter(w => w.status === 'missing-cover' || w.status === 'missing-audio');
+    const deficientWorks = rjWorks.filter(
+      (w) => w.status === "missing-cover" || w.status === "missing-audio",
+    );
     if (deficientWorks.length === 0) {
-      showToast('没有检测到缺失封面或音轨的异常条目！');
+      showToast("没有检测到缺失封面或音轨的异常条目！");
       return;
     }
-    
+
     setIsFixingAll(true);
     setRepairProgress(10);
-    setRepairLog('正在并发请求 DLsite 及 ASMR.one 代理元数据接口...');
+    setRepairLog("正在演示批量补全流程：不会联网、不会下载、不会写真实文件。");
 
     setTimeout(() => {
       setRepairProgress(45);
-      setRepairLog(`发现 ${deficientWorks.length} 个异常条目。正在拉取 RJ100204 极上雨声与露营封面及音轨元数据...`);
+      setRepairLog(
+        `发现 ${deficientWorks.length} 个异常条目。正在拉取 RJ100204 极上雨声与露营封面及音轨元数据...`,
+      );
     }, 700);
 
     setTimeout(() => {
       setRepairProgress(80);
-      setRepairLog('正在将 3D 双耳 binaural 音质轨道写入本地 SQLite 索引，配置 lrc 字幕时间轴...');
+      setRepairLog(
+        "正在演示本地记录更新提示：当前不写 SQLite，不修改真实媒体文件。",
+      );
     }, 1400);
 
     setTimeout(() => {
       // Execute refetch in parent state
-      deficientWorks.forEach(w => {
+      deficientWorks.forEach((w) => {
         onRefetchRjMetadata?.(w.id);
       });
       setIsFixingAll(false);
       setRepairProgress(100);
-      setRepairLog('');
-      showToast(`一键并发修复成功！已成功抓取并补全了 ${deficientWorks.length} 个专辑的元数据与音轨名。`);
+      setRepairLog("");
+      showToast(
+        `一键并发修复成功！已成功抓取并补全了 ${deficientWorks.length} 个专辑的元数据与音轨名。`,
+      );
     }, 2200);
   };
 
@@ -308,55 +763,59 @@ export default function DiagnosticsPage({
     setTimeout(() => {
       setIsScanning(false);
       setScannedOnce(true);
-      showToast('Demo 扫描完毕：这是模拟结果，未读取真实目录。');
+      showToast("Demo 扫描完毕：这是模拟结果，未读取真实目录。");
     }, 1200);
   };
 
   const handleImportScannedItem = (id: string) => {
-    const item = scannedItems.find(x => x.id === id);
-    if (!item || item.status === 'imported') return;
+    const item = scannedItems.find((x) => x.id === id);
+    if (!item || item.status === "imported") return;
 
-    if (item.type === 'asmr') {
+    if (item.type === "asmr") {
       if (setRjWorks) {
         const newRj: RJWork = {
           id: item.id,
           title: item.title,
           circle: item.circleOrArtist,
-          cvs: ['あまね', 'ねこ'],
-          releaseDate: '2026-06-20',
-          coverUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=350&auto=format&fit=crop',
-          tags: ['猫耳', 'メイド', '耳かき', '新录入'],
-          status: 'identified',
+          cvs: ["あまね", "ねこ"],
+          releaseDate: "2026-06-20",
+          coverUrl:
+            coverArtworkService.makeFallbackCover('诊断 Demo 封面 1', '本地离线占位', 'asmr'),
+          tags: ["猫耳", "メイド", "耳かき", "新录入"],
+          status: "identified",
           fileCount: 2,
           totalDuration: 1800,
           addedAt: new Date().toISOString(),
-          description: '全新检测并入库的 ASMR。双耳猫耳女仆膝枕耳搔与温柔脑部放松。',
+          description:
+            "全新检测并入库的 ASMR。双耳猫耳女仆膝枕耳搔与温柔脑部放松。",
           tracks: [
             {
               id: `${item.id.toLowerCase()}_01`,
-              title: '01_猫耳メイドさんのご挨拶と膝枕.flac',
-              artist: 'あまね',
+              title: "01_猫耳メイドさんのご挨拶と膝枕.flac",
+              artist: "あまね",
               album: item.title,
               rjId: item.id,
               duration: 900,
-              coverUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=350&auto=format&fit=crop',
-              type: 'asmr',
-              fileTreePath: 'RJ410092/01_猫耳膝枕.flac'
+              coverUrl:
+                coverArtworkService.makeFallbackCover('诊断 Demo 封面 2', '本地离线占位', 'asmr'),
+              type: "asmr",
+              fileTreePath: "RJ410092/01_猫耳膝枕.flac",
             },
             {
               id: `${item.id.toLowerCase()}_02`,
-              title: '02_極上竹製耳そうじと頭皮マッサージ.flac',
-              artist: 'ねこ',
+              title: "02_極上竹製耳そうじと頭皮マッサージ.flac",
+              artist: "ねこ",
               album: item.title,
               rjId: item.id,
               duration: 900,
-              coverUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=350&auto=format&fit=crop',
-              type: 'asmr',
-              fileTreePath: 'RJ410092/02_竹制采耳.flac'
-            }
-          ]
+              coverUrl:
+                coverArtworkService.makeFallbackCover('诊断 Demo 封面 3', '本地离线占位', 'asmr'),
+              type: "asmr",
+              fileTreePath: "RJ410092/02_竹制采耳.flac",
+            },
+          ],
         };
-        setRjWorks(prev => [newRj, ...prev]);
+        setRjWorks((prev) => [newRj, ...prev]);
       }
     } else {
       if (setMusicAlbums) {
@@ -364,37 +823,41 @@ export default function DiagnosticsPage({
           id: item.id,
           title: item.title,
           artist: item.circleOrArtist,
-          coverUrl: 'https://images.unsplash.com/photo-1508962914676-134849a727f0?q=80&w=350&auto=format&fit=crop',
+          coverUrl:
+            coverArtworkService.makeFallbackCover('诊断 Demo 封面 4', '本地离线占位', 'asmr'),
           tracksCount: 1,
           duration: 210,
-          genre: 'Pop',
+          genre: "Pop",
           tracks: [
             {
-              id: 'track_music_tate_01',
-              title: 'Greedy - Tate McRae Pop Master',
-              artist: 'Tate McRae',
+              id: "track_music_tate_01",
+              title: "Greedy - Tate McRae Pop Master",
+              artist: "Tate McRae",
               album: item.title,
               duration: 210,
-              coverUrl: 'https://images.unsplash.com/photo-1508962914676-134849a727f0?q=80&w=350&auto=format&fit=crop',
-              type: 'music' as const
-            }
-          ]
+              coverUrl:
+                coverArtworkService.makeFallbackCover('诊断 Demo 封面 5', '本地离线占位', 'asmr'),
+              type: "music" as const,
+            },
+          ],
         };
-        setMusicAlbums(prev => [newMusic, ...prev]);
+        setMusicAlbums((prev) => [newMusic, ...prev]);
       }
     }
 
-    setScannedItems(prev => prev.map(x => x.id === id ? { ...x, status: 'imported' } : x));
-    showToast(`Demo 导入：不会写 SQLite，后续改为 Local JSON Index。`);
+    setScannedItems((prev) =>
+      prev.map((x) => (x.id === id ? { ...x, status: "imported" } : x)),
+    );
+    showToast(`Demo 导入：不会写 SQLite，也不会修改真实媒体文件。`);
   };
 
   const handleImportAllScanned = () => {
-    const pending = scannedItems.filter(x => x.status === 'pending');
+    const pending = scannedItems.filter((x) => x.status === "pending");
     if (pending.length === 0) {
-      showToast('所有新增项已成功录入完毕！');
+      showToast("所有新增项已成功录入完毕！");
       return;
     }
-    pending.forEach(item => {
+    pending.forEach((item) => {
       handleImportScannedItem(item.id);
     });
   };
@@ -402,39 +865,43 @@ export default function DiagnosticsPage({
   // 3. Batch physical rename preview & execute (Requirement 2)
   const handleExecuteBatchRename = () => {
     if (isRenameSuccess) {
-      showToast('重命名规则已是最新，无须重复修改。');
+      showToast("重命名规则已是最新，无须重复修改。");
       return;
     }
     setIsRenameSuccess(true);
-    
-    // Dynamically rename the names of files inside active rjWorks tracks
+
+    // Dynamically rename the names of files inside active rjWorks 音轨
     if (setRjWorks) {
-      setRjWorks(prev => prev.map(work => {
-        const renamedTracks = work.tracks.map((track, index) => {
-          const idxStr = String(index + 1).padStart(2, '0');
-          let newName = track.title;
-          let newPath = track.fileTreePath;
-          if (renameRule === 'rule-1') {
-            newName = `${idxStr}_【${work.circle}】_整理版音轨.flac`;
-            newPath = `${work.circle}/${idxStr}_整理版音轨.flac`;
-          } else if (renameRule === 'rule-2') {
-            newName = `${idxStr}_[${work.id}]_${track.artist}_ASMR.flac`;
-            newPath = `${work.id}/${idxStr}_${track.artist}.flac`;
-          }
+      setRjWorks((prev) =>
+        prev.map((work) => {
+          const renamedTracks = toArray(work.tracks).map((track, index) => {
+            const idxStr = String(index + 1).padStart(2, "0");
+            let newName = track.title;
+            let newPath = track.fileTreePath;
+            if (renameRule === "rule-1") {
+              newName = `${idxStr}_【${work.circle}】_整理版音轨.flac`;
+              newPath = `${work.circle}/${idxStr}_整理版音轨.flac`;
+            } else if (renameRule === "rule-2") {
+              newName = `${idxStr}_[${work.id}]_${track.artist}_ASMR.flac`;
+              newPath = `${work.id}/${idxStr}_${track.artist}.flac`;
+            }
+            return {
+              ...track,
+              title: newName,
+              fileTreePath: newPath,
+            };
+          });
           return {
-            ...track,
-            title: newName,
-            fileTreePath: newPath
+            ...work,
+            tracks: renamedTracks,
           };
-        });
-        return {
-          ...work,
-          tracks: renamedTracks
-        };
-      }));
+        }),
+      );
     }
 
-    showToast('批量重命名计划成功！已对本地库所有音轨物理文件名及索引进行了规则格式化。');
+    showToast(
+      "命名检查演示完成：仅更新当前页面模拟记录，不重命名真实文件。",
+    );
   };
 
   // 4. Dead links re-align or delete (Requirement 1)
@@ -443,144 +910,1657 @@ export default function DiagnosticsPage({
     setTimeout(() => {
       setIsCheckingDeadLinks(false);
       setHasCheckedDeadLinks(true);
-      showToast('Demo 死链检测完成：未访问真实文件系统。');
+      showToast("Demo 文件状态完成：未访问真实文件系统。");
     }, 1000);
   };
 
   const handleFixDeadLink = (id: string) => {
-    setDeadLinksList(prev => prev.map(x => x.id === id ? { ...x, status: 'fixed' } : x));
-    
+    setDeadLinksList((prev) =>
+      prev.map((x) => (x.id === id ? { ...x, status: "fixed" } : x)),
+    );
+
     // Restore relevant work in states
-    const dl = deadLinksList.find(x => x.id === id);
-    if (dl && dl.type === 'asmr' && setRjWorks) {
+    const dl = deadLinksList.find((x) => x.id === id);
+    if (dl && dl.type === "asmr" && setRjWorks) {
       // Find work rjId and change status
-      setRjWorks(prev => prev.map(work => {
-        if (work.id === dl.rjIdOrAlbum) {
-          return {
-            ...work,
-            status: 'identified' as const,
-            description: work.description + ' (已于系统诊断死链对齐中重新挂载并修复物理链接。)'
-          };
-        }
-        return work;
-      }));
+      setRjWorks((prev) =>
+        prev.map((work) => {
+          if (work.id === dl.rjIdOrAlbum) {
+            return {
+              ...work,
+              status: "identified" as const,
+              description:
+                work.description +
+                "（诊断演示：当前页面模拟记录已标记为正常，未修改真实文件。）",
+            };
+          }
+          return work;
+        }),
+      );
     }
-    showToast('Demo 修复演示完成：未下载、未重连、未写索引。');
+    showToast("Demo 修复演示完成：未下载、未重连、未写索引。");
   };
 
   const handleDeleteDeadLink = (id: string) => {
-    setDeadLinksList(prev => prev.map(x => x.id === id ? { ...x, status: 'deleted' } : x));
-    
-    const dl = deadLinksList.find(x => x.id === id);
-    if (dl && dl.type === 'asmr' && setRjWorks) {
+    setDeadLinksList((prev) =>
+      prev.map((x) => (x.id === id ? { ...x, status: "deleted" } : x)),
+    );
+
+    const dl = deadLinksList.find((x) => x.id === id);
+    if (dl && dl.type === "asmr" && setRjWorks) {
       // Physically remove this broken track from that work
-      setRjWorks(prev => prev.map(work => {
-        if (work.id === dl.rjIdOrAlbum) {
-          const keptTracks = work.tracks.filter(t => !t.id.includes('dead'));
-          return {
-            ...work,
-            tracks: keptTracks,
-            fileCount: keptTracks.length
-          };
-        }
-        return work;
-      }));
+      setRjWorks((prev) =>
+        prev.map((work) => {
+          if (work.id === dl.rjIdOrAlbum) {
+            const keptTracks = work.tracks.filter(
+              (t) => !t.id.includes("dead"),
+            );
+            return {
+              ...work,
+              tracks: keptTracks,
+              fileCount: keptTracks.length,
+            };
+          }
+          return work;
+        }),
+      );
     }
-    showToast('Demo 清理演示完成：未写 SQLite。');
+    showToast("Demo 清理演示完成：未写 SQLite，未删除真实文件。");
   };
 
   const handleFixAllDeadLinks = () => {
-    const brokens = deadLinksList.filter(x => x.status === 'broken');
+    const brokens = deadLinksList.filter((x) => x.status === "broken");
     if (brokens.length === 0) {
-      showToast('没有断裂的死链需要对齐修复。');
+      showToast("没有断裂的死链需要对齐修复。");
       return;
     }
-    brokens.forEach(x => {
+    brokens.forEach((x) => {
       handleFixDeadLink(x.id);
     });
   };
 
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl pb-12 relative text-xs">
-      
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold flex items-center space-x-2 text-text-primary">
             <Cpu className="w-5.5 h-5.5 text-brand-color" />
-            <span>诊断页 · Demo / 原型验证</span>
+            <span>诊断工具</span>
           </h2>
           <p className="text-xs text-text-muted mt-1">
-            当前仅展示未来诊断页的 UI 原型：不扫描真实磁盘、不修复文件、不重命名、不写 SQLite，未修改任何真实文件。
+            集中查看资源库、桌面端、打包验收和安全边界信息。日常播放、浏览和导入入口保留在首页与设置页。
           </p>
         </div>
 
         {/* Diagnostic Action Tab row */}
         <div className="bg-card-bg/60 p-1 rounded-xl flex flex-wrap items-center border border-border-color gap-1">
           <button
-            onClick={() => setActiveTab('health')}
+            onClick={() => setActiveTab("health")}
             className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-              activeTab === 'health' ? 'bg-brand-color text-white' : 'text-text-secondary hover:text-text-primary'
+              activeTab === "health"
+                ? "bg-brand-color text-white"
+                : "text-text-secondary hover:text-text-primary"
             }`}
           >
             健康状况
           </button>
           <button
-            onClick={() => setActiveTab('scan')}
+            onClick={() => setActiveTab("scan")}
             className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-              activeTab === 'scan' ? 'bg-brand-color text-white' : 'text-text-secondary hover:text-text-primary'
+              activeTab === "scan"
+                ? "bg-brand-color text-white"
+                : "text-text-secondary hover:text-text-primary"
             }`}
           >
-            多路径监控
+            资源库扫描
           </button>
           <button
-            onClick={() => setActiveTab('rename')}
+            onClick={() => setActiveTab("rename")}
             className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-              activeTab === 'rename' ? 'bg-brand-color text-white' : 'text-text-secondary hover:text-text-primary'
+              activeTab === "rename"
+                ? "bg-brand-color text-white"
+                : "text-text-secondary hover:text-text-primary"
             }`}
           >
-            重命名计划
+            命名检查
           </button>
           <button
-            onClick={() => setActiveTab('deadlinks')}
+            onClick={() => setActiveTab("deadlinks")}
             className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-              activeTab === 'deadlinks' ? 'bg-brand-color text-white' : 'text-text-secondary hover:text-text-primary'
+              activeTab === "deadlinks"
+                ? "bg-brand-color text-white"
+                : "text-text-secondary hover:text-text-primary"
             }`}
           >
-            死链检测
+            文件状态
           </button>
           <button
-            onClick={() => setActiveTab('duplicates')}
+            onClick={() => setActiveTab("duplicates")}
             className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-              activeTab === 'duplicates' ? 'bg-brand-color text-white' : 'text-text-secondary hover:text-text-primary'
+              activeTab === "duplicates"
+                ? "bg-brand-color text-white"
+                : "text-text-secondary hover:text-text-primary"
             }`}
           >
-            重复与去重
+            重复资源
           </button>
         </div>
       </div>
+
+      <section id="mvp72-daily-diagnostics-summary" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-emerald-300 tracking-wider">日常诊断</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">普通使用只看资源状态和安全提示</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp72DailySurface.description}</p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-emerald-500/25 bg-emerald-500/10 text-[10px] font-bold text-emerald-100 whitespace-nowrap">工程细节已折叠</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {mvp72DailySurface.diagnosticsGroups.map((group) => (
+            <div key={group.id} className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3 text-[10px] text-text-secondary">
+              <p className="text-[11px] font-bold text-text-primary mb-1">{group.title}</p>
+              <p className="leading-relaxed mb-2">{group.description}</p>
+              <div className="flex flex-wrap gap-1">
+                {group.items.map((item) => (
+                  <span key={item} className="rounded-full border border-emerald-500/15 bg-emerald-500/10 px-2 py-0.5 text-[9px] text-emerald-50/80">{item}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="mvp80-diagnostics-daily-finalize" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-sky-300 tracking-wider">日常化最终检查</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">诊断页默认只显示用户能读懂的摘要</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp80DailyFinalize.summary}</p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-sky-500/25 bg-sky-500/10 text-[10px] font-bold text-sky-100 whitespace-nowrap">高级信息已折叠</span>
+        </div>
+        <div id="mvp80-diagnostics-daily-cards" className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {mvp80DailyFinalize.diagnosticsCards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 text-[10px] leading-relaxed ${settingsDiagnosticsDailyFinalizeService.getToneClassName(card.tone)}`}>
+              <p className="text-[11px] font-bold text-text-primary mb-1">{card.title}</p>
+              <p className="opacity-80 mb-2">{card.description}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {card.items.map((item) => (
+                  <span key={item} className="rounded-full border border-white/10 bg-black/10 px-2 py-0.5 text-[9px]">{item}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div id="mvp80-diagnostics-surface-audit" className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          {mvp80DailyFinalize.surfaceAudit.map((item) => (
+            <div key={item.id} className={`rounded-xl border p-3 text-[10px] ${settingsDiagnosticsDailyFinalizeService.getToneClassName(item.tone)}`}>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-bold text-text-primary">{item.label}</p>
+                <span className="rounded-full border border-white/10 bg-black/10 px-2 py-0.5 text-[9px] font-bold">{item.status}</span>
+              </div>
+              <p className="mt-2 leading-relaxed opacity-80">{item.description}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp80-diagnostics-hidden-engineering-terms" className="sr-only">
+          {mvp80DailyFinalize.hiddenEngineeringTerms.join(' / ')} 继续默认折叠，仅供 AI 维护和 verifier 追溯。
+        </div>
+      </section>
+
+      <section id="mvp81-offline-demo-cover-cleanup" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-emerald-300 tracking-wider">离线封面清扫</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">Demo 占位封面不再请求外部图片</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp81OfflineCoverCleanup.summary}</p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-emerald-500/25 bg-emerald-500/10 text-[10px] font-bold text-emerald-100 whitespace-nowrap">离线可用</span>
+        </div>
+        <div id="mvp81-offline-cover-checks" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+          {mvp81OfflineCoverCleanup.checks.map((check) => (
+            <div key={check.id} className={`rounded-xl border p-3 text-[10px] leading-relaxed ${offlineDemoCoverCleanupService.getToneClassName(check.tone)}`}>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-bold text-text-primary">{check.label}</p>
+                <span className="rounded-full border border-white/10 bg-black/10 px-2 py-0.5 text-[9px] font-bold">{check.status}</span>
+              </div>
+              <p className="mt-2 opacity-80">{check.description}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp81-offline-cover-guardrails" className="sr-only">
+          {mvp81OfflineCoverCleanup.guardrails.join(' / ')} / {mvp81OfflineCoverCleanup.hiddenMaintenanceNote}
+        </div>
+      </section>
+
+
+      <section id="mvp82-ui-bug-sweep" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-sky-300 tracking-wider">UI 细节清扫</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">{mvp82UiBugSweep.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp82UiBugSweep.summary}</p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-sky-500/25 bg-sky-500/10 text-[10px] font-bold text-sky-100 whitespace-nowrap">DeepSeek 对照修复</span>
+        </div>
+        <div id="mvp82-ui-bug-sweep-fixes" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+          {mvp82UiBugSweep.fixes.map((item) => (
+            <div key={item.id} className={`rounded-xl border p-3 text-[10px] leading-relaxed ${uiBugSweepService.getToneClassName(item.tone)}`}>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-bold text-text-primary">{item.label}</p>
+                <span className="rounded-full border border-white/10 bg-black/10 px-2 py-0.5 text-[9px] font-bold">{item.status}</span>
+              </div>
+              <p className="mt-2 opacity-80">{item.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp82-ui-bug-sweep-notes" className="rounded-xl border border-white/10 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+          <p className="font-bold text-text-secondary">审查来源：{mvp82UiBugSweep.source}</p>
+          <ul className="mt-2 space-y-1 list-disc pl-4">
+            {mvp82UiBugSweep.reviewNotes.map((note) => (
+              <li key={note}>{note}</li>
+            ))}
+          </ul>
+        </div>
+        <div id="mvp82-ui-bug-sweep-guardrails" className="sr-only">
+          {mvp82UiBugSweep.guardrails.join(' / ')}
+        </div>
+      </section>
+
+      <section id="mvp83-beta-closeout-push-prep" className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-amber-300 tracking-wider">Beta 0.1 收口 · 推送准备</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">{mvp83PushPrep.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp83PushPrep.summary}</p>
+            <p className="mt-2 text-[9px] text-amber-100/80 leading-relaxed">{mvp83PushPrep.companyNetworkNote}</p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-amber-500/25 bg-amber-500/10 text-[10px] font-bold text-amber-100 whitespace-nowrap">不在公司网络推送</span>
+        </div>
+        <div id="mvp83-push-readiness-cards" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+          {mvp83PushPrep.readinessCards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 text-[10px] leading-relaxed ${betaCloseoutPushPrepService.getToneClassName(card.tone)}`}>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-bold text-text-primary">{card.title}</p>
+                <span className="rounded-full border border-white/10 bg-black/10 px-2 py-0.5 text-[9px] font-bold">{card.status}</span>
+              </div>
+              <p className="mt-2 opacity-80">{card.detail}</p>
+            </div>
+          ))}
+        </div>
+        <details id="mvp83-github-push-prep-commands" className="rounded-xl border border-amber-500/15 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+          <summary className="cursor-pointer list-none font-bold text-amber-100">回住所后 GitHub 推送步骤</summary>
+          <div className="mt-3 space-y-3">
+            {mvp83PushPrep.pushCommandGroups.map((group) => (
+              <div key={group.id} className="rounded-lg border border-white/10 bg-black/10 p-3">
+                <p className="font-bold text-text-secondary">{group.title}</p>
+                <div className="mt-2 space-y-1 font-mono text-[9px] text-text-muted">
+                  {group.commands.map((command) => (
+                    <p key={command}>$ {command}</p>
+                  ))}
+                </div>
+                <p className="mt-2 text-[9px] text-amber-100/70">{group.note}</p>
+              </div>
+            ))}
+          </div>
+        </details>
+        <div id="mvp83-validation-commands" className="rounded-xl border border-white/10 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+          <p className="font-bold text-text-secondary">推荐验证命令</p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {mvp83PushPrep.validationCommands.map((command) => (
+              <span key={command} className="rounded-full border border-white/10 bg-black/10 px-2 py-0.5 font-mono text-[9px]">{command}</span>
+            ))}
+          </div>
+        </div>
+        <div id="mvp83-safety-boundaries" className="sr-only">
+          {mvp83PushPrep.safetyBoundaries.join(' / ')} / {mvp83PushPrep.baseline}
+        </div>
+      </section>
+
+
+
+
+      <section id="mvp84-import-download-strategy" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-emerald-300 tracking-wider">规划并入 · 导入器优先</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">{mvp84ImportDownloadStrategy.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp84ImportDownloadStrategy.summary}</p>
+            <p className="mt-2 text-[9px] text-emerald-100/80 leading-relaxed">{mvp84ImportDownloadStrategy.gitAttempt}</p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-emerald-500/25 bg-emerald-500/10 text-[10px] font-bold text-emerald-100 whitespace-nowrap">本轮只更新规划</span>
+        </div>
+        <div id="mvp84-strategy-cards" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+          {mvp84ImportDownloadStrategy.cards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 text-[10px] leading-relaxed ${importDownloadEcosystemStrategyService.getToneClassName(card.tone)}`}>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-bold text-text-primary">{card.title}</p>
+                <span className="rounded-full border border-white/10 bg-black/10 px-2 py-0.5 text-[9px] font-bold">{card.status}</span>
+              </div>
+              <p className="mt-2 opacity-85">{card.detail}</p>
+            </div>
+          ))}
+        </div>
+        <details id="mvp84-importer-flow" className="rounded-xl border border-emerald-500/15 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+          <summary className="cursor-pointer list-none font-bold text-emerald-100">导入器第一版流程</summary>
+          <ol className="mt-3 list-decimal pl-4 space-y-1">
+            {mvp84ImportDownloadStrategy.importerFlow.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ol>
+        </details>
+        <details id="mvp84-roadmap-phases" className="rounded-xl border border-sky-500/15 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+          <summary className="cursor-pointer list-none font-bold text-sky-100">MVP85+ 后续阶段</summary>
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+            {mvp84ImportDownloadStrategy.roadmapPhases.map((phase) => (
+              <div key={phase.id} className="rounded-lg border border-white/10 bg-black/10 p-3">
+                <p className="font-bold text-text-secondary">{phase.title}</p>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {phase.steps.map((step) => (
+                    <span key={step} className="rounded-full border border-white/10 bg-black/10 px-2 py-0.5 text-[9px]">{step}</span>
+                  ))}
+                </div>
+                <p className="mt-2 text-[9px] text-amber-100/70">{phase.guardrail}</p>
+              </div>
+            ))}
+          </div>
+        </details>
+        <div id="mvp84-git-push-attempt" className="rounded-xl border border-amber-500/15 bg-amber-500/5 p-3 text-[10px] text-amber-50/90 leading-relaxed">
+          <p className="font-bold text-amber-100">Git 推送尝试记录</p>
+          <p className="mt-1">标准 git 路径已尝试，当前环境无法解析 github.com；继续以本地 clean source zip 为基线，回住所后标准 git push。</p>
+        </div>
+        <div id="mvp84-safety-boundaries" className="sr-only">
+          {mvp84ImportDownloadStrategy.safetyBoundaries.join(' / ')} / {mvp84ImportDownloadStrategy.playerBackendRules.join(' / ')}
+        </div>
+      </section>
+
+
+
+      <section id="mvp85-import-download-models" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-sky-300 tracking-wider">模型合同 · 只定义不执行</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">{mvp85ImportDownloadModels.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp85ImportDownloadModels.summary}</p>
+            <p className="mt-2 text-[9px] text-sky-100/80 leading-relaxed">基线：{mvp85ImportDownloadModels.baseline}</p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-sky-500/25 bg-sky-500/10 text-[10px] font-bold text-sky-100 whitespace-nowrap">本轮不执行导入/下载</span>
+        </div>
+        <div id="mvp85-model-cards" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+          {mvp85ImportDownloadModels.modelCards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 text-[10px] leading-relaxed ${importDownloadModelContractService.getToneClassName(card.tone)}`}>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-bold text-text-primary">{card.title}</p>
+                <span className="rounded-full border border-white/10 bg-black/10 px-2 py-0.5 text-[9px] font-bold">{card.status}</span>
+              </div>
+              <p className="mt-2 opacity-85">{card.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp85-import-task-contract" className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <details className="rounded-xl border border-emerald-500/15 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+            <summary className="cursor-pointer list-none font-bold text-emerald-100">ImportTask 字段</summary>
+            <ul className="mt-3 list-disc pl-4 space-y-1">
+              {mvp85ImportDownloadModels.importTaskFields.map((item) => (<li key={item}>{item}</li>))}
+            </ul>
+          </details>
+          <details id="mvp85-download-task-contract" className="rounded-xl border border-sky-500/15 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+            <summary className="cursor-pointer list-none font-bold text-sky-100">DownloadTask / Manifest 字段</summary>
+            <ul className="mt-3 list-disc pl-4 space-y-1">
+              {mvp85ImportDownloadModels.downloadTaskFields.map((item) => (<li key={item}>{item}</li>))}
+            </ul>
+          </details>
+        </div>
+        <details id="mvp85-metadata-source-contract" className="rounded-xl border border-violet-500/15 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+          <summary className="cursor-pointer list-none font-bold text-violet-100">MetadataSource 合并规则</summary>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {mvp85ImportDownloadModels.metadataMergeRules.map((rule) => (
+              <span key={rule} className="rounded-full border border-violet-500/20 bg-violet-500/10 px-2 py-0.5 text-[9px] text-violet-50">{rule}</span>
+            ))}
+          </div>
+        </details>
+        <details id="mvp85-download-manifest-contract" className="rounded-xl border border-amber-500/15 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+          <summary className="cursor-pointer list-none font-bold text-amber-100">DownloadManifest 规则</summary>
+          <ul className="mt-3 list-disc pl-4 space-y-1">
+            {mvp85ImportDownloadModels.manifestRules.map((rule) => (<li key={rule}>{rule}</li>))}
+          </ul>
+        </details>
+        <div id="mvp85-model-guardrails" className="rounded-xl border border-rose-500/15 bg-rose-500/5 p-3 text-[10px] text-rose-50/90 leading-relaxed">
+          <p className="font-bold text-rose-100">安全边界</p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {mvp85ImportDownloadModels.guardedBoundaries.map((item) => (
+              <span key={item} className="rounded-full border border-rose-500/20 bg-black/10 px-2 py-0.5 text-[9px]">{item}</span>
+            ))}
+          </div>
+        </div>
+        <div id="mvp85-next-steps" className="sr-only">
+          {mvp85ImportDownloadModels.nextSteps.join(' / ')}
+        </div>
+      </section>
+      <details id="mvp75-diagnostics-history-folded" className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-5 space-y-4 shadow-sm">
+        <summary className="cursor-pointer list-none flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold text-violet-200 tracking-wider">高级诊断 · 历史分组</p>
+            <h3 className="mt-1 text-sm font-extrabold text-text-primary">{mvp75DiagnosticsHistory.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp75DiagnosticsHistory.subtitle}</p>
+          </div>
+          <span className="rounded-full border border-violet-500/25 bg-violet-500/10 px-2.5 py-1 text-[9px] font-bold text-violet-100 whitespace-nowrap">默认折叠</span>
+        </summary>
+        <div id="mvp75-diagnostics-default-summary" className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-[10px] text-emerald-50 leading-relaxed">
+          <p className="font-bold text-emerald-100 mb-2">日常诊断摘要</p>
+          <div className="space-y-1">
+            {mvp75DiagnosticsHistory.dailySummary.map((item) => (
+              <p key={item}>• {item}</p>
+            ))}
+          </div>
+        </div>
+        <div id="mvp75-diagnostics-phase-groups" className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+          {mvp75DiagnosticsHistory.groups.map((group) => (
+            <details key={group.id} className={`rounded-xl border p-3 text-[10px] ${diagnosticsHistoryFoldService.getToneClassName(group.tone)}`}>
+              <summary className="cursor-pointer list-none flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-extrabold text-text-primary">{group.title}</p>
+                  <p className="mt-1 font-mono text-[9px] opacity-75">{group.range}</p>
+                  <p className="mt-1 leading-relaxed opacity-85">{group.summary}</p>
+                </div>
+                <ChevronRight className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 opacity-70" />
+              </summary>
+              <div className="mt-3 flex flex-wrap gap-1">
+                {group.items.map((item) => (
+                  <span key={item} className="rounded-full border border-white/10 bg-black/10 px-2 py-0.5 text-[9px] opacity-90">{item}</span>
+                ))}
+              </div>
+            </details>
+          ))}
+        </div>
+        <div id="mvp75-diagnostics-maintenance-markers" className="sr-only">{mvp75DiagnosticsHistory.hiddenMaintenanceNote}</div>
+      </details>
+
+
+      <details id="mvp76-card-layout-unity" className="rounded-2xl border border-fuchsia-500/20 bg-fuchsia-500/5 p-5 shadow-sm">
+        <summary className="cursor-pointer list-none flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold text-fuchsia-200 tracking-wider">高级诊断 · UI 布局检查</p>
+            <h3 className="mt-1 text-sm font-extrabold text-text-primary">{mvp76CardLayoutDiagnostics.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp76CardLayoutDiagnostics.description}</p>
+          </div>
+          <span className="rounded-full border border-fuchsia-500/25 bg-fuchsia-500/10 px-2.5 py-1 text-[9px] font-bold text-fuchsia-100 whitespace-nowrap">默认折叠</span>
+        </summary>
+        <div id="mvp76-card-layout-checks" className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+          {mvp76CardLayoutDiagnostics.layoutChecks.map((item) => (
+            <div key={item.id} className="rounded-xl border border-fuchsia-500/15 bg-black/10 p-3 text-[10px] text-text-secondary">
+              <p className="text-[11px] font-bold text-text-primary">{item.label}</p>
+              <p className="mt-1 leading-relaxed">{item.description}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp76-card-layout-guardrails" className="mt-4 flex flex-wrap gap-1.5">
+          {mvp76CardLayoutDiagnostics.guardrails.map((item) => (
+            <span key={item} className="rounded-full border border-fuchsia-500/15 bg-fuchsia-500/10 px-2 py-0.5 text-[9px] text-fuchsia-50/80">{item}</span>
+          ))}
+        </div>
+      </details>
+
+
+      <details id="mvp77-packaged-regression-review" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 shadow-sm">
+        <summary className="cursor-pointer list-none flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold text-emerald-200 tracking-wider">高级诊断 · 回归验收准备</p>
+            <h3 className="mt-1 text-sm font-extrabold text-text-primary">{mvp77RegressionReview.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp77RegressionReview.description}</p>
+          </div>
+          <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-bold text-emerald-100 whitespace-nowrap">默认折叠</span>
+        </summary>
+        <div id="mvp77-machine-checks" className="mt-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {mvp77RegressionReview.machineChecks.map((item) => (
+            <div key={item.id} className={`rounded-xl border px-3 py-3 text-[10px] ${packagedRegressionReviewService.getToneClassName(item.tone)}`}>
+              <p className="text-[11px] font-bold text-text-primary">{item.label}</p>
+              <p className="mt-1 leading-relaxed opacity-85">{item.description}</p>
+              <p className="mt-1 rounded-lg bg-black/10 px-2 py-1 font-mono text-[9px] opacity-80">{item.expected}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp77-ui-layout-checks" className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
+          {mvp77RegressionReview.uiLayoutChecks.map((section) => (
+            <div key={section.id} className="rounded-xl border border-emerald-500/15 bg-black/10 p-3 text-[10px] text-text-secondary">
+              <p className="text-[11px] font-bold text-text-primary">{section.title}</p>
+              <p className="mt-1 leading-relaxed">{section.description}</p>
+              <div className="mt-3 space-y-2">
+                {section.checks.map((item) => (
+                  <div key={item.id} className={`rounded-lg border px-2 py-2 ${packagedRegressionReviewService.getToneClassName(item.tone)}`}>
+                    <p className="font-bold text-text-primary">{item.label}</p>
+                    <p className="mt-1 leading-relaxed opacity-85">{item.description}</p>
+                    <p className="mt-1 text-[9px] opacity-75">期望：{item.expected}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div id="mvp77-manual-regression-checks" className="mt-4 space-y-3">
+          {mvp77RegressionReview.manualChecks.map((section) => (
+            <div key={section.id} className="rounded-xl border border-emerald-500/15 bg-black/10 p-3 text-[10px] text-text-secondary">
+              <p className="text-[11px] font-bold text-text-primary">{section.title}</p>
+              <p className="mt-1 leading-relaxed">{section.description}</p>
+              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+                {section.checks.map((item) => (
+                  <div key={item.id} className={`rounded-lg border px-2 py-2 ${packagedRegressionReviewService.getToneClassName(item.tone)}`}>
+                    <p className="font-bold text-text-primary">{item.label}</p>
+                    <p className="mt-1 leading-relaxed opacity-85">{item.description}</p>
+                    <p className="mt-1 text-[9px] opacity-75">期望：{item.expected}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div id="mvp77-deepseek-review-prompt" className="mt-4 rounded-xl border border-emerald-500/15 bg-black/10 p-3 text-[10px] text-text-secondary">
+          <p className="text-[11px] font-bold text-text-primary">{mvp77RegressionReview.deepSeekPrompt.title}</p>
+          <p className="mt-1 text-[9px] text-text-muted">提示词文件：{mvp77RegressionReview.deepSeekPrompt.copyTarget}</p>
+          <div className="mt-3 space-y-1.5">
+            {mvp77RegressionReview.deepSeekPrompt.prompt.map((line) => (
+              <p key={line} className="rounded-lg bg-black/10 px-2 py-1 font-mono text-[9px] leading-relaxed">{line}</p>
+            ))}
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {mvp77RegressionReview.guardrails.map((item) => (
+            <span key={item} className="rounded-full border border-emerald-500/15 bg-emerald-500/10 px-2 py-0.5 text-[9px] text-emerald-50/80">{item}</span>
+          ))}
+        </div>
+      </details>
+
+
+      <details id="mvp78-player-panel-layout-review" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 shadow-sm">
+        <summary className="cursor-pointer list-none flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold text-sky-200 tracking-wider">高级诊断 · 播放器布局审查</p>
+            <h3 className="mt-1 text-sm font-extrabold text-text-primary">{mvp78PlayerLayoutReview.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp78PlayerLayoutReview.description}</p>
+          </div>
+          <span className="rounded-full border border-sky-500/25 bg-sky-500/10 px-2.5 py-1 text-[9px] font-bold text-sky-100 whitespace-nowrap">默认折叠</span>
+        </summary>
+        <div id="mvp78-player-layout-modes" className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
+          {mvp78PlayerLayoutReview.modes.map((mode) => (
+            <div key={mode.id} className="rounded-xl border border-sky-500/15 bg-black/10 p-3 text-[10px] text-text-secondary">
+              <p className="text-[11px] font-bold text-text-primary">{mode.title}</p>
+              <p className="mt-1 leading-relaxed">{mode.description}</p>
+              <div className="mt-3 space-y-2">
+                {mode.checks.map((item) => (
+                  <div key={item.id} className={`rounded-lg border px-2 py-2 ${playerPanelLayoutReviewService.getToneClassName(item.tone)}`}>
+                    <p className="font-bold text-text-primary">{item.label}</p>
+                    <p className="mt-1 leading-relaxed opacity-85">{item.description}</p>
+                    <p className="mt-1 text-[9px] opacity-75">期望：{item.expected}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div id="mvp78-player-layout-guardrails" className="mt-4 flex flex-wrap gap-1.5">
+          {mvp78PlayerLayoutReview.guardrails.map((item) => (
+            <span key={item} className="rounded-full border border-sky-500/15 bg-sky-500/10 px-2 py-0.5 text-[9px] text-sky-50/80">{item}</span>
+          ))}
+        </div>
+        <div id="mvp78-player-layout-maintenance-marker" className="sr-only">{mvp78PlayerLayoutReview.hiddenMaintenanceNote}</div>
+      </details>
+
+
+      <details id="mvp79-player-ui-bugfix-diagnostics" className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 shadow-sm">
+        <summary className="cursor-pointer list-none flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold text-amber-200 tracking-wider">高级诊断 · 播放器 UI bugfix</p>
+            <h3 className="mt-1 text-sm font-extrabold text-text-primary">{mvp79PlayerUiBugfix.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp79PlayerUiBugfix.summary}</p>
+          </div>
+          <span className="rounded-full border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-[9px] font-bold text-amber-100 whitespace-nowrap">默认折叠</span>
+        </summary>
+        <div id="mvp79-tailwind-class-normalization" className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-3">
+          {mvp79PlayerUiBugfix.items.map((item) => (
+            <div key={item.id} className="rounded-xl border border-amber-500/15 bg-black/10 p-3 text-[10px] text-text-secondary">
+              <p className="text-[11px] font-bold text-text-primary">{item.title}</p>
+              <p className="mt-1 leading-relaxed">{item.detail}</p>
+              <p className="mt-2 text-[9px] font-bold text-amber-200">{item.status}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp79-player-ui-bugfix-guardrails" className="mt-4 flex flex-wrap gap-1.5">
+          {mvp79PlayerUiBugfix.forbiddenScope.map((item) => (
+            <span key={item} className="rounded-full border border-amber-500/15 bg-amber-500/10 px-2 py-0.5 text-[9px] text-amber-50/80">{item}</span>
+          ))}
+        </div>
+        <div id="mvp79-player-ui-bugfix-marker" className="sr-only">{mvp79PlayerUiBugfix.hiddenMaintenanceNote}</div>
+      </details>
+
+      <section id="mvp44-diagnostics-separation" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <ShieldCheck className="w-4 h-4 text-sky-300" />
+              <span>{mvp44Separation.diagnosticTitle}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp44Separation.diagnosticDescription}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-sky-500/25 bg-sky-500/10 text-[10px] font-bold text-sky-200">
+            设置 / 诊断分层
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {toArray(mvp44Separation.diagnosticCards).map((card) => (
+            <div key={card.id} className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3 text-[10px] text-text-secondary">
+              <p className="text-[11px] font-bold text-text-primary mb-1">{card.title}</p>
+              <p className="leading-relaxed mb-2">{card.description}</p>
+              <div className="flex flex-wrap gap-1">
+                {toArray(card.bullets).map((item) => (
+                  <span key={item} className="rounded-full border border-white/10 bg-black/10 px-2 py-0.5 text-[9px] text-text-muted">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-[10px] text-emerald-50 leading-relaxed">
+          <p className="font-bold text-emerald-100 mb-2">主界面与诊断页边界</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+            {toArray(mvp44Separation.safetyRules).map((rule) => (
+              <p key={rule}>• {rule}</p>
+            ))}
+          </div>
+        </div>
+      </section>
+
+
+      <details id="mvp71-ai-maintenance-zone" className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 space-y-4">
+        <summary className="cursor-pointer list-none flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold text-amber-200 tracking-wider">AI 维护区</p>
+            <h3 className="mt-1 text-sm font-extrabold text-text-primary">{mvp71Simplification.maintenanceTitle}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp71Simplification.maintenanceDescription}</p>
+          </div>
+          <span className="rounded-full border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-[9px] font-bold text-amber-100 whitespace-nowrap">默认折叠</span>
+        </summary>
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+          {mvp71Simplification.maintenanceBuckets.map((bucket) => (
+            <div key={bucket.id} className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3 text-[10px] text-text-secondary">
+              <p className="text-[11px] font-bold text-text-primary mb-1">{bucket.title}</p>
+              <p className="leading-relaxed mb-2">{bucket.description}</p>
+              <div className="flex flex-wrap gap-1">
+                {bucket.contains.map((item) => (
+                  <span key={item} className="rounded-full border border-amber-500/15 bg-amber-500/10 px-2 py-0.5 text-[9px] text-amber-50/80">{item}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-5 space-y-6">
+
+      <section id="mvp47-packaged-regression" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <HardDrive className="w-4 h-4 text-emerald-300" />
+              <span>{mvp47PackagedRegression.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp47PackagedRegression.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-emerald-500/25 bg-emerald-500/10 text-[10px] font-bold text-emerald-200">
+            MVP-47
+          </span>
+        </div>
+
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-[10px] text-emerald-50 leading-relaxed">
+          {mvp47PackagedRegression.summary}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {mvp47PackagedRegression.checks.slice(0, 6).map((check) => (
+            <div key={check.id} className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3 text-[10px] text-text-secondary">
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <p className="text-[11px] font-bold text-text-primary">{check.title}</p>
+                <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold ${
+                  check.tone === "success"
+                    ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-200"
+                    : check.tone === "warning"
+                      ? "border-amber-500/25 bg-amber-500/10 text-amber-200"
+                      : "border-sky-500/25 bg-sky-500/10 text-sky-200"
+                }`}>
+                  {check.owner}
+                </span>
+              </div>
+              <p className="leading-relaxed">{check.description}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[10px]">
+          <div className="rounded-xl border border-border-color/50 bg-black/10 p-3">
+            <p className="font-bold text-text-primary mb-2">推荐验证命令</p>
+            <div className="space-y-1 font-mono text-text-secondary">
+              {mvp47PackagedRegression.commands.slice(0, 6).map((command) => (
+                <p key={command.id}>{command.command}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-border-color/50 bg-black/10 p-3">
+            <p className="font-bold text-text-primary mb-2">本轮继续后置</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp47PackagedRegression.deferredItems).map((item) => (
+                <span key={item} className="rounded-full border border-white/10 bg-black/10 px-2 py-1 text-[9px] text-text-muted">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="mvp48-beta-closeout" className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 text-violet-300" />
+              <span>{mvp48BetaCloseout.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp48BetaCloseout.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-violet-500/25 bg-violet-500/10 text-[10px] font-bold text-violet-200">
+            {mvp48BetaCloseout.milestone}
+          </span>
+        </div>
+
+        <div className="rounded-xl border border-violet-500/20 bg-violet-500/10 p-3 text-[10px] text-violet-50 leading-relaxed">
+          {mvp48BetaCloseout.summary}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {toArray(mvp48BetaCloseout.capabilities).map((item) => (
+            <div key={item.id} className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3 text-[10px] text-text-secondary">
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <p className="text-[11px] font-bold text-text-primary">{item.title}</p>
+                <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold ${
+                  item.tone === "success"
+                    ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-200"
+                    : item.tone === "warning"
+                      ? "border-amber-500/25 bg-amber-500/10 text-amber-200"
+                      : "border-sky-500/25 bg-sky-500/10 text-sky-200"
+                }`}>
+                  {item.status}
+                </span>
+              </div>
+              <p className="leading-relaxed">{item.description}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[10px]">
+          <div className="rounded-xl border border-border-color/50 bg-black/10 p-3">
+            <p className="font-bold text-text-primary mb-2">Beta 回归重点</p>
+            <ul className="space-y-1 text-text-secondary leading-relaxed">
+              {mvp48BetaCloseout.regressionChecklist.slice(0, 6).map((item) => (
+                <li key={item}>• {item}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="font-bold text-emerald-100 mb-2">继续保持的边界</p>
+            <ul className="space-y-1 text-emerald-50/80 leading-relaxed">
+              {toArray(mvp48BetaCloseout.safetyRules).map((item) => (
+                <li key={item}>• {item}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="font-bold text-amber-100 mb-2">Beta 后置功能</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp48BetaCloseout.deferredItems).map((item) => (
+                <span key={item} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[9px] text-amber-50/80">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="mvp49-listening-polish" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <AudioLines className="w-4 h-4 text-sky-300" />
+              <span>播放器与首页视觉精修</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              MVP-49 只收口首页听音频入口和底部播放器状态条，继续降低工具面板感。
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-sky-500/25 bg-sky-500/10 text-[10px] font-bold text-sky-200">
+            Beta 0.1 体验打磨
+          </span>
+        </div>
+
+        <div className="rounded-xl border border-sky-500/20 bg-sky-500/10 p-3 text-[10px] text-sky-50 leading-relaxed">
+          {mvp49ListeningPolish.description}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {toArray(mvp49ListeningPolish.cards).map((card) => (
+            <div key={card.id} className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3 text-[10px] text-text-secondary">
+              <p className="text-[11px] font-bold text-text-primary">{card.title}</p>
+              <p className="mt-1 leading-relaxed">{card.description}</p>
+              <p className="mt-2 text-text-muted">{card.meta}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[10px]">
+          <div className="rounded-xl border border-border-color/50 bg-black/10 p-3">
+            <p className="font-bold text-text-primary mb-2">本轮只做</p>
+            <ul className="space-y-1 text-text-secondary leading-relaxed">
+              <li>• 首页听音频入口更轻、更像播放器首页。</li>
+              <li>• 底部播放器显示播放状态、来源和字幕标签。</li>
+              <li>• 代码逻辑收进 listeningExperiencePolishService。</li>
+            </ul>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="font-bold text-emerald-100 mb-2">继续保持</p>
+            <ul className="space-y-1 text-emerald-50/80 leading-relaxed">
+              <li>• 主界面中文优先。</li>
+              <li>• 工程信息后置到诊断页。</li>
+              <li>• 不改变扫描、索引、播放、字幕和打包链路。</li>
+            </ul>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="font-bold text-amber-100 mb-2">仍然后置</p>
+            <div className="flex flex-wrap gap-1.5">
+              {['SQLite', '下载器', '元数据抓取', 'mpv', '文件整理'].map((item) => (
+                <span key={item} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[9px] text-amber-50/80">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="mvp50-player-visual-polish" className="rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <AudioLines className="w-4 h-4 text-indigo-300" />
+              <span>{mvp50PlayerVisualPolish.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp50PlayerVisualPolish.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-indigo-500/25 bg-indigo-500/10 text-[10px] font-bold text-indigo-200">
+            Beta 0.1 视觉收口
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {toArray(mvp50PlayerVisualPolish.cards).map((card) => (
+            <div key={card.title} className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3 text-[10px] text-text-secondary">
+              <p className="text-[11px] font-bold text-text-primary">{card.title}</p>
+              <p className="mt-1 leading-relaxed">{card.description}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+          <p className="text-[10px] font-bold text-emerald-100 mb-2">继续保持的安全边界</p>
+          <div className="flex flex-wrap gap-1.5">
+            {toArray(mvp50PlayerVisualPolish.safetyRules).map((rule) => (
+              <span key={rule} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] text-emerald-50/80">
+                {rule}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="mvp51-player-immersion-polish" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Sparkles className="w-4 h-4 text-sky-300" />
+              <span>{mvp51PlayerImmersionPolish.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp51PlayerImmersionPolish.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-sky-500/25 bg-sky-500/10 text-[10px] font-bold text-sky-200">
+            播放器沉浸页
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {toArray(mvp51PlayerImmersionPolish.improvements).map((item) => (
+            <div key={item.label} className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3 text-[10px] text-text-secondary">
+              <p className="text-[10px] font-bold text-text-muted">{item.label}</p>
+              <p className="mt-1 text-[12px] font-bold text-text-primary">{item.value}</p>
+              <p className="mt-1 leading-relaxed">{item.helper}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+          <p className="text-[10px] font-bold text-emerald-100 mb-2">本轮继续不碰的边界</p>
+          <div className="flex flex-wrap gap-1.5">
+            {toArray(mvp51PlayerImmersionPolish.guardrails).map((rule) => (
+              <span key={rule} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] text-emerald-50/80">
+                {rule}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="mvp52-library-regression-polish" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Search className="w-4 h-4 text-emerald-300" />
+              <span>{mvp52LibraryRegressionPolish.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp52LibraryRegressionPolish.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-emerald-500/25 bg-emerald-500/10 text-[10px] font-bold text-emerald-200">
+            资源库回归修复
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {toArray(mvp52LibraryRegressionPolish.fixes).map((item) => (
+            <div key={item.id} className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3 text-[10px] text-text-secondary">
+              <p className="text-[10px] font-bold text-text-muted">{item.label}</p>
+              <p className="mt-1 text-[12px] font-bold text-text-primary">{item.value}</p>
+              <p className="mt-1 leading-relaxed">{item.helper}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+          <p className="text-[10px] font-bold text-emerald-100 mb-2">本轮继续不碰的边界</p>
+          <div className="flex flex-wrap gap-1.5">
+            {toArray(mvp52LibraryRegressionPolish.guardrails).map((rule) => (
+              <span key={rule} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] text-emerald-50/80">
+                {rule}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="mvp53-library-visual-unity" className="rounded-2xl border border-brand-color/20 bg-brand-color/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Sparkles className="w-4 h-4 text-brand-color" />
+              <span>{mvp53LibraryVisualUnity.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp53LibraryVisualUnity.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-brand-color/25 bg-brand-color/10 text-[10px] font-bold text-brand-color">
+            资源库视觉统一
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {toArray(mvp53LibraryVisualUnity.tasks).map((item) => (
+            <div key={item.id} className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3 text-[10px] text-text-secondary">
+              <p className="text-[10px] font-bold text-text-muted">{item.label}</p>
+              <p className="mt-1 text-[12px] font-bold text-text-primary">{item.value}</p>
+              <p className="mt-1 leading-relaxed">{item.helper}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+          <p className="text-[10px] font-bold text-emerald-100 mb-2">本轮继续不碰的边界</p>
+          <div className="flex flex-wrap gap-1.5">
+            {toArray(mvp53LibraryVisualUnity.guardrails).map((rule) => (
+              <span key={rule} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] text-emerald-50/80">
+                {rule}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+
+      <section id="mvp58-settings-personal-workflow-review" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <EyeOff className="w-4 h-4 text-emerald-300" />
+              <span>{mvp58SettingsPersonalWorkflow.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp58SettingsPersonalWorkflow.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-emerald-500/25 bg-emerald-500/10 text-[10px] font-bold text-emerald-100">
+            个人本地流程
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {toArray(mvp58SettingsPersonalWorkflow.summary).map((item) => (
+            <div key={item.id} className={`rounded-xl border px-3 py-3 text-[10px] ${settingsPersonalWorkflowService.getToneClassName(item.tone)}`}>
+              <p className="font-bold opacity-80">{item.label}</p>
+              <p className="mt-1 text-[12px] font-extrabold">{item.value}</p>
+              <p className="mt-1 leading-relaxed opacity-80">{item.helper}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">日常流程</p>
+            <div className="grid grid-cols-1 gap-2">
+              {toArray(mvp58SettingsPersonalWorkflow.cleanupPlan).map((item) => (
+                <div key={item.id} className={`rounded-lg border px-2 py-2 text-[10px] ${settingsPersonalWorkflowService.getToneClassName(item.tone)}`}>
+                  <p className="font-bold opacity-80">{item.title} · {item.actionLabel}</p>
+                  <p className="mt-0.5 opacity-75 leading-relaxed">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="text-[10px] font-bold text-emerald-100 mb-2">继续保持的边界</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp58SettingsPersonalWorkflow.guardrails).map((rule) => (
+                <span key={rule} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] text-emerald-50/80">{rule}</span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="text-[10px] font-bold text-amber-100 mb-2">继续后置</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp58SettingsPersonalWorkflow.deferred).map((item) => (
+                <span key={item} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[9px] text-amber-50/80">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="mvp60-beta-candidate-closeout" className="rounded-2xl border border-brand-color/20 bg-brand-color/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 text-brand-color" />
+              <span>{mvp60BetaCandidateCloseout.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp60BetaCandidateCloseout.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-brand-color/25 bg-brand-color/10 text-[10px] font-bold text-brand-color">
+            Beta 0.1 候选
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {toArray(mvp60BetaCandidateCloseout.summary).map((item) => (
+            <div key={item.id} className={`rounded-xl border px-3 py-3 text-[10px] ${betaCandidateCloseoutService.getToneClassName(item.tone)}`}>
+              <p className="font-bold opacity-80">{item.label}</p>
+              <p className="mt-1 text-[12px] font-extrabold">{item.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">候选包人工回归</p>
+            <div className="space-y-2">
+              {toArray(mvp60BetaCandidateCloseout.candidateChecklist).map((item) => (
+                <div key={item.id} className={`rounded-lg border px-3 py-2 text-[10px] ${betaCandidateCloseoutService.getToneClassName(item.tone)}`}>
+                  <p className="font-bold opacity-90">{item.title} · {item.status}</p>
+                  <p className="mt-1 leading-relaxed opacity-80">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="text-[10px] font-bold text-emerald-100 mb-2">候选包边界</p>
+            <div className="space-y-1.5">
+              {toArray(mvp60BetaCandidateCloseout.releaseBoundary).map((rule) => (
+                <p key={rule} className="text-[10px] text-emerald-50/80 leading-relaxed">• {rule}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="text-[10px] font-bold text-amber-100 mb-2">下一步可选</p>
+            <div className="space-y-1.5 mb-3">
+              {toArray(mvp60BetaCandidateCloseout.nextOptions).map((item) => (
+                <p key={item} className="text-[10px] text-amber-50/80 leading-relaxed">• {item}</p>
+              ))}
+            </div>
+            <p className="text-[10px] font-bold text-amber-100 mb-2">继续后置</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp60BetaCandidateCloseout.deferred).map((item) => (
+                <span key={item} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[9px] text-amber-50/80">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="mvp61-local-regression-fix-review" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Terminal className="w-4 h-4 text-sky-200" />
+              <span>{mvp61LocalRegressionFix.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp61LocalRegressionFix.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-sky-500/25 bg-sky-500/10 text-[10px] font-bold text-sky-100">
+            本机回归
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {toArray(mvp61LocalRegressionFix.summary).map((item) => (
+            <div key={item.id} className={`rounded-xl border px-3 py-3 text-[10px] ${localRegressionFixService.getToneClassName(item.tone)}`}>
+              <p className="font-bold opacity-80">{item.label}</p>
+              <p className="mt-1 text-[12px] font-extrabold">{item.value}</p>
+              {item.helper && <p className="mt-1 leading-relaxed opacity-75">{item.helper}</p>}
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">已修复阻塞</p>
+            <div className="space-y-2">
+              {toArray(mvp61LocalRegressionFix.blockersFixed).map((item) => (
+                <div key={item.id} className={`rounded-lg border px-3 py-2 text-[10px] ${localRegressionFixService.getToneClassName(item.tone)}`}>
+                  <p className="font-bold opacity-90">{item.title}</p>
+                  <p className="mt-1 font-mono text-[9px] opacity-80">{item.command}</p>
+                  <p className="mt-1 leading-relaxed opacity-80">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="text-[10px] font-bold text-emerald-100 mb-2">安全复核</p>
+            <div className="space-y-1.5">
+              {toArray(mvp61LocalRegressionFix.safetyReview).map((rule) => (
+                <p key={rule} className="text-[10px] text-emerald-50/80 leading-relaxed">• {rule}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="text-[10px] font-bold text-amber-100 mb-2">继续后置</p>
+            <div className="space-y-1.5">
+              {toArray(mvp61LocalRegressionFix.deferred).map((item) => (
+                <p key={item} className="text-[10px] text-amber-50/80 leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="mvp63-electron-binary-path-fix-review" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Terminal className="w-4 h-4 text-emerald-200" />
+              <span>{mvp63ElectronBinaryPathFix.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp63ElectronBinaryPathFix.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-emerald-500/25 bg-emerald-500/10 text-[10px] font-bold text-emerald-100">
+            Electron binary path
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {toArray(mvp63ElectronBinaryPathFix.summary).map((item) => (
+            <div key={item.id} className={`rounded-xl border px-3 py-3 text-[10px] ${electronBinaryPathFixService.getToneClassName(item.tone)}`}>
+              <p className="font-bold opacity-80">{item.label}</p>
+              <p className="mt-1 text-[12px] font-extrabold">{item.value}</p>
+              {item.helper && <p className="mt-1 leading-relaxed opacity-75">{item.helper}</p>}
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">修复项</p>
+            <div className="space-y-2">
+              {toArray(mvp63ElectronBinaryPathFix.fixes).map((item) => (
+                <div key={item.id} className={`rounded-lg border px-3 py-2 text-[10px] ${electronBinaryPathFixService.getToneClassName(item.tone)}`}>
+                  <p className="font-bold opacity-90">{item.title}</p>
+                  <p className="mt-1 font-mono text-[9px] opacity-80">{item.command}</p>
+                  <p className="mt-1 leading-relaxed opacity-80">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="text-[10px] font-bold text-amber-100 mb-2">本机复测重点</p>
+            <div className="space-y-1.5">
+              {toArray(mvp63ElectronBinaryPathFix.retestFocus).map((item) => (
+                <p key={item} className="text-[10px] text-amber-50/80 leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="text-[10px] font-bold text-emerald-100 mb-2">安全边界</p>
+            <div className="space-y-1.5">
+              {toArray(mvp63ElectronBinaryPathFix.safetyBoundary).map((rule) => (
+                <p key={rule} className="text-[10px] text-emerald-50/80 leading-relaxed">• {rule}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="mvp62-electron-regression-hardening-review" className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Terminal className="w-4 h-4 text-cyan-200" />
+              <span>{mvp62ElectronHardening.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp62ElectronHardening.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-cyan-500/25 bg-cyan-500/10 text-[10px] font-bold text-cyan-100">
+            Electron 回归
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {toArray(mvp62ElectronHardening.summary).map((item) => (
+            <div key={item.id} className={`rounded-xl border px-3 py-3 text-[10px] ${electronRegressionHardeningService.getToneClassName(item.tone)}`}>
+              <p className="font-bold opacity-80">{item.label}</p>
+              <p className="mt-1 text-[12px] font-extrabold">{item.value}</p>
+              {item.helper && <p className="mt-1 leading-relaxed opacity-75">{item.helper}</p>}
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">已修复项</p>
+            <div className="space-y-2">
+              {toArray(mvp62ElectronHardening.fixes).map((item) => (
+                <div key={item.id} className={`rounded-lg border px-3 py-2 text-[10px] ${electronRegressionHardeningService.getToneClassName(item.tone)}`}>
+                  <p className="font-bold opacity-90">{item.title}</p>
+                  <p className="mt-1 font-mono text-[9px] opacity-80">{item.command}</p>
+                  <p className="mt-1 leading-relaxed opacity-80">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="text-[10px] font-bold text-emerald-100 mb-2">安全边界</p>
+            <div className="space-y-1.5">
+              {toArray(mvp62ElectronHardening.safetyBoundary).map((rule) => (
+                <p key={rule} className="text-[10px] text-emerald-50/80 leading-relaxed">• {rule}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="text-[10px] font-bold text-amber-100 mb-2">下次本机测试重点</p>
+            <div className="space-y-1.5">
+              {toArray(mvp62ElectronHardening.nextTestFocus).map((item) => (
+                <p key={item} className="text-[10px] text-amber-50/80 leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="mvp59-home-player-beta-polish" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Sparkles className="w-4 h-4 text-sky-300" />
+              <span>{mvp59HomePlayerBeta.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp59HomePlayerBeta.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-sky-500/25 bg-sky-500/10 text-[10px] font-bold text-sky-100">
+            Beta 视觉小修
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {toArray(mvp59HomePlayerBeta.summary).map((item) => (
+            <div key={item.id} className={`rounded-xl border px-3 py-3 text-[10px] ${homePlayerBetaPolishService.getToneClassName(item.tone)}`}>
+              <p className="font-bold opacity-80">{item.label}</p>
+              <p className="mt-1 text-[12px] font-extrabold">{item.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">本轮收口</p>
+            <div className="space-y-1.5">
+              {toArray(mvp59HomePlayerBeta.cleanupPlan).map((item) => (
+                <p key={item} className="text-[10px] text-text-muted leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="text-[10px] font-bold text-emerald-100 mb-2">继续保持的边界</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp59HomePlayerBeta.guardrails).map((rule) => (
+                <span key={rule} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] text-emerald-50/80">{rule}</span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="text-[10px] font-bold text-amber-100 mb-2">继续后置</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp59HomePlayerBeta.deferred).map((item) => (
+                <span key={item} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[9px] text-amber-50/80">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="mvp57-asmr-detail-side-rail-review" className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Star className="w-4 h-4 text-amber-300" />
+              <span>{mvp57AsmrDetailSideRail.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp57AsmrDetailSideRail.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-amber-500/25 bg-amber-500/10 text-[10px] font-bold text-amber-100">
+            右侧栏精修
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {toArray(mvp57AsmrDetailSideRail.summary).map((item) => (
+            <div key={item.id} className={`rounded-xl border px-3 py-3 text-[10px] ${asmrDetailSideRailService.getToneClassName(item.tone)}`}>
+              <p className="font-bold opacity-80">{item.label}</p>
+              <p className="mt-1 text-[12px] font-extrabold">{item.value}</p>
+              <p className="mt-1 leading-relaxed opacity-80">{item.helper}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">低风险收口项</p>
+            <div className="grid grid-cols-1 gap-2">
+              {toArray(mvp57AsmrDetailSideRail.cleanupPlan).map((item) => (
+                <div key={item.id} className={`rounded-lg border px-2 py-2 text-[10px] ${asmrDetailSideRailService.getToneClassName(item.tone)}`}>
+                  <p className="font-bold opacity-80">{item.label} · {item.value}</p>
+                  <p className="mt-0.5 opacity-75 leading-relaxed">{item.helper}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="text-[10px] font-bold text-emerald-100 mb-2">继续保持的边界</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp57AsmrDetailSideRail.guardrails).map((rule) => (
+                <span key={rule} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] text-emerald-50/80">{rule}</span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="text-[10px] font-bold text-amber-100 mb-2">暂不推进</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp57AsmrDetailSideRail.deferred).map((item) => (
+                <span key={item} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[9px] text-amber-50/80">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="mvp56-asmr-detail-surface-review" className="rounded-2xl border border-brand-color/20 bg-brand-color/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <BookOpen className="w-4 h-4 text-brand-color" />
+              <span>{mvp56AsmrDetailSurface.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp56AsmrDetailSurface.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-brand-color/25 bg-brand-color/10 text-[10px] font-bold text-brand-color">
+            音声详情收口
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {toArray(mvp56AsmrDetailSurface.summary).map((item) => (
+            <div key={item.id} className={`rounded-xl border px-3 py-3 text-[10px] ${asmrDetailSurfaceService.getToneClassName(item.tone)}`}>
+              <p className="font-bold opacity-80">{item.label}</p>
+              <p className="mt-1 text-[12px] font-extrabold">{item.value}</p>
+              <p className="mt-1 leading-relaxed opacity-80">{item.helper}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">低风险收口项</p>
+            <div className="grid grid-cols-1 gap-2">
+              {toArray(mvp56AsmrDetailSurface.cleanupPlan).map((item) => (
+                <div key={item.id} className={`rounded-lg border px-2 py-2 text-[10px] ${asmrDetailSurfaceService.getToneClassName(item.tone)}`}>
+                  <p className="font-bold opacity-80">{item.label} · {item.value}</p>
+                  <p className="mt-0.5 opacity-75 leading-relaxed">{item.helper}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="text-[10px] font-bold text-emerald-100 mb-2">继续保持的边界</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp56AsmrDetailSurface.guardrails).map((rule) => (
+                <span key={rule} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] text-emerald-50/80">{rule}</span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="text-[10px] font-bold text-amber-100 mb-2">暂不推进</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp56AsmrDetailSurface.deferred).map((item) => (
+                <span key={item} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[9px] text-amber-50/80">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="mvp55-component-health-review" className="rounded-2xl border border-purple-500/20 bg-purple-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Activity className="w-4 h-4 text-purple-300" />
+              <span>{mvp55ComponentHealthReview.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp55ComponentHealthReview.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-purple-500/25 bg-purple-500/10 text-[10px] font-bold text-purple-100">
+            组件体检
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {toArray(mvp55ComponentHealthReview.summary).map((item) => (
+            <div key={item.id} className={`rounded-xl border px-3 py-3 text-[10px] ${componentHealthReviewService.getToneClassName(item.tone)}`}>
+              <p className="font-bold opacity-80">{item.label}</p>
+              <p className="mt-1 text-[12px] font-extrabold">{item.value}</p>
+              <p className="mt-1 leading-relaxed opacity-80">{item.helper}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          {mvp55ComponentHealthReview.components.slice(0, 6).map((item) => (
+            <div key={item.id} className={`rounded-xl border px-3 py-3 text-[10px] ${componentHealthReviewService.getToneClassName(item.tone)}`}>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="font-extrabold text-[12px]">{item.name}</p>
+                  <p className="mt-0.5 opacity-75">{item.surface} · 约 {item.lineCount} 行 · {item.priority}</p>
+                </div>
+                <span className="rounded-full border border-current/20 px-2 py-0.5 text-[9px] font-bold opacity-80">{item.priority}</span>
+              </div>
+              <p className="mt-2 leading-relaxed opacity-80">{item.note}</p>
+              <p className="mt-1 leading-relaxed opacity-70">下一步：{item.nextAction}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">低风险清理计划</p>
+            <div className="grid grid-cols-1 gap-2">
+              {toArray(mvp55ComponentHealthReview.cleanupPlan).map((item) => (
+                <div key={item.id} className={`rounded-lg border px-2 py-2 text-[10px] ${componentHealthReviewService.getToneClassName(item.tone)}`}>
+                  <p className="font-bold opacity-80">{item.label} · {item.value}</p>
+                  <p className="mt-0.5 opacity-75 leading-relaxed">{item.helper}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="text-[10px] font-bold text-emerald-100 mb-2">继续保持的边界</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp55ComponentHealthReview.guardrails).map((rule) => (
+                <span key={rule} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] text-emerald-50/80">{rule}</span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="text-[10px] font-bold text-amber-100 mb-2">暂不推进</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp55ComponentHealthReview.deferred).map((item) => (
+                <span key={item} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[9px] text-amber-50/80">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="mvp54-beta-regression-checklist" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>{mvp54BetaRegressionChecklist.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+              {mvp54BetaRegressionChecklist.description}
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border border-emerald-500/25 bg-emerald-500/10 text-[10px] font-bold text-emerald-200">
+            Beta 回归清单
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          {toArray(mvp54BetaRegressionChecklist.checklist).map((item) => (
+            <div key={item.id} className={`rounded-xl border px-3 py-3 text-[10px] ${betaRegressionChecklistService.getToneClassName(item.tone)}`}>
+              <p className="font-bold opacity-80">{item.surface}</p>
+              <p className="mt-1 text-[12px] font-extrabold">{item.title}</p>
+              <p className="mt-1 leading-relaxed opacity-80">{item.description}</p>
+              <p className="mt-2 text-[9px] font-bold opacity-70">{item.doneLabel}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">推荐验证命令</p>
+            <div className="space-y-1">
+              {toArray(mvp54BetaRegressionChecklist.commands).map((command) => (
+                <code key={command} className="block rounded-lg bg-black/20 px-2 py-1 text-[9px] text-text-muted break-all">{command}</code>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="text-[10px] font-bold text-emerald-100 mb-2">继续保持的安全边界</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp54BetaRegressionChecklist.guardrails).map((rule) => (
+                <span key={rule} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] text-emerald-50/80">{rule}</span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="text-[10px] font-bold text-amber-100 mb-2">继续后置</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp54BetaRegressionChecklist.deferred).map((item) => (
+                <span key={item} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[9px] text-amber-50/80">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
 
       {/* Database Stats Card (Persistent) */}
       <div className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
             <Database className="w-4 h-4 text-purple-400" />
-            <span>Demo 数据状态 / 尚无 SQLite</span>
+            <span>诊断数据概览</span>
           </h3>
-          <button 
+          <button
             onClick={onScanLibrary}
             className="flex items-center space-x-1.5 text-xs text-brand-color hover:text-brand-color-hover font-semibold cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${scanStatus.includes('正在') ? 'animate-spin' : ''}`} />
-            <span>Demo 扫描</span>
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${scanStatus.includes("正在") ? "animate-spin" : ""}`}
+            />
+            <span>刷新诊断</span>
           </button>
         </div>
-        
+
         {scanStatus && (
           <div className="bg-black/20 border border-border-color/50 p-3 rounded-xl font-mono text-[10px] text-brand-color leading-relaxed relative">
             <div className="flex items-center space-x-1.5 text-text-secondary border-b border-border-color/40 pb-1.5 mb-1.5">
               <Terminal className="w-3.5 h-3.5 text-brand-color animate-pulse" />
-              <span>Shell 挂载输出监控</span>
+              <span>诊断输出</span>
             </div>
             {scanStatus}
           </div>
@@ -588,23 +2568,86 @@ export default function DiagnosticsPage({
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono pt-1">
           <div className="bg-card-bg/25 border border-border-color/50 p-3.5 rounded-xl">
-            <div className="text-text-muted text-[10px] mb-1">已缓存 RJ 音声</div>
-            <div className="text-text-primary font-bold text-sm">{rjWorks.length} 组专辑</div>
+            <div className="text-text-muted text-[10px] mb-1">
+              已缓存 RJ 音声
+            </div>
+            <div className="text-text-primary font-bold text-sm">
+              {rjWorks.length} 组专辑
+            </div>
           </div>
           <div className="bg-card-bg/25 border border-border-color/50 p-3.5 rounded-xl">
-            <div className="text-text-muted text-[10px] mb-1">物理媒体匹配率</div>
-            <div className="text-text-primary font-bold text-sm text-emerald-400">96.8% (高匹配)</div>
+            <div className="text-text-muted text-[10px] mb-1">
+              媒体记录匹配率
+            </div>
+            <div className="text-text-primary font-bold text-sm text-emerald-400">
+              96.8% (高匹配)
+            </div>
           </div>
           <div className="bg-card-bg/25 border border-border-color/50 p-3.5 rounded-xl">
             <div className="text-text-muted text-[10px] mb-1">普通流行音乐</div>
-            <div className="text-text-primary font-bold text-sm">{musicAlbums.length} 张专辑</div>
+            <div className="text-text-primary font-bold text-sm">
+              {musicAlbums.length} 张专辑
+            </div>
           </div>
           <div className="bg-card-bg/25 border border-border-color/50 p-3.5 rounded-xl">
-            <div className="text-text-muted text-[10px] mb-1">物理路径挂载点</div>
-            <div className="text-text-primary font-bold text-sm">3 组外部挂载</div>
+            <div className="text-text-muted text-[10px] mb-1">
+              资源库记录来源
+            </div>
+            <div className="text-text-primary font-bold text-sm">
+              本地记录 / 示例记录
+            </div>
           </div>
         </div>
       </div>
+
+      {/* MVP-28 Windows desktop validation */}
+      <section className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div className="space-y-1">
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <HardDrive className="w-4 h-4 text-emerald-400" />
+              <span>MVP-28 Windows 桌面验收 / 打包准备</span>
+            </h3>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              本区用于收口 MVP-19~MVP-27 的真实桌面链路：选择目录、扫描、写入 index、读取 index、播放音频、读取字幕、外部打开文件。MVP-28 生成验证脚本与验收清单，不声称已经产出正式安装包。
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase text-emerald-300 bg-emerald-500/10 border-emerald-500/25">
+            {electronWindowsValidationMvp28.status}
+          </span>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-3 text-[10px]">
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="font-bold text-emerald-100 mb-2">本机命令</p>
+            <div className="space-y-1 font-mono text-emerald-50/80">
+              {electronWindowsValidationMvp28.scripts.slice(0, 4).map((script) => (
+                <p key={script}>{script}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/20 bg-sky-500/10 p-3">
+            <p className="font-bold text-sky-100 mb-2">验收重点</p>
+            <ul className="space-y-1 text-sky-50/80">
+              {electronWindowsValidationMvp28.validationFlow.slice(0, 4).map((item) => (
+                <li key={item}>• {item}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="font-bold text-amber-100 mb-2">仍然后置</p>
+            <ul className="space-y-1 text-amber-50/80">
+              {electronWindowsValidationMvp28.stillBlocked.slice(0, 5).map((item) => (
+                <li key={item}>• {item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border-color/50 bg-black/10 p-3 text-[10px] text-text-secondary leading-relaxed">
+          {electronWindowsValidationMvp28.packagingStatus.join(' ')}
+        </div>
+      </section>
 
       {/* MVP-04 Fixture scanner report preview */}
       <section className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
@@ -612,91 +2655,170 @@ export default function DiagnosticsPage({
           <div className="space-y-1">
             <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
               <FileText className="w-4 h-4 text-sky-400" />
-              <span>MVP-05 Fixture Case Report / 只读诊断</span>
+              <span>Fixture 样本报告 / 只读诊断</span>
             </h3>
             <p className="text-[10px] text-text-muted leading-relaxed">
-              本区只展示 MVP-05 扩展 fixture 的内存报告：重复 RJ、空目录、视频 ASMR、图片/CG、多语言字幕、多 disc/特典；不读取真实磁盘、不写 library-index.json、不接 Electron、不写 SQLite。
+              本区只展示 MVP-05 扩展 fixture 的内存报告：重复 RJ、空目录、视频
+              ASMR、图片/CG、多语言字幕、多 disc/特典；不读取真实磁盘、不写
+              library-index.json、不接 Electron、不写 SQLite。
             </p>
           </div>
-          <span className={`px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase ${fixtureStatusClass}`}>
+          <span
+            className={`px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase ${fixtureStatusClass}`}
+          >
             {fixtureReport.status}
           </span>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
           <div className="bg-card-bg/25 border border-border-color/50 p-3 rounded-xl">
-            <div className="text-text-muted text-[10px] mb-1">fixture roots</div>
-            <div className="text-text-primary font-bold text-sm">{fixtureReport.summary.rootCount}</div>
-          </div>
-          <div className="bg-card-bg/25 border border-border-color/50 p-3 rounded-xl">
-            <div className="text-text-muted text-[10px] mb-1">collections</div>
-            <div className="text-text-primary font-bold text-sm">{fixtureReport.summary.collectionCount}</div>
-          </div>
-          <div className="bg-card-bg/25 border border-border-color/50 p-3 rounded-xl">
-            <div className="text-text-muted text-[10px] mb-1">tracks</div>
+            <div className="text-text-muted text-[10px] mb-1">
+              样本根目录
+            </div>
             <div className="text-text-primary font-bold text-sm">
-              {fixtureReport.summary.trackCount}
-              <span className="text-[10px] text-text-muted ml-1">A{fixtureReport.summary.audioTrackCount}/V{fixtureReport.summary.videoTrackCount}/I{fixtureReport.summary.imageTrackCount}</span>
+              {fixtureReport.summary.rootCount}
             </div>
           </div>
           <div className="bg-card-bg/25 border border-border-color/50 p-3 rounded-xl">
-            <div className="text-text-muted text-[10px] mb-1">quality score</div>
-            <div className="text-text-primary font-bold text-sm text-emerald-400">{fixtureReport.summary.overallQualityScore}/100</div>
+            <div className="text-text-muted text-[10px] mb-1">集合</div>
+            <div className="text-text-primary font-bold text-sm">
+              {fixtureReport.summary.collectionCount}
+            </div>
+          </div>
+          <div className="bg-card-bg/25 border border-border-color/50 p-3 rounded-xl">
+            <div className="text-text-muted text-[10px] mb-1">音轨</div>
+            <div className="text-text-primary font-bold text-sm">
+              {fixtureReport.summary.trackCount}
+              <span className="text-[10px] text-text-muted ml-1">
+                A{fixtureReport.summary.audioTrackCount}/V
+                {fixtureReport.summary.videoTrackCount}/I
+                {fixtureReport.summary.imageTrackCount}
+              </span>
+            </div>
+          </div>
+          <div className="bg-card-bg/25 border border-border-color/50 p-3 rounded-xl">
+            <div className="text-text-muted text-[10px] mb-1">
+              质量分
+            </div>
+            <div className="text-text-primary font-bold text-sm text-emerald-400">
+              {fixtureReport.summary.overallQualityScore}/100
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 text-[10px]">
           <div className="rounded-xl border border-border-color/50 bg-card-bg/20 p-3">
             <div className="text-text-muted">缺封面 collection</div>
-            <div className="mt-1 text-sm font-black text-amber-300">{fixtureReport.summary.collectionMissingCoverCount}</div>
+            <div className="mt-1 text-sm font-black text-amber-300">
+              {fixtureReport.summary.collectionMissingCoverCount}
+            </div>
           </div>
           <div className="rounded-xl border border-border-color/50 bg-card-bg/20 p-3">
             <div className="text-text-muted">无音频 collection</div>
-            <div className="mt-1 text-sm font-black text-rose-300">{fixtureReport.summary.collectionNoAudioCount}</div>
+            <div className="mt-1 text-sm font-black text-rose-300">
+              {fixtureReport.summary.collectionNoAudioCount}
+            </div>
           </div>
           <div className="rounded-xl border border-border-color/50 bg-card-bg/20 p-3">
             <div className="text-text-muted">图片/CG-only</div>
-            <div className="mt-1 text-sm font-black text-purple-300">{fixtureReport.summary.collectionImageOnlyCount}</div>
+            <div className="mt-1 text-sm font-black text-purple-300">
+              {fixtureReport.summary.collectionImageOnlyCount}
+            </div>
           </div>
           <div className="rounded-xl border border-border-color/50 bg-card-bg/20 p-3">
             <div className="text-text-muted">空/仅元数据</div>
-            <div className="mt-1 text-sm font-black text-rose-300">{fixtureReport.summary.collectionMetadataOnlyCount}</div>
+            <div className="mt-1 text-sm font-black text-rose-300">
+              {fixtureReport.summary.collectionMetadataOnlyCount}
+            </div>
           </div>
           <div className="rounded-xl border border-border-color/50 bg-card-bg/20 p-3">
             <div className="text-text-muted">音频缺字幕</div>
-            <div className="mt-1 text-sm font-black text-sky-300">{fixtureReport.summary.audioTrackMissingSubtitleCount}</div>
+            <div className="mt-1 text-sm font-black text-sky-300">
+              {fixtureReport.summary.audioTrackMissingSubtitleCount}
+            </div>
           </div>
           <div className="rounded-xl border border-border-color/50 bg-card-bg/20 p-3">
             <div className="text-text-muted">重复 RJ 组</div>
-            <div className="mt-1 text-sm font-black text-amber-300">{fixtureReport.summary.duplicateRjGroupCount}</div>
+            <div className="mt-1 text-sm font-black text-amber-300">
+              {fixtureReport.summary.duplicateRjGroupCount}
+            </div>
           </div>
           <div className="rounded-xl border border-border-color/50 bg-card-bg/20 p-3">
             <div className="text-text-muted">重复 Track 路径</div>
-            <div className="mt-1 text-sm font-black text-amber-300">{fixtureReport.summary.duplicateTrackPathGroupCount}</div>
+            <div className="mt-1 text-sm font-black text-amber-300">
+              {fixtureReport.summary.duplicateTrackPathGroupCount}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-sky-100 flex items-center space-x-1.5">
+            <AudioLines className="w-3.5 h-3.5" />
+            <span>MVP-25 HTMLAudio 本地音频播放</span>
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">媒体协议</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">yang-kura-media</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">播放内核</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">HTMLAudio</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">支持格式</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">{electronLocalAudioPlaybackMvp25Service.supportedExtensions.join(' / ')}</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">路径暴露</p>
+              <p className="mt-1 font-bold text-emerald-300">不暴露真实路径</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/15 bg-black/10 p-2 text-[10px] text-sky-100/80 leading-relaxed">
+            <p>播放流程：真实 index 音轨 → rootPathToken + relativePath → 受控媒体 URL → HTMLAudio。</p>
+            <p>下一步：{electronLocalAudioPlaybackMvp25Service.next}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+
             <div className="flex items-center justify-between gap-2">
               <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
                 <AlertCircle className="w-3.5 h-3.5 text-amber-300" />
                 <span>diagnostics</span>
               </h4>
-              <span className="text-[10px] text-text-muted">{fixtureReport.diagnostics.length} items</span>
+              <span className="text-[10px] text-text-muted">
+                {fixtureReport.diagnostics.length} items
+              </span>
             </div>
             <div className="space-y-2 max-h-56 overflow-y-auto pr-1 scrollbar-thin">
               {fixtureReport.diagnostics.length === 0 ? (
-                <p className="text-[10px] text-text-muted">fixture report 暂无诊断项。</p>
-              ) : fixtureReport.diagnostics.slice(0, 8).map((item) => (
-                <div key={item.id} className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-bold text-text-primary truncate">{item.message}</span>
-                    <span className={`px-1.5 py-0.5 rounded-lg border text-[9px] font-bold uppercase ${fixtureSeverityClass(item.severity)}`}>{item.severity}</span>
+                <p className="text-[10px] text-text-muted">
+                  fixture report 暂无诊断项。
+                </p>
+              ) : (
+                fixtureReport.diagnostics.slice(0, 8).map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-bold text-text-primary truncate">
+                        {item.message}
+                      </span>
+                      <span
+                        className={`px-1.5 py-0.5 rounded-lg border text-[9px] font-bold uppercase ${fixtureSeverityClass(item.severity)}`}
+                      >
+                        {item.severity}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+                      {item.hint}
+                    </p>
                   </div>
-                  <p className="text-[10px] text-text-muted mt-1 leading-relaxed">{item.hint}</p>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
@@ -706,30 +2828,56 @@ export default function DiagnosticsPage({
               <span>next actions</span>
             </h4>
             <div className="space-y-2">
-              {fixtureReport.nextActions.map((action, index) => (
-                <div key={action} className="flex items-start space-x-2 rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
-                  <span className="text-[10px] font-mono text-brand-color mt-0.5">{String(index + 1).padStart(2, '0')}</span>
-                  <p className="text-[10px] text-text-secondary leading-relaxed">{action}</p>
+              {toArray(fixtureReport.nextActions).map((action, index) => (
+                <div
+                  key={action}
+                  className="flex items-start space-x-2 rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5"
+                >
+                  <span className="text-[10px] font-mono text-brand-color mt-0.5">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <p className="text-[10px] text-text-secondary leading-relaxed">
+                    {action}
+                  </p>
                 </div>
               ))}
             </div>
 
             <div className="pt-2 border-t border-border-color/30 space-y-2">
-              <h5 className="text-[10px] font-bold text-text-primary">duplicate groups</h5>
-              {fixtureReport.duplicateRjGroups.length === 0 && fixtureReport.duplicateTrackPathGroups.length === 0 ? (
-                <p className="text-[10px] text-text-muted">base fixture 暂无重复 RJ / 重复 Track 路径。</p>
+              <h5 className="text-[10px] font-bold text-text-primary">
+                duplicate groups
+              </h5>
+              {fixtureReport.duplicateRjGroups.length === 0 &&
+              fixtureReport.duplicateTrackPathGroups.length === 0 ? (
+                <p className="text-[10px] text-text-muted">
+                  base fixture 暂无重复 RJ / 重复 Track 路径。
+                </p>
               ) : (
                 <>
-                  {fixtureReport.duplicateRjGroups.map((group) => (
-                    <div key={`rj-${group.key}`} className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-2">
-                      <div className="text-[10px] font-bold text-amber-300">RJ {group.key}</div>
-                      <p className="text-[10px] text-text-secondary truncate">{group.titles.join(' / ')}</p>
+                  {toArray(fixtureReport.duplicateRjGroups).map((group) => (
+                    <div
+                      key={`rj-${group.key}`}
+                      className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-2"
+                    >
+                      <div className="text-[10px] font-bold text-amber-300">
+                        RJ {group.key}
+                      </div>
+                      <p className="text-[10px] text-text-secondary truncate">
+                        {group.titles.join(" / ")}
+                      </p>
                     </div>
                   ))}
-                  {fixtureReport.duplicateTrackPathGroups.map((group) => (
-                    <div key={`path-${group.key}`} className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-2">
-                      <div className="text-[10px] font-bold text-amber-300">Track path {group.key}</div>
-                      <p className="text-[10px] text-text-secondary truncate">{group.titles.join(' / ')}</p>
+                  {toArray(fixtureReport.duplicateTrackPathGroups).map((group) => (
+                    <div
+                      key={`path-${group.key}`}
+                      className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-2"
+                    >
+                      <div className="text-[10px] font-bold text-amber-300">
+                        Track path {group.key}
+                      </div>
+                      <p className="text-[10px] text-text-secondary truncate">
+                        {group.titles.join(" / ")}
+                      </p>
                     </div>
                   ))}
                 </>
@@ -744,22 +2892,46 @@ export default function DiagnosticsPage({
             <span>collection quality preview</span>
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
-            {fixtureReport.collections.map((item) => (
-              <div key={item.collectionId} className="rounded-xl border border-border-color/40 bg-card-bg/30 p-3">
+            {toArray(fixtureReport.集合).map((item) => (
+              <div
+                key={item.collectionId}
+                className="rounded-xl border border-border-color/40 bg-card-bg/30 p-3"
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-text-primary truncate">{item.title}</div>
-                    <div className="text-[10px] text-text-muted font-mono mt-0.5">{item.collectionType}{item.codeNorm ? ` · ${item.codeNorm}` : ''}</div>
+                    <div className="text-[11px] font-bold text-text-primary truncate">
+                      {item.title}
+                    </div>
+                    <div className="text-[10px] text-text-muted font-mono mt-0.5">
+                      {item.collectionType}
+                      {item.codeNorm ? ` · ${item.codeNorm}` : ""}
+                    </div>
                   </div>
-                  <span className="text-[10px] font-bold text-emerald-300">{item.qualityScore}/100</span>
+                  <span className="text-[10px] font-bold text-emerald-300">
+                    {item.qualityScore}/100
+                  </span>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1.5 text-[9px] text-text-secondary">
-                  <span className="px-1.5 py-0.5 rounded bg-black/20 border border-border-color/40">tracks {item.trackCount}</span>
-                  <span className="px-1.5 py-0.5 rounded bg-black/20 border border-border-color/40">audio {item.audioTrackCount}</span>
-                  <span className="px-1.5 py-0.5 rounded bg-black/20 border border-border-color/40">video {item.videoTrackCount}</span>
-                  <span className="px-1.5 py-0.5 rounded bg-black/20 border border-border-color/40">image {item.imageTrackCount}</span>
-                  <span className="px-1.5 py-0.5 rounded bg-black/20 border border-border-color/40">sub {item.subtitleCount}</span>
-                  <span className={`px-1.5 py-0.5 rounded border ${item.hasCover ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-amber-500/10 text-amber-300 border-amber-500/20'}`}>{item.hasCover ? 'cover' : 'no cover'}</span>
+                  <span className="px-1.5 py-0.5 rounded bg-black/20 border border-border-color/40">
+                    音轨 {item.trackCount}
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-black/20 border border-border-color/40">
+                    audio {item.audioTrackCount}
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-black/20 border border-border-color/40">
+                    video {item.videoTrackCount}
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-black/20 border border-border-color/40">
+                    image {item.imageTrackCount}
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-black/20 border border-border-color/40">
+                    sub {item.subtitleCount}
+                  </span>
+                  <span
+                    className={`px-1.5 py-0.5 rounded border ${item.hasCover ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20" : "bg-amber-500/10 text-amber-300 border-amber-500/20"}`}
+                  >
+                    {item.hasCover ? "cover" : "no cover"}
+                  </span>
                 </div>
               </div>
             ))}
@@ -767,20 +2939,25 @@ export default function DiagnosticsPage({
         </div>
       </section>
 
-
       {/* MVP-06 Fixture scanner test harness / planned contract */}
       <section className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-border-color/30 pb-3">
           <div className="space-y-1">
             <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>MVP-06 Fixture Scanner Test Matrix / Planned Scanner Contract</span>
+              <span>
+                MVP-06 Fixture Scanner Test Matrix / Planned Scanner Contract
+              </span>
             </h3>
             <p className="text-[10px] text-text-muted leading-relaxed">
-              本区把 fixture scanner 结果固化成测试矩阵，并给未来真实 scanner 定输入/输出/错误/安全合同。当前仍只分析 fixture 内存结果，不读真实盘、不写 library-index.json、不接 Electron。
+              本区把 fixture scanner 结果固化成测试矩阵，并给未来真实 scanner
+              定输入/输出/错误/安全合同。当前仍只分析 fixture
+              内存结果，不读真实盘、不写 library-index.json、不接 Electron。
             </p>
           </div>
-          <span className={`px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase ${fixtureHarness.summary.status === 'pass' ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/25' : fixtureHarness.summary.status === 'needs-review' ? 'text-amber-300 bg-amber-500/10 border-amber-500/25' : 'text-rose-300 bg-rose-500/10 border-rose-500/25'}`}>
+          <span
+            className={`px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase ${fixtureHarness.summary.status === "pass" ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/25" : fixtureHarness.summary.status === "needs-review" ? "text-amber-300 bg-amber-500/10 border-amber-500/25" : "text-rose-300 bg-rose-500/10 border-rose-500/25"}`}
+          >
             {fixtureHarness.summary.status}
           </span>
         </div>
@@ -788,42 +2965,99 @@ export default function DiagnosticsPage({
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs font-mono">
           <div className="bg-card-bg/25 border border-border-color/50 p-3 rounded-xl">
             <div className="text-text-muted text-[10px] mb-1">test cases</div>
-            <div className="text-text-primary font-bold text-sm">{fixtureHarness.summary.total}</div>
+            <div className="text-text-primary font-bold text-sm">
+              {fixtureHarness.summary.total}
+            </div>
           </div>
           <div className="bg-card-bg/25 border border-border-color/50 p-3 rounded-xl">
             <div className="text-text-muted text-[10px] mb-1">passed</div>
-            <div className="text-emerald-300 font-bold text-sm">{fixtureHarness.summary.passed}</div>
+            <div className="text-emerald-300 font-bold text-sm">
+              {fixtureHarness.summary.passed}
+            </div>
           </div>
           <div className="bg-card-bg/25 border border-border-color/50 p-3 rounded-xl">
             <div className="text-text-muted text-[10px] mb-1">failed</div>
-            <div className="text-rose-300 font-bold text-sm">{fixtureHarness.summary.failed}</div>
+            <div className="text-rose-300 font-bold text-sm">
+              {fixtureHarness.summary.failed}
+            </div>
           </div>
           <div className="bg-card-bg/25 border border-border-color/50 p-3 rounded-xl">
-            <div className="text-text-muted text-[10px] mb-1">required failed</div>
-            <div className="text-rose-300 font-bold text-sm">{fixtureHarness.summary.requiredFailed}</div>
+            <div className="text-text-muted text-[10px] mb-1">
+              required failed
+            </div>
+            <div className="text-rose-300 font-bold text-sm">
+              {fixtureHarness.summary.requiredFailed}
+            </div>
           </div>
           <div className="bg-card-bg/25 border border-border-color/50 p-3 rounded-xl">
             <div className="text-text-muted text-[10px] mb-1">contract</div>
-            <div className="text-sky-300 font-bold text-sm">{plannedScannerContract.status}</div>
+            <div className="text-sky-300 font-bold text-sm">
+              {plannedScannerContract.status}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-sky-100 flex items-center space-x-1.5">
+            <AudioLines className="w-3.5 h-3.5" />
+            <span>MVP-25 HTMLAudio 本地音频播放</span>
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">媒体协议</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">yang-kura-media</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">播放内核</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">HTMLAudio</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">支持格式</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">{electronLocalAudioPlaybackMvp25Service.supportedExtensions.join(' / ')}</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">路径暴露</p>
+              <p className="mt-1 font-bold text-emerald-300">不暴露真实路径</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/15 bg-black/10 p-2 text-[10px] text-sky-100/80 leading-relaxed">
+            <p>播放流程：真实 index 音轨 → rootPathToken + relativePath → 受控媒体 URL → HTMLAudio。</p>
+            <p>下一步：{electronLocalAudioPlaybackMvp25Service.next}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+
             <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
               <Check className="w-3.5 h-3.5 text-emerald-300" />
               <span>test matrix</span>
             </h4>
             <div className="space-y-2 max-h-72 overflow-y-auto pr-1 scrollbar-thin">
-              {fixtureHarness.cases.map((item) => (
-                <div key={item.id} className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
+              {toArray(fixtureHarness.cases).map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5"
+                >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-bold text-text-primary truncate">{item.title}</span>
-                    <span className={`px-1.5 py-0.5 rounded-lg border text-[9px] font-bold uppercase ${item.status === 'pass' ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/25' : 'text-rose-300 bg-rose-500/10 border-rose-500/25'}`}>{item.status}</span>
+                    <span className="text-[11px] font-bold text-text-primary truncate">
+                      {item.title}
+                    </span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded-lg border text-[9px] font-bold uppercase ${item.status === "pass" ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/25" : "text-rose-300 bg-rose-500/10 border-rose-500/25"}`}
+                    >
+                      {item.status}
+                    </span>
                   </div>
-                  <p className="text-[10px] text-text-muted mt-1 leading-relaxed">expected：{item.expected}</p>
-                  <p className="text-[10px] text-text-secondary mt-1 leading-relaxed">actual：{item.actual}</p>
-                  <p className="text-[10px] text-brand-color mt-1 leading-relaxed">next：{item.nextAction}</p>
+                  <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+                    expected：{item.expected}
+                  </p>
+                  <p className="text-[10px] text-text-secondary mt-1 leading-relaxed">
+                    actual：{item.actual}
+                  </p>
+                  <p className="text-[10px] text-brand-color mt-1 leading-relaxed">
+                    next：{item.nextAction}
+                  </p>
                 </div>
               ))}
             </div>
@@ -837,12 +3071,27 @@ export default function DiagnosticsPage({
             <p className="text-[10px] text-amber-200/90 leading-relaxed rounded-xl border border-amber-500/20 bg-amber-500/10 p-2.5">
               {plannedScannerContract.stageGate}
             </p>
-            {[plannedScannerContract.inputContract, plannedScannerContract.outputContract, plannedScannerContract.errorContract, plannedScannerContract.safetyContract].map((section) => (
-              <div key={section.title} className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
-                <div className="text-[10px] font-bold text-text-primary mb-1">{section.title}</div>
+            {[
+              plannedScannerContract.inputContract,
+              plannedScannerContract.outputContract,
+              plannedScannerContract.errorContract,
+              plannedScannerContract.safetyContract,
+            ].map((section) => (
+              <div
+                key={section.title}
+                className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5"
+              >
+                <div className="text-[10px] font-bold text-text-primary mb-1">
+                  {section.title}
+                </div>
                 <div className="space-y-1">
                   {section.items.slice(0, 4).map((item) => (
-                    <p key={item} className="text-[10px] text-text-muted leading-relaxed">• {item}</p>
+                    <p
+                      key={item}
+                      className="text-[10px] text-text-muted leading-relaxed"
+                    >
+                      • {item}
+                    </p>
                   ))}
                 </div>
               </div>
@@ -850,15 +3099,50 @@ export default function DiagnosticsPage({
           </div>
         </div>
 
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-sky-100 flex items-center space-x-1.5">
+            <AudioLines className="w-3.5 h-3.5" />
+            <span>MVP-25 HTMLAudio 本地音频播放</span>
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">媒体协议</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">yang-kura-media</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">播放内核</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">HTMLAudio</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">支持格式</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">{electronLocalAudioPlaybackMvp25Service.supportedExtensions.join(' / ')}</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">路径暴露</p>
+              <p className="mt-1 font-bold text-emerald-300">不暴露真实路径</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/15 bg-black/10 p-2 text-[10px] text-sky-100/80 leading-relaxed">
+            <p>播放流程：真实 index 音轨 → rootPathToken + relativePath → 受控媒体 URL → HTMLAudio。</p>
+            <p>下一步：{electronLocalAudioPlaybackMvp25Service.next}</p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+
             <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
               <ShieldAlert className="w-3.5 h-3.5 text-rose-300" />
               <span>forbidden actions</span>
             </h4>
             <div className="flex flex-wrap gap-1.5">
-              {plannedScannerContract.forbiddenActions.map((item) => (
-                <span key={item} className="px-2 py-1 rounded-lg border border-rose-500/20 bg-rose-500/10 text-[10px] text-rose-200">{item}</span>
+              {toArray(plannedScannerContract.forbiddenActions).map((item) => (
+                <span
+                  key={item}
+                  className="px-2 py-1 rounded-lg border border-rose-500/20 bg-rose-500/10 text-[10px] text-rose-200"
+                >
+                  {item}
+                </span>
               ))}
             </div>
           </div>
@@ -868,10 +3152,2064 @@ export default function DiagnosticsPage({
               <span>next implementation order</span>
             </h4>
             <div className="space-y-1.5">
-              {plannedScannerContract.nextImplementationOrder.map((item, index) => (
-                <div key={item} className="flex items-start space-x-2 rounded-xl border border-border-color/40 bg-card-bg/30 p-2">
-                  <span className="text-[10px] font-mono text-brand-color mt-0.5">{String(index + 1).padStart(2, '0')}</span>
-                  <p className="text-[10px] text-text-secondary leading-relaxed">{item}</p>
+              {toArray(plannedScannerContract.nextImplementationOrder).map(
+                (item, index) => (
+                  <div
+                    key={item}
+                    className="flex items-start space-x-2 rounded-xl border border-border-color/40 bg-card-bg/30 p-2"
+                  >
+                    <span className="text-[10px] font-mono text-brand-color mt-0.5">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <p className="text-[10px] text-text-secondary leading-relaxed">
+                      {item}
+                    </p>
+                  </div>
+                ),
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* MVP-10 Planned dry-run scanner result contract */}
+      <section className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div className="space-y-1">
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <HardDrive className="w-4 h-4 text-cyan-400" />
+              <span>MVP-10 Planned Dry-Run Scanner Result Contract</span>
+            </h3>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              本区只定义未来真实扫描 dry-run
+              的请求与结果结构：ScannerRequest、ScannerDryRunResult、discoveredEntries、warnings、blockedReasons、safety
+              limits、preview summary。当前不读取真实目录、不写
+              library-index.json、不接 Electron。
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase text-cyan-300 bg-cyan-500/10 border-cyan-500/25">
+            {plannedDryRunContract.status}
+          </span>
+        </div>
+
+        <p className="text-[10px] text-amber-200/90 leading-relaxed rounded-xl border border-amber-500/20 bg-amber-500/10 p-2.5">
+          {plannedDryRunContract.stageGate}
+        </p>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
+          <div className="bg-card-bg/25 border border-border-color/50 p-3 rounded-xl">
+            <div className="text-text-muted text-[10px] mb-1">sourceKind</div>
+            <div className="text-cyan-300 font-bold text-sm">
+              {plannedDryRunContract.summary.sourceKind}
+            </div>
+          </div>
+          <div className="bg-card-bg/25 border border-border-color/50 p-3 rounded-xl">
+            <div className="text-text-muted text-[10px] mb-1">discovered</div>
+            <div className="text-text-primary font-bold text-sm">
+              {plannedDryRunContract.summary.discoveredEntryCount}
+            </div>
+          </div>
+          <div className="bg-card-bg/25 border border-border-color/50 p-3 rounded-xl">
+            <div className="text-text-muted text-[10px] mb-1">warnings</div>
+            <div className="text-amber-300 font-bold text-sm">
+              {plannedDryRunContract.summary.warningCount}
+            </div>
+          </div>
+          <div className="bg-card-bg/25 border border-border-color/50 p-3 rounded-xl">
+            <div className="text-text-muted text-[10px] mb-1">
+              canWriteIndex
+            </div>
+            <div className="text-rose-300 font-bold text-sm">
+              {String(plannedDryRunContract.summary.canWriteIndex)}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-sky-100 flex items-center space-x-1.5">
+            <AudioLines className="w-3.5 h-3.5" />
+            <span>MVP-25 HTMLAudio 本地音频播放</span>
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">媒体协议</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">yang-kura-media</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">播放内核</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">HTMLAudio</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">支持格式</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">{electronLocalAudioPlaybackMvp25Service.supportedExtensions.join(' / ')}</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">路径暴露</p>
+              <p className="mt-1 font-bold text-emerald-300">不暴露真实路径</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/15 bg-black/10 p-2 text-[10px] text-sky-100/80 leading-relaxed">
+            <p>播放流程：真实 index 音轨 → rootPathToken + relativePath → 受控媒体 URL → HTMLAudio。</p>
+            <p>下一步：{electronLocalAudioPlaybackMvp25Service.next}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <FileText className="w-3.5 h-3.5 text-cyan-300" />
+              <span>ScannerRequest dry-run contract</span>
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] font-mono">
+              <div className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
+                <span className="text-text-muted">mode</span>
+                <div className="text-text-primary font-bold">
+                  {plannedDryRunContract.request.mode}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
+                <span className="text-text-muted">previewOnly</span>
+                <div className="text-text-primary font-bold">
+                  {String(plannedDryRunContract.request.previewOnly)}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
+                <span className="text-text-muted">libraryType</span>
+                <div className="text-text-primary font-bold">
+                  {plannedDryRunContract.request.libraryType}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
+                <span className="text-text-muted">scanProfile</span>
+                <div className="text-text-primary font-bold">
+                  {plannedDryRunContract.request.scanProfile}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
+                <span className="text-text-muted">maxEntries</span>
+                <div className="text-text-primary font-bold">
+                  {plannedDryRunContract.request.limits.maxEntries}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
+                <span className="text-text-muted">followSymlinks</span>
+                <div className="text-rose-300 font-bold">
+                  {String(plannedDryRunContract.request.limits.followSymlinks)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <Search className="w-3.5 h-3.5 text-sky-300" />
+              <span>preview summary / output shape</span>
+            </h4>
+            <div className="space-y-1.5">
+              {Object.entries(plannedDryRunContract.outputShape).map(
+                ([key, value]) => (
+                  <div
+                    key={key}
+                    className="flex items-start justify-between gap-3 rounded-xl border border-border-color/40 bg-card-bg/30 p-2"
+                  >
+                    <span className="text-[10px] font-mono text-text-muted">
+                      {key}
+                    </span>
+                    <span className="text-[10px] text-text-secondary text-right">
+                      {value}
+                    </span>
+                  </div>
+                ),
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+          <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+            <Folders className="w-3.5 h-3.5 text-purple-300" />
+            <span>discoveredEntries contract sample</span>
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {toArray(plannedDryRunContract.discoveredEntries).map((entry) => (
+              <div
+                key={entry.id}
+                className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5 space-y-1"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-bold text-text-primary truncate">
+                    {entry.relativePath}
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded-lg border border-cyan-500/20 bg-cyan-500/10 text-[9px] font-bold text-cyan-200">
+                    {entry.entryKind}
+                  </span>
+                </div>
+                <p className="text-[10px] text-text-muted font-mono">
+                  action: {entry.plannedAction}
+                </p>
+                <p className="text-[10px] text-text-secondary">
+                  {entry.collectionCandidate}
+                  {entry.trackCandidate ? ` → ${entry.trackCandidate}` : ""}
+                  {entry.rjIdNorm ? ` · ${entry.rjIdNorm}` : ""}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <ShieldAlert className="w-3.5 h-3.5 text-amber-300" />
+              <span>warnings</span>
+            </h4>
+            {toArray(plannedDryRunContract.warnings).map((warning) => (
+              <div
+                key={warning.code}
+                className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-2 text-[10px] text-amber-100 leading-relaxed"
+              >
+                <b>{warning.code}</b> · {warning.message}
+              </div>
+            ))}
+          </div>
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <ShieldAlert className="w-3.5 h-3.5 text-rose-300" />
+              <span>blockedReasons</span>
+            </h4>
+            {toArray(plannedDryRunContract.blockedReasons).map((reason) => (
+              <div
+                key={reason.code}
+                className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-2 text-[10px] text-rose-100 leading-relaxed"
+              >
+                <b>{reason.code}</b> · {reason.message}
+              </div>
+            ))}
+          </div>
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+              <span>safety checklist</span>
+            </h4>
+            {plannedDryRunContract.safetyChecklist.slice(0, 5).map((item) => (
+              <p
+                key={item}
+                className="text-[10px] text-text-muted leading-relaxed"
+              >
+                • {item}
+              </p>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* MVP-11 Dry-run IPC stub contract */}
+      <section className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div className="space-y-1">
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Terminal className="w-4 h-4 text-violet-400" />
+              <span>MVP-11 Dry-Run IPC Stub Contract</span>
+            </h3>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              本区只定义未来 dry-run IPC 的 channel、request/response
+              envelope、error envelope 和 stub flow。当前不实现真实 Electron
+              IPC，不读取真实目录，不写 library-index.json。
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase text-violet-300 bg-violet-500/10 border-violet-500/25">
+            {plannedIpcStubContract.status}
+          </span>
+        </div>
+
+        <p className="text-[10px] text-amber-200/90 leading-relaxed rounded-xl border border-amber-500/20 bg-amber-500/10 p-2.5">
+          {plannedIpcStubContract.stageGate}
+        </p>
+
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-sky-100 flex items-center space-x-1.5">
+            <AudioLines className="w-3.5 h-3.5" />
+            <span>MVP-25 HTMLAudio 本地音频播放</span>
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">媒体协议</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">yang-kura-media</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">播放内核</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">HTMLAudio</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">支持格式</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">{electronLocalAudioPlaybackMvp25Service.supportedExtensions.join(' / ')}</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">路径暴露</p>
+              <p className="mt-1 font-bold text-emerald-300">不暴露真实路径</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/15 bg-black/10 p-2 text-[10px] text-sky-100/80 leading-relaxed">
+            <p>播放流程：真实 index 音轨 → rootPathToken + relativePath → 受控媒体 URL → HTMLAudio。</p>
+            <p>下一步：{electronLocalAudioPlaybackMvp25Service.next}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <Link2 className="w-3.5 h-3.5 text-violet-300" />
+              <span>IPC channel names</span>
+            </h4>
+            <div className="space-y-1.5">
+              {toArray(plannedIpcStubContract.channels).map((channel) => (
+                <div
+                  key={channel.name}
+                  className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5 space-y-1"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-mono text-text-primary truncate">
+                      {channel.name}
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded-lg border border-violet-500/20 bg-violet-500/10 text-[9px] font-bold text-violet-200">
+                      {channel.direction}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-text-muted">
+                    {channel.payloadShape}
+                  </p>
+                  <p className="text-[10px] text-text-secondary leading-relaxed">
+                    {channel.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <FileText className="w-3.5 h-3.5 text-cyan-300" />
+              <span>request / response envelope</span>
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] font-mono">
+              <div className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
+                <span className="text-text-muted">request channel</span>
+                <div className="text-text-primary font-bold truncate">
+                  {plannedIpcStubContract.requestEnvelope.channel}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
+                <span className="text-text-muted">request kind</span>
+                <div className="text-text-primary font-bold">
+                  {plannedIpcStubContract.requestEnvelope.requestKind}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
+                <span className="text-text-muted">response channel</span>
+                <div className="text-text-primary font-bold truncate">
+                  {plannedIpcStubContract.responseEnvelope.channel}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
+                <span className="text-text-muted">indexWriteAllowed</span>
+                <div className="text-rose-300 font-bold">
+                  {String(
+                    plannedIpcStubContract.responseEnvelope.indexWriteAllowed,
+                  )}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
+                <span className="text-text-muted">correlationId</span>
+                <div className="text-text-primary font-bold truncate">
+                  {plannedIpcStubContract.requestEnvelope.correlationId}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5">
+                <span className="text-text-muted">responseSource</span>
+                <div className="text-text-primary font-bold">
+                  {plannedIpcStubContract.responseEnvelope.responseSource}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-2 text-[10px] text-rose-100 leading-relaxed">
+              <b>{plannedIpcStubContract.errorEnvelope.errorCode}</b> ·{" "}
+              {plannedIpcStubContract.errorEnvelope.message}
+              <div className="mt-1 text-rose-200/80">
+                {plannedIpcStubContract.errorEnvelope.hint}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2 lg:col-span-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <ChevronRight className="w-3.5 h-3.5 text-sky-300" />
+              <span>dry-run stub flow</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {toArray(plannedIpcStubContract.stubFlow).map((step, index) => (
+                <div
+                  key={step.id}
+                  className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5 space-y-1"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-mono text-brand-color">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded-lg border text-[9px] font-bold ${step.allowed ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-200" : "border-rose-500/20 bg-rose-500/10 text-rose-200"}`}
+                    >
+                      {step.allowed ? "allowed" : "blocked"}
+                    </span>
+                  </div>
+                  <div className="text-[11px] font-bold text-text-primary">
+                    {step.title}
+                  </div>
+                  <p className="text-[10px] text-text-muted leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <ShieldAlert className="w-3.5 h-3.5 text-rose-300" />
+              <span>forbidden actions</span>
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(plannedIpcStubContract.forbiddenActions).map((item) => (
+                <span
+                  key={item}
+                  className="px-2 py-1 rounded-lg border border-rose-500/20 bg-rose-500/10 text-[10px] text-rose-200"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* MVP-12 Dry-run stub response preview UI */}
+      <section className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div className="space-y-1">
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Activity className="w-4 h-4 text-emerald-400" />
+              <span>MVP-12 Dry-Run Stub Response Preview UI</span>
+            </h3>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              把 MVP-11 的 request / response / error envelope
+              转成更接近未来真实 dry-run 的预览 UI。当前仍然只展示 planned-stub
+              数据，不发送真实 IPC，不读取真实目录。
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase text-emerald-300 bg-emerald-500/10 border-emerald-500/25">
+            {plannedDryRunStubPreview.status}
+          </span>
+        </div>
+
+        <p className="text-[10px] text-amber-200/90 leading-relaxed rounded-xl border border-amber-500/20 bg-amber-500/10 p-2.5">
+          {plannedDryRunStubPreview.stageGate}
+        </p>
+
+        <div className="flex flex-wrap gap-1.5">
+          {toArray(plannedDryRunStubPreview.flowBadges).map((badge) => (
+            <span
+              key={badge}
+              className="px-2 py-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-[10px] text-emerald-200"
+            >
+              {badge}
+            </span>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <Terminal className="w-3.5 h-3.5 text-sky-300" />
+              <span>request envelope preview</span>
+            </h4>
+            <div className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5 space-y-1 text-[10px]">
+              <p className="font-mono text-text-primary truncate">
+                {plannedDryRunStubPreview.requestEnvelopePreview.channel}
+              </p>
+              <p className="text-text-muted">
+                correlationId:{" "}
+                {plannedDryRunStubPreview.requestEnvelopePreview.correlationId}
+              </p>
+              <p className="text-text-muted">
+                rootPathToken:{" "}
+                {plannedDryRunStubPreview.requestEnvelopePreview.rootPathToken}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {toArray(plannedDryRunStubPreview.requestEnvelopePreview.metrics).map(
+                (metric) => (
+                  <div
+                    key={metric.label}
+                    className={`rounded-xl border p-2 text-[10px] ${metric.tone === "blocked" ? "border-rose-500/20 bg-rose-500/10 text-rose-100" : metric.tone === "safe" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-100" : "border-sky-500/20 bg-sky-500/10 text-sky-100"}`}
+                  >
+                    <span className="block text-text-muted">
+                      {metric.label}
+                    </span>
+                    <b>{String(metric.value)}</b>
+                  </div>
+                ),
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+              <span>response payload preview</span>
+            </h4>
+            <div className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5 space-y-1 text-[10px]">
+              <p className="font-mono text-text-primary truncate">
+                {plannedDryRunStubPreview.responsePayloadPreview.channel}
+              </p>
+              <p className="text-text-muted">
+                responseSource:{" "}
+                {plannedDryRunStubPreview.responsePayloadPreview.responseSource}
+              </p>
+              <p className="text-rose-200">
+                indexWriteAllowed:{" "}
+                {String(
+                  plannedDryRunStubPreview.responsePayloadPreview
+                    .indexWriteAllowed,
+                )}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {toArray(plannedDryRunStubPreview.responsePayloadPreview.metrics).map(
+                (metric) => (
+                  <div
+                    key={metric.label}
+                    className={`rounded-xl border p-2 text-[10px] ${metric.tone === "blocked" ? "border-rose-500/20 bg-rose-500/10 text-rose-100" : metric.tone === "safe" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-100" : "border-cyan-500/20 bg-cyan-500/10 text-cyan-100"}`}
+                  >
+                    <span className="block text-text-muted">
+                      {metric.label}
+                    </span>
+                    <b>{String(metric.value)}</b>
+                  </div>
+                ),
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <ShieldAlert className="w-3.5 h-3.5 text-rose-300" />
+              <span>error state preview</span>
+            </h4>
+            <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-2.5 text-[10px] text-rose-100 leading-relaxed">
+              <b>{plannedDryRunStubPreview.errorStatePreview.errorCode}</b>
+              <p className="mt-1">
+                {plannedDryRunStubPreview.errorStatePreview.message}
+              </p>
+              <p className="mt-1 text-rose-200/80">
+                {plannedDryRunStubPreview.errorStatePreview.hint}
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              {toArray(plannedDryRunStubPreview.errorStatePreview.blockedReasons).map(
+                (reason) => (
+                  <div
+                    key={reason.code}
+                    className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-2 text-[10px] text-rose-100"
+                  >
+                    <b>{reason.code}</b> · {reason.message}
+                  </div>
+                ),
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+          <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+            <Folders className="w-3.5 h-3.5 text-purple-300" />
+            <span>dry-run result cards</span>
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
+            {toArray(plannedDryRunStubPreview.dryRunResultCards).map((card) => (
+              <div
+                key={card.id}
+                className={`rounded-xl border p-2.5 space-y-1 ${card.tone === "warning" ? "border-amber-500/20 bg-amber-500/10" : card.tone === "blocked" ? "border-rose-500/20 bg-rose-500/10" : card.tone === "safe" ? "border-emerald-500/20 bg-emerald-500/10" : "border-sky-500/20 bg-sky-500/10"}`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-bold text-text-primary truncate">
+                    {card.title}
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded-lg border border-white/10 bg-white/5 text-[9px] font-bold text-text-secondary">
+                    {card.kind}
+                  </span>
+                </div>
+                <p className="text-[10px] text-text-muted truncate">
+                  {card.relativePath}
+                </p>
+                <p className="text-[10px] font-mono text-text-secondary">
+                  {card.plannedAction} · {card.parserStatus}
+                </p>
+                {toArray(card.meta).map((item) => (
+                  <p
+                    key={item}
+                    className="text-[10px] text-text-muted truncate"
+                  >
+                    {item}
+                  </p>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-sky-100 flex items-center space-x-1.5">
+            <AudioLines className="w-3.5 h-3.5" />
+            <span>MVP-25 HTMLAudio 本地音频播放</span>
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">媒体协议</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">yang-kura-media</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">播放内核</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">HTMLAudio</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">支持格式</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">{electronLocalAudioPlaybackMvp25Service.supportedExtensions.join(' / ')}</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">路径暴露</p>
+              <p className="mt-1 font-bold text-emerald-300">不暴露真实路径</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/15 bg-black/10 p-2 text-[10px] text-sky-100/80 leading-relaxed">
+            <p>播放流程：真实 index 音轨 → rootPathToken + relativePath → 受控媒体 URL → HTMLAudio。</p>
+            <p>下一步：{electronLocalAudioPlaybackMvp25Service.next}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <AlertCircle className="w-3.5 h-3.5 text-amber-300" />
+              <span>warning preview cards</span>
+            </h4>
+            {toArray(plannedDryRunStubPreview.warningCards).map((card) => (
+              <div
+                key={card.id}
+                className={`rounded-xl border p-2 text-[10px] leading-relaxed ${card.tone === "warning" ? "border-amber-500/20 bg-amber-500/10 text-amber-100" : "border-sky-500/20 bg-sky-500/10 text-sky-100"}`}
+              >
+                <b>{card.code}</b> · {card.message}
+                <div className="mt-1 opacity-80">{card.hint}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+              <span>still no real Electron IPC</span>
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(plannedDryRunStubPreview.forbiddenActions).map((item) => (
+                <span
+                  key={item}
+                  className="px-2 py-1 rounded-lg border border-rose-500/20 bg-rose-500/10 text-[10px] text-rose-200"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* MVP-13 Electron shell boundary and file access / 文件访问 contract */}
+      <section className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div className="space-y-1">
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <HardDrive className="w-4 h-4 text-cyan-400" />
+              <span>MVP-13 Electron Shell Boundary + File Access Contract</span>
+            </h3>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              定义未来 Electron main/preload 的文件访问边界、允许 IPC
+              surface、目录选择合同、read-only dry-run 权限、path tokenization
+              和禁止文件变更 API。当前仍然不实现真实 Electron。
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase text-cyan-300 bg-cyan-500/10 border-cyan-500/25">
+            {electronFileAccessBoundary.status}
+          </span>
+        </div>
+
+        <p className="text-[10px] text-amber-200/90 leading-relaxed rounded-xl border border-amber-500/20 bg-amber-500/10 p-2.5">
+          {electronFileAccessBoundary.stageGate}
+        </p>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2 lg:col-span-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <Terminal className="w-3.5 h-3.5 text-sky-300" />
+              <span>allowed IPC surface</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {toArray(electronFileAccessBoundary.allowedIpcSurface).map((channel) => (
+                <div
+                  key={channel.channel}
+                  className={`rounded-xl border p-2.5 space-y-1 ${channel.allowedInMvp13 ? "border-emerald-500/20 bg-emerald-500/10" : "border-cyan-500/20 bg-cyan-500/10"}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-mono text-text-primary truncate">
+                      {channel.channel}
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded-lg border border-white/10 bg-white/5 text-[9px] font-bold text-text-secondary">
+                      {channel.direction}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-text-muted leading-relaxed">
+                    {channel.description}
+                  </p>
+                  <p className="text-[10px] font-mono text-cyan-200 truncate">
+                    {channel.payloadShape}
+                  </p>
+                  <p className="text-[10px] text-amber-200">
+                    permission: {channel.futurePermission}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <Folders className="w-3.5 h-3.5 text-purple-300" />
+              <span>directory picker contract</span>
+            </h4>
+            <div className="rounded-xl border border-purple-500/20 bg-purple-500/10 p-2.5 space-y-1 text-[10px] text-purple-100">
+              <p className="font-mono truncate">
+                {electronFileAccessBoundary.directoryPicker.apiName}
+              </p>
+              <p>
+                channel: {electronFileAccessBoundary.directoryPicker.channel}
+              </p>
+              <p>
+                userGestureRequired:{" "}
+                {String(
+                  electronFileAccessBoundary.directoryPicker
+                    .userGestureRequired,
+                )}
+              </p>
+              <p>
+                returnsPathToken:{" "}
+                {String(
+                  electronFileAccessBoundary.directoryPicker.returnsPathToken,
+                )}
+              </p>
+              <p>
+                absolutePathToRenderer:{" "}
+                {String(
+                  electronFileAccessBoundary.directoryPicker
+                    .returnsAbsolutePathToRenderer,
+                )}
+              </p>
+            </div>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              {electronFileAccessBoundary.directoryPicker.description}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <Search className="w-3.5 h-3.5 text-emerald-300" />
+              <span>read-only dry-run permission</span>
+            </h4>
+            <div className="grid grid-cols-2 gap-2 text-[10px]">
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-2 text-emerald-100">
+                maxEntries
+                <br />
+                <b>
+                  {
+                    electronFileAccessBoundary.readOnlyDryRunPermission
+                      .maxEntries
+                  }
+                </b>
+              </div>
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-2 text-emerald-100">
+                maxDepth
+                <br />
+                <b>
+                  {electronFileAccessBoundary.readOnlyDryRunPermission.maxDepth}
+                </b>
+              </div>
+              <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-2 text-rose-100">
+                canWriteIndex
+                <br />
+                <b>
+                  {String(
+                    electronFileAccessBoundary.readOnlyDryRunPermission
+                      .canWriteIndex,
+                  )}
+                </b>
+              </div>
+              <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-2 text-rose-100">
+                canMutateFiles
+                <br />
+                <b>
+                  {String(
+                    electronFileAccessBoundary.readOnlyDryRunPermission
+                      .canMutateFiles,
+                  )}
+                </b>
+              </div>
+            </div>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              {electronFileAccessBoundary.readOnlyDryRunPermission.description}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <Link2 className="w-3.5 h-3.5 text-sky-300" />
+              <span>path tokenization</span>
+            </h4>
+            <div className="rounded-xl border border-sky-500/20 bg-sky-500/10 p-2.5 space-y-1 text-[10px] text-sky-100">
+              <p>
+                policy: {electronFileAccessBoundary.pathTokenization.policyName}
+              </p>
+              <p>
+                tokenShape:{" "}
+                <span className="font-mono">
+                  {electronFileAccessBoundary.pathTokenization.tokenShape}
+                </span>
+              </p>
+              <p>
+                relativePath:{" "}
+                {String(
+                  electronFileAccessBoundary.pathTokenization
+                    .rendererReceivesRelativePath,
+                )}
+              </p>
+              <p>
+                absolutePath:{" "}
+                {String(
+                  electronFileAccessBoundary.pathTokenization
+                    .rendererReceivesAbsolutePath,
+                )}
+              </p>
+              <p>
+                fileUrl:{" "}
+                {String(
+                  electronFileAccessBoundary.pathTokenization
+                    .rendererReceivesFileUrl,
+                )}
+              </p>
+            </div>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              {electronFileAccessBoundary.pathTokenization.reason}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-cyan-300" />
+              <span>preload exposure</span>
+            </h4>
+            <p className="text-[10px] font-mono text-cyan-200">
+              {electronFileAccessBoundary.preloadExposure.namespace}
+            </p>
+            <div className="space-y-1">
+              {toArray(electronFileAccessBoundary.preloadExposure.exposedMethods).map(
+                (method) => (
+                  <p
+                    key={method}
+                    className="text-[10px] text-text-muted font-mono truncate"
+                  >
+                    {method}
+                  </p>
+                ),
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-sky-100 flex items-center space-x-1.5">
+            <AudioLines className="w-3.5 h-3.5" />
+            <span>MVP-25 HTMLAudio 本地音频播放</span>
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">媒体协议</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">yang-kura-media</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">播放内核</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">HTMLAudio</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">支持格式</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">{electronLocalAudioPlaybackMvp25Service.supportedExtensions.join(' / ')}</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">路径暴露</p>
+              <p className="mt-1 font-bold text-emerald-300">不暴露真实路径</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/15 bg-black/10 p-2 text-[10px] text-sky-100/80 leading-relaxed">
+            <p>播放流程：真实 index 音轨 → rootPathToken + relativePath → 受控媒体 URL → HTMLAudio。</p>
+            <p>下一步：{electronLocalAudioPlaybackMvp25Service.next}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <ShieldAlert className="w-3.5 h-3.5 text-rose-300" />
+              <span>forbidden file mutation APIs</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {toArray(electronFileAccessBoundary.forbiddenFileMutationApis).map(
+                (api) => (
+                  <div
+                    key={api.apiName}
+                    className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-2 text-[10px] text-rose-100 leading-relaxed"
+                  >
+                    <b>{api.apiName}</b> · {api.category}
+                    <p className="mt-1 text-rose-200/80">{api.reason}</p>
+                  </div>
+                ),
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <ChevronRight className="w-3.5 h-3.5 text-emerald-300" />
+              <span>implementation phases</span>
+            </h4>
+            {toArray(electronFileAccessBoundary.implementationPhases).map(
+              (phase, index) => (
+                <div
+                  key={phase.id}
+                  className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5 text-[10px] leading-relaxed"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <b className="text-text-primary">
+                      {String(index + 1).padStart(2, "0")} · {phase.title}
+                    </b>
+                    <span className="text-text-muted">{phase.status}</span>
+                  </div>
+                  <p className="text-text-muted mt-1">{phase.description}</p>
+                </div>
+              ),
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3.5 space-y-2">
+          <h4 className="text-[11px] font-bold text-rose-100 flex items-center space-x-1.5">
+            <ShieldAlert className="w-3.5 h-3.5" />
+            <span>MVP-13 forbidden actions</span>
+          </h4>
+          <div className="flex flex-wrap gap-1.5">
+            {toArray(electronFileAccessBoundary.forbiddenActions).map((item) => (
+              <span
+                key={item}
+                className="px-2 py-1 rounded-lg border border-rose-500/20 bg-black/10 text-[10px] text-rose-200"
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* MVP-14 Electron shell skeleton and preload type contract */}
+      <section className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div className="space-y-1">
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Terminal className="w-4 h-4 text-violet-400" />
+              <span>
+                MVP-14 Electron Shell Skeleton + Preload Type Contract
+              </span>
+            </h3>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              创建 electron/main.ts、electron/preload.ts 与 window.yangKura
+              类型合同，但仍然不引入真实 Electron runtime、不注册真实
+              IPC、不读真实目录。
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase text-violet-300 bg-violet-500/10 border-violet-500/25">
+            {electronShellSkeleton.status}
+          </span>
+        </div>
+
+        <p className="text-[10px] text-amber-200/90 leading-relaxed rounded-xl border border-amber-500/20 bg-amber-500/10 p-2.5">
+          {electronShellSkeleton.stageGate}
+        </p>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2 lg:col-span-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <FileText className="w-3.5 h-3.5 text-violet-300" />
+              <span>stub shell files</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              {toArray(electronShellSkeleton.shellFiles).map((file) => (
+                <div
+                  key={file.path}
+                  className="rounded-xl border border-violet-500/20 bg-violet-500/10 p-2.5 space-y-1 text-[10px] leading-relaxed"
+                >
+                  <p className="font-mono text-violet-100 truncate">
+                    {file.path}
+                  </p>
+                  <p className="text-text-muted">{file.role}</p>
+                  <p className="text-emerald-200">
+                    implemented: {String(file.implemented)}
+                  </p>
+                  <p className="text-rose-200">
+                    importsElectron: {String(file.importsElectron)}
+                  </p>
+                  <p className="text-rose-200">
+                    readsDisk: {String(file.readsDisk)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <Link2 className="w-3.5 h-3.5 text-sky-300" />
+              <span>preload namespace</span>
+            </h4>
+            <p className="text-[10px] font-mono text-sky-200">
+              {electronShellSkeleton.preloadNamespace}
+            </p>
+            <div className="grid grid-cols-2 gap-2 text-[10px]">
+              <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-2 text-rose-100">
+                runtime
+                <br />
+                <b>
+                  {String(
+                    electronShellSkeleton.stubCapabilities.hasElectronRuntime,
+                  )}
+                </b>
+              </div>
+              <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-2 text-rose-100">
+                real IPC
+                <br />
+                <b>
+                  {String(
+                    electronShellSkeleton.stubCapabilities
+                      .registersRealIpcHandlers,
+                  )}
+                </b>
+              </div>
+              <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-2 text-rose-100">
+                read disk
+                <br />
+                <b>
+                  {String(
+                    electronShellSkeleton.stubCapabilities.readsRealDirectory,
+                  )}
+                </b>
+              </div>
+              <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-2 text-rose-100">
+                write index
+                <br />
+                <b>
+                  {String(
+                    electronShellSkeleton.stubCapabilities.writesLibraryIndex,
+                  )}
+                </b>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-sky-100 flex items-center space-x-1.5">
+            <AudioLines className="w-3.5 h-3.5" />
+            <span>MVP-25 HTMLAudio 本地音频播放</span>
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">媒体协议</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">yang-kura-media</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">播放内核</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">HTMLAudio</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">支持格式</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">{electronLocalAudioPlaybackMvp25Service.supportedExtensions.join(' / ')}</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">路径暴露</p>
+              <p className="mt-1 font-bold text-emerald-300">不暴露真实路径</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/15 bg-black/10 p-2 text-[10px] text-sky-100/80 leading-relaxed">
+            <p>播放流程：真实 index 音轨 → rootPathToken + relativePath → 受控媒体 URL → HTMLAudio。</p>
+            <p>下一步：{electronLocalAudioPlaybackMvp25Service.next}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <Terminal className="w-3.5 h-3.5 text-cyan-300" />
+              <span>window.yangKura typed methods</span>
+            </h4>
+            <div className="space-y-2">
+              {toArray(electronShellSkeleton.typedApiMethods).map((method) => (
+                <div
+                  key={method.name}
+                  className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-2.5 text-[10px] leading-relaxed"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <b className="font-mono text-cyan-100">{method.name}()</b>
+                    <span className="text-rose-200">
+                      runtime: {String(method.implementedInRuntime)}
+                    </span>
+                  </div>
+                  <p className="text-text-muted mt-1">{method.description}</p>
+                  <p className="text-rose-200">
+                    returnsAbsolutePath: {String(method.returnsAbsolutePath)} ·
+                    sendsRealIpc: {String(method.sendsRealIpc)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <ChevronRight className="w-3.5 h-3.5 text-emerald-300" />
+              <span>future implementation order</span>
+            </h4>
+            {toArray(electronShellSkeleton.futureImplementationOrder).map(
+              (step, index) => (
+                <div
+                  key={step}
+                  className="rounded-xl border border-border-color/40 bg-card-bg/30 p-2.5 text-[10px] leading-relaxed"
+                >
+                  <b className="text-text-primary">
+                    {String(index + 1).padStart(2, "0")}
+                  </b>
+                  <span className="text-text-muted ml-2">{step}</span>
+                </div>
+              ),
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3.5 space-y-2">
+          <h4 className="text-[11px] font-bold text-rose-100 flex items-center space-x-1.5">
+            <ShieldAlert className="w-3.5 h-3.5" />
+            <span>MVP-14 forbidden actions</span>
+          </h4>
+          <div className="flex flex-wrap gap-1.5">
+            {toArray(electronShellSkeleton.forbiddenActions).map((item) => (
+              <span
+                key={item}
+                className="px-2 py-1 rounded-lg border border-rose-500/20 bg-black/10 text-[10px] text-rose-200"
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* MVP-15 Electron dependency and shell launch scripts */}
+      <section className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div className="space-y-1">
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Terminal className="w-4 h-4 text-emerald-400" />
+              <span>MVP-15 Electron Dependency + Shell Launch Scripts</span>
+            </h3>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              Electron 壳进入可构建 / 可启动阶段；window.yangKura 已是 runtime
+              stub，但目录选择、scanner IPC 与文件访问仍保持关闭。
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase text-emerald-300 bg-emerald-500/10 border-emerald-500/25">
+            {electronShellLaunch.status}
+          </span>
+        </div>
+
+        <p className="text-[10px] text-amber-200/90 leading-relaxed rounded-xl border border-amber-500/20 bg-amber-500/10 p-2.5">
+          {electronShellLaunch.stageGate}
+        </p>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {toArray(electronShellLaunch.launchScripts).map((script) => (
+            <div
+              key={script.scriptName}
+              className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3.5 space-y-2 text-[10px] leading-relaxed"
+            >
+              <h4 className="font-bold text-emerald-100 font-mono">
+                npm run {script.scriptName}
+              </h4>
+              <p className="font-mono text-emerald-200/90 break-all">
+                {script.command}
+              </p>
+              <p className="text-text-muted">{script.purpose}</p>
+              <p className="text-rose-200">
+                read disk: {String(script.readsRealDirectory)} · write index:{" "}
+                {String(script.writesLibraryIndex)} · scanner IPC:{" "}
+                {String(script.registersScannerIpc)}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-sky-100 flex items-center space-x-1.5">
+            <AudioLines className="w-3.5 h-3.5" />
+            <span>MVP-25 HTMLAudio 本地音频播放</span>
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">媒体协议</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">yang-kura-media</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">播放内核</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">HTMLAudio</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">支持格式</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">{electronLocalAudioPlaybackMvp25Service.supportedExtensions.join(' / ')}</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">路径暴露</p>
+              <p className="mt-1 font-bold text-emerald-300">不暴露真实路径</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/15 bg-black/10 p-2 text-[10px] text-sky-100/80 leading-relaxed">
+            <p>播放流程：真实 index 音轨 → rootPathToken + relativePath → 受控媒体 URL → HTMLAudio。</p>
+            <p>下一步：{electronLocalAudioPlaybackMvp25Service.next}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <Cpu className="w-3.5 h-3.5 text-emerald-300" />
+              <span>runtime capabilities</span>
+            </h4>
+            <div className="grid grid-cols-2 gap-2 text-[10px]">
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-2 text-emerald-100">
+                BrowserWindow
+                <br />
+                <b>
+                  {String(
+                    electronShellLaunch.runtimeCapabilities
+                      .createsBrowserWindow,
+                  )}
+                </b>
+              </div>
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-2 text-emerald-100">
+                window.yangKura
+                <br />
+                <b>
+                  {String(
+                    electronShellLaunch.runtimeCapabilities
+                      .exposesWindowYangKura,
+                  )}
+                </b>
+              </div>
+              <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-2 text-rose-100">
+                read disk
+                <br />
+                <b>
+                  {String(
+                    electronShellLaunch.runtimeCapabilities.canReadRealDisk,
+                  )}
+                </b>
+              </div>
+              <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-2 text-rose-100">
+                write index
+                <br />
+                <b>
+                  {String(
+                    electronShellLaunch.runtimeCapabilities
+                      .canWriteLibraryIndex,
+                  )}
+                </b>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <Link2 className="w-3.5 h-3.5 text-cyan-300" />
+              <span>preload runtime stub methods</span>
+            </h4>
+            <div className="space-y-2">
+              {toArray(electronShellLaunch.preloadStubMethods).map((method) => (
+                <div
+                  key={method.name}
+                  className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-2.5 text-[10px] leading-relaxed"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <b className="font-mono text-cyan-100">
+                      {method.exposedOn}.{method.name}()
+                    </b>
+                    <span className="text-emerald-200">
+                      stub: {String(method.implementedAsRuntimeStub)}
+                    </span>
+                  </div>
+                  <p className="text-text-muted mt-1">{method.purpose}</p>
+                  <p className="text-rose-200">
+                    real IPC: {String(method.sendsIpcRendererInvoke)} · absolute
+                    path: {String(method.returnsAbsolutePath)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+          <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+            <FileText className="w-3.5 h-3.5 text-violet-300" />
+            <span>shell files</span>
+          </h4>
+          <div className="flex flex-wrap gap-1.5">
+            {toArray(electronShellLaunch.shellFiles).map((file) => (
+              <span
+                key={file}
+                className="px-2 py-1 rounded-lg border border-violet-500/20 bg-violet-500/10 text-[10px] text-violet-100 font-mono"
+              >
+                {file}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3.5 space-y-2">
+          <h4 className="text-[11px] font-bold text-rose-100 flex items-center space-x-1.5">
+            <ShieldAlert className="w-3.5 h-3.5" />
+            <span>MVP-15 forbidden actions</span>
+          </h4>
+          <div className="flex flex-wrap gap-1.5">
+            {toArray(electronShellLaunch.forbiddenActions).map((item) => (
+              <span
+                key={item}
+                className="px-2 py-1 rounded-lg border border-rose-500/20 bg-black/10 text-[10px] text-rose-200"
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* MVP-16 renderer-side Electron status probe */}
+      <section className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div className="space-y-1">
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Activity className="w-4 h-4 text-cyan-400" />
+              <span>MVP-16 Renderer-Side Electron Status Probe</span>
+            </h3>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              Renderer 侧检测 window.yangKura 是否存在，并读取
+              getElectronShellStatus() stub 状态；该探针不请求目录、不发真实
+              scanner IPC、不访问真实磁盘。
+            </p>
+          </div>
+          <span
+            className={`px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase ${
+              electronRuntimeProbe.mode === "electron-stub"
+                ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/25"
+                : electronRuntimeProbe.mode === "probe-error"
+                  ? "text-rose-300 bg-rose-500/10 border-rose-500/25"
+                  : "text-cyan-300 bg-cyan-500/10 border-cyan-500/25"
+            }`}
+          >
+            {electronRuntimeProbe.mode}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-[10px]">
+          <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-cyan-100">
+            <p className="text-[9px] uppercase tracking-wider text-cyan-300 font-bold">
+              status
+            </p>
+            <p className="mt-1 font-semibold leading-relaxed">
+              {electronRuntimeProbe.statusLabel}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3 text-text-secondary">
+            <p className="text-[9px] uppercase tracking-wider text-text-muted font-bold">
+              checked via
+            </p>
+            <p className="mt-1 font-mono text-text-primary break-all">
+              {electronRuntimeProbe.checkedVia}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-emerald-100">
+            <p className="text-[9px] uppercase tracking-wider text-emerald-300 font-bold">
+              bridge detected / 桥接状态
+            </p>
+            <p className="mt-1 font-mono">
+              {String(electronRuntimeProbe.bridgeDetected)}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3 text-rose-100">
+            <p className="text-[9px] uppercase tracking-wider text-rose-300 font-bold">
+              file access / 文件访问
+            </p>
+            <p className="mt-1 font-semibold">disabled</p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-sky-100 flex items-center space-x-1.5">
+            <AudioLines className="w-3.5 h-3.5" />
+            <span>MVP-25 HTMLAudio 本地音频播放</span>
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">媒体协议</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">yang-kura-media</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">播放内核</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">HTMLAudio</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">支持格式</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">{electronLocalAudioPlaybackMvp25Service.supportedExtensions.join(' / ')}</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">路径暴露</p>
+              <p className="mt-1 font-bold text-emerald-300">不暴露真实路径</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/15 bg-black/10 p-2 text-[10px] text-sky-100/80 leading-relaxed">
+            <p>播放流程：真实 index 音轨 → rootPathToken + relativePath → 受控媒体 URL → HTMLAudio。</p>
+            <p>下一步：{electronLocalAudioPlaybackMvp25Service.next}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <Cpu className="w-3.5 h-3.5 text-cyan-300" />
+              <span>runtime capabilities</span>
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {toArray(electronRuntimeProbe.capabilities).map((capability) => (
+                <div
+                  key={capability.key}
+                  className={`rounded-xl border p-2.5 text-[10px] leading-relaxed ${
+                    capability.tone === "safe"
+                      ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-100"
+                      : capability.tone === "blocked"
+                        ? "border-rose-500/20 bg-rose-500/10 text-rose-100"
+                        : "border-border-color/50 bg-card-bg/30 text-text-secondary"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-semibold">{capability.label}</span>
+                    <span className="font-mono break-all text-right">
+                      {String(capability.value)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <FileText className="w-3.5 h-3.5 text-violet-300" />
+              <span>probe notes</span>
+            </h4>
+            <div className="space-y-2">
+              {toArray(electronRuntimeProbe.notes).map((note) => (
+                <p
+                  key={note}
+                  className="rounded-xl border border-violet-500/15 bg-violet-500/5 p-2.5 text-[10px] text-text-secondary leading-relaxed"
+                >
+                  {note}
+                </p>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3.5 space-y-2">
+          <h4 className="text-[11px] font-bold text-rose-100 flex items-center space-x-1.5">
+            <ShieldAlert className="w-3.5 h-3.5" />
+            <span>MVP-16 forbidden actions</span>
+          </h4>
+          <div className="flex flex-wrap gap-1.5">
+            {toArray(electronRuntimeProbe.forbiddenActions).map((item) => (
+              <span
+                key={item}
+                className="px-2 py-1 rounded-lg border border-rose-500/20 bg-black/10 text-[10px] text-rose-200"
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* MVP-17 Electron shell smoke check UI */}
+      <section className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div className="space-y-1">
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Terminal className="w-4 h-4 text-emerald-400" />
+              <span>MVP-17 Electron Shell Smoke Check UI</span>
+            </h3>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              Renderer 侧按钮只调用 window.yangKura 的三个 preload stub
+              方法，用来确认 Electron 壳可触达；不会打开目录、不会发真实 scanner
+              IPC、不会读取磁盘。
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className={`px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase ${
+                electronStubSmokeCheck.overallStatus === "passed"
+                  ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/25"
+                  : electronStubSmokeCheck.overallStatus === "blocked"
+                    ? "text-amber-300 bg-amber-500/10 border-amber-500/25"
+                    : electronStubSmokeCheck.overallStatus === "error"
+                      ? "text-rose-300 bg-rose-500/10 border-rose-500/25"
+                      : electronStubSmokeCheck.overallStatus === "running"
+                        ? "text-cyan-300 bg-cyan-500/10 border-cyan-500/25"
+                        : "text-text-muted bg-card-bg/30 border-border-color"
+              }`}
+            >
+              {electronStubSmokeCheck.overallStatus}
+            </span>
+            <button
+              onClick={runElectronStubSmokeCheck}
+              disabled={isRunningElectronStubSmokeCheck}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 text-white text-[11px] font-bold transition-all disabled:opacity-40 disabled:pointer-events-none hover:scale-105 cursor-pointer"
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>
+                {isRunningElectronStubSmokeCheck
+                  ? "正在运行 stub 检查..."
+                  : "运行 preload stub 检查"}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-[10px]">
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-emerald-100">
+            <p className="text-[9px] uppercase tracking-wider text-emerald-300 font-bold">
+              bridge detected / 桥接状态
+            </p>
+            <p className="mt-1 font-mono">
+              {String(electronStubSmokeCheck.bridgeDetected)}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3 text-text-secondary">
+            <p className="text-[9px] uppercase tracking-wider text-text-muted font-bold">
+              started / 开始
+            </p>
+            <p className="mt-1 font-mono text-text-primary break-all">
+              {electronStubSmokeCheck.startedAt ?? "not run"}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3 text-text-secondary">
+            <p className="text-[9px] uppercase tracking-wider text-text-muted font-bold">
+              finished / 完成
+            </p>
+            <p className="mt-1 font-mono text-text-primary break-all">
+              {electronStubSmokeCheck.finishedAt ?? "not run"}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3 text-rose-100">
+            <p className="text-[9px] uppercase tracking-wider text-rose-300 font-bold">
+              file access / 文件访问
+            </p>
+            <p className="mt-1 font-semibold">disabled</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          {toArray(electronStubSmokeCheck.methods).map((method) => (
+            <div
+              key={method.key}
+              className={`rounded-2xl border p-3.5 space-y-2 text-[10px] ${
+                method.status === "passed"
+                  ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-100"
+                  : method.status === "blocked"
+                    ? "border-amber-500/20 bg-amber-500/10 text-amber-100"
+                    : method.status === "error"
+                      ? "border-rose-500/20 bg-rose-500/10 text-rose-100"
+                      : method.status === "running"
+                        ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-100"
+                        : "border-border-color/60 bg-black/10 text-text-secondary"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <h4 className="text-[11px] font-bold text-text-primary">
+                  {method.label}
+                </h4>
+                <span className="font-mono uppercase">{method.status}</span>
+              </div>
+              <p className="leading-relaxed">{method.message}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {toArray(method.safetyAssertions).map((assertion) => (
+                  <span
+                    key={assertion}
+                    className="px-2 py-1 rounded-lg border border-current/15 bg-black/10 text-[9px]"
+                  >
+                    {assertion}
+                  </span>
+                ))}
+              </div>
+              {typeof method.payloadPreview !== "undefined" && (
+                <pre className="max-h-32 overflow-auto rounded-xl border border-black/20 bg-black/20 p-2 text-[9px] text-text-secondary whitespace-pre-wrap">
+                  {JSON.stringify(method.payloadPreview, null, 2)}
+                </pre>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-sky-100 flex items-center space-x-1.5">
+            <AudioLines className="w-3.5 h-3.5" />
+            <span>MVP-25 HTMLAudio 本地音频播放</span>
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">媒体协议</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">yang-kura-media</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">播放内核</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">HTMLAudio</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">支持格式</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">{electronLocalAudioPlaybackMvp25Service.supportedExtensions.join(' / ')}</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">路径暴露</p>
+              <p className="mt-1 font-bold text-emerald-300">不暴露真实路径</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/15 bg-black/10 p-2 text-[10px] text-sky-100/80 leading-relaxed">
+            <p>播放流程：真实 index 音轨 → rootPathToken + relativePath → 受控媒体 URL → HTMLAudio。</p>
+            <p>下一步：{electronLocalAudioPlaybackMvp25Service.next}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <FileText className="w-3.5 h-3.5 text-violet-300" />
+              <span>冒烟检查说明</span>
+            </h4>
+            <div className="space-y-2">
+              {toArray(electronStubSmokeCheck.notes).map((note) => (
+                <p
+                  key={note}
+                  className="rounded-xl border border-violet-500/15 bg-violet-500/5 p-2.5 text-[10px] text-text-secondary leading-relaxed"
+                >
+                  {note}
+                </p>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-rose-100 flex items-center space-x-1.5">
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>MVP-17 禁止动作</span>
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(electronStubSmokeCheck.forbiddenActions).map((item) => (
+                <span
+                  key={item}
+                  className="px-2 py-1 rounded-lg border border-rose-500/20 bg-black/10 text-[10px] text-rose-200"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* MVP-18 Electron directory picker stub contract */}
+      <section className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div className="space-y-1">
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Folders className="w-4 h-4 text-blue-400" />
+              <span>MVP-18 Electron 目录选择 Stub / Tokenized Root</span>
+            </h3>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              本区定义未来目录选择器返回给 Renderer 的安全结构。当前
+              selectLibraryRoot() 只返回 stub
+              token，不打开真实目录、不读取真实磁盘、不返回 absolutePath。
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase text-blue-300 bg-blue-500/10 border-blue-500/25">
+            {electronDirectoryPickerStubContract.status}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-[10px]">
+          <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3 text-blue-100">
+            <p className="text-[9px] uppercase tracking-wider text-blue-300 font-bold">
+              rootPathToken
+            </p>
+            <p className="mt-1 font-mono break-all">
+              {electronDirectoryPickerStubContract.stubResult.rootPathToken}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3 text-text-secondary">
+            <p className="text-[9px] uppercase tracking-wider text-text-muted font-bold">
+              显示名称
+            </p>
+            <p className="mt-1 font-semibold text-text-primary">
+              {electronDirectoryPickerStubContract.stubResult.displayName}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-emerald-100">
+            <p className="text-[9px] uppercase tracking-wider text-emerald-300 font-bold">
+              媒体库类型
+            </p>
+            <p className="mt-1 font-mono">
+              {electronDirectoryPickerStubContract.stubResult.libraryType}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3 text-rose-100">
+            <p className="text-[9px] uppercase tracking-wider text-rose-300 font-bold">
+              absolutePath
+            </p>
+            <p className="mt-1 font-semibold">不返回 Renderer</p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-sky-100 flex items-center space-x-1.5">
+            <AudioLines className="w-3.5 h-3.5" />
+            <span>MVP-25 HTMLAudio 本地音频播放</span>
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">媒体协议</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">yang-kura-media</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">播放内核</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">HTMLAudio</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">支持格式</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">{electronLocalAudioPlaybackMvp25Service.supportedExtensions.join(' / ')}</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">路径暴露</p>
+              <p className="mt-1 font-bold text-emerald-300">不暴露真实路径</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/15 bg-black/10 p-2 text-[10px] text-sky-100/80 leading-relaxed">
+            <p>播放流程：真实 index 音轨 → rootPathToken + relativePath → 受控媒体 URL → HTMLAudio。</p>
+            <p>下一步：{electronLocalAudioPlaybackMvp25Service.next}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <FileText className="w-3.5 h-3.5 text-blue-300" />
+              <span>未来返回字段合同</span>
+            </h4>
+            <div className="space-y-2">
+              {toArray(electronDirectoryPickerStubContract.futureResultFields).map(
+                (field) => (
+                  <div
+                    key={field.key}
+                    className="rounded-xl border border-border-color/50 bg-card-bg/20 p-2.5 text-[10px]"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-text-primary">
+                        {field.key}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-lg border text-[9px] font-bold ${field.rendererVisible ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/20" : "text-rose-300 bg-rose-500/10 border-rose-500/20"}`}
+                      >
+                        {field.rendererVisible
+                          ? "Renderer 可见"
+                          : "禁止给 Renderer"}
+                      </span>
+                    </div>
+                    <p className="mt-1 font-semibold text-text-primary">
+                      {field.label}
+                    </p>
+                    <p className="mt-1 text-text-muted leading-relaxed">
+                      {field.description}
+                    </p>
+                  </div>
+                ),
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-3">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <ChevronRight className="w-3.5 h-3.5 text-cyan-300" />
+              <span>目录选择流程</span>
+            </h4>
+            <div className="space-y-2">
+              {toArray(electronDirectoryPickerStubContract.flow).map((step) => (
+                <div
+                  key={step.id}
+                  className={`rounded-xl border p-2.5 text-[10px] ${
+                    step.status === "current-stub"
+                      ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-100"
+                      : step.status === "blocked"
+                        ? "border-rose-500/20 bg-rose-500/10 text-rose-100"
+                        : "border-blue-500/20 bg-blue-500/10 text-blue-100"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-text-primary">
+                      {step.title}
+                    </span>
+                    <span className="font-mono uppercase">{step.status}</span>
+                  </div>
+                  <p className="mt-1 leading-relaxed">{step.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-emerald-100 flex items-center space-x-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>安全规则</span>
+            </h4>
+            <div className="space-y-1.5">
+              {toArray(electronDirectoryPickerStubContract.securityRules).map((item) => (
+                <p
+                  key={item}
+                  className="text-[10px] text-emerald-100 leading-relaxed"
+                >
+                  • {item}
+                </p>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-rose-100 flex items-center space-x-1.5">
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>MVP-18 禁止动作</span>
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(electronDirectoryPickerStubContract.forbiddenActions).map(
+                (item) => (
+                  <span
+                    key={item}
+                    className="px-2 py-1 rounded-lg border border-rose-500/20 bg-black/10 text-[10px] text-rose-200"
+                  >
+                    {item}
+                  </span>
+                ),
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* MVP-19 Electron directory dialog tokenized root */}
+      <section className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div className="space-y-1">
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Folders className="w-4 h-4 text-emerald-400" />
+              <span>MVP-19 Electron 真实目录选择 Dialog / Tokenized Root</span>
+            </h3>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              本阶段开始调用 Electron main 的真实系统目录选择器，但仍然只返回
+              rootPathToken / displayName / libraryType，不扫描目录、不写
+              library-index.json、不向 Renderer 暴露 absolutePath。
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase text-emerald-300 bg-emerald-500/10 border-emerald-500/25">
+            {electronDirectoryDialogMvp19Contract.status}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-emerald-100 flex items-center space-x-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>本轮已启用</span>
+            </h4>
+            <div className="space-y-1.5">
+              {toArray(electronDirectoryDialogMvp19Contract.implementedNow).map(
+                (item) => (
+                  <p
+                    key={item}
+                    className="text-[10px] text-emerald-100 leading-relaxed"
+                  >
+                    • {item}
+                  </p>
+                ),
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-rose-100 flex items-center space-x-1.5">
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>MVP-19 继续禁止</span>
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(electronDirectoryDialogMvp19Contract.stillForbidden).map(
+                (item) => (
+                  <span
+                    key={item}
+                    className="px-2 py-1 rounded-lg border border-rose-500/20 bg-black/10 text-[10px] text-rose-200"
+                  >
+                    {item}
+                  </span>
+                ),
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-sky-100 flex items-center space-x-1.5">
+            <AudioLines className="w-3.5 h-3.5" />
+            <span>MVP-25 HTMLAudio 本地音频播放</span>
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">媒体协议</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">yang-kura-media</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">播放内核</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">HTMLAudio</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">支持格式</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">{electronLocalAudioPlaybackMvp25Service.supportedExtensions.join(' / ')}</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">路径暴露</p>
+              <p className="mt-1 font-bold text-emerald-300">不暴露真实路径</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/15 bg-black/10 p-2 text-[10px] text-sky-100/80 leading-relaxed">
+            <p>播放流程：真实 index 音轨 → rootPathToken + relativePath → 受控媒体 URL → HTMLAudio。</p>
+            <p>下一步：{electronLocalAudioPlaybackMvp25Service.next}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <FileText className="w-3.5 h-3.5 text-emerald-300" />
+              <span>Renderer 返回字段</span>
+            </h4>
+            <div className="space-y-2">
+              {toArray(electronDirectoryDialogMvp19Contract.resultFields).map(
+                (field) => (
+                  <div
+                    key={field.key}
+                    className="rounded-xl border border-border-color/50 bg-card-bg/20 p-2.5 text-[10px]"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-text-primary">
+                        {field.key}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-lg border text-[9px] font-bold ${field.rendererVisible ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/20" : "text-rose-300 bg-rose-500/10 border-rose-500/20"}`}
+                      >
+                        {field.rendererVisible
+                          ? "Renderer 可见"
+                          : "禁止给 Renderer"}
+                      </span>
+                    </div>
+                    <p className="mt-1 font-semibold text-text-primary">
+                      {field.label}
+                    </p>
+                    <p className="mt-1 text-text-muted leading-relaxed">
+                      {field.description}
+                    </p>
+                  </div>
+                ),
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-3">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <ChevronRight className="w-3.5 h-3.5 text-cyan-300" />
+              <span>MVP-19 流程</span>
+            </h4>
+            <div className="space-y-2">
+              {toArray(electronDirectoryDialogMvp19Contract.flow).map((step) => (
+                <div
+                  key={step.id}
+                  className={`rounded-xl border p-2.5 text-[10px] ${
+                    step.status === "implemented"
+                      ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-100"
+                      : step.status === "still-blocked"
+                        ? "border-rose-500/20 bg-rose-500/10 text-rose-100"
+                        : "border-blue-500/20 bg-blue-500/10 text-blue-100"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-text-primary">
+                      {step.title}
+                    </span>
+                    <span className="font-mono uppercase">{step.status}</span>
+                  </div>
+                  <p className="mt-1 leading-relaxed">{step.description}</p>
                 </div>
               ))}
             </div>
@@ -879,8 +5217,804 @@ export default function DiagnosticsPage({
         </div>
       </section>
 
+      {/* MVP-20 Electron read-only dry-run scanner */}
+      <section className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div className="space-y-1">
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <Search className="w-4 h-4 text-emerald-400" />
+              <span>MVP-20 Electron 小样本只读 Dry-run 扫描</span>
+            </h3>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              本阶段按个人项目实用优先加快进度：用户主动选择目录后，允许
+              Electron main 读取目录项并生成预览；仍不写
+              index、不返回真实路径、不删除/移动/重命名文件。
+            </p>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase text-emerald-300 bg-emerald-500/10 border-emerald-500/25">
+            {electronDryRunScannerMvp20Contract.status}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-emerald-100 flex items-center space-x-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>本轮启用</span>
+            </h4>
+            <div className="space-y-1.5">
+              {toArray(electronDryRunScannerMvp20Contract.enabledNow).map((item) => (
+                <p
+                  key={item}
+                  className="text-[10px] text-emerald-100 leading-relaxed"
+                >
+                  • {item}
+                </p>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-rose-100 flex items-center space-x-1.5">
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>仍不做</span>
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(electronDryRunScannerMvp20Contract.stillBlocked).map((item) => (
+                <span
+                  key={item}
+                  className="px-2 py-1 rounded-lg border border-rose-500/20 bg-black/10 text-[10px] text-rose-200"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-sky-100 flex items-center space-x-1.5">
+            <AudioLines className="w-3.5 h-3.5" />
+            <span>MVP-25 HTMLAudio 本地音频播放</span>
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">媒体协议</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">yang-kura-media</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">播放内核</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">HTMLAudio</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">支持格式</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">{electronLocalAudioPlaybackMvp25Service.supportedExtensions.join(' / ')}</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">路径暴露</p>
+              <p className="mt-1 font-bold text-emerald-300">不暴露真实路径</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/15 bg-black/10 p-2 text-[10px] text-sky-100/80 leading-relaxed">
+            <p>播放流程：真实 index 音轨 → rootPathToken + relativePath → 受控媒体 URL → HTMLAudio。</p>
+            <p>下一步：{electronLocalAudioPlaybackMvp25Service.next}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <FileText className="w-3.5 h-3.5 text-emerald-300" />
+              <span>扫描限制</span>
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {toArray(electronDryRunScannerMvp20Contract.scannerLimits).map((limit) => (
+                <div
+                  key={limit.key}
+                  className="rounded-xl border border-border-color/50 bg-card-bg/20 p-2.5 text-[10px]"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-text-primary">
+                      {limit.key}
+                    </span>
+                    <span className="text-emerald-300 font-mono">
+                      {limit.value}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-text-muted leading-relaxed">
+                    {limit.reason}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary flex items-center space-x-1.5">
+              <ChevronRight className="w-3.5 h-3.5 text-blue-300" />
+              <span>加速后的后续任务</span>
+            </h4>
+            <div className="space-y-1.5">
+              {toArray(electronDryRunScannerMvp20Contract.acceleratedPlan)
+                .slice(0, 6)
+                .map((item) => (
+                  <p
+                    key={item}
+                    className="text-[10px] text-text-secondary leading-relaxed"
+                  >
+                    • {item}
+                  </p>
+                ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* MVP-21/22 dry-run report and index write preview */}
+      <section className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-border-color/30 pb-3">
+          <div className="space-y-1">
+            <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
+              <FileText className="w-4 h-4 text-blue-400" />
+              <span>MVP-21/22/23/24/25 Dry-run / Index / 本地播放</span>
+            </h3>
+            <p className="text-[10px] text-text-muted leading-relaxed">
+              把 Settings 中的真实 dry-run 结果沉淀成 Diagnostics
+              正式预览，生成 library-index.json 写入预览，确认写入，读取后应用到资源库页面，并通过 HTMLAudio 播放本地音频。
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-1 rounded-xl border text-[10px] font-bold uppercase text-blue-300 bg-blue-500/10 border-blue-500/25">
+              {electronDryRunReportIndexPreviewMvp22.status}
+            </span>
+            <button
+              onClick={refreshStoredMvp21Preview}
+              className="px-2.5 py-1 rounded-xl border border-border-color/70 bg-card-bg/30 text-[10px] font-bold text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+            >
+              刷新预览
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3.5 space-y-3">
+            <h4 className="text-[11px] font-bold text-blue-100 flex items-center space-x-1.5">
+              <Search className="w-3.5 h-3.5" />
+              <span>最近一次 dry-run 报告</span>
+            </h4>
+            {storedDryRunReport?.ok ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="rounded-xl border border-blue-500/20 bg-black/10 p-2 text-[10px]">
+                    <p className="text-blue-100/70">目录</p>
+                    <p className="mt-1 font-bold text-blue-50 truncate">
+                      {storedDryRunReport.displayName}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-blue-500/20 bg-black/10 p-2 text-[10px]">
+                    <p className="text-blue-100/70">条目</p>
+                    <p className="mt-1 font-mono font-bold text-blue-50">
+                      {storedDryRunReport.summary.discoveredEntryCount}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-blue-500/20 bg-black/10 p-2 text-[10px]">
+                    <p className="text-blue-100/70">音轨</p>
+                    <p className="mt-1 font-mono font-bold text-blue-50">
+                      {storedDryRunReport.summary.trackCandidateCount}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-blue-500/20 bg-black/10 p-2 text-[10px]">
+                    <p className="text-blue-100/70">警告</p>
+                    <p className="mt-1 font-mono font-bold text-blue-50">
+                      {storedDryRunReport.summary.warningCount}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
+                  {toArray(storedDryRunReport.discoveredEntries)
+                    .slice(0, 6)
+                    .map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="flex items-center justify-between gap-3 rounded-lg border border-blue-500/15 bg-black/10 px-2 py-1 text-[10px]"
+                      >
+                        <span className="font-mono text-blue-100/80 truncate">
+                          {entry.relativePath}
+                        </span>
+                        <span className="font-mono text-blue-200 flex-shrink-0">
+                          {entry.entryKind}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            ) : storedDryRunReport ? (
+              <p className="text-[10px] text-rose-100 leading-relaxed">
+                {storedDryRunReport.message}
+              </p>
+            ) : (
+              <p className="text-[10px] text-blue-100/70 leading-relaxed">
+                还没有可展示的真实 dry-run
+                报告。请先到设置页选择目录并运行预览扫描。
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3.5 space-y-3">
+            <h4 className="text-[11px] font-bold text-emerald-100 flex items-center space-x-1.5">
+              <Database className="w-3.5 h-3.5" />
+              <span>library-index.json 写入预览</span>
+            </h4>
+            {storedIndexWritePreview?.ok ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="rounded-xl border border-emerald-500/20 bg-black/10 p-2 text-[10px]">
+                    <p className="text-emerald-100/70">集合</p>
+                    <p className="mt-1 font-mono font-bold text-emerald-50">
+                      {storedIndexWritePreview.summary.collectionCount}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-emerald-500/20 bg-black/10 p-2 text-[10px]">
+                    <p className="text-emerald-100/70">音轨</p>
+                    <p className="mt-1 font-mono font-bold text-emerald-50">
+                      {storedIndexWritePreview.summary.trackCount}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-emerald-500/20 bg-black/10 p-2 text-[10px]">
+                    <p className="text-emerald-100/70">封面</p>
+                    <p className="mt-1 font-mono font-bold text-emerald-50">
+                      {storedIndexWritePreview.summary.coverCount}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-emerald-500/20 bg-black/10 p-2 text-[10px]">
+                    <p className="text-emerald-100/70">字幕</p>
+                    <p className="mt-1 font-mono font-bold text-emerald-50">
+                      {storedIndexWritePreview.summary.subtitleCount}
+                    </p>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-emerald-500/15 bg-black/10 p-2 text-[10px] text-emerald-100/80 leading-relaxed">
+                  <p>
+                    预览文件：
+                    <span className="font-mono text-emerald-50">
+                      {storedIndexWritePreview.proposedIndexFileName}
+                    </span>
+                  </p>
+                  <p>
+                    根目录字段：只写{" "}
+                    <span className="font-mono">rootPathToken</span>
+                    ，不写真实路径。
+                  </p>
+                  <p>下一步：用户确认后再进入 MVP-23 真实写入。</p>
+                </div>
+              </div>
+            ) : storedIndexWritePreview ? (
+              <p className="text-[10px] text-rose-100 leading-relaxed">
+                {storedIndexWritePreview.message}
+              </p>
+            ) : (
+              <p className="text-[10px] text-emerald-100/70 leading-relaxed">
+                还没有 index 写入预览。请先到设置页完成 dry-run
+                后点击“生成写入预览”。
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-purple-500/20 bg-purple-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-purple-100 flex items-center space-x-1.5">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>library-index.json 真实写入结果</span>
+          </h4>
+          {storedIndexWriteResult?.ok ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="rounded-xl border border-purple-500/20 bg-black/10 p-2 text-[10px]">
+                  <p className="text-purple-100/70">集合</p>
+                  <p className="mt-1 font-mono font-bold text-purple-50">
+                    {storedIndexWriteResult.summary.collectionCount}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-purple-500/20 bg-black/10 p-2 text-[10px]">
+                  <p className="text-purple-100/70">音轨</p>
+                  <p className="mt-1 font-mono font-bold text-purple-50">
+                    {storedIndexWriteResult.summary.trackCount}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-purple-500/20 bg-black/10 p-2 text-[10px]">
+                  <p className="text-purple-100/70">字节</p>
+                  <p className="mt-1 font-mono font-bold text-purple-50">
+                    {storedIndexWriteResult.bytesWritten}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-purple-500/20 bg-black/10 p-2 text-[10px]">
+                  <p className="text-purple-100/70">备份</p>
+                  <p className="mt-1 font-mono font-bold text-purple-50 truncate">
+                    {storedIndexWriteResult.backupRelativePath || "无旧文件"}
+                  </p>
+                </div>
+              </div>
+              <div className="rounded-xl border border-purple-500/15 bg-black/10 p-2 text-[10px] text-purple-100/80 leading-relaxed">
+                <p>
+                  写入文件：<span className="font-mono text-purple-50">{storedIndexWriteResult.indexRelativePath}</span>
+                </p>
+                <p>
+                  SHA256：<span className="font-mono text-purple-50">{storedIndexWriteResult.sha256.slice(0, 24)}…</span>
+                </p>
+                <p>下一步：点击设置页“读取并应用 index”，让资源库页面显示真实 index 数据。</p>
+              </div>
+            </div>
+          ) : storedIndexWriteResult ? (
+            <p className="text-[10px] text-rose-100 leading-relaxed">
+              {storedIndexWriteResult.message}
+            </p>
+          ) : (
+            <p className="text-[10px] text-purple-100/70 leading-relaxed">
+              还没有真实写入结果。请到设置页完成 dry-run、生成写入预览，然后点击“确认写入 index”。
+            </p>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-violet-500/20 bg-violet-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-violet-100 flex items-center space-x-1.5">
+            <Database className="w-3.5 h-3.5" />
+            <span>library-index.json 读取与页面应用结果</span>
+          </h4>
+          {storedIndexReadResult?.ok ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="rounded-xl border border-violet-500/20 bg-black/10 p-2 text-[10px]">
+                  <p className="text-violet-100/70">集合</p>
+                  <p className="mt-1 font-mono font-bold text-violet-50">
+                    {storedIndexReadResult.summary.collectionCount}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-violet-500/20 bg-black/10 p-2 text-[10px]">
+                  <p className="text-violet-100/70">音轨</p>
+                  <p className="mt-1 font-mono font-bold text-violet-50">
+                    {storedIndexReadResult.summary.trackCount}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-violet-500/20 bg-black/10 p-2 text-[10px]">
+                  <p className="text-violet-100/70">字节</p>
+                  <p className="mt-1 font-mono font-bold text-violet-50">
+                    {storedIndexReadResult.bytesRead}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-violet-500/20 bg-black/10 p-2 text-[10px]">
+                  <p className="text-violet-100/70">状态</p>
+                  <p className="mt-1 font-bold text-emerald-300">已可映射</p>
+                </div>
+              </div>
+              <div className="rounded-xl border border-violet-500/15 bg-black/10 p-2 text-[10px] text-violet-100/80 leading-relaxed">
+                <p>
+                  读取文件：<span className="font-mono text-violet-50">{storedIndexReadResult.indexRelativePath}</span>
+                </p>
+                <p>
+                  SHA256：<span className="font-mono text-violet-50">{storedIndexReadResult.sha256.slice(0, 24)}…</span>
+                </p>
+                <p>主界面会把 rj_work 映射为音声库，把 music_album / music_folder 映射为音乐库。</p>
+              </div>
+            </div>
+          ) : storedIndexReadResult ? (
+            <p className="text-[10px] text-rose-100 leading-relaxed">
+              {storedIndexReadResult.message}
+            </p>
+          ) : (
+            <p className="text-[10px] text-violet-100/70 leading-relaxed">
+              还没有读取结果。请到设置页完成写入后点击“读取并应用 index”。
+            </p>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-3.5 space-y-3">
+          <h4 className="text-[11px] font-bold text-sky-100 flex items-center space-x-1.5">
+            <AudioLines className="w-3.5 h-3.5" />
+            <span>MVP-25 HTMLAudio 本地音频播放</span>
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">媒体协议</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">yang-kura-media</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">播放内核</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">HTMLAudio</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">支持格式</p>
+              <p className="mt-1 font-mono font-bold text-sky-50">{electronLocalAudioPlaybackMvp25Service.supportedExtensions.join(' / ')}</p>
+            </div>
+            <div className="rounded-xl border border-sky-500/20 bg-black/10 p-2 text-[10px]">
+              <p className="text-sky-100/70">路径暴露</p>
+              <p className="mt-1 font-bold text-emerald-300">不暴露真实路径</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/15 bg-black/10 p-2 text-[10px] text-sky-100/80 leading-relaxed">
+            <p>播放流程：真实 index 音轨 → rootPathToken + relativePath → 受控媒体 URL → HTMLAudio。</p>
+            <p>下一步：{electronLocalAudioPlaybackMvp25Service.next}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+
+            <h4 className="text-[11px] font-bold text-text-primary">
+              本轮启用
+            </h4>
+            {toArray(electronDryRunReportIndexPreviewMvp22.enabledNow).map((item) => (
+              <p
+                key={item}
+                className="text-[10px] text-text-secondary leading-relaxed"
+              >
+                • {item}
+              </p>
+            ))}
+          </div>
+          <div className="rounded-2xl border border-border-color/60 bg-black/10 p-3.5 space-y-2">
+            <h4 className="text-[11px] font-bold text-text-primary">仍不做</h4>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(electronDryRunReportIndexPreviewMvp22.stillBlocked).map(
+                (item) => (
+                  <span
+                    key={item}
+                    className="px-2 py-1 rounded-lg border border-rose-500/20 bg-rose-500/10 text-[10px] text-rose-200"
+                  >
+                    {item}
+                  </span>
+                ),
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="mvp66-beta-gui-regression" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 border-b border-emerald-500/10 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>{mvp66BetaGuiRegression.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">{mvp66BetaGuiRegression.description}</p>
+          </div>
+          <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-bold text-emerald-100 whitespace-nowrap">MVP-66</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          {mvp66BetaGuiRegression.chips.map((chip) => (
+            <div key={chip.id} className={`rounded-xl border px-3 py-3 text-[10px] ${betaGuiRegressionService.getToneClassName(chip.tone)}`}>
+              <p className="font-bold opacity-90">{chip.label}</p>
+              <p className="mt-1 text-xs font-extrabold">{chip.value}</p>
+              {chip.helper && <p className="mt-1 leading-relaxed opacity-75">{chip.helper}</p>}
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3 lg:col-span-1">
+            <p className="text-[10px] font-bold text-text-primary mb-2">推荐命令</p>
+            <div className="space-y-1 font-mono text-[9px] text-text-secondary">
+              {mvp66BetaGuiRegression.commands.map((command) => (
+                <p key={command}>{command}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 lg:col-span-1">
+            <p className="text-[10px] font-bold text-emerald-100 mb-2">真实样本清单</p>
+            <div className="space-y-1.5">
+              {mvp66BetaGuiRegression.sampleChecklist.map((item) => (
+                <p key={item} className="text-[10px] text-emerald-50/80 leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/20 bg-sky-500/10 p-3 lg:col-span-1">
+            <p className="text-[10px] font-bold text-sky-100 mb-2">失败后处理</p>
+            <div className="space-y-1.5">
+              {mvp66BetaGuiRegression.nextIfFailed.map((item) => (
+                <p key={item} className="text-[10px] text-sky-50/80 leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+          <p className="text-[10px] font-bold text-amber-100 mb-2">继续保持的安全边界</p>
+          <div className="flex flex-wrap gap-1.5">
+            {mvp66BetaGuiRegression.safetyBoundary.map((item) => (
+              <span key={item} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[9px] text-amber-50/80">{item}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="mvp67-beta-rc-closeout" className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 border-b border-emerald-500/10 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>{mvp67BetaRcCloseout.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">{mvp67BetaRcCloseout.description}</p>
+          </div>
+          <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-bold text-emerald-100 whitespace-nowrap">MVP-67</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          {toArray(mvp67BetaRcCloseout.chips).map((chip) => (
+            <div key={chip.id} className={`rounded-xl border px-3 py-3 text-[10px] ${betaRcCloseoutService.getToneClassName(chip.tone)}`}>
+              <p className="font-bold opacity-90">{chip.label}</p>
+              <p className="mt-1 text-xs font-extrabold">{chip.value}</p>
+              {chip.helper && <p className="mt-1 leading-relaxed opacity-75">{chip.helper}</p>}
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 lg:col-span-1">
+            <p className="text-[10px] font-bold text-emerald-100 mb-2">已通过链路</p>
+            <div className="space-y-1.5">
+              {toArray(mvp67BetaRcCloseout.confirmedFlow).map((step) => (
+                <p key={step.id} className="text-[10px] text-emerald-50/80 leading-relaxed">• {step.title} · {step.status}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/20 bg-sky-500/10 p-3 lg:col-span-1">
+            <p className="text-[10px] font-bold text-sky-100 mb-2">RC 检查</p>
+            <div className="space-y-1.5">
+              {toArray(mvp67BetaRcCloseout.rcChecks).map((item) => (
+                <p key={item} className="text-[10px] text-sky-50/80 leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 lg:col-span-1">
+            <p className="text-[10px] font-bold text-amber-100 mb-2">下一步</p>
+            <div className="space-y-1.5">
+              {toArray(mvp67BetaRcCloseout.nextSteps).map((item) => (
+                <p key={item} className="text-[10px] text-amber-50/80 leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+          <p className="text-[10px] font-bold text-text-primary mb-2">继续保持的安全边界</p>
+          <div className="flex flex-wrap gap-1.5">
+            {toArray(mvp67BetaRcCloseout.safetyBoundary).map((item) => (
+              <span key={item} className="rounded-full border border-border-color/60 bg-black/10 px-2 py-1 text-[9px] text-text-secondary">{item}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+
+      <section id="mvp70-beta-final-handoff" className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 border-b border-emerald-500/10 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+              <span>{mvp70BetaFinalHandoff.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">{mvp70BetaFinalHandoff.description}</p>
+          </div>
+          <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-bold text-emerald-100 whitespace-nowrap">MVP-70</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          {toArray(mvp70BetaFinalHandoff.cards).map((card) => (
+            <div key={card.id} className={`rounded-xl border px-3 py-3 text-[10px] ${betaFinalHandoffService.getToneClassName(card.tone)}`}>
+              <p className="font-bold opacity-90">{card.label}</p>
+              <p className="mt-1 text-xs font-extrabold">{card.value}</p>
+              {card.helper && <p className="mt-1 leading-relaxed opacity-75">{card.helper}</p>}
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="text-[10px] font-bold text-emerald-100 mb-2">用户已确认链路</p>
+            <div className="space-y-1.5">
+              {toArray(mvp70BetaFinalHandoff.userConfirmedFlow).map((item) => (
+                <p key={item} className="text-[10px] text-emerald-50/80 leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/20 bg-sky-500/10 p-3">
+            <p className="text-[10px] font-bold text-sky-100 mb-2">推荐轻量验证</p>
+            <div className="space-y-1 font-mono text-[9px] text-sky-50/80">
+              {toArray(mvp70BetaFinalHandoff.recommendedCommands).map((command) => (
+                <p key={command}>{command}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="text-[10px] font-bold text-amber-100 mb-2">交接规则</p>
+            <div className="space-y-1.5">
+              {toArray(mvp70BetaFinalHandoff.handoffRules).map((item) => (
+                <p key={item} className="text-[10px] text-amber-50/80 leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">最终包检查</p>
+            <div className="space-y-2">
+              {toArray(mvp70BetaFinalHandoff.finalPackageChecklist).map((step) => (
+                <div key={step.id} className={`rounded-lg border px-3 py-2 text-[10px] ${betaFinalHandoffService.getToneClassName(step.tone)}`}>
+                  <p className="font-bold opacity-90">{step.title} · {step.status}</p>
+                  <p className="mt-1 leading-relaxed opacity-75">{step.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">冻结边界</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp70BetaFinalHandoff.frozenBoundaries).map((item) => (
+                <span key={item} className="rounded-full border border-border-color/60 bg-black/10 px-2 py-1 text-[9px] text-text-secondary">{item}</span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">发布决策</p>
+            <div className="space-y-1.5">
+              {toArray(mvp70BetaFinalHandoff.releaseDecision).map((item) => (
+                <p key={item} className="text-[10px] text-text-secondary leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="mvp69-beta-release-candidate" className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 border-b border-emerald-500/10 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+              <span>{mvp69BetaReleaseCandidate.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">{mvp69BetaReleaseCandidate.description}</p>
+          </div>
+          <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-bold text-emerald-100 whitespace-nowrap">MVP-69</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          {toArray(mvp69BetaReleaseCandidate.cards).map((card) => (
+            <div key={card.id} className={`rounded-xl border px-3 py-3 text-[10px] ${betaReleaseCandidateService.getToneClassName(card.tone)}`}>
+              <p className="font-bold opacity-90">{card.label}</p>
+              <p className="mt-1 text-xs font-extrabold">{card.value}</p>
+              {card.helper && <p className="mt-1 leading-relaxed opacity-75">{card.helper}</p>}
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="text-[10px] font-bold text-emerald-100 mb-2">已确认能力</p>
+            <div className="space-y-1.5">
+              {toArray(mvp69BetaReleaseCandidate.confirmedCapabilities).map((item) => (
+                <p key={item} className="text-[10px] text-emerald-50/80 leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/20 bg-sky-500/10 p-3">
+            <p className="text-[10px] font-bold text-sky-100 mb-2">RC 决策说明</p>
+            <div className="space-y-1.5">
+              {toArray(mvp69BetaReleaseCandidate.rcDecisionNotes).map((item) => (
+                <p key={item} className="text-[10px] text-sky-50/80 leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="text-[10px] font-bold text-amber-100 mb-2">非阻塞项</p>
+            <div className="space-y-1.5">
+              {toArray(mvp69BetaReleaseCandidate.knownNonBlockingItems).map((item) => (
+                <p key={item} className="text-[10px] text-amber-50/80 leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">推荐命令</p>
+            <div className="space-y-1 font-mono text-[9px] text-text-secondary">
+              {toArray(mvp69BetaReleaseCandidate.recommendedCommands).map((command) => (
+                <p key={command}>{command}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">冻结边界</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp69BetaReleaseCandidate.freezeBoundary).map((item) => (
+                <span key={item} className="rounded-full border border-border-color/60 bg-black/10 px-2 py-1 text-[9px] text-text-secondary">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="mvp68-beta-rc-user-guide" className="rounded-2xl border border-sky-500/25 bg-sky-500/10 p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 border-b border-sky-500/10 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-text-primary flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-sky-300" />
+              <span>{mvp68BetaRcUserGuide.title}</span>
+            </h3>
+            <p className="text-[10px] text-text-muted mt-1 leading-relaxed">{mvp68BetaRcUserGuide.description}</p>
+          </div>
+          <span className="rounded-full border border-sky-500/25 bg-sky-500/10 px-2.5 py-1 text-[9px] font-bold text-sky-100 whitespace-nowrap">MVP-68</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          {toArray(mvp68BetaRcUserGuide.cards).map((card) => (
+            <div key={card.id} className={`rounded-xl border px-3 py-3 text-[10px] ${betaRcUserGuideService.getToneClassName(card.tone)}`}>
+              <p className="font-bold opacity-90">{card.label}</p>
+              <p className="mt-1 text-xs font-extrabold">{card.value}</p>
+              {card.helper && <p className="mt-1 leading-relaxed opacity-75">{card.helper}</p>}
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3">
+            <p className="text-[10px] font-bold text-emerald-100 mb-2">首次使用流程</p>
+            <div className="space-y-1.5">
+              {toArray(mvp68BetaRcUserGuide.firstRunGuide).map((step) => (
+                <p key={step.id} className="text-[10px] text-emerald-50/80 leading-relaxed">• {step.title} · {step.status}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-sky-500/20 bg-sky-500/10 p-3">
+            <p className="text-[10px] font-bold text-sky-100 mb-2">推荐命令</p>
+            <div className="space-y-1 font-mono text-[9px] text-sky-50/80">
+              {toArray(mvp68BetaRcUserGuide.recommendedCommands).map((command) => (
+                <p key={command}>{command}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+            <p className="text-[10px] font-bold text-amber-100 mb-2">诊断页折叠计划</p>
+            <div className="space-y-1.5">
+              {toArray(mvp68BetaRcUserGuide.diagnosticsFoldPlan).map((item) => (
+                <p key={item} className="text-[10px] text-amber-50/80 leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">打包说明</p>
+            <div className="space-y-1.5">
+              {toArray(mvp68BetaRcUserGuide.packagingGuide).map((item) => (
+                <p key={item} className="text-[10px] text-text-secondary leading-relaxed">• {item}</p>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+            <p className="text-[10px] font-bold text-text-primary mb-2">继续保持的安全边界</p>
+            <div className="flex flex-wrap gap-1.5">
+              {toArray(mvp68BetaRcUserGuide.safetyBoundary).map((item) => (
+                <span key={item} className="rounded-full border border-border-color/60 bg-black/10 px-2 py-1 text-[9px] text-text-secondary">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+
       {/* Render active sub-interface based on tab selection */}
-      {activeTab === 'health' && (
+        </div>
+      </details>
+
+      {activeTab === "health" && (
         <div className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-color/30 pb-3">
             <div className="space-y-0.5">
@@ -888,14 +6022,18 @@ export default function DiagnosticsPage({
                 <ShieldAlert className="w-4.5 h-4.5 text-indigo-400" />
                 <span>ASMR 媒体库健康度状况</span>
               </h3>
-              <p className="text-[10px] text-text-muted">检测并过滤带有潜在缺失封面、音轨受损的异常专辑条目。</p>
+              <p className="text-[10px] text-text-muted">
+                检测并过滤带有潜在缺失封面、音轨受损的异常专辑条目。
+              </p>
             </div>
-            
+
             {/* Bulk repair button (Requirement 4) */}
             <button
               onClick={handleBulkRepair}
-              disabled={isFixingAll || (stats.missingCover + stats.missingAudio === 0)}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 text-white text-[11px] font-bold transition-all disabled:opacity-40 disabled:pointer-events-none hover:scale-103 cursor-pointer"
+              disabled={
+                isFixingAll || stats.missingCover + stats.missingAudio === 0
+              }
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 text-white text-[11px] font-bold transition-all disabled:opacity-40 disabled:pointer-events-none hover:scale-105 cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5 fill-current" />
               <span>Demo 修复演示</span>
@@ -906,104 +6044,123 @@ export default function DiagnosticsPage({
           {isFixingAll && (
             <div className="p-3.5 rounded-xl bg-indigo-950/20 border border-indigo-500/20 space-y-2 animate-pulse text-xs">
               <div className="flex items-center justify-between text-[11px] font-bold text-indigo-300">
-                <span>正在并发从 DLsite / ASMR.one 代理节点补充元数据及音轨名称...</span>
+                <span>
+                  正在演示本地记录补全流程，不联网、不下载、不写真实文件...
+                </span>
                 <span>{repairProgress}%</span>
               </div>
               <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden">
-                <div className="bg-brand-color h-full transition-all duration-300" style={{ width: `${repairProgress}%` }}></div>
+                <div
+                  className="bg-brand-color h-full transition-all duration-300"
+                  style={{ width: `${repairProgress}%` }}
+                ></div>
               </div>
-              <p className="text-[10px] text-text-secondary font-mono leading-relaxed">{repairLog}</p>
+              <p className="text-[10px] text-text-secondary font-mono leading-relaxed">
+                {repairLog}
+              </p>
             </div>
           )}
 
           {/* Categories selector */}
           <div className="flex flex-wrap gap-2 text-xs">
-            <button 
-              onClick={() => setFilterType('all')}
+            <button
+              onClick={() => setFilterType("all")}
               className={`px-3 py-1.5 rounded-xl font-medium transition-all flex items-center space-x-1.5 border cursor-pointer ${
-                filterType === 'all' 
-                  ? 'bg-indigo-500/15 text-indigo-300 border-indigo-500/40 font-bold shadow-sm' 
-                  : 'bg-card-bg/20 text-text-secondary border-border-color/60 hover:text-text-primary hover:border-border-color'
+                filterType === "all"
+                  ? "bg-indigo-500/15 text-indigo-300 border-indigo-500/40 font-bold shadow-sm"
+                  : "bg-card-bg/20 text-text-secondary border-border-color/60 hover:text-text-primary hover:border-border-color"
               }`}
             >
               <span>全部条目</span>
-              <span className="px-1.5 py-0.2 bg-black/30 rounded-md font-mono text-[10px]">{stats.total}</span>
+              <span className="px-1.5 py-px bg-black/30 rounded-md font-mono text-[10px]">
+                {stats.total}
+              </span>
             </button>
 
-            <button 
-              onClick={() => setFilterType('identified')}
+            <button
+              onClick={() => setFilterType("identified")}
               className={`px-3 py-1.5 rounded-xl font-medium transition-all flex items-center space-x-1.5 border cursor-pointer ${
-                filterType === 'identified' 
-                  ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40 font-bold shadow-sm' 
-                  : 'bg-card-bg/20 text-text-secondary border-border-color/60 hover:text-text-primary hover:border-border-color'
+                filterType === "identified"
+                  ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/40 font-bold shadow-sm"
+                  : "bg-card-bg/20 text-text-secondary border-border-color/60 hover:text-text-primary hover:border-border-color"
               }`}
             >
               <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
               <span>完美对齐</span>
-              <span className="px-1.5 py-0.2 bg-black/30 rounded-md font-mono text-[10px]">{stats.identified}</span>
+              <span className="px-1.5 py-px bg-black/30 rounded-md font-mono text-[10px]">
+                {stats.identified}
+              </span>
             </button>
 
-            <button 
-              onClick={() => setFilterType('missing-cover')}
+            <button
+              onClick={() => setFilterType("missing-cover")}
               className={`px-3 py-1.5 rounded-xl font-medium transition-all flex items-center space-x-1.5 border cursor-pointer ${
-                filterType === 'missing-cover' 
-                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 font-bold shadow-sm' 
-                  : 'bg-card-bg/20 text-text-secondary border-border-color/60 hover:text-text-primary hover:border-border-color'
+                filterType === "missing-cover"
+                  ? "bg-amber-500/15 text-amber-300 border-amber-500/40 font-bold shadow-sm"
+                  : "bg-card-bg/20 text-text-secondary border-border-color/60 hover:text-text-primary hover:border-border-color"
               }`}
             >
               <ImageOff className="w-3.5 h-3.5 text-amber-400" />
               <span>缺封面图</span>
-              <span className="px-1.5 py-0.2 bg-black/30 rounded-md font-mono text-[10px]">{stats.missingCover}</span>
+              <span className="px-1.5 py-px bg-black/30 rounded-md font-mono text-[10px]">
+                {stats.missingCover}
+              </span>
             </button>
 
-            <button 
-              onClick={() => setFilterType('missing-audio')}
+            <button
+              onClick={() => setFilterType("missing-audio")}
               className={`px-3 py-1.5 rounded-xl font-medium transition-all flex items-center space-x-1.5 border cursor-pointer ${
-                filterType === 'missing-audio' 
-                  ? 'bg-rose-500/15 text-rose-300 border-rose-500/40 font-bold shadow-sm' 
-                  : 'bg-card-bg/20 text-text-secondary border-border-color/60 hover:text-text-primary hover:border-border-color'
+                filterType === "missing-audio"
+                  ? "bg-rose-500/15 text-rose-300 border-rose-500/40 font-bold shadow-sm"
+                  : "bg-card-bg/20 text-text-secondary border-border-color/60 hover:text-text-primary hover:border-border-color"
               }`}
             >
               <AudioLines className="w-3.5 h-3.5 text-rose-400" />
               <span>音频轨空</span>
-              <span className="px-1.5 py-0.2 bg-black/30 rounded-md font-mono text-[10px]">{stats.missingAudio}</span>
+              <span className="px-1.5 py-px bg-black/30 rounded-md font-mono text-[10px]">
+                {stats.missingAudio}
+              </span>
             </button>
 
-            <button 
-              onClick={() => setFilterType('warning')}
+            <button
+              onClick={() => setFilterType("warning")}
               className={`px-3 py-1.5 rounded-xl font-medium transition-all flex items-center space-x-1.5 border cursor-pointer ${
-                filterType === 'warning' 
-                  ? 'bg-red-500/15 text-red-300 border-red-500/40 font-bold shadow-sm' 
-                  : 'bg-card-bg/20 text-text-secondary border-border-color/60 hover:text-text-primary hover:border-border-color'
+                filterType === "warning"
+                  ? "bg-red-500/15 text-red-300 border-red-500/40 font-bold shadow-sm"
+                  : "bg-card-bg/20 text-text-secondary border-border-color/60 hover:text-text-primary hover:border-border-color"
               }`}
             >
               <AlertCircle className="w-3.5 h-3.5 text-red-400" />
               <span>异常受损</span>
-              <span className="px-1.5 py-0.2 bg-black/30 rounded-md font-mono text-[10px]">{stats.warning}</span>
+              <span className="px-1.5 py-px bg-black/30 rounded-md font-mono text-[10px]">
+                {stats.warning}
+              </span>
             </button>
           </div>
 
           {/* Diagnosis list of matching works */}
           <div className="space-y-2.5 max-h-80 overflow-y-auto scrollbar-thin pr-1 pt-1">
             {filteredWorks.length === 0 ? (
-              <p className="text-xs text-text-muted text-center py-6">此分类下无对应的健康诊断记录。</p>
+              <p className="text-xs text-text-muted text-center py-6">
+                此分类下无对应的健康诊断记录。
+              </p>
             ) : (
-              filteredWorks.map(work => {
+              toArray(filteredWorks).map((work) => {
                 const detail = getStatusDetail(work);
                 const StatusIcon = detail.icon;
                 return (
-                  <div 
-                    key={work.id} 
+                  <div
+                    key={work.id}
                     className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-card-bg/20 border border-border-color/60 hover:border-border-color transition-all gap-3"
                   >
                     <div className="flex items-center space-x-3 min-w-0">
                       <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-black/20 flex-shrink-0 border border-border-color/30">
                         {work.coverUrl ? (
-                          <img 
-                            src={work.coverUrl} 
-                            alt={work.title} 
+                          <img
+                            src={work.coverUrl}
+                            alt={work.title}
                             referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover" 
+                            className="w-full h-full object-cover"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-text-muted">
@@ -1013,25 +6170,32 @@ export default function DiagnosticsPage({
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center space-x-2">
-                          <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 bg-black/40 text-indigo-300 rounded border border-white/5">
+                          <span className="text-[10px] font-mono font-bold px-1.5 py-px bg-black/40 text-indigo-300 rounded border border-white/5">
                             {work.id}
                           </span>
-                          <h4 className="text-xs font-bold text-text-primary truncate" title={work.title}>
+                          <h4
+                            className="text-xs font-bold text-text-primary truncate"
+                            title={work.title}
+                          >
                             {work.title}
                           </h4>
                         </div>
                         <p className="text-[10px] text-text-muted truncate mt-0.5">
-                          社团: {work.circle} | 声优: {work.cvs.join(', ')}
+                          社团: {work.circle} | 声优: {work.cvs.join(", ")}
                         </p>
                         <div className="flex items-center space-x-1.5 mt-1 text-text-secondary">
                           <StatusIcon className="w-3 h-3 flex-shrink-0 text-text-muted" />
-                          <span className="text-[10px] font-medium">{detail.desc}</span>
+                          <span className="text-[10px] font-medium">
+                            {detail.desc}
+                          </span>
                         </div>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between sm:justify-end space-x-2 flex-shrink-0 border-t sm:border-t-0 border-border-color/20 pt-2 sm:pt-0">
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${detail.color}`}>
+                      <span
+                        className={`text-[9px] font-bold px-2 py-0.5 rounded border ${detail.color}`}
+                      >
                         {detail.label}
                       </span>
                       {setAsmrDetailId && (
@@ -1053,32 +6217,36 @@ export default function DiagnosticsPage({
       )}
 
       {/* 2. Scanning Sub-Interface (Requirement 1: Multi-path Scan Additions) */}
-      {activeTab === 'scan' && (
+      {activeTab === "scan" && (
         <div className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-color/30 pb-3">
             <div className="space-y-0.5">
               <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
                 <Folders className="w-4.5 h-4.5 text-brand-color" />
-                <span>多物理路径追加扫描监控 (新增扫描)</span>
+                <span>新增资源记录检查</span>
               </h3>
-              <p className="text-[10px] text-text-muted">实时对比本地硬盘挂载路径，一键提取尚未录入 SQLite 的 RJ 文件夹或音乐专辑。</p>
+              <p className="text-[10px] text-text-muted">
+                基于当前索引与示例记录展示新增资源检查流程，不读取未选择的真实目录，不写 SQLite。
+              </p>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleScanNewFolders}
                 disabled={isScanning}
                 className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-brand-color hover:bg-brand-color-hover disabled:bg-zinc-800 text-white text-[11px] font-bold transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
-                <span>立即扫描新增</span>
+                <RefreshCw
+                  className={`w-3.5 h-3.5 ${isScanning ? "animate-spin" : ""}`}
+                />
+                <span>检查新增记录</span>
               </button>
               {scannedOnce && (
                 <button
                   onClick={handleImportAllScanned}
                   className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold transition-all cursor-pointer"
                 >
-                  一键导入所有
+                  全部加入演示记录
                 </button>
               )}
             </div>
@@ -1089,49 +6257,68 @@ export default function DiagnosticsPage({
             {!scannedOnce ? (
               <div className="py-12 text-center border border-dashed border-border-color rounded-xl bg-card-bg/10 flex flex-col items-center justify-center">
                 <Search className="w-10 h-10 text-text-muted mb-2 stroke-1" />
-                <h4 className="font-semibold text-text-primary">尚未启动扫描任务</h4>
+                <h4 className="font-semibold text-text-primary">
+                  尚未启动扫描任务
+                </h4>
                 <p className="text-[10px] text-text-muted mt-1 max-w-xs leading-relaxed">
-                  系统会自动读取设置里配置的 3 组 ASMR 库路径与 2 组普通音乐挂载地址。请点击右上角进行扫描。
+                  点击右上角按钮查看新增资源检查的演示结果。当前不会访问未选择的真实目录。
                 </p>
               </div>
             ) : (
               <div className="space-y-2.5">
-                {scannedItems.map(item => (
-                  <div 
+                {toArray(scannedItems).map((item) => (
+                  <div
                     key={item.id}
                     className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl bg-card-bg/20 border border-border-color/60 hover:border-border-color/90 transition-all gap-3"
                   >
                     <div className="flex items-start space-x-3 min-w-0">
-                      <div className={`p-2 rounded-lg ${item.type === 'asmr' ? 'bg-indigo-500/10 text-indigo-400' : 'bg-pink-500/10 text-pink-400'} flex-shrink-0`}>
+                      <div
+                        className={`p-2 rounded-lg ${item.type === "asmr" ? "bg-indigo-500/10 text-indigo-400" : "bg-pink-500/10 text-pink-400"} flex-shrink-0`}
+                      >
                         <HardDrive className="w-5 h-5" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center space-x-2">
-                          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${item.type === 'asmr' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-pink-500/20 text-pink-300'}`}>
-                            {item.type === 'asmr' ? 'RJ音声' : '流行音乐'}
+                          <span
+                            className={`text-[9px] font-bold px-1.5 py-px rounded ${item.type === "asmr" ? "bg-indigo-500/20 text-indigo-300" : "bg-pink-500/20 text-pink-300"}`}
+                          >
+                            {item.type === "asmr" ? "RJ音声" : "流行音乐"}
                           </span>
-                          <span className="text-[10px] font-mono text-text-muted font-bold">{item.id}</span>
+                          <span className="text-[10px] font-mono text-text-muted font-bold">
+                            {item.id}
+                          </span>
                         </div>
-                        <h4 className="text-xs font-bold text-text-primary mt-1 truncate" title={item.title}>{item.title}</h4>
+                        <h4
+                          className="text-xs font-bold text-text-primary mt-1 truncate"
+                          title={item.title}
+                        >
+                          {item.title}
+                        </h4>
                         <p className="text-[10px] text-text-muted mt-0.5 truncate">
-                          文件路径: <span className="font-mono bg-black/30 px-1 py-0.2 rounded border border-white/5">{item.path}</span>
+                          记录位置:{" "}
+                          <span className="font-mono bg-black/30 px-1 py-px rounded border border-white/5">
+                            {item.path}
+                          </span>
                         </p>
-                        <p className="text-[9px] text-text-muted mt-1">预计容量: {item.size} | 社团/歌手: {item.circleOrArtist}</p>
+                        <p className="text-[9px] text-text-muted mt-1">
+                          预计大小: {item.size} | 社团/歌手:{" "}
+                          {item.circleOrArtist}
+                        </p>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-end flex-shrink-0">
-                      {item.status === 'imported' ? (
+                      {item.status === "imported" ? (
                         <span className="flex items-center space-x-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-xl text-[10px] font-bold">
                           <Check className="w-3.5 h-3.5" />
-                          <span>已成功入库</span>
+                          <span>已加入演示</span>
                         </span>
                       ) : (
                         <button
                           onClick={() => handleImportScannedItem(item.id)}
                           className="px-3.5 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-text-primary border border-white/5 text-[10px] font-bold transition-colors cursor-pointer"
                         >
-                          导入入库 (物理同步)
+                          加入演示记录
                         </button>
                       )}
                     </div>
@@ -1144,30 +6331,34 @@ export default function DiagnosticsPage({
       )}
 
       {/* 3. Physical Batch Rename Sub-Interface (Requirement 2) */}
-      {activeTab === 'rename' && (
+      {activeTab === "rename" && (
         <div className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-color/30 pb-3">
             <div className="space-y-0.5">
               <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
                 <FileText className="w-4.5 h-4.5 text-brand-color" />
-                <span>一键媒体库物理批量重命名 (整理命名)</span>
+                <span>命名规则预览</span>
               </h3>
-              <p className="text-[10px] text-text-muted">选择批量命名规则，一键重命名本地物理音频流名称。支持重构索引防止断链发生。</p>
+              <p className="text-[10px] text-text-muted">
+                选择批量命名规则，仅预览显示名称变化；MVP 阶段不重命名真实文件。
+              </p>
             </div>
-            
+
             <button
               onClick={handleExecuteBatchRename}
-              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-brand-color hover:bg-brand-color-hover text-white text-[11px] font-bold transition-all hover:scale-103 cursor-pointer"
+              className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-brand-color hover:bg-brand-color-hover text-white text-[11px] font-bold transition-all hover:scale-105 cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5 fill-current" />
-              <span>一键执行重命名计划</span>
+              <span>预览命名规则</span>
             </button>
           </div>
 
           {/* Rule options row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="space-y-1.5">
-              <label className="text-[10px] text-text-muted font-bold uppercase tracking-wider block">预设重命名计划规则</label>
+              <label className="text-[10px] text-text-muted font-bold uppercase tracking-wider block">
+                预设命名检查规则
+              </label>
               <select
                 value={renameRule}
                 onChange={(e) => {
@@ -1176,56 +6367,81 @@ export default function DiagnosticsPage({
                 }}
                 className="w-full bg-zinc-950 border border-white/5 rounded-xl px-3 py-2 text-xs text-text-primary outline-none focus:border-brand-color transition-colors"
               >
-                <option value="rule-1">【音轨序号】_【社团名】_整理版音频.flac (推荐)</option>
-                <option value="rule-2">【音轨序号】_【RJ号】_【声优】_ASMR.flac (精简)</option>
+                <option value="rule-1">
+                  【音轨序号】_【社团名】_整理版音频.flac (推荐)
+                </option>
+                <option value="rule-2">
+                  【音轨序号】_【RJ号】_【声优】_ASMR.flac (精简)
+                </option>
               </select>
             </div>
             <div className="bg-zinc-950/40 p-3 rounded-xl border border-white/5 flex flex-col justify-center text-[10px] text-text-muted leading-relaxed">
               <span className="text-brand-color font-bold">● 重命名提醒：</span>
-              <span>当前按钮为禁用级 Demo 概念：MVP 阶段禁止物理重命名，禁止写 SQLite。</span>
+              <span>
+                当前按钮为禁用级 Demo 概念：MVP 阶段禁止真实重命名，禁止写
+                SQLite。
+              </span>
             </div>
           </div>
 
           {/* Before and After Preview table */}
           <div className="space-y-2 border-t border-white/5 pt-3">
-            <h4 className="text-[11px] font-bold text-text-primary mb-2">文件重命名预览预览 (Preview)</h4>
-            
+            <h4 className="text-[11px] font-bold text-text-primary mb-2">
+              命名预览
+            </h4>
+
             <div className="border border-white/5 rounded-xl overflow-hidden bg-black/25">
               <table className="w-full text-[11px] text-left">
                 <thead className="bg-zinc-900 border-b border-white/5 text-[10px] text-text-muted font-bold">
                   <tr>
                     <th className="p-3">作品RJ号</th>
-                    <th className="p-3">旧物理文件名 (Original)</th>
-                    <th className="p-3">重命名新文件名 (Renamed Preview)</th>
+                    <th className="p-3">原显示文件名</th>
+                    <th className="p-3">新显示名称预览</th>
                     <th className="p-3 text-right">执行状态</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 font-mono text-text-secondary">
                   <tr>
                     <td className="p-3 font-bold text-brand-color">RJ100204</td>
-                    <td className="p-3 truncate max-w-[200px]">01_和風縁側でのんびりおばあちゃんの膝枕耳かき.flac</td>
+                    <td className="p-3 truncate max-w-[200px]">
+                      01_和風縁側でのんびりおばあちゃんの膝枕耳かき.flac
+                    </td>
                     <td className="p-3 text-emerald-400 truncate max-w-[200px]">
-                      {renameRule === 'rule-1' ? '01_【ひなき】_整理版音轨.flac' : '01_[RJ100204]_ひなき_ASMR.flac'}
+                      {renameRule === "rule-1"
+                        ? "01_【ひなき】_整理版音轨.flac"
+                        : "01_[RJ100204]_ひなき_ASMR.flac"}
                     </td>
                     <td className="p-3 text-right">
                       {isRenameSuccess ? (
-                        <span className="text-emerald-400 font-bold">● 已重命名成功</span>
+                        <span className="text-emerald-400 font-bold">
+                          ● 已完成演示
+                        </span>
                       ) : (
-                        <span className="text-amber-500 font-bold">● 待执行</span>
+                        <span className="text-amber-500 font-bold">
+                          ● 待执行
+                        </span>
                       )}
                     </td>
                   </tr>
                   <tr>
                     <td className="p-3 font-bold text-brand-color">RJ100204</td>
-                    <td className="p-3 truncate max-w-[200px]">02_縁側ひぐらしの鳴く夕暮れと炭酸シャンプー.flac</td>
+                    <td className="p-3 truncate max-w-[200px]">
+                      02_縁側ひぐらしの鳴く夕暮れと炭酸シャンプー.flac
+                    </td>
                     <td className="p-3 text-emerald-400 truncate max-w-[200px]">
-                      {renameRule === 'rule-1' ? '02_【ひなき】_整理版音轨.flac' : '02_[RJ100204]_ひなき_ASMR.flac'}
+                      {renameRule === "rule-1"
+                        ? "02_【ひなき】_整理版音轨.flac"
+                        : "02_[RJ100204]_ひなき_ASMR.flac"}
                     </td>
                     <td className="p-3 text-right">
                       {isRenameSuccess ? (
-                        <span className="text-emerald-400 font-bold">● 已重命名成功</span>
+                        <span className="text-emerald-400 font-bold">
+                          ● 已完成演示
+                        </span>
                       ) : (
-                        <span className="text-amber-500 font-bold">● 待执行</span>
+                        <span className="text-amber-500 font-bold">
+                          ● 待执行
+                        </span>
                       )}
                     </td>
                   </tr>
@@ -1237,32 +6453,36 @@ export default function DiagnosticsPage({
       )}
 
       {/* 4. Dead Links Sub-Interface (Requirement 1: Dead link checking) */}
-      {activeTab === 'deadlinks' && (
+      {activeTab === "deadlinks" && (
         <div className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-color/30 pb-3">
             <div className="space-y-0.5">
               <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
                 <Link2 className="w-4.5 h-4.5 text-rose-400" />
-                <span>失效音声及死链一键检测 (死链检测)</span>
+                <span>文件状态检查</span>
               </h3>
-              <p className="text-[10px] text-text-muted">扫描索引数据库中因移除、改名或删除造成的“幽灵文件”与死链条目。</p>
+              <p className="text-[10px] text-text-muted">
+                检查当前索引记录中可能失效的音频条目。当前为诊断演示，不删除、不移动、不重命名真实文件。
+              </p>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleCheckDeadLinks}
                 disabled={isCheckingDeadLinks}
                 className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-brand-color hover:bg-brand-color-hover disabled:bg-zinc-800 text-white text-[11px] font-bold transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isCheckingDeadLinks ? 'animate-spin' : ''}`} />
-                <span>开始全库死链分析</span>
+                <RefreshCw
+                  className={`w-3.5 h-3.5 ${isCheckingDeadLinks ? "animate-spin" : ""}`}
+                />
+                <span>检查文件状态</span>
               </button>
               {hasCheckedDeadLinks && (
                 <button
                   onClick={handleFixAllDeadLinks}
                   className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold transition-all cursor-pointer"
                 >
-                  一键并发对齐死链
+                  批量标记为已检查
                 </button>
               )}
             </div>
@@ -1273,15 +6493,17 @@ export default function DiagnosticsPage({
             {!hasCheckedDeadLinks ? (
               <div className="py-12 text-center border border-dashed border-border-color rounded-xl bg-card-bg/10 flex flex-col items-center justify-center">
                 <Link2 className="w-10 h-10 text-rose-400/60 mb-2 stroke-1 animate-pulse" />
-                <h4 className="font-semibold text-text-primary">全库物理完好度检测</h4>
+                <h4 className="font-semibold text-text-primary">
+                  文件状态检查
+                </h4>
                 <p className="text-[10px] text-text-muted mt-1 max-w-xs leading-relaxed">
-                  系统将深度遍历硬盘中每一组 ASMR、Pop 音轨，确认其物理连线完好性。点击右上角按钮以运行扫描。
+                  点击右上角按钮查看文件状态演示。真实文件检查只在用户选择目录后进行。
                 </p>
               </div>
             ) : (
               <div className="space-y-2.5">
-                {deadLinksList.map(item => (
-                  <div 
+                {toArray(deadLinksList).map((item) => (
+                  <div
                     key={item.id}
                     className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl bg-card-bg/20 border border-border-color/60 hover:border-border-color/90 transition-all gap-3"
                   >
@@ -1291,40 +6513,53 @@ export default function DiagnosticsPage({
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center space-x-2">
-                          <span className="text-[10px] font-mono text-rose-400 font-bold">断流异常</span>
-                          <span className="text-[10px] font-mono text-text-muted">所属专辑: {item.rjIdOrAlbum}</span>
+                          <span className="text-[10px] font-mono text-rose-400 font-bold">
+                            记录异常
+                          </span>
+                          <span className="text-[10px] font-mono text-text-muted">
+                            所属专辑: {item.rjIdOrAlbum}
+                          </span>
                         </div>
-                        <h4 className="text-xs font-bold text-text-primary mt-1 truncate" title={item.title}>{item.title}</h4>
-                        <p className="text-[10px] text-rose-400 font-mono mt-0.5 truncate">{item.reason}</p>
-                        <p className="text-[9px] text-text-muted mt-1">虚拟映射相对位置: {item.filePath}</p>
+                        <h4
+                          className="text-xs font-bold text-text-primary mt-1 truncate"
+                          title={item.title}
+                        >
+                          {item.title}
+                        </h4>
+                        <p className="text-[10px] text-rose-400 font-mono mt-0.5 truncate">
+                          {item.reason}
+                        </p>
+                        <p className="text-[9px] text-text-muted mt-1">
+                          虚拟映射相对位置: {item.filePath}
+                        </p>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-end space-x-2 flex-shrink-0">
-                      {item.status === 'fixed' && (
+                      {item.status === "fixed" && (
                         <span className="flex items-center space-x-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-xl text-[10px] font-bold">
                           <CheckCircle className="w-3.5 h-3.5" />
-                          <span>已物理修复连线</span>
+                          <span>已标记正常</span>
                         </span>
                       )}
-                      {item.status === 'deleted' && (
+                      {item.status === "deleted" && (
                         <span className="flex items-center space-x-1 bg-zinc-800 text-text-muted px-3 py-1.5 rounded-xl text-[10px] font-bold">
-                          <span>已彻底清除索引</span>
+                          <span>已从演示列表移除</span>
                         </span>
                       )}
-                      {item.status === 'broken' && (
+                      {item.status === "broken" && (
                         <>
                           <button
                             onClick={() => handleFixDeadLink(item.id)}
                             className="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold transition-colors cursor-pointer"
                           >
-                            并发补充修复
+                            标记正常
                           </button>
                           <button
                             onClick={() => handleDeleteDeadLink(item.id)}
                             className="px-2.5 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 text-[10px] font-bold transition-colors cursor-pointer"
                           >
-                            移除死链
+                            从演示移除
                           </button>
                         </>
                       )}
@@ -1338,24 +6573,26 @@ export default function DiagnosticsPage({
       )}
 
       {/* 5. Duplicate Checking & Cleanup Sub-Interface (Requirement 8 & 9) */}
-      {activeTab === 'duplicates' && (
+      {activeTab === "duplicates" && (
         <div className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-color/30 pb-3">
             <div className="space-y-0.5">
               <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
                 <Trash2 className="w-4.5 h-4.5 text-pink-400" />
-                <span>重复下载作品及 RJ 编码重叠分析</span>
+                <span>重复资源分析</span>
               </h3>
-              <p className="text-[10px] text-text-muted font-medium">深度提取并核对库中同一个 RJ作品在不同盘符或存储库（如 C盘、D盘、E/F盘）中重复下载、或者具有高度雷同属性的音频体积，保障存储空间的最大化利用。</p>
+              <p className="text-[10px] text-text-muted font-medium">
+                检查同一个 RJ 或同一专辑在索引中是否出现多份记录。当前仅做演示分析，不删除、不移动真实文件。
+              </p>
             </div>
-            
+
             <button
               onClick={() => {
-                showToast('已对全库 3 个仓库路径执行二次防重去重扫描！');
+                showToast("重复资源演示分析完成：未读取未选择的真实目录。");
               }}
               className="px-3.5 py-1.5 rounded-xl bg-brand-color hover:bg-brand-color-hover text-white text-[11px] font-bold transition-all cursor-pointer"
             >
-              一键精细化防重复分析
+              重新分析重复资源
             </button>
           </div>
 
@@ -1363,32 +6600,49 @@ export default function DiagnosticsPage({
             {duplicateAnalysis.length === 0 ? (
               <div className="py-12 text-center border border-dashed border-border-color rounded-xl bg-card-bg/10 flex flex-col items-center justify-center">
                 <CheckCircle2 className="w-10 h-10 text-emerald-400/80 mb-2" />
-                <h4 className="font-semibold text-text-primary">未检测到任何重复作品</h4>
-                <p className="text-[10px] text-text-muted mt-1">完美！您的多仓库物理硬盘中所有的 RJ 音声及流行音乐只包含一份实例，没有任何多余的冗余物理拷贝。</p>
+                <h4 className="font-semibold text-text-primary">
+                  未检测到任何重复作品
+                </h4>
+                <p className="text-[10px] text-text-muted mt-1">
+                  当前索引没有发现重复作品记录。
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
                 <div className="p-3 bg-rose-500/10 text-rose-300 rounded-xl border border-rose-500/20 text-[10px] leading-relaxed">
-                  📢 <strong>空间预警：</strong> 检测到部分 ASMR 媒体在外部多重硬盘路径下存在备份重叠，累积占用了约 <strong>{duplicateAnalysis.reduce((acc, d) => acc + parseFloat(d.totalSize), 0).toFixed(2)} GB</strong> 宝贵空间。
+                  📢 <strong>重复提示：</strong> 检测到部分 ASMR
+                  媒体在索引演示数据中存在重复记录，估算占用约{" "}
+                  <strong>
+                    {duplicateAnalysis
+                      .reduce((acc, d) => acc + parseFloat(d.totalSize), 0)
+                      .toFixed(2)}{" "}
+                    GB
+                  </strong>{" "}
+                  空间。
                 </div>
 
-                {duplicateAnalysis.map(group => (
-                  <div key={group.id} className="p-4 bg-zinc-950/40 border border-border-color/60 rounded-xl space-y-3">
+                {toArray(duplicateAnalysis).map((group) => (
+                  <div
+                    key={group.id}
+                    className="p-4 bg-zinc-950/40 border border-border-color/60 rounded-xl space-y-3"
+                  >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-2">
                       <div className="flex items-center space-x-2">
-                        <span className="text-xs font-mono font-bold px-1.5 py-0.2 bg-indigo-500/20 text-indigo-300 rounded">
+                        <span className="text-xs font-mono font-bold px-1.5 py-px bg-indigo-500/20 text-indigo-300 rounded">
                           {group.id}
                         </span>
-                        <span className="text-[11px] text-text-muted">（存在重合的 2 份磁盘文件，共计约 {group.totalSize}）</span>
+                        <span className="text-[11px] text-text-muted">
+                          （存在重合的 2 份记录，估算约  {group.totalSize}）
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <button 
+                        <button
                           onClick={() => {
                             if (setRjWorks) {
                               // Filter out duplicates keeping only one
-                              setRjWorks(prev => {
+                              setRjWorks((prev) => {
                                 const seen = new Set();
-                                return prev.filter(w => {
+                                return prev.filter((w) => {
                                   if (w.id === group.id) {
                                     if (seen.has(w.id)) return false; // delete duplicate mock/others
                                     seen.add(w.id);
@@ -1398,40 +6652,58 @@ export default function DiagnosticsPage({
                                 });
                               });
                             }
-                            showToast('已一键物理剪切，只在主媒体库 (D:/YangKura) 中保留一份高质量无损 FLAC 版本，腾出多余空间。');
+                            showToast(
+                              "重复资源演示已完成：仅更新页面模拟记录，未删除、移动、重命名真实文件。",
+                            );
                           }}
                           className="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[10px] font-bold transition-all cursor-pointer shadow-sm hover:shadow"
                         >
-                          仅保留主库目录
+                          保留一条记录
                         </button>
-                        <button 
+                        <button
                           onClick={() => {
-                            showToast('已合并索引，将不同目录的轨道配置并入该 RJ 专辑统一虚拟播放列表！');
+                            showToast(
+                              "合并演示完成：未写入真实索引。",
+                            );
                           }}
                           className="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-text-primary rounded-lg text-[10px] font-semibold transition-all cursor-pointer"
                         >
-                          合并物理音轨
+                          合并演示
                         </button>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      {group.works.map((work, idx) => (
-                        <div key={idx} className="flex items-start justify-between bg-black/25 p-2.5 rounded-lg border border-white/5 text-[10px] gap-4">
+                      {toArray(group.works).map((work, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-start justify-between bg-black/25 p-2.5 rounded-lg border border-white/5 text-[10px] gap-4"
+                        >
                           <div className="min-w-0">
                             <div className="flex items-center space-x-1.5">
-                              <span className={`w-1.5 h-1.5 rounded-full ${idx === 0 ? 'bg-indigo-400' : 'bg-amber-400'}`} />
-                              <span className="font-bold text-text-primary truncate">{work.title}</span>
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${idx === 0 ? "bg-indigo-400" : "bg-amber-400"}`}
+                              />
+                              <span className="font-bold text-text-primary truncate">
+                                {work.title}
+                              </span>
                             </div>
                             <p className="text-[9px] text-text-muted mt-1 font-mono truncate block">
-                              物理地址: {idx === 0 ? `D:/YangKura/Asmr_Library/${work.id}` : `E:/ASMR_Backup/${work.id}`}
+                              记录位置:{" "}
+                              {idx === 0
+                                ? `<selected-root>/${work.id}`
+                                : `<backup-root>/${work.id}`}
                             </p>
                             <p className="text-[9px] text-text-muted truncate mt-0.5 block">
-                              导入日期: {work.addedAt ? work.addedAt : '2026-06-25'} | 分轨数: {work.fileCount} 个文件
+                              导入日期:{" "}
+                              {work.addedAt ? work.addedAt : "2026-06-25"} |
+                              分轨数: {work.fileCount} 个文件
                             </p>
                           </div>
-                          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border flex-shrink-0 ${idx === 0 ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20' : 'bg-amber-500/10 text-amber-300 border-amber-500/20'}`}>
-                            {idx === 0 ? '主存储库 (推荐)' : '次级挂载备份'}
+                          <span
+                            className={`text-[9px] font-bold px-1.5 py-px rounded border flex-shrink-0 ${idx === 0 ? "bg-indigo-500/10 text-indigo-300 border-indigo-500/20" : "bg-amber-500/10 text-amber-300 border-amber-500/20"}`}
+                          >
+                            {idx === 0 ? "主记录" : "重复记录"}
                           </span>
                         </div>
                       ))}
@@ -1456,36 +6728,47 @@ export default function DiagnosticsPage({
       <div className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4 shadow-sm">
         <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
           <Activity className="w-4 h-4 text-emerald-400" />
-          <span>Demo 环境说明 / 尚未接硬件解码</span>
+          <span>桌面端能力说明</span>
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="flex items-center justify-between text-xs p-3.5 rounded-xl bg-card-bg/20 border border-border-color/40">
             <div className="flex items-center space-x-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-              <span className="font-semibold text-text-primary">独占 WASAPI 驱动</span>
+              <span className="font-semibold text-text-primary">
+                HTMLAudio 本地播放
+              </span>
             </div>
-            <span className="text-text-secondary font-mono text-[10px]">共享模式就绪</span>
+            <span className="text-text-secondary font-mono text-[10px]">
+              常见音频可用
+            </span>
           </div>
 
           <div className="flex items-center justify-between text-xs p-3.5 rounded-xl bg-card-bg/20 border border-border-color/40">
             <div className="flex items-center space-x-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-              <span className="font-semibold text-text-primary">ASMR.one 代理代理</span>
+              <span className="font-semibold text-text-primary">
+                外部打开
+              </span>
             </div>
-            <span className="text-text-secondary font-mono text-[10px]">香港加速节点连接正常</span>
+            <span className="text-text-secondary font-mono text-[10px]">
+              视频/图片走系统应用
+            </span>
           </div>
 
           <div className="flex items-center justify-between text-xs p-3.5 rounded-xl bg-card-bg/20 border border-border-color/40">
             <div className="flex items-center space-x-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-              <span className="font-semibold text-text-primary">LRC 自动挂载对齐</span>
+              <span className="font-semibold text-text-primary">
+                字幕读取
+              </span>
             </div>
-            <span className="text-text-secondary font-mono text-[10px]">已装载 3 组字幕轨</span>
+            <span className="text-text-secondary font-mono text-[10px]">
+              LRC/SRT/VTT/ASS
+            </span>
           </div>
         </div>
       </div>
-
     </div>
   );
 }

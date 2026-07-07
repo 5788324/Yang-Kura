@@ -1,0 +1,32 @@
+Yang-Kura MVP-77 handoff package manifest
+
+Version: 0.115.0-mvp77
+
+Purpose:
+- Packaged-app regression checklist
+- UI layout review checklist
+- DeepSeek/Codex cross-check prompt
+- No new runtime media/file/database capability
+
+Added:
+- src/services/packagedRegressionReviewService.ts
+- docs/CURRENT_ROADMAP_MVP77.md
+- docs/PACKAGED_REGRESSION_REVIEW_MVP77.md
+- docs/DEEPSEEK_REVIEW_PROMPT_MVP77.md
+- scripts/verify-mvp77-packaged-regression-review.mjs
+- HANDOFF_MVP76_TO_MVP77.md
+- PACKAGE_MANIFEST_MVP77_HANDOFF.txt
+
+Safety:
+- No SQLite
+- No downloader
+- No ASMR.one / DLsite / NetEase metadata scraping
+- No mpv
+- No deleting / moving / renaming real media files
+- No renderer absolutePath exposure
+- No renderer file:// exposure
+- No scanner/index/playback chain change
+
+中文摘要：MVP-77 打包版回归验收 / UI 布局审查 / DeepSeek 对照验收提示词。
+
+安全边界：不接 SQLite；不删除 / 移动 / 重命名真实媒体文件；不向 Renderer 暴露 absolutePath 或 file://。

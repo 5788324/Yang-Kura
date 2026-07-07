@@ -1,0 +1,17 @@
+Yang-Kura MVP-68 handoff manifest
+version: 0.106.0-mvp68
+
+new files:
+- src/services/betaRcUserGuideService.ts
+- docs/CURRENT_ROADMAP_MVP68.md
+- docs/BETA_RC_USER_GUIDE_MVP68.md
+- scripts/verify-mvp68-beta-rc-user-guide.mjs
+- HANDOFF_MVP67_TO_MVP68.md
+- PACKAGE_MANIFEST_MVP68_HANDOFF.txt
+
+main markers:
+- mvp68-beta-rc-user-guide
+- Beta 0.1 RC 使用说明
+- 打包说明
+- 诊断页折叠计划
+- betaRcUserGuideService

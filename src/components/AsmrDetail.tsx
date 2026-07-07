@@ -26,6 +26,10 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { RJWork, AudioTrack } from '../types';
+import CoverArtwork from './CoverArtwork';
+import { collectionDetailExperienceService, type CollectionDetailStatusChip } from '../services/collectionDetailExperienceService';
+import { asmrDetailSurfaceService, type AsmrDetailSurfaceChip } from '../services/asmrDetailSurfaceService';
+import { asmrDetailSideRailService, type AsmrDetailSideRailChip } from '../services/asmrDetailSideRailService';
 
 interface AsmrDetailProps {
   rjWork: RJWork;
@@ -106,7 +110,7 @@ export default function AsmrDetail({
   };
 
   // --- ASMR Folder, Track & Subtitle custom states ---
-  const [folderPath, setFolderPath] = useState<string>(`F:\\ASMR\\${rjWork.id}_[${rjWork.circle}]_${rjWork.title.substring(0, 15)}`);
+  const [folderPath, setFolderPath] = useState<string>(() => asmrDetailSurfaceService.getInitialFolderRecord(rjWork));
   const [trackRelocations, setTrackRelocations] = useState<Record<string, string>>({});
   const [trackSubtitles, setTrackSubtitles] = useState<Record<string, 'none' | 'ja' | 'zh' | 'bilingual'>>({});
 
@@ -121,7 +125,7 @@ export default function AsmrDetail({
     if (storedFolder) {
       setFolderPath(storedFolder);
     } else {
-      setFolderPath(`F:\\ASMR\\${rjWork.id}_[${rjWork.circle}]_${rjWork.title.substring(0, 15)}`);
+      setFolderPath(asmrDetailSurfaceService.getInitialFolderRecord(rjWork));
     }
 
     // 2. Track relocations
@@ -158,31 +162,83 @@ export default function AsmrDetail({
   }, [rjWork.id]);
 
   const handleOpenFolder = (path: string) => {
-    showFeedback(`📂 已调起系统资源管理器，打开物理目录: ${path}`);
+    showFeedback(`📂 已记录打开目录请求：${path}`);
+  };
+
+  const canUseExternalOpen = (track: AudioTrack) => Boolean(track.rootPathToken && track.sourceRelativePath && track.externalOpenSourceKind === 'tokenized-local-file');
+  const getExternalKind = (track: AudioTrack): YangKuraExternalOpenEntryKind => {
+    if (track.mediaKind === 'video' || track.mediaKind === 'image' || track.mediaKind === 'text' || track.mediaKind === 'archive' || track.mediaKind === 'other') return track.mediaKind;
+    return 'audio';
+  };
+  const canUseHtmlAudio = (track: AudioTrack) => !['video', 'image', 'text', 'archive', 'other'].includes(track.mediaKind || 'audio');
+
+  const handleOpenExternalTrack = async (track: AudioTrack) => {
+    if (!canUseExternalOpen(track) || !track.rootPathToken || !track.sourceRelativePath) {
+      showFeedback('当前音轨不是来自真实 library-index.json 的 tokenized 本地文件。');
+      return;
+    }
+    if (!window.yangKura?.requestOpenExternalFile) {
+      showFeedback('当前不在 Electron 桌面环境，无法调用系统默认应用。');
+      return;
+    }
+    const result = await window.yangKura.requestOpenExternalFile({
+      rootPathToken: track.rootPathToken,
+      relativePath: track.sourceRelativePath,
+      entryId: track.id,
+      mode: 'open-external-file',
+      expectedKind: getExternalKind(track),
+    });
+    showFeedback(result.message);
+  };
+
+  const handleOpenTrackInFileManager = async (track: AudioTrack) => {
+    if (!canUseExternalOpen(track) || !track.rootPathToken || !track.sourceRelativePath) {
+      showFeedback('当前音轨没有可定位的 tokenized 本地路径。');
+      return;
+    }
+    if (!window.yangKura?.requestOpenInFileManager) {
+      showFeedback('当前不在 Electron 桌面环境，无法打开文件管理器。');
+      return;
+    }
+    const result = await window.yangKura.requestOpenInFileManager({
+      rootPathToken: track.rootPathToken,
+      relativePath: track.sourceRelativePath,
+      entryId: track.id,
+      mode: 'open-in-file-manager',
+    });
+    showFeedback(result.message);
+  };
+
+  const handlePlayOrOpenTrack = (track: AudioTrack) => {
+    if (canUseHtmlAudio(track)) {
+      onPlayTrack(track, rjWork.tracks);
+      return;
+    }
+    void handleOpenExternalTrack(track);
   };
 
   const handleCopyPath = (path: string) => {
     navigator.clipboard.writeText(path);
-    showFeedback('📋 物理文件路径已成功复制到剪贴板！');
+    showFeedback('📋 资源库记录已复制到剪贴板');
   };
 
   const handleRelocateFolder = () => {
-    const newPath = prompt('请输入该 RJ 专辑的新物理路径 / 挂载文件夹：', folderPath);
+    const newPath = prompt('请输入该 RJ 作品的资源库目录记录（不要粘贴真实绝对路径）：', folderPath);
     if (newPath && newPath.trim()) {
       setFolderPath(newPath.trim());
       localStorage.setItem(`asmr_folder_path_${rjWork.id}`, newPath.trim());
-      showFeedback('📁 成功重新定位专辑物理路径！');
+      showFeedback('📁 已更新作品资源库记录');
     }
   };
 
   const handleRelocateTrack = (trackId: string, currentPath: string) => {
     const defaultVal = trackRelocations[trackId] || currentPath;
-    const newPath = prompt('请输入该音频音轨的新物理路径：', defaultVal);
+    const newPath = prompt('请输入该音轨的资源库内文件记录（不要粘贴真实绝对路径）：', defaultVal);
     if (newPath && newPath.trim()) {
       const updated = { ...trackRelocations, [trackId]: newPath.trim() };
       setTrackRelocations(updated);
       localStorage.setItem('asmr_track_relocations', JSON.stringify(updated));
-      showFeedback('🎵 已成功重新定位该音轨物理文件！');
+      showFeedback('🎵 已更新该音轨的资源库记录');
     }
   };
 
@@ -240,10 +296,57 @@ export default function AsmrDetail({
   };
 
   // Format single track duration (mm:ss)
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+  const formatDuration = (seconds: number | undefined) => {
+    if (!Number.isFinite(seconds)) return '--:--';
+    const safeSeconds = Math.max(0, Math.floor(seconds || 0));
+    const mins = Math.floor(safeSeconds / 60);
+    const secs = safeSeconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+
+  const mvp56HeroModel = asmrDetailSurfaceService.getHeroModel(rjWork);
+  const mvp56TrackSummary = asmrDetailSurfaceService.getTrackSummaryModel({
+    work: rjWork,
+    trackProgress,
+    trackSubtitles,
+  });
+  const mvp56RecordModel = asmrDetailSurfaceService.getRecordModel(rjWork, folderPath);
+  const mvp57SideRailModel = asmrDetailSideRailService.getSideRailModel({
+    work: rjWork,
+    rating,
+    personalStatus: pstatus,
+    notes,
+    trackSubtitles,
+  });
+  const mvp57ResourceRecordModel = asmrDetailSideRailService.getResourceRecordModel(rjWork, trackSubtitles);
+  const mvp57SubtitlePanelModel = asmrDetailSideRailService.getSubtitlePanelModel(rjWork, trackSubtitles);
+
+  const asmrDetailSideRailChipClassName = (chip: AsmrDetailSideRailChip) => {
+    return `rounded-xl border px-2.5 py-2 text-[10px] ${asmrDetailSideRailService.getToneClassName(chip.tone)}`;
+  };
+
+  const asmrDetailSurfaceChipClassName = (chip: AsmrDetailSurfaceChip) => {
+    return `rounded-xl border px-3 py-2 text-[10px] ${asmrDetailSurfaceService.getToneClassName(chip.tone)}`;
+  };
+
+  const asmrDetailSummary = collectionDetailExperienceService.getAsmrDetailSummary(rjWork);
+  const asmrEmptyState = collectionDetailExperienceService.getAsmrEmptyState();
+  const asmrBreadcrumbs = collectionDetailExperienceService.getBreadcrumbs({
+    section: '音声库',
+    parent: rjWork.circle,
+    current: rjWork.id,
+  });
+
+  const detailChipClassName = (chip: CollectionDetailStatusChip) => {
+    const toneMap: Record<CollectionDetailStatusChip['tone'], string> = {
+      brand: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400',
+      green: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+      amber: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+      purple: 'bg-purple-500/10 border-purple-500/20 text-purple-400',
+      muted: 'bg-zinc-500/10 border-zinc-500/20 text-text-muted',
+    };
+    return `text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${toneMap[chip.tone]}`;
   };
 
   // Play all tracks sequentially
@@ -288,19 +391,13 @@ export default function AsmrDetail({
           
           {/* Cover image (Left) */}
           <div className="w-44 h-44 md:w-52 md:h-52 rounded-xl overflow-hidden bg-zinc-800 shadow-xl flex-shrink-0 border border-white/5 relative group">
-            {rjWork.coverUrl ? (
-              <img 
-                src={rjWork.coverUrl} 
-                alt={rjWork.title} 
-                referrerPolicy="no-referrer"
-                className="w-full h-full object-cover" 
-              />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-zinc-500 text-xs">
-                <Folder className="w-16 h-16 mb-2 stroke-1" />
-                <span>无封面</span>
-              </div>
-            )}
+            <CoverArtwork
+              src={rjWork.coverUrl}
+              title={rjWork.title}
+              subtitle={rjWork.id}
+              kind="asmr"
+              className="w-full h-full object-cover"
+            />
             <div className="absolute bottom-2.5 right-2.5 bg-black/85 backdrop-blur-md px-2.5 py-0.5 rounded text-xs font-bold font-mono border border-white/10 text-brand-color">
               {rjWork.id}
             </div>
@@ -315,7 +412,7 @@ export default function AsmrDetail({
                 </span>
                 <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center space-x-1">
                   <CheckCircle className="w-2.5 h-2.5" />
-                  <span>元数据已挂载</span>
+                  <span>本地信息已记录</span>
                 </span>
               </div>
               <h2 className="text-xl md:text-2xl font-bold text-text-primary leading-snug tracking-tight">
@@ -394,7 +491,7 @@ export default function AsmrDetail({
                 id="play-all-asmr"
                 onClick={handlePlayAll}
                 disabled={rjWork.tracks.length === 0}
-                className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-brand-color hover:bg-brand-color-hover text-white text-xs font-semibold shadow-lg shadow-brand-color/20 hover:scale-103 active:scale-97 transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+                className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-brand-color hover:bg-brand-color-hover text-white text-xs font-semibold shadow-lg shadow-brand-color/20 hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
               >
                 <Play className="w-4 h-4 fill-current" />
                 <span>播放全部音声</span>
@@ -403,7 +500,7 @@ export default function AsmrDetail({
                 id="queue-all-asmr"
                 onClick={handleQueueAll}
                 disabled={rjWork.tracks.length === 0}
-                className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-card-bg hover:bg-hover-bg border border-border-color text-text-primary text-xs font-semibold hover:scale-103 active:scale-97 transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+                className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-card-bg hover:bg-hover-bg border border-border-color text-text-primary text-xs font-semibold hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
               >
                 <ListPlus className="w-4 h-4" />
                 <span>加入播放队列</span>
@@ -419,35 +516,35 @@ export default function AsmrDetail({
                     setEditTags([...rjWork.tags]);
                     setIsEditModalOpen(true);
                   }}
-                  className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-zinc-850 hover:bg-zinc-800 text-indigo-400 border border-indigo-500/20 text-xs font-semibold hover:scale-103 active:scale-97 transition-all cursor-pointer"
+                  className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-indigo-400 border border-indigo-500/20 text-xs font-semibold hover:scale-105 active:scale-95 transition-all cursor-pointer"
                 >
                   <Edit3 className="w-4 h-4" />
-                  <span>编辑元数据 & 标签</span>
+                  <span>编辑作品信息与标签</span>
                 </button>
               )}
               <button 
-                onClick={() => handleOpenFolder(folderPath)}
-                className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-zinc-850 hover:bg-zinc-800 text-amber-400 border border-amber-500/20 text-xs font-semibold hover:scale-103 active:scale-97 transition-all cursor-pointer"
-                title={`物理挂载路径: ${folderPath}`}
+                onClick={() => handleOpenFolder(mvp56RecordModel.folderRecord)}
+                className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-amber-400 border border-amber-500/20 text-xs font-semibold hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                title={`资源库记录：${mvp56RecordModel.folderRecord}`}
               >
                 <FolderOpen className="w-4 h-4" />
-                <span>打开文件夹</span>
+                <span>{mvp56RecordModel.openLabel}</span>
               </button>
               <button 
-                onClick={() => handleCopyPath(folderPath)}
-                className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-zinc-850 hover:bg-zinc-800 text-zinc-300 border border-white/5 text-xs font-semibold hover:scale-103 active:scale-97 transition-all cursor-pointer"
-                title="复制此专辑物理路径到剪贴板"
+                onClick={() => handleCopyPath(mvp56RecordModel.folderRecord)}
+                className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-white/5 text-xs font-semibold hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                title="复制此作品资源库记录"
               >
                 <Copy className="w-4 h-4" />
-                <span>复制路径</span>
+                <span>{mvp56RecordModel.copyLabel}</span>
               </button>
               <button 
                 onClick={handleRelocateFolder}
-                className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-zinc-850 hover:bg-zinc-800 text-teal-400 border border-teal-500/25 text-xs font-semibold hover:scale-103 active:scale-97 transition-all cursor-pointer"
-                title="当本地方向移动后重新挂载定位此目录"
+                className="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-teal-400 border border-teal-500/25 text-xs font-semibold hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                title="资源目录变化后更新此作品的资源库记录"
               >
                 <RefreshCw className="w-4 h-4" />
-                <span>重新定位目录</span>
+                <span>{mvp56RecordModel.relocateLabel}</span>
               </button>
             </div>
 
@@ -456,6 +553,63 @@ export default function AsmrDetail({
         </div>
 
       </div>
+
+      <section id="mvp56-asmr-detail-summary" className="rounded-2xl border border-brand-color/20 bg-brand-color/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+          <div className="space-y-2 max-w-2xl">
+            <h3 className="text-sm font-bold text-text-primary flex items-center space-x-2">
+              <BookOpen className="w-4 h-4 text-brand-color" />
+              <span>{mvp56HeroModel.title}</span>
+            </h3>
+            <p className="text-xs text-text-secondary leading-relaxed">{mvp56HeroModel.description}</p>
+            <p className="text-[11px] text-text-muted leading-relaxed">{mvp56HeroModel.primaryHint}</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-2 min-w-0 lg:min-w-[420px]">
+            {mvp56HeroModel.chips.map((chip) => (
+              <div key={chip.id} className={asmrDetailSurfaceChipClassName(chip)}>
+                <p className="font-bold opacity-80">{chip.label}</p>
+                <p className="mt-1 text-[13px] font-extrabold">{chip.value}</p>
+                <p className="mt-1 leading-relaxed opacity-75">{chip.helper}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-[10px] text-emerald-50/80 leading-relaxed">
+          {mvp56HeroModel.secondaryHint}
+        </div>
+      </section>
+
+      <section id="mvp43-asmr-detail-navigation" className="rounded-2xl bg-card-bg/35 border border-border-color/60 p-4 space-y-4">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
+          {asmrBreadcrumbs.map((crumb, index) => (
+            <React.Fragment key={`${crumb.label}-${crumb.value}`}>
+              {index > 0 && <span className="text-text-muted/50">/</span>}
+              <span className={index === asmrBreadcrumbs.length - 1 ? 'text-text-primary font-semibold' : ''}>
+                {crumb.label}：{crumb.value}
+              </span>
+            </React.Fragment>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-4">
+          <div className="space-y-2">
+            <h3 className="text-sm font-bold text-text-primary">{asmrDetailSummary.title}</h3>
+            <p className="text-xs text-text-secondary leading-relaxed">{asmrDetailSummary.description}</p>
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {asmrDetailSummary.chips.map((chip) => (
+                <span key={chip.label} className={detailChipClassName(chip)}>{chip.label}</span>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {asmrDetailSummary.stats.map((item) => (
+              <div key={item.label} className="rounded-xl bg-bg-primary/30 border border-border-color/50 px-3 py-2">
+                <p className="text-[10px] text-text-muted">{item.label}</p>
+                <p className="text-sm font-bold text-text-primary font-mono mt-0.5">{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Tabs list (Tracks vs Full Details Description) */}
       <div className="flex border-b border-border-color/60">
@@ -472,7 +626,7 @@ export default function AsmrDetail({
           onClick={() => setActiveTab('info')}
           className={`px-5 py-3 text-xs font-semibold relative transition-colors ${activeTab === 'info' ? 'text-brand-color' : 'text-text-muted hover:text-text-primary'}`}
         >
-          <span>作品作品简介 / 详情</span>
+          <span>作品简介 / 详情</span>
           {activeTab === 'info' && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-color rounded-t"></div>
           )}
@@ -485,11 +639,31 @@ export default function AsmrDetail({
           
           {/* Left Column: Playable Audio List (2/3 width) */}
           <div className="lg:col-span-2 space-y-3">
+            <section id="mvp56-asmr-track-summary" className="rounded-2xl border border-purple-500/20 bg-purple-500/5 p-4 space-y-3">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                <div>
+                  <h3 className="text-xs font-bold text-text-primary">{mvp56TrackSummary.title}</h3>
+                  <p className="text-[10px] text-text-muted mt-1 leading-relaxed">{mvp56TrackSummary.description}</p>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {mvp56TrackSummary.chips.map((chip) => (
+                    <span key={chip.id} className={`rounded-full border px-2 py-1 text-[9px] font-bold ${asmrDetailSurfaceService.getToneClassName(chip.tone)}`}>
+                      {chip.label}：{chip.value}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </section>
             {rjWork.tracks.length === 0 ? (
-              <div className="py-12 text-center bg-card-bg/20 rounded-2xl border border-dashed border-border-color">
-                <FileAudio className="w-10 h-10 text-text-muted mx-auto stroke-1 mb-2" />
-                <p className="text-xs text-text-muted">没有检测到可播放的音频音轨</p>
-                <p className="text-[11px] text-text-muted/60 mt-1">这可能是由于该条目的音频文件已被重命名或未完全下载</p>
+              <div id="mvp43-asmr-empty-state" className="py-12 text-center bg-card-bg/20 rounded-2xl border border-dashed border-border-color px-6">
+                <FileAudio className="w-10 h-10 text-text-muted mx-auto stroke-1 mb-3" />
+                <p className="text-sm font-bold text-text-primary">{mvp56TrackSummary.emptyTitle}</p>
+                <p className="text-xs text-text-muted mt-2 max-w-lg mx-auto leading-relaxed">{mvp56TrackSummary.emptyDescription}</p>
+                <p className="text-[11px] text-text-muted/70 mt-2">{asmrEmptyState.helper}</p>
+                <div className="flex justify-center gap-2 mt-4">
+                  <button onClick={onBack} className="px-3.5 py-2 rounded-xl bg-brand-color text-white text-xs font-bold">{asmrEmptyState.actions[0]?.label}</button>
+                  <button onClick={() => setActiveTab('info')} className="px-3.5 py-2 rounded-xl bg-card-bg border border-border-color text-text-secondary text-xs font-bold">{asmrEmptyState.actions[1]?.label}</button>
+                </div>
               </div>
             ) : (
               <div className="bg-card-bg/40 border border-border-color/60 rounded-xl overflow-hidden divide-y divide-border-color/40">
@@ -504,7 +678,7 @@ export default function AsmrDetail({
                       className="group flex items-center justify-between p-3.5 hover:bg-hover-bg transition-all duration-150"
                     >
                       <div 
-                        onClick={() => onPlayTrack(track, rjWork.tracks)}
+                        onClick={() => handlePlayOrOpenTrack(track)}
                         className="flex items-center space-x-3.5 flex-1 min-w-0 cursor-pointer"
                       >
                         <span className="text-xs text-text-muted font-mono w-6 text-center group-hover:text-brand-color">
@@ -517,7 +691,7 @@ export default function AsmrDetail({
                               {track.title}
                             </h4>
                             {isCompleted && (
-                              <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold px-1.5 py-0.2 rounded">
+                              <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold px-1.5 py-px rounded">
                                 已听完 ✓
                               </span>
                             )}
@@ -572,8 +746,8 @@ export default function AsmrDetail({
                               }
                             })()}
                           </div>
-                          <span className="text-[10px] text-text-muted font-mono block mt-1 truncate" title={trackRelocations[track.id] || `${folderPath}\\${track.fileTreePath}`}>
-                            文件路径: {trackRelocations[track.id] || `${folderPath}\\${track.fileTreePath}`}
+                          <span className="text-[10px] text-text-muted block mt-1 truncate" title={asmrDetailSurfaceService.getTrackRecordLabel(rjWork, track, trackRelocations[track.id])}>
+                            本地记录：{asmrDetailSurfaceService.getTrackRecordLabel(rjWork, track, trackRelocations[track.id])}
                           </span>
                           
                           {/* Real-time playback progress bar */}
@@ -597,18 +771,28 @@ export default function AsmrDetail({
                         <div className="flex items-center space-x-1">
                           {/* Open Track Folder */}
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleOpenFolder(folderPath); }}
-                            className="p-1.5 rounded-lg text-text-muted hover:text-amber-400 hover:bg-amber-400/10 transition-colors"
-                            title="打开此音频所在文件夹"
+                            onClick={(e) => { e.stopPropagation(); void handleOpenTrackInFileManager(track); }}
+                            disabled={!canUseExternalOpen(track)}
+                            className="p-1.5 rounded-lg text-text-muted hover:text-amber-400 hover:bg-amber-400/10 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-text-muted"
+                            title="在文件管理器中定位此文件"
                           >
                             <FolderOpen className="w-3.5 h-3.5" />
                           </button>
 
+                          <button
+                            onClick={(e) => { e.stopPropagation(); void handleOpenExternalTrack(track); }}
+                            disabled={!canUseExternalOpen(track)}
+                            className="p-1.5 rounded-lg text-text-muted hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-text-muted"
+                            title="用系统默认应用打开此文件"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </button>
+
                           {/* Copy Track File Path */}
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleCopyPath(trackRelocations[track.id] || `${folderPath}\\${track.fileTreePath}`); }}
+                            onClick={(e) => { e.stopPropagation(); handleCopyPath(asmrDetailSurfaceService.getTrackRecordLabel(rjWork, track, trackRelocations[track.id])); }}
                             className="p-1.5 rounded-lg text-text-muted hover:text-zinc-200 hover:bg-white/5 transition-colors"
-                            title="复制此音频物理绝对路径到剪贴板"
+                            title="复制此音轨资源库记录"
                           >
                             <Copy className="w-3.5 h-3.5" />
                           </button>
@@ -617,7 +801,7 @@ export default function AsmrDetail({
                           <button
                             onClick={(e) => { e.stopPropagation(); handleRelocateTrack(track.id, track.fileTreePath || ''); }}
                             className="p-1.5 rounded-lg text-text-muted hover:text-teal-400 hover:bg-teal-400/10 transition-colors"
-                            title="重新定位音频文件物理挂载点"
+                            title="更新音轨资源库记录"
                           >
                             <RefreshCw className="w-3.5 h-3.5" />
                           </button>
@@ -652,7 +836,7 @@ export default function AsmrDetail({
                           </button>
                           
                           <button
-                            onClick={() => onPlayTrack(track, rjWork.tracks)}
+                            onClick={() => handlePlayOrOpenTrack(track)}
                             className="p-1.5 rounded-lg bg-brand-color text-white opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all cursor-pointer"
                           >
                             <Play className="w-3.5 h-3.5 fill-current" />
@@ -673,12 +857,29 @@ export default function AsmrDetail({
             <div className="bg-card-bg/40 border border-border-color/60 rounded-xl p-4 space-y-4">
               <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
                 <Star className="w-4 h-4 text-amber-400" />
-                <span>作品主观评分与听后归档</span>
+                <span>个人听音记录</span>
               </h3>
               
+              <section id="mvp57-asmr-side-rail" className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 space-y-3">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-bold text-amber-100">{mvp57SideRailModel.title}</p>
+                  <p className="text-[10px] text-amber-50/75 leading-relaxed">{mvp57SideRailModel.description}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {mvp57SideRailModel.chips.map((chip) => (
+                    <div key={chip.id} className={asmrDetailSideRailChipClassName(chip)}>
+                      <p className="font-bold opacity-80">{chip.label}</p>
+                      <p className="mt-1 text-[12px] font-extrabold">{chip.value}</p>
+                      <p className="mt-0.5 leading-relaxed opacity-75">{chip.helper}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-amber-50/70 leading-relaxed">{mvp57SideRailModel.helper}</p>
+              </section>
+
               {/* Rating stars */}
               <div className="space-y-1.5">
-                <span className="text-[11px] text-text-muted">主观感官评分:</span>
+                <span className="text-[11px] text-text-muted">主观评分：{mvp57SideRailModel.ratingLabel}</span>
                 <div className="flex items-center space-x-1">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <button
@@ -704,7 +905,7 @@ export default function AsmrDetail({
 
               {/* Status Selector */}
               <div className="space-y-1.5">
-                <span className="text-[11px] text-text-muted">个人听毕状态:</span>
+                <span className="text-[11px] text-text-muted">听后状态：{mvp57SideRailModel.statusLabel}</span>
                 <div className="grid grid-cols-2 gap-1.5">
                   {(['unheard', 'listening', 'completed', 'abandoned'] as const).map((st) => {
                     const labels = {
@@ -734,46 +935,47 @@ export default function AsmrDetail({
 
               {/* Personal Notes */}
               <div className="space-y-1.5">
-                <span className="text-[11px] text-text-muted">听后感悟 / 掏耳瞬间 / 助眠备注:</span>
+                <span className="text-[11px] text-text-muted">个人笔记：</span>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="写下关于本作品声优声线、左右声道极上掏耳片段、轻语、呼吸或心跳瞬间等备忘录，方便以后一键定位..."
+                  placeholder={mvp57SideRailModel.notePlaceholder}
                   className="w-full h-20 bg-zinc-950/60 border border-white/10 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-indigo-500 placeholder-zinc-600 resize-none scrollbar-thin"
                 />
                 <button
                   onClick={handleSaveNotes}
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-1.5 rounded-lg text-xs transition-colors cursor-pointer active:scale-98"
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-1.5 rounded-lg text-xs transition-colors cursor-pointer active:scale-95"
                 >
-                  保存个人笔记
+                  {mvp57SideRailModel.saveNoteLabel}
                 </button>
               </div>
+              <p className="text-[10px] text-text-muted leading-relaxed">{mvp57SideRailModel.noteHelper}</p>
             </div>
             
             {/* Folder layout visualization */}
             <div className="bg-card-bg/40 border border-border-color/60 rounded-xl p-4 space-y-3">
               <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
                 <Folder className="w-4 h-4 text-amber-400" />
-                <span>物理文件夹树结构</span>
+                <span>{mvp57ResourceRecordModel.title}</span>
               </h3>
+              <p className="text-[10px] text-text-muted leading-relaxed">{mvp57ResourceRecordModel.description}</p>
               <div className="space-y-2 border-l-2 border-border-color/60 pl-3 ml-2 font-mono text-[11px] text-text-secondary leading-relaxed">
                 <div>
-                  <span className="text-amber-400">📁 {rjWork.id} - {rjWork.circle.split(' ')[0]}</span>
+                  <span className="text-amber-400">📁 {mvp57ResourceRecordModel.rootLabel}</span>
                   <div className="pl-3 mt-1.5 space-y-1.5 border-l border-border-color/40">
-                    <div>📁 Voice (音频包)</div>
+                    <div>📁 {mvp57ResourceRecordModel.audioLabel}</div>
                     <div className="pl-3 text-text-muted text-[10px]">
                       {rjWork.tracks.slice(0, 3).map(t => (
-                        <div key={t.id} className="truncate">📄 {t.title.split('_')[1] || t.title}.flac</div>
+                        <div key={t.id} className="truncate">📄 {t.title}</div>
                       ))}
-                      {rjWork.tracks.length > 3 && <div className="text-[9px] text-indigo-400">...以及其余 {rjWork.tracks.length - 3} 个音轨</div>}
+                      {mvp57ResourceRecordModel.hiddenCountLabel && <div className="text-[9px] text-indigo-400">{mvp57ResourceRecordModel.hiddenCountLabel}</div>}
                     </div>
-                    <div>📁 Subtitle (字幕/LRC)</div>
+                    <div>📁 {mvp57ResourceRecordModel.subtitleLabel}</div>
                     <div className="pl-3 text-text-muted text-[10px]">
-                      <div>📄 {rjWork.id}_lrc_sc.zip</div>
-                      <div className="text-[9px] text-emerald-400">已自动解压加载简体中文双耳时间轴</div>
+                      <div className="text-[9px] text-emerald-400">{mvp57ResourceRecordModel.subtitleHelper}</div>
                     </div>
-                    <div>📄 metadata.json</div>
-                    <div>📄 cover.jpg</div>
+                    <div>📄 {mvp57ResourceRecordModel.infoLabel}</div>
+                    <div>📄 {mvp57ResourceRecordModel.coverLabel}</div>
                   </div>
                 </div>
               </div>
@@ -783,23 +985,18 @@ export default function AsmrDetail({
             <div className="bg-card-bg/40 border border-border-color/60 rounded-xl p-4 space-y-3">
               <h3 className="text-xs font-bold text-text-primary flex items-center space-x-2">
                 <Subtitles className="w-4 h-4 text-sky-400" />
-                <span>字幕 / LRC 时间轴状态</span>
+                <span>{mvp57SubtitlePanelModel.title}</span>
               </h3>
               <div className="space-y-2.5 text-xs text-text-secondary">
-                <div className="flex items-center justify-between">
-                  <span>字幕挂载状态:</span>
-                  <span className="text-emerald-400 font-semibold font-mono">SC简体双耳 (100%)</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>翻译贡献来源:</span>
-                  <span className="text-text-muted font-mono">网盘公开分享包</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>VLC/LRC兼容性:</span>
-                  <span className="text-text-muted font-mono">高度兼容</span>
-                </div>
+                <p className="text-[10px] text-text-muted leading-relaxed">{mvp57SubtitlePanelModel.description}</p>
+                {mvp57SubtitlePanelModel.rows.map((row) => (
+                  <div key={row.id} className="flex items-center justify-between gap-3">
+                    <span>{row.label}：</span>
+                    <span className={`font-semibold text-right ${row.tone === 'emerald' ? 'text-emerald-400' : row.tone === 'amber' ? 'text-amber-300' : row.tone === 'purple' ? 'text-purple-300' : row.tone === 'brand' ? 'text-brand-color' : 'text-text-muted'}`}>{row.value}</span>
+                  </div>
+                ))}
                 <div className="p-2.5 rounded-lg bg-indigo-500/5 border border-indigo-500/10 text-[11px] leading-relaxed text-indigo-300">
-                  双击右侧音轨播放后，在底部控制栏或点击“词”按钮即可开启【悬浮双耳中文字幕】。
+                  {mvp57SubtitlePanelModel.helper}
                 </div>
               </div>
             </div>
@@ -813,7 +1010,7 @@ export default function AsmrDetail({
           <div className="space-y-2.5">
             <h3 className="text-sm font-bold text-text-primary flex items-center space-x-2">
               <BookOpen className="w-4.5 h-4.5 text-indigo-400" />
-              <span>音声剧情简介 (DLsite 元数据)</span>
+              <span>作品简介</span>
             </h3>
             <p className="text-xs text-text-secondary leading-relaxed whitespace-pre-line bg-card-bg/20 p-4 rounded-xl border border-border-color/40">
               {rjWork.description}
@@ -842,20 +1039,20 @@ export default function AsmrDetail({
             </div>
 
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-text-primary">Yang-Kura 系统标记</h4>
+              <h4 className="text-xs font-bold text-text-primary">资源记录</h4>
               <table className="w-full text-xs text-text-secondary">
                 <tbody>
                   <tr className="border-b border-border-color/40 py-2 block">
-                    <td className="w-24 text-text-muted">识别算法</td>
-                    <td className="font-mono text-text-primary">Local Folder Name Parser v2</td>
+                    <td className="w-24 text-text-muted">记录来源</td>
+                    <td className="font-mono text-text-primary">本地资源库记录</td>
                   </tr>
                   <tr className="border-b border-border-color/40 py-2 block">
-                    <td className="w-24 text-text-muted">封面路径</td>
-                    <td className="font-mono text-text-primary">~/YangKura/Asmr/{rjWork.id}/cover.jpg</td>
+                    <td className="w-24 text-text-muted">封面状态</td>
+                    <td className="font-mono text-text-primary">{rjWork.coverSourceKind === 'local-file' ? '本地封面' : '占位封面'}</td>
                   </tr>
                   <tr className="border-b border-border-color/40 py-2 block">
-                    <td className="w-24 text-text-muted">总大小</td>
-                    <td className="font-mono text-text-primary">1.28 GB (无损FLAC压制)</td>
+                    <td className="w-24 text-text-muted">音轨概况</td>
+                    <td className="font-mono text-text-primary">{rjWork.tracks.length} 个音轨 / {Math.floor(rjWork.totalDuration / 60)} 分钟</td>
                   </tr>
                 </tbody>
               </table>
@@ -998,7 +1195,7 @@ export default function AsmrDetail({
                         setNewTagInput('');
                       }
                     }}
-                    className="px-3 py-1.5 rounded-lg bg-zinc-850 hover:bg-zinc-800 text-text-primary text-[11px] font-bold transition-colors cursor-pointer border border-white/5"
+                    className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-text-primary text-[11px] font-bold transition-colors cursor-pointer border border-white/5"
                   >
                     添加
                   </button>

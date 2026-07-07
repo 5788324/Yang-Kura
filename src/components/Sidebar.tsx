@@ -44,9 +44,9 @@ export default function Sidebar({
     { id: 'asmr-lib', label: 'ASMR', icon: Headphones },
     { id: 'music-lib', label: '流行音乐', icon: Music },
     { id: 'playlists', label: '我的歌单', icon: ListMusic },
-    { id: 'downloader', label: '下载器入口', icon: DownloadCloud },
+    { id: 'downloader', label: '导入规划', icon: DownloadCloud },
     { id: 'settings', label: '系统设置', icon: Settings },
-    { id: 'diagnostics', label: '系统诊断', icon: Cpu },
+    { id: 'diagnostics', label: '诊断工具', icon: Cpu },
   ];
 
   // Helper for conditional active styles
@@ -73,7 +73,7 @@ export default function Sidebar({
             Yang-Kura
           </h1>
           <span className="text-[10px] text-indigo-400/80 font-mono tracking-wider font-semibold uppercase">
-            Next Dev Build
+            本地媒体库
           </span>
         </div>
       </div>

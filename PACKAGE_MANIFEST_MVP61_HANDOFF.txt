@@ -1,0 +1,16 @@
+Yang-Kura MVP-61 handoff package
+Version: 0.99.0-mvp61
+
+Primary changes:
+- package.json adds dev:electron, desktop:setup, desktop:smoke-check:strict, verify:mvp61-local-regression-fix.
+- scripts/desktop-smoke-check.mjs validates Electron CLI --version in strict mode.
+- scripts/run-electron-dev.mjs and scripts/run-electron-preview.mjs point GUI users to desktop:setup.
+- src/services/localRegressionFixService.ts adds settings/diagnostics models for local regression blockers.
+- src/components/SettingsPage.tsx adds mvp61-local-regression-fix.
+- src/components/DiagnosticsPage.tsx adds mvp61-local-regression-fix-review.
+- src/services/libraryIndexAdapter.ts filters collection.folderPath before displaying resource-library records.
+- docs/CURRENT_ROADMAP_MVP61.md and docs/LOCAL_REGRESSION_FIX_MVP61.md document the fix.
+- scripts/verify-mvp61-local-regression-fix.mjs is included and wired into verify:all.
+
+Safety boundary:
+No SQLite, no downloader, no metadata scraping, no mpv, no media delete/move/rename, no Renderer absolutePath/file://, no playback/scanner/index-write changes.

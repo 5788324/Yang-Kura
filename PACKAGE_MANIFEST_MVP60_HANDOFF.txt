@@ -1,0 +1,21 @@
+Yang-Kura MVP-60 handoff package
+Version: 0.98.0-mvp60
+
+Key files:
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+- docs/CURRENT_ROADMAP_MVP60.md
+- docs/BETA_CANDIDATE_CLOSEOUT_MVP60.md
+- src/services/betaCandidateCloseoutService.ts
+- scripts/verify-mvp60-beta-candidate-closeout.mjs
+- HANDOFF_MVP59_TO_MVP60.md
+
+Validation:
+- npm ci --ignore-scripts
+- npm run lint
+- npm run build:electron
+- npm run verify:all
+- npm run build
+- npm audit --audit-level=high

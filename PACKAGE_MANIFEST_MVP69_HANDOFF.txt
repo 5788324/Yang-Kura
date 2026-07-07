@@ -1,0 +1,21 @@
+Yang-Kura MVP-69 handoff package
+version: 0.107.0-mvp69
+
+Added:
+- src/services/betaReleaseCandidateService.ts
+- docs/CURRENT_ROADMAP_MVP69.md
+- docs/BETA_RELEASE_CANDIDATE_MVP69.md
+- scripts/verify-mvp69-beta-release-candidate.mjs
+- HANDOFF_MVP68_TO_MVP69.md
+- PACKAGE_MANIFEST_MVP69_HANDOFF.txt
+
+Updated:
+- SettingsPage.tsx
+- DiagnosticsPage.tsx
+- src/services/index.ts
+- scripts/desktop-smoke-check.mjs
+- package.json / package-lock.json
+- README / PROJECT_STATE / NEXT_CHAT_HANDOFF / RUN_ME_FIRST and docs copies
+
+Status:
+Beta 0.1 Release Candidate confirmation.

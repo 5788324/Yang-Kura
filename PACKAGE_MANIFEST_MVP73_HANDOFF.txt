@@ -1,0 +1,39 @@
+Yang-Kura MVP-73 handoff package
+Version: 0.111.0-mvp73
+
+Primary source baseline:
+- MVP72 / 0.110.0-mvp72
+
+Added:
+- src/services/playerDailyVisualFocusService.ts
+- docs/CURRENT_ROADMAP_MVP73.md
+- docs/PLAYER_DAILY_VISUAL_FOCUS_MVP73.md
+- scripts/verify-mvp73-player-daily-visual-focus.mjs
+- HANDOFF_MVP72_TO_MVP73.md
+- PACKAGE_MANIFEST_MVP73_HANDOFF.txt
+
+Modified:
+- src/components/LyricsPanel.tsx
+- src/services/index.ts
+- package.json
+- package-lock.json
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+- docs/PROJECT_STATE.md
+- docs/NEXT_CHAT_HANDOFF.md
+- docs/RUN_ME_FIRST.md
+
+Safety boundaries:
+- 不接 SQLite
+- 不接下载器
+- 不接 ASMR.one / DLsite / 网易云元数据抓取
+- 不接 mpv
+- 不删除 / 移动 / 重命名真实媒体文件
+- 不向 Renderer 暴露 absolutePath
+- 不向 Renderer 暴露 file://
+- 不改真实扫描 / 写 index / 播放内核链路
+
+MVP-73 theme:
+- 播放器大页 日常视觉收口

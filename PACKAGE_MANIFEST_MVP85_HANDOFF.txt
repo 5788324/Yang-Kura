@@ -1,0 +1,32 @@
+Yang-Kura MVP-85 package manifest
+Version: 0.123.0-mvp85
+
+New files:
+- src/services/importDownloadModelContractService.ts
+- docs/CURRENT_ROADMAP_MVP85.md
+- docs/IMPORT_DOWNLOAD_MODEL_CONTRACT_MVP85.md
+- docs/CODEX_PUSH_READY_MVP85.md
+- scripts/verify-mvp85-import-download-models.mjs
+- HANDOFF_MVP84_TO_MVP85.md
+- PACKAGE_MANIFEST_MVP85_HANDOFF.txt
+
+Modified files include:
+- src/components/DiagnosticsPage.tsx
+- src/services/index.ts
+- package.json
+- package-lock.json
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+- docs/PROJECT_STATE.md
+- docs/NEXT_CHAT_HANDOFF.md
+- docs/RUN_ME_FIRST.md
+- 00_NEW_CHAT_START_HERE.md
+- NEW_CHAT_PROMPT.md
+- NEW_CHAT_PROMPT_FULL.md
+- CODEX_MINIMAL_PROMPTS.md
+
+Scope:
+Only model contracts, docs, diagnostics display, and verifier.
+No real importer, downloader, file copy/move/delete/rename, SQLite, mpv, or provider network access.

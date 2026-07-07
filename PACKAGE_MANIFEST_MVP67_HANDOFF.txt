@@ -1,0 +1,15 @@
+Yang-Kura MVP-67 handoff package
+Version: 0.105.0-mvp67
+
+Core additions:
+- src/services/betaRcCloseoutService.ts
+- docs/CURRENT_ROADMAP_MVP67.md
+- docs/BETA_RC_CLOSEOUT_MVP67.md
+- scripts/verify-mvp67-beta-rc-closeout.mjs
+- HANDOFF_MVP66_TO_MVP67.md
+
+Anchors:
+- mvp67-beta-rc-closeout
+
+Summary:
+Beta 0.1 RC closeout after user-confirmed real ASMR sample chain pass.

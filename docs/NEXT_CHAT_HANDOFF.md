@@ -1,755 +1,414 @@
-# Yang-Kura 下一对话交接文档
+# Yang-Kura MVP85 / 0.123.0-mvp85
 
-> 交接用途：当前对话上下文已经接近上限。把本文件连同压缩包交给新对话后，新对话应先阅读本文件，再检查源码，不要凭旧上下文臆测项目状态。
+当前最新版本：0.123.0-mvp85。MVP-85：ImportTask / DownloadTask / DownloadManifest / MetadataSource 数据模型合同。本轮只冻结导入器、下载器、Manifest、MetadataSource、ImportTargetPlan、ImportConflictReport 的类型和文档；不接真实导入器、不接下载 Provider、不复制 / 移动 / 删除 / 重命名真实媒体文件，不改扫描 / 写 index / 播放内核链路。
 
----
-
-## 0. 给新对话的第一句话
-
-请直接复制下面这段给新对话：
-
-```text
-你现在接手 Yang-Kura 项目。请先阅读压缩包根目录的 NEXT_CHAT_HANDOFF.md、RUN_ME_FIRST.md、README.md、package.json，然后再检查 src/ 目录。不要先写代码。先给我输出：
-1. 当前源码真实状态；
-2. 能运行的命令；
-3. 下一轮最小任务计划；
-4. 你发现的风险和禁止事项。
-
-项目定位：Yang-Kura 是本地个人音频媒体库 UI 原型，目标是 ASMR/RJ 音声库 + 流行音乐库 + 统一播放器。当前压缩包是 React/Vite/AI Studio 风格 UI 原型，不是已经接完真实 Electron 扫描和真实音频播放的正式应用。必须以源码实际存在的文件为准。
-```
+- Current version: `0.123.0-mvp85`
+- 新增锚点：`mvp85-import-download-models`、`mvp85-model-cards`、`mvp85-import-task-contract`、`mvp85-download-task-contract`、`mvp85-metadata-source-contract`、`mvp85-download-manifest-contract`、`mvp85-model-guardrails`。
+- 新增文档：`docs/IMPORT_DOWNLOAD_MODEL_CONTRACT_MVP85.md`、`docs/CURRENT_ROADMAP_MVP85.md`、`docs/CODEX_PUSH_READY_MVP85.md`。
+- 新增 verifier：`npm run verify:mvp85-import-download-models`，并已接入 `verify:all`。
+- Codex 推送准备：本包可作为 clean source，用 `docs/CODEX_PUSH_READY_MVP85.md` 的步骤在本机标准 Git 推送。
 
 ---
 
-## 1. 项目一句话定位
+# Yang-Kura MVP82 / 0.120.0-mvp82
 
-**Yang-Kura = 本地个人音频媒体库 UI 原型。**
+当前最新版本：0.120.0-mvp82。MVP-82：DeepSeek UI bug sweep。根据 DeepSeek 对 LyricsPanel / Dashboard / AsmrLibrary / MusicLibrary 的二次审查，本轮修复残留无效 Tailwind utility、补齐 animate-scale-up、增加时长格式容错，并继续保持真实扫描 / 写 index / 播放内核 / 文件安全链路不变。GitHub 因公司网络暂不推送。
 
-目标不是单纯 ASMR 工具，而是：
-
-```text
-ASMR / RJ 音声库
-+ 流行音乐库
-+ 全部音频
-+ 歌单
-+ 最近播放
-+ 统一播放器
-+ LRC / 字幕
-+ 后续本地扫描和真实播放
-```
-
-路线已经从“只做 RJ/ASMR 资源库”扩展成“ASMR/RJ + 普通音乐 + 播放器”的统一本地媒体库。播放器只关心 Track / Queue / Progress / Lyrics / Cover / Playlist；ASMR 和音乐的区别主要在资源库组织方式。
+- Current version: `0.120.0-mvp82`
+- 新增锚点：`mvp82-ui-bug-sweep`、`mvp82-ui-bug-sweep-fixes`、`mvp82-ui-bug-sweep-notes`、`mvp82-ui-bug-sweep-guardrails`。
+- 新增文档：`docs/UI_BUG_SWEEP_MVP82.md`、`docs/CURRENT_ROADMAP_MVP82.md`、`docs/DEEPSEEK_REVIEW_RESULT_MVP81.md`。
+- 新增 verifier：`npm run verify:mvp82-ui-bug-sweep`，并已接入 `verify:all`。
 
 ---
 
-## 2. 当前压缩包真实状态
-
-当前压缩包实际源码是 **AI Studio / React / Vite UI 原型**。
-
-当前技术栈：
-
-```text
-React 19
-TypeScript
-Vite
-Tailwind CSS 4
-lucide-react
-motion
-localStorage mock persistence
-```
-
-当前源码结构：
-
-```text
-metadata.json
-package.json
-README.md
-index.html
-src/
-  App.tsx
-  main.tsx
-  types.ts
-  mockData.ts
-  quickFiltersData.ts
-  index.css
-  hooks/
-    useAudioPlayer.ts
-    useLocalStorage.ts
-  components/
-    Sidebar.tsx
-    Dashboard.tsx
-    AsmrLibrary.tsx
-    AsmrDetail.tsx
-    MusicLibrary.tsx
-    PlaylistPage.tsx
-    DownloaderPage.tsx
-    SettingsPage.tsx
-    DiagnosticsPage.tsx
-    PlayerBar.tsx
-    LyricsPanel.tsx
-```
-
-重要说明：
-
-```text
-当前压缩包没有 electron/ 目录。
-当前压缩包没有真实文件扫描器。
-当前压缩包没有 Local JSON Index service。
-当前压缩包没有真实 HTMLAudio / file:// 播放链路。
-当前压缩包没有真实 LRC 文件读取 IPC。
-当前压缩包没有打包用 electron-builder 配置。
-```
-
-如果新对话记得之前有 Electron / diagnostics service / external player dry-run 等内容，必须先以当前压缩包实际文件为准。那些是前面规划和迭代方向，不应当假装本压缩包已经完整包含。
-
----
-
-## 3. 当前已经有的功能
-
-### 3.1 页面与导航
-
-`App.tsx` 中已有页面：
-
-```text
-dashboard      首页 / 最近播放
-asmr-lib       Asmr 音声库
-music-lib      流行音乐库
-playlists      歌单
-downloader     下载器演示页
-settings       设置页
-diagnostics    诊断页
-```
-
-`Sidebar.tsx` 提供左侧导航。
-
-### 3.2 数据来源
-
-当前主要数据来自：
-
-```text
-src/mockData.ts
-localStorage
-```
+<!-- MVP-81 status marker -->
+当前最新版本：0.119.0-mvp81。MVP-81：离线 Demo 封面清扫。根据 DeepSeek 运行时审查中发现的远程图片失败/控制台噪音，本轮移除 UI 原型中的 Unsplash Demo 封面请求，统一改为 coverArtworkService 生成的本地 SVG data URL 封面。不接 SQLite / 下载器 / 元数据抓取 / mpv，不删除 / 移动 / 重命名真实媒体文件，不向 Renderer 暴露 absolutePath 或 file://。
 
-`App.tsx` 中使用 `useLocalStorage` 模拟 SQLite 状态：
-
-```ts
-sqlite_rj_works
-sqlite_playlists
-sqlite_music_albums
-sqlite_favorites
-sqlite_settings
-```
-
-这些命名只是 UI 原型用的 localStorage key，不代表已经接入 SQLite。
+## MVP-81 update — 离线 Demo 封面清扫
 
-### 3.3 播放器
+- Current version: `0.119.0-mvp81`
+- 新增锚点：`mvp81-offline-demo-cover-cleanup`、`mvp81-offline-cover-checks`、`mvp81-offline-cover-guardrails`。
+- 新增 service：`src/services/offlineDemoCoverCleanupService.ts`。
+- 新增 verifier：`npm run verify:mvp81-offline-demo-cover-cleanup`，并已接入 `verify:all`。
+- Demo 封面改为本地生成 SVG，不再请求 Unsplash。
+- 本轮只做 UI Demo 离线封面和控制台噪音清扫，不改真实扫描 / 写 index / 播放内核链路。
 
-`src/hooks/useAudioPlayer.ts` 已有模拟播放器状态：
+<!-- MVP-78 status marker -->
+当前最新版本：0.116.0-mvp78。MVP-78：播放器大页 / 歌词页布局审查。DeepSeek 对 MVP-77 的对照验收结论为 PASS；本轮继续处理经典 / 黑胶 / 歌词三种播放页在窄屏、长标题、长歌词和底部控制栏场景下的布局稳定性，并补强全屏播放页进度条的 clamp / safe duration。不接 SQLite / 下载器 / 元数据抓取 / mpv，不删除 / 移动 / 重命名真实媒体文件，不向 Renderer 暴露 absolutePath 或 file://。
 
-```text
-currentTrack
-isPlaying
-progress
-volume
-queue
-currentIndex
-isMuted
-loopMode
-```
+## MVP-78 update — 播放器大页 / 歌词页布局审查
 
-它会用 `setInterval` 模拟播放进度，并写入 localStorage：
+- Current version: `0.116.0-mvp78`
+- 新增锚点：`mvp78-player-panel-layout-review`、`mvp78-full-player-responsive-shell`、`mvp78-player-header-wrap-safe`、`mvp78-classic-visual-clamp`、`mvp78-vinyl-size-clamp`、`mvp78-lyrics-reading-width`、`mvp78-bottom-control-safe-wrap`。
+- 新增 service：`src/services/playerPanelLayoutReviewService.ts`。
+- 新增 verifier：`npm run verify:mvp78-player-layout-review`，并已接入 `verify:all`。
+- 新增 DeepSeek 验收记录：`docs/DEEPSEEK_REVIEW_RESULT_MVP77.md`。
+- 本轮只做播放器大页 / 歌词页 UI 布局和进度显示安全收口，不改真实扫描 / 写 index / 播放内核链路。
 
-```text
-last_played_track_id
-last_played_progress
-last_played_track_json
-```
+<!-- MVP-77 status marker -->
+当前最新版本：0.115.0-mvp77。MVP-77：打包版回归验收清单 / UI 布局审查 / DeepSeek 对照验收提示词。当前用户在公司不方便人工验收，本轮把 MVP71～MVP76 的首页、播放栏、诊断页、音声库和音乐库布局收口转成机器验证、人工验收清单和 DeepSeek/Codex 对照审查提示词。不接 SQLite / 下载器 / 元数据抓取 / mpv，不删除 / 移动 / 重命名真实媒体文件，不向 Renderer 暴露 absolutePath 或 file://。
 
-注意：这不是浏览器真实 Audio，也不是 Electron 本地文件播放。
+## MVP-77 update — 打包版回归验收 / UI 布局审查
 
-### 3.4 播放器 UI
+- Current version: `0.115.0-mvp77`
+- 新增锚点：`mvp77-packaged-regression-review`、`mvp77-machine-checks`、`mvp77-ui-layout-checks`、`mvp77-manual-regression-checks`、`mvp77-deepseek-review-prompt`。
+- 新增 service：`src/services/packagedRegressionReviewService.ts`。
+- 新增 verifier：`npm run verify:mvp77-packaged-regression-review`，并已接入 `verify:all`。
+- 新增 DeepSeek 对照审查提示词：`docs/DEEPSEEK_REVIEW_PROMPT_MVP77.md`。
+- 本轮只做验收准备和静态 UI 布局审查，不改真实扫描 / 写 index / 播放内核链路。
 
-已有：
 
-```text
-PlayerBar.tsx      底部播放器栏
-LyricsPanel.tsx    歌词/播放器详情页
-```
 
-用户之前要求播放器有三种风格：经典 / 黑胶 / 歌词。当前源码中应继续检查 `LyricsPanel.tsx` 是否已有对应模式和布局，不要直接重写。
+<!-- MVP-76 status marker -->
+当前最新版本：0.114.0-mvp76。MVP-76：音声库 / 音乐库卡片视觉统一。重点修正卡片列宽、封面比例、长标题截断、状态标签换行和音乐歌曲行窄屏拥挤问题。不接 SQLite / 下载器 / 元数据抓取 / mpv，不删除 / 移动 / 重命名真实媒体文件，不向 Renderer 暴露 absolutePath 或 file://。
 
-### 3.5 资源库 UI
+## MVP-76 update — 音声库 / 音乐库卡片视觉统一
 
-已有：
+- Current version: `0.114.0-mvp76`
+- 新增锚点：`mvp76-card-layout-unity`、`mvp76-asmr-card-layout-unity`、`mvp76-music-card-layout-unity`、`mvp76-music-track-layout-unity`。
+- 新增 service：`src/services/libraryCardLayoutPolishService.ts`。
+- 新增 verifier：`npm run verify:mvp76-card-layout-unity`，并已接入 `verify:all`。
+- 音声库和音乐库卡片使用更安全列宽、固定封面比例、两行标题、状态换行和窄屏操作区换行。
+- 仍不改真实扫描 / 写 index / 播放内核链路。
 
-```text
-AsmrLibrary.tsx
-AsmrDetail.tsx
-MusicLibrary.tsx
-PlaylistPage.tsx
-```
+<!-- MVP-70 status marker -->
+当前最新版本：0.108.0-mvp70。MVP-70：Beta 0.1 最终交接包。用户本机真实链路已通过：选择音声库目录 → 一键扫描并应用 → 音频、歌词、图片、视频均可播放或打开。当前状态为 Beta 0.1 RC 可交付包 / 可暂停开发 / 可后续维护。后续只修真实缺陷，不接 SQLite / 下载器 / 元数据抓取 / mpv，不删除 / 移动 / 重命名真实媒体文件。
 
-ASMR 方向重点是：
+## MVP-70 update — Beta 0.1 最终交接包
 
-```text
-RJ 作品 / 专辑
-音轨文件
-字幕 / 翻译
-标签
-播放记录
-个人备注
-```
+- Current version: `0.108.0-mvp70`
+- 本轮定位：最终交接说明轮；不扩功能，只固定接手规则、轻量验证命令和后续维护路线。
+- 用户本机已确认：选择音声库目录 → 一键扫描并应用 → 音频播放、歌词读取、图片打开、视频打开均可通过。
+- 新增锚点：`mvp70-beta-final-handoff`。
+- 新增 service：`src/services/betaFinalHandoffService.ts`。
+- 新增 verifier：`npm run verify:mvp70-beta-final-handoff`，并已接入 `verify:all`。
+- 仍不接 SQLite / 下载器 / 元数据抓取 / mpv；不删除 / 移动 / 重命名真实媒体文件；不向 Renderer 暴露 absolutePath 或 file://。
 
-音乐方向重点是：
+<!-- Legacy MVP-69 marker for verifier compatibility: 0.107.0-mvp69 / MVP-69 / Beta 0.1 Release Candidate -->
 
-```text
-专辑
-歌手
-歌曲
-歌单
-歌词
-最近播放
-```
+<!-- MVP-69 status marker -->
+当前最新版本：0.107.0-mvp69。MVP-69：Beta 0.1 Release Candidate 整包确认。真实样本链路已通过：选择音声库目录 → 一键扫描并应用 → 音频、歌词、图片、视频均可播放或打开。当前状态为 Beta 0.1 GUI PASS 候选 / RC。后续只修真实缺陷，不接 SQLite / 下载器 / 元数据抓取 / mpv，不删除 / 移动 / 重命名真实媒体文件。
 
----
 
-## 4. 当前最重要的路线结论
+## MVP-69 update — Beta 0.1 Release Candidate 整包确认
 
-### 4.1 UI 方向
+- Current version: `0.107.0-mvp69`
+- 本轮定位：Beta 0.1 RC 整包确认；不扩功能，只固定真实样本通过状态、RC 能力边界和后续只修缺陷策略。
+- 用户本机已确认：选择音声库目录 → 一键扫描并应用 → 音频播放、歌词读取、图片打开、视频打开均可通过。
+- 新增锚点：`mvp69-beta-release-candidate`。
+- 新增 service：`src/services/betaReleaseCandidateService.ts`。
+- 新增 verifier：`npm run verify:mvp69-beta-release-candidate`，并已接入 `verify:all`。
+- 仍不接 SQLite / 下载器 / 元数据抓取 / mpv；不删除 / 移动 / 重命名真实媒体文件；不向 Renderer 暴露 absolutePath 或 file://。
 
-UI / 播放器交互参考 YesPlayMusic，但不 fork YesPlayMusic。
 
-原因：YesPlayMusic 适合作为 UI 参考、播放器布局参考、底部播放栏参考、歌词页参考、专辑/歌单页参考；但它是网易云音乐生态，不适合作为 Yang-Kura 的业务底座。
 
-### 4.2 播放器能力参考
+<!-- MVP-68 status marker -->
+当前最新版本：0.106.0-mvp68。MVP-68：Beta 0.1 RC 使用说明 / 打包说明 / 诊断页折叠计划收口。真实样本链路已通过：选择音声库目录 → 一键扫描并应用 → 音频、歌词、图片、视频均可播放或打开。不接 SQLite / 下载器 / 元数据抓取 / mpv，不删除 / 移动 / 重命名真实媒体文件。
 
-播放器底层能力可以研究 SPlayer-Next / mpv / FFmpeg 思路，但当前不直接 fork SPlayer-Next。
+# NEXT CHAT HANDOFF — Yang-Kura MVP-63
 
-原因：SPlayer-Next 功能强，但技术栈复杂，包括 Vue / TypeScript / Electron / Rust native modules / FFmpeg / pnpm workspace 等。对 AI 长期维护来说复杂度较高。
+Current version: `0.107.0-mvp69`
+## MVP-67 update — Beta 0.1 RC 收口
 
-### 4.3 当前推荐路线
+- Current version: `0.107.0-mvp69`
+- 本轮定位：真实样本回归通过记录 + Beta 0.1 Release Candidate 收口。
+- 用户本机已确认：选择音声库目录 → 一键扫描并应用 → 音频播放、歌词读取、图片打开、视频打开均可通过。
+- 新增锚点：`mvp67-beta-rc-closeout`。
+- 新增 service：`src/services/betaRcCloseoutService.ts`。
+- 新增 verifier：`npm run verify:mvp67-beta-rc-closeout`，并已接入 `verify:all`。
+- 仍不接 SQLite / 下载器 / 元数据抓取 / mpv；不删除 / 移动 / 重命名真实媒体文件；不向 Renderer 暴露 absolutePath 或 file://。
 
-```text
-YesPlayMusic-like UI
-+ 自研本地音频媒体库
-+ ASMR/RJ 与流行音乐双库
-+ 播放器统一播放 Track
-+ 后端与真实数据逻辑自己控制
-```
+## MVP-61 completed
 
-### 4.4 AI Studio / Gemini 的定位
+MVP-61 fixes the local regression blockers reported by Codex after MVP-60.
 
-当前压缩包源自 AI Studio 风格前端原型。AI Studio / Gemini 适合做漂亮 UI 原型，但不能直接当正式本地应用主线。
+New anchors:
 
-正式应用需要：
+- `mvp61-local-regression-fix`
+- `mvp61-local-regression-fix-review`
 
-```text
-读取本地目录
-读取本地 SQLite / JSON index
-隐私本地化
-不上传媒体文件
-不依赖云端
-```
+New files:
 
----
+- `src/services/localRegressionFixService.ts`
+- `docs/CURRENT_ROADMAP_MVP61.md`
+- `docs/LOCAL_REGRESSION_FIX_MVP61.md`
+- `scripts/verify-mvp61-local-regression-fix.mjs`
+- `HANDOFF_MVP60_TO_MVP61.md`
+- `PACKAGE_MANIFEST_MVP61_HANDOFF.txt`
 
-## 5. 绝对禁止事项
+Scripts added:
 
-新对话接手后，除非用户明确授权，否则禁止：
+- `npm run dev:electron`
+- `npm run desktop:setup`
+- `npm run desktop:smoke-check:strict`
+- `npm run verify:mvp61-local-regression-fix`
 
-```text
-不删除真实媒体文件
-不移动真实媒体文件
-不重命名真实媒体文件
-不自动整理文件夹
-不扫描用户硬盘全盘
-不联网抓元数据
-不上传任何本地路径或媒体内容
-不接真实下载器
-不自动调用外部播放器
-不假装已经接入 SQLite / Electron / 本地扫描
-不把 mock 按钮写成真实危险动作
-```
-
-当前阶段所有真实文件能力都必须是：
-
-```text
-先 dry-run
-先报告
-先确认
-后执行
-```
-
----
-
-## 6. 新对话接手后的第一轮建议任务
-
-不要继续无限 UI 打磨。下一阶段应该开始把项目从“漂亮 UI 原型”向“真实数据闭环”推进。
-
-### 推荐下一轮任务：MVP-01 文档与运行基线
-
-目标：让压缩包本身更容易被任何 AI / 用户接手。
-
-任务：
-
-```text
-1. 运行 npm install
-2. 运行 npm run lint
-3. 运行 npm run build
-4. 修复 TypeScript / Vite 明确错误
-5. 添加 RUN_ME_FIRST.md
-6. 添加 PROJECT_STATE.md
-7. 更新 README.md，删除或弱化 AI Studio 默认部署说明
-8. 确认 app 在浏览器预览能打开
-9. 输出修改报告
-```
-
-### 推荐第二轮任务：MVP-02 真实扫描前的数据模型准备
-
-不要直接扫描本地硬盘，先定义前端可接收的数据结构。
-
-任务：
-
-```text
-1. 在 types.ts 中增加 LibraryRoot / Collection / TrackSource / SubtitleSource 草案
-2. 保持兼容现有 RJWork / MusicAlbum / AudioTrack
-3. 写 docs/LOCAL_INDEX_SCHEMA_DRAFT.md
-4. 不写真实扫描代码
-5. 不写 Electron IPC
-6. 只整理数据模型和 mock adapter
-```
-
-### 推荐第三轮任务：MVP-03 Local JSON Index mock adapter
-
-目标：先让 UI 通过统一接口读数据，不再直接散落读 mockData。
-
-任务：
-
-```text
-1. 新建 src/services/libraryIndexAdapter.ts
-2. 输入 mockData，输出统一 LibraryRoot / Collection / AudioTrack
-3. UI 暂时仍显示现有数据
-4. 不读真实文件
-5. 不写本地文件
-```
-
----
-
-## 7. 未来真实数据闭环顺序
-
-真正要做到“个人可用 MVP”，顺序应该是：
-
-```text
-选择目录
-  ↓
-扫描目录 dry-run
-  ↓
-识别 LibraryRoot / Collection / Track
-  ↓
-识别封面和 LRC
-  ↓
-写入 library-index.json
-  ↓
-UI 读取真实 index
-  ↓
-播放本地文件
-  ↓
-LRC 同步显示
-  ↓
-打包 Electron
-```
-
-当前压缩包还在第 0~1 步之前：UI 原型阶段。
-
----
-
-## 8. 数据模型方向
-
-不要把 ASMR 和音乐硬塞成同一种“专辑”。建议三层：
-
-```text
-LibraryRoot
-  -> Collection
-      -> Track / MediaFile
-```
-
-### 8.1 LibraryRoot
-
-```ts
-interface LibraryRoot {
-  id: string;
-  name: string;
-  rootPath: string;
-  libraryType: 'asmr' | 'music' | 'mixed';
-  scanProfile: 'asmr_rj' | 'music_album' | 'folder_album';
-  createdAt: string;
-  updatedAt: string;
-}
-```
-
-### 8.2 Collection
-
-ASMR：Collection = RJ 作品。  
-音乐：Collection = 专辑 / 文件夹专辑。
-
-```ts
-interface Collection {
-  id: string;
-  libraryRootId: string;
-  collectionType: 'rj_work' | 'music_album' | 'music_folder' | 'playlist_generated';
-  codeRaw?: string;
-  codeNorm?: string;
-  title: string;
-  artist?: string;
-  circle?: string;
-  album?: string;
-  folderPath: string;
-  coverPath?: string;
-  status: 'ok' | 'missing-cover' | 'missing-audio' | 'warning';
-  createdAt: string;
-  updatedAt: string;
-}
-```
-
-### 8.3 Track
-
-```ts
-interface Track {
-  id: string;
-  collectionId: string;
-  libraryRootId: string;
-  filePath: string;
-  relativePath: string;
-  title: string;
-  artist?: string;
-  album?: string;
-  discNo?: number;
-  trackNo?: number;
-  durationSeconds?: number;
-  sizeBytes?: number;
-  mtimeMs?: number;
-  coverPath?: string;
-  lyricsPath?: string;
-  playable: boolean;
-}
-```
-
----
-
-## 9. ASMR/RJ 资源库功能优先级
-
-ASMR 不是普通歌单逻辑，应按：
-
-```text
-作品 / RJ 专辑 → 音轨文件 → 字幕/翻译/标签/播放记录
-```
-
-必须优先支持：
-
-```text
-本地资源库路径
-RJ 号识别
-作品标题
-社团 / CV
-封面
-音轨列表
-字幕状态
-个人标签
-播放进度
-最近播放
-未听 / 听完 / 弃坑
-```
-
-后续再做：
-
-```text
-元数据抓取
-字幕编辑
-LRC 生成
-批量标签
-重复检测
-缺文件检测
-睡眠定时
-```
-
----
-
-## 10. 流行音乐库功能优先级
-
-流行音乐库按普通音乐逻辑：
-
-```text
-歌曲
-歌手
-专辑
-歌单
-歌词
-最近播放
-```
-
-第一版只需要：
-
-```text
-按文件夹专辑分组
-读取文件名作为标题
-显示封面
-播放队列
-歌单收藏
-LRC 同名匹配
-```
-
-不要一开始做复杂 ID3 写入、封面写入、音乐下载、在线元数据。
-
----
-
-## 11. 播放器路线
-
-### 当前状态
-
-`useAudioPlayer.ts` 是模拟播放器，只推进进度，不播放真实音频。
-
-### 第一阶段
-
-浏览器内可先接 HTMLAudio：
-
-```text
-mp3 / wav 优先
-flac / ape / m4a 兼容性要测试
-```
-
-### 第二阶段
-
-Electron 下用 `file://` URL 播放本地文件。
-
-### 第三阶段
-
-格式不支持时，外部播放器 fallback：
-
-```text
-mpv
-VLC
-系统默认播放器
-```
-
-但外部播放器必须先做 dry-run 命令预览，不自动启动。
-
----
-
-## 12. UI 打磨原则
-
-当前 UI 已经比较丰富，但信息密度偏高。后续原则：
-
-```text
-主页面给用户看媒体内容
-诊断页放工程状态
-设置页放路径和安全选项
-开发解释不要塞满首页
-播放器优先突出封面、标题、播放按钮、进度、歌词、队列
-```
-
-主题和字体要注意：
-
-```text
-深色 / 浅色 / 雾面主题都要检查
-字体不能太小
-中日文路径和标题不能溢出
-播放器三模式都要独立检查
-```
-
----
-
-## 13. 运行命令
-
-当前项目命令来自 `package.json`：
+Validation expected:
 
 ```bash
-npm install
-npm run dev
+npm ci --ignore-scripts
 npm run lint
+npm run build:electron
+npm run verify:all
 npm run build
-npm run preview
+npm audit --audit-level=high
+npm run desktop:smoke-check
+npm run desktop:acceptance-plan
 ```
 
-说明：
-
-```text
-npm run dev      Vite 开发预览
-npm run lint     TypeScript noEmit 检查
-npm run build    生成 dist
-npm run preview  预览 dist
-```
-
-如果新对话无法运行 npm，应只改文档或小范围源码，不要声称已验证。
-
----
-
-## 14. 新对话必须先输出的接手检查清单
-
-新对话接手后，第一条回复应包含：
-
-```text
-1. 我已经检查了 package.json / src/App.tsx / src/types.ts / src/hooks/useAudioPlayer.ts。
-2. 当前项目是 React/Vite UI 原型，不是完整 Electron 应用。
-3. 当前播放器是模拟进度，不是真实音频播放。
-4. 当前数据是 mockData + localStorage，不是真实扫描。
-5. 下一步建议先跑 npm run lint / npm run build。
-6. 下一步开发任务不要碰真实文件。
-```
-
----
-
-## 15. 交接结论
-
-当前最有价值的工作不是继续堆页面，而是：
-
-```text
-先整理运行基线
-再统一数据模型
-再做 Local JSON Index
-再接真实扫描
-再接真实播放
-最后才做 Electron 打包
-```
-
-如果下一对话只做一件事，做这个：
-
-```text
-确认当前 React/Vite 原型能 npm install + npm run lint + npm run build 通过，并更新 README / PROJECT_STATE，把真实状态写清楚。
-```
-
-
-## MVP-01 Update · Demo 降级与 Local JSON Index 模型入口
-
-本轮目标是把 UI 原型中容易误导的“真实能力”降级为明确 Demo，并建立未来 `library-index.json` 的类型入口。
-
-当前仍然不是完整 Electron 应用，不是真实扫描器，不是真实播放器，不是 SQLite 应用。
-
-已新增：
-
-- `docs/LOCAL_JSON_INDEX_PLAN.md`
-- `src/services/libraryIndexAdapter.ts`
-- `src/types.ts` 中的 `LibraryRoot / LibraryCollection / LibraryTrack / TrackSource / SubtitleSource / CoverSource / LocalJsonIndex`
-- `scripts/verify-mvp01-demo-index.mjs`
-
-本轮不做：Electron、真实目录扫描、读取 `E:\arsm`、写 `library-index.json`、SQLite、HTMLAudio、LRC 文件读取、真实下载、文件修复。
-
----
-
-## MVP-02 Handoff Update
-
-上一轮完成了 fixture 级 scanner。
-
-新增：
-
-```text
-src/services/fixtureLibraryScanner.ts
-src/services/fixtureLibrarySample.ts
-tests/fixtures/library_sample/
-docs/FIXTURE_SCANNER_PLAN.md
-scripts/verify-mvp02-fixture-scanner.ts
-```
-
-当前允许继续做的下一步：
-
-```text
-P3：fixture scanner contract / scanner report 层
-```
-
-下一步仍然不要直接扫真实盘。建议先做：
-
-- 增加 scanner report summary。
-- 增加 duplicate / missing cover / missing subtitle 的 fixture 诊断字段。
-- 增加 fixture scanner 的 UI 只读展示或文档报告。
-- 继续禁止 Electron / 真实扫描 / 写 `library-index.json`。
-
-验收命令：
+Local GUI regression expected on Windows with Node 22 / npm 10:
 
 ```bash
+npm run desktop:setup
+npm run desktop:smoke-check:strict
+npm run dev:electron
+```
+
+## Next recommended task
+
+Let Codex rerun local GUI regression in Node 22 / npm 10. If GUI still fails, MVP-62 should remain defect-fix only. If GUI passes, the project can continue as Beta 0.1 candidate for manual use.
+
+## Hard rules
+
+No SQLite, downloader, metadata scraping, mpv, real media delete/move/rename, Renderer `absolutePath`, Renderer `file://`, scanner/index/playback core changes, or large component one-shot splitting.
+
+## Legacy handoff verifier anchors
+
+当前压缩包实际源码是 **AI Studio / React / Vite UI 原型**；当前已演进为 React / Vite / Electron 本地媒体库候选包。
+
+不要先写代码；接手时先读取 README / PROJECT_STATE / RUN_ME_FIRST / docs/LOCAL_REGRESSION_FIX_MVP61.md，再按用户目标决定是否修复。
+
+Local JSON Index 仍是当前数据层。
+
+
+---
+
+## MVP-62 更新：Electron strict smoke / setup 可靠性修复
+
+当前版本：`0.100.0-mvp62`。
+
+MVP-62 只修本机 GUI 回归阻塞：
+
+- `desktop:setup` 升级为 install + `npm rebuild electron` + `electron --version` 验证。
+- `desktop:smoke-check:strict` 在 Windows 下通过 `cmd.exe /d /c` 启动 `.cmd` wrapper，避免 `EINVAL`。
+- strict smoke 会检查 `path.txt`、resolved Electron binary 和 `electron --version`。
+- 本机 GUI 回归建议 Node 22.12+ / npm 10.x；正式 engine 仍是 Node `>=22 <23` / npm `>=10 <11`。
+- 新增设置页标记 `mvp62-electron-regression-hardening` 和诊断页标记 `mvp62-electron-regression-hardening-review`。
+
+推荐本机 GUI 回归流程：
+
+```bash
+nvm use 22
+npm ci --ignore-scripts
 npm run verify:all
-npm run verify:mvp02-fixture-scanner
+npm run build
+npm run desktop:setup
+npm run desktop:smoke-check:strict
+npm run dev:electron
 ```
 
-## MVP-03 Handoff：Fixture Scanner Report
+仍不进入 SQLite、下载器、元数据抓取、mpv、高级文件整理、批量重命名或大组件一次性拆分。Renderer 仍不接收 `absolutePath` 或 `file://`。
 
-最新状态：MVP-03 已加入 fixture scanner report / diagnostics layer。
 
-新接手 AI 必须理解：
+---
+
+## MVP-63 更新：Electron resolved binary 路径误判修复
+
+当前版本：`0.101.0-mvp63`。
+
+MVP-63 只修 MVP-62 本机回归报告中的 false negative：
+
+- 当 `node_modules/electron/path.txt` 内容是 `electron.exe` 时，`desktop:setup` 和 `desktop:smoke-check:strict` 现在会优先检查 `node_modules/electron/dist/electron.exe`。
+- `scripts/setup-electron-desktop.mjs` 与 `scripts/desktop-smoke-check.mjs` 新增 candidate path 解析，不再误查 `node_modules/electron/electron.exe`。
+- 保留 MVP-62 的 Windows `.cmd` 启动方式：`cmd.exe /d /c electron.cmd --version`。
+- 新增设置页标记 `mvp63-electron-binary-path-fix` 和诊断页标记 `mvp63-electron-binary-path-fix-review`。
+- 诊断页黑视图问题不在本轮源码内声称已修复；修完 strict smoke 后需要本机 GUI 复测。
+
+推荐本机 GUI 回归流程：
+
+```bash
+nvm use 22
+npm ci --ignore-scripts
+npm run verify:all
+npm run build
+npm run desktop:setup
+npm run desktop:smoke-check:strict
+npm run dev:electron
+```
+
+本轮仍不进入 SQLite、下载器、元数据抓取、mpv、高级文件整理、批量重命名或大组件一次性拆分。Renderer 仍不接收 `absolutePath` 或 `file://`。
+
+
+---
+
+## MVP-64 诊断页黑视图修复
+
+当前版本：`0.103.0-mvp65`。
+
+本轮新增 `DiagnosticsRuntimeBoundary`，在 App 层包裹 `DiagnosticsPage`。如果诊断页局部区块运行时报错，应显示 `mvp64-diagnostics-runtime-fallback` 中文安全降级页，不再让 Electron 窗口整窗黑屏。设置页记录 `mvp64-diagnostics-black-view-fix` 复测说明。
+
+继续保持：Local JSON Index 优先；SQLite / 下载器 / 元数据抓取 / mpv 后置；不删除 / 移动 / 重命名真实媒体文件；Renderer 不接收 `absolutePath` / `file://`。
+
+
+## MVP-65 更新
+
+当前版本：`0.103.0-mvp65`。修复诊断页 `undefined.map` 运行时异常，新增 `toArray` 兜底和 `verify:mvp65-diagnostics-map-guard`。安全边界不变。
+
+---
+
+## MVP-66 更新：Beta 0.1 GUI 全链路回归确认
+
+当前版本：`0.105.0-mvp67`。
+
+MVP-66 不增加新功能，只固定 Beta 0.1 GUI 全链路回归确认路径。
+
+新增设置页 / 诊断页 anchor：`mvp66-beta-gui-regression`。
+
+本轮确认重点：
+
+- Node 22 / npm 10 环境下执行 `verify:all`、`build`、`desktop:setup`、`desktop:smoke-check:strict`、`dev:electron`。
+- 首页、音声库、音乐库、歌单页、播放器、设置页、诊断页可连续切换。
+- 诊断页不再出现黑视图、`mvp64-diagnostics-runtime-fallback` 或 `Cannot read properties of undefined`。
+- 用真实小样本资源库确认 dry-run scan、写入 / 读取 `library-index.json`、本地音频播放、字幕读取和外部打开。
+- 主界面不直接显示真实盘符路径或 `file://`。
+- 不删除 / 移动 / 重命名真实媒体文件。
+
+下一轮建议：MVP-67 真实样本回归缺陷修复。
+
+仍不进入 SQLite、下载器、元数据抓取、mpv、高级文件整理、批量重命名或大组件一次性拆分。
+
+---
+
+## MVP-71 更新：主界面简化 / 诊断页折叠 / AI 维护区收口
 
 ```text
-fixtureLibraryScanner.ts 只把虚拟 entries 转成 LocalJsonIndex。
-fixtureScannerReportService.ts 只分析内存 LocalJsonIndex。
-两者都不是实际文件扫描器。
+version: 0.109.0-mvp71
+基线来源：0.108.0-mvp70 Beta 0.1 最终交接包
 ```
 
-当前新增服务：
+本轮只调整信息架构，不新增真实能力。首页突出继续播放、最近播放、最近加入、音声库入口、音乐库入口和歌单入口；工程 / verifier / MVP 历史 / Electron / IPC / Contract / Scanner 等信息默认收进 AI 维护区、开发者详情、历史验证和高级诊断。
+
+安全边界保持不变：不接 SQLite、不接下载器、不接 ASMR.one / DLsite / 网易云元数据抓取、不接 mpv、不删除 / 移动 / 重命名真实媒体文件、不向 Renderer 暴露 absolutePath 或 file://，不改真实扫描 / 写 index / 播放内核链路。
+
+
+
+## MVP-72 更新：日常界面继续收口 / 工程标签继续后置
 
 ```text
-src/services/fixtureScannerReportService.ts
+version: 0.111.0-mvp73
+基线：0.109.0-mvp71
+类型：UI / 信息架构收口
 ```
 
-它输出：
+本轮记录：
 
 ```text
-FixtureScannerReport
-- summary
-- diagnostics
-- collections
-- tracks
-- duplicateRjGroups
-- duplicateTrackPathGroups
-- nextActions
+1. 已新增 dailySurfaceCleanupService。
+2. 首页、设置页、诊断页继续减少可见工程阶段标签。
+3. 诊断页新增“日常诊断”摘要，工程 / verifier / MVP 历史继续默认折叠。
+4. 真实扫描、写 index、播放内核、外部打开链路没有改动。
+5. GitHub 仍非最新开发基线；后续回住所再推 MVP70/MVP71/MVP72。
 ```
 
-继续禁止：
+下一步建议：
 
 ```text
-不要接 Electron
-不要读 E:\arsm
-不要扫描真实目录
-不要写 library-index.json
-不要写 SQLite
-不要接真实 Audio
-不要读本地 LRC
-不要自动修复/删除/移动/重命名文件
+MVP-73：播放器大页视觉继续精修，重点做黑胶 / 歌词 / 封面氛围。
 ```
 
-下一轮建议：MVP-04 可以做 fixture report 的 UI/diagnostics 接入，或者扩展 fixture cases。仍然不进入真实盘。
 
-## MVP-04 交接补充
+## MVP-73 更新：播放器大页日常视觉收口
 
-MVP-04 已把 fixture scanner report 接入诊断页。
+当前版本：`0.111.0-mvp73`。
 
-新对话接手时请确认：
+本轮在 MVP-72 基础上继续收口播放器大页：新增 `playerDailyVisualFocusService`，让播放器可见表层优先显示当前音轨、封面 / 黑胶 / 歌词、队列、字幕状态和睡前控制。工程、verifier、MVP 历史、Electron、IPC、Scanner、Contract 等信息继续后置到诊断页 / AI 维护区。
 
-- `src/components/DiagnosticsPage.tsx` 引入 `fixtureLibraryScanner`、`fixtureLibrarySampleEntries`、`fixtureScannerReportService`。
-- 诊断页新增 `MVP-04 Fixture Scanner Report / 只读诊断` 区块。
-- 该区块只分析 fixture 内存数据，不读真实文件系统。
-- 新增 `docs/FIXTURE_REPORT_UI.md`。
-- 新增 `scripts/verify-mvp04-fixture-report-ui.ts`，并接入 `npm run verify:all`。
+安全边界不变：不接 SQLite，不接下载器，不接 ASMR.one / DLsite / 网易云元数据抓取，不接 mpv，不删除 / 移动 / 重命名真实媒体文件，不向 Renderer 暴露 absolutePath，不向 Renderer 暴露 file://，不改真实扫描 / 写 index / 播放内核链路。
 
-下一轮建议：MVP-05 fixture case 扩展或 fixture report export。仍不要接 Electron、真实扫描、SQLite、真实播放。
+兼容验证记录：MVP-72 基线版本 `0.110.0-mvp72`，当前继续升级到 `0.111.0-mvp73`。
+
+---
+
+## MVP-74 更新记录
+
+当前版本：`0.112.0-mvp74`。
+
+本轮主题：MVP-74 播放器底栏 / 首页重复入口继续清理。
+
+已完成：
+
+- 新增 `src/services/playerBarDailyCleanupService.ts`。
+- 底部播放器新增 `mvp74-playerbar-daily-control-strip`，可见信息压缩为标题、播放控制、队列、字幕、音量、喜欢、歌单和播放结束策略。
+- 首页新增 `mvp74-home-daily-entry-cleanup`，继续保留继续播放、最近播放、最近加入、音声库、音乐库、歌单入口。
+- `mvp59-home-beta-polish` 与 `mvp39-media-overview` 默认后置为隐藏维护 marker，减少首页重复入口和工程说明。
+- 不接 SQLite，不接下载器，不接元数据抓取，不接 mpv，不删除 / 移动 / 重命名真实媒体文件，不向 Renderer 暴露 absolutePath 或 file://，不改真实扫描 / 写 index / 播放内核链路。
+
+下一步建议：MVP-75 诊断页 MVP 历史按阶段分组折叠。
 
 
-## MVP-05 handoff note
+## MVP-75 更新记录
 
-Latest completed stage: MVP-05 Fixture Case Expansion.
+当前版本：`0.113.0-mvp75`。
 
-The next assistant must treat `fixtureLibrarySampleEntries` as the only input source. The added cases intentionally create warnings/errors in fixture report output; do not auto-fix, merge, delete, rename, or normalize them.
+本轮主题：MVP-75 诊断页 MVP 历史按阶段分组折叠，并修复播放器底栏歌曲进度动画条稳定性。
 
-Next recommended stage: MVP-06 fixture scanner test harness / planned scanner contract, still fixture-only. Do not jump directly to real `E:\arsm` scanning.
+完成内容：
+
+- 新增 `src/services/diagnosticsHistoryFoldService.ts`。
+- 诊断页新增 `mvp75-diagnostics-history-folded`，按阶段折叠资源库扫描、Electron / IPC、播放 / 字幕、UI 收口、Beta / 交接历史。
+- 播放器底栏新增 `mvp75-playerbar-progress-stability`。
+- 进度条增加 clamp / finite guard，避免 NaN、负宽度、超过 100%。
+- 拖拽 seek 改用 `pendingSeekValueRef`，避免 `onMouseUp` 读到旧 `dragValue`。
+- 无有效时长时禁用 range seek。
+
+安全边界：不接 SQLite；不接下载器；不接 ASMR.one / DLsite / 网易云元数据抓取；不接 mpv；不删除 / 移动 / 重命名真实媒体文件；不向 Renderer 暴露 absolutePath / file://；不改真实扫描 / 写 index / 播放内核链路。
 
 
-## MVP-06 接手重点
+---
 
-上一轮已完成 `fixtureScannerTestHarness` 与 `plannedScannerContractService`。
+## MVP-79 播放器 UI bugfix / 0.117.0-mvp79
 
-新对话接手后必须知道：
+本轮根据 DeepSeek 对 MVP-78 后播放器组件的 `NEEDS_FIX` 审查，修复无效 Tailwind 类、`animate-bounce-subtle` 定义、PlayerBar 整栏误触发歌词页、More 死按钮、LRC 小数秒解析、LyricsPanel 睡前暗屏时钟刷新和 cover 背景图保护。
 
-1. 当前 scanner 仍然只处理 fixture entries。
-2. `plannedScannerContractService` 只是合同，不是真实 scanner。
-3. 不允许硬编码 `E:\arsm`。
-4. 不允许扫描全盘。
-5. 不允许在 dry-run 阶段写 `library-index.json`。
-6. 重复 RJ / 重复路径只报告，不合并、不删除、不重命名。
+安全边界保持不变：不接 SQLite，不接下载器，不接 ASMR.one / DLsite / 网易云元数据抓取，不接 mpv，不删除 / 移动 / 重命名真实媒体文件，不向 Renderer 暴露 absolutePath 或 file://，不改真实扫描 / 写 index / 播放内核链路。
 
-建议下一轮：MVP-07 scanner contract UI flow / virtual path parser tests。
+新增验证：`npm run verify:mvp79-player-ui-bugfix`。
+
+## MVP-80：设置页 / 诊断页最终日常化检查
+
+当前版本：`0.118.0-mvp80`。
+
+本轮只做用户可见层级收口：设置页继续优先展示资源库、主题、隐私与文件安全说明；诊断页继续以日常诊断摘要开头；Scanner / Contract / Bridge / Dry-run / IPC / Stub / MVP 历史继续默认折叠或进入 AI 维护区。
+
+安全边界不变：不接 SQLite，不接下载器，不接 ASMR.one / DLsite / 网易云元数据抓取，不接 mpv，不删除 / 移动 / 重命名真实媒体文件，不向 Renderer 暴露 absolutePath 或 file://，不改真实扫描 / 写 index / 播放内核链路。
+
+MVP-80 验证命令：
+
+```bash
+npm ci --ignore-scripts
+npm run lint
+npm run build:electron
+npm run verify:mvp80-settings-diagnostics-daily-finalize
+npm run verify:all
+npm run build
+npm audit --audit-level=high
+```
+
+## MVP-83 Update
+
+version: `0.121.0-mvp83`
+
+MVP-83：Beta 0.1 阶段性收口 / GitHub 推送准备。公司网络仍不执行 GitHub 推送；当前最新开发基线是本地源码包，不是远程 `main`。本轮新增推送准备文档、诊断页推送准备区和 verifier，不改真实扫描 / 写 index / 播放内核 / 文件安全链路。
+
+推荐回住所后先运行：`npm ci --ignore-scripts`、`npm run verify:all`、`npm run build`、`npm audit --audit-level=high`，再按 `docs/GITHUB_PUSH_PREP_MVP83.md` 推送。
+
+## MVP-84 Update — 导入器 / 下载生态 / 项目总规划并入
+
+Version: `0.122.0-mvp84`
+
+本轮吸收 `Yang-Kura_项目总规划与讨论总结.md` 的结论：下一阶段从导入器 / 入库器开始，不从下载器或 mpv 开始。导入器先服务已有 RJ 专辑、普通音乐专辑、单曲和手动下载目录；文件操作从 `copy only` 开始，未来 `move` 必须有预览、确认、操作日志和失败记录。
+
+GitHub 推送已用标准 git 路径尝试，但当前环境无法解析 `github.com`，因此本轮不强推远程，继续生成本地 clean source 包。
+
+后续建议：`MVP-85` 做 `ImportTask / DownloadTask / Manifest / MetadataSource` 数据模型合同。
+

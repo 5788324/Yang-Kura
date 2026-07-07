@@ -1,0 +1,41 @@
+Yang-Kura MVP83 handoff manifest
+
+version: 0.121.0-mvp83
+baseline: 0.120.0-mvp82
+
+Added:
+- src/services/betaCloseoutPushPrepService.ts
+- docs/CURRENT_ROADMAP_MVP83.md
+- docs/BETA_CLOSEOUT_PUSH_PREP_MVP83.md
+- docs/GITHUB_PUSH_PREP_MVP83.md
+- scripts/verify-mvp83-beta-closeout-push-prep.mjs
+- HANDOFF_MVP82_TO_MVP83.md
+- PACKAGE_MANIFEST_MVP83_HANDOFF.txt
+
+Modified:
+- src/components/DiagnosticsPage.tsx
+- src/services/index.ts
+- package.json
+- package-lock.json
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+- docs/PROJECT_STATE.md
+- docs/NEXT_CHAT_HANDOFF.md
+- docs/RUN_ME_FIRST.md
+- 00_NEW_CHAT_START_HERE.md
+- NEW_CHAT_PROMPT.md
+- NEW_CHAT_PROMPT_FULL.md
+- CODEX_MINIMAL_PROMPTS.md
+
+Safety:
+- no SQLite
+- no downloader
+- no metadata scraping
+- no mpv backend
+- no media file delete/move/rename
+- no absolutePath/file:// renderer exposure
+- no scanner/index/playback core changes
+
+MVP-83 marker: Beta 0.1 阶段性收口 / GitHub 推送准备。

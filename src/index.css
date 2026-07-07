@@ -22,6 +22,8 @@
   --animate-spin-slow: spin 30s linear infinite;
   --animate-fade-in: fadeIn 0.4s ease-out forwards;
   --animate-slide-up: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-bounce-subtle: bounceSubtle 1.8s ease-in-out infinite;
+  --animate-scale-up: scaleUp 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fadeIn {
@@ -32,6 +34,16 @@
 @keyframes slideUp {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
+}
+
+@keyframes bounceSubtle {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -3px; }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; scale: 0.98; }
+  to { opacity: 1; scale: 1; }
 }
 
 /* Theme 1: Light Theme */

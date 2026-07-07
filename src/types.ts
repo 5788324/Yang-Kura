@@ -1,6 +1,7 @@
 export type PageType = 'dashboard' | 'asmr-lib' | 'music-lib' | 'playlists' | 'downloader' | 'settings' | 'diagnostics';
 
 export type TrackType = 'asmr' | 'music';
+export type PlaybackCompletionMode = 'continue-queue' | 'stop-after-track' | 'stop-after-work';
 
 export interface AudioTrack {
   id: string;
@@ -11,10 +12,27 @@ export interface AudioTrack {
   rjId?: string | undefined; // RJ number (for ASMR)
   duration: number; // in seconds
   coverUrl: string;
+  /** MVP-37: cover source metadata. Local covers remain tokenized; no absolutePath / file://. */
+  coverSourceKind?: 'mock-url' | 'local-file' | 'embedded' | 'missing' | 'generated-fallback' | undefined;
+  coverRelativePath?: string | undefined;
   fileSize?: string | undefined;
   type: TrackType;
   lyrics?: string[] | undefined; // LRC style or simple text lines
+  /** MVP-26: tokenized subtitle sources. Relative paths only; no absolutePath / file://. */
+  subtitleRelativePaths?: string[] | undefined;
+  lyricsSourceKind?: 'mock' | 'local-file' | 'none' | undefined;
+  lyricsRelativePath?: string | undefined;
+  lyricsLoadStatus?: 'idle' | 'loading' | 'loaded' | 'missing' | 'error' | undefined;
+  lyricsLoadError?: string | undefined;
   fileTreePath?: string | undefined; // e.g. "Voice/01_intro.mp3"
+  /** MVP-27: original indexed media kind; non-audio tracks should be opened externally instead of sent to HTMLAudio. */
+  mediaKind?: LibraryTrackKind | undefined;
+  /** MVP-25/MVP-27: tokenized local-media source. Renderer still never receives absolutePath / file://. */
+  rootPathToken?: string | undefined;
+  sourceRelativePath?: string | undefined;
+  mediaUrl?: string | undefined;
+  playbackSourceKind?: 'mock' | 'tokenized-local-file' | undefined;
+  externalOpenSourceKind?: 'tokenized-local-file' | undefined;
   isFavorite?: boolean | undefined;
   addedAt?: string | undefined;
 }
@@ -28,6 +46,9 @@ export interface RJWork {
   cvs: string[]; // 声优/CV
   releaseDate: string;
   coverUrl: string;
+  /** MVP-37: cover source metadata. Local covers remain tokenized; no absolutePath / file://. */
+  coverSourceKind?: 'mock-url' | 'local-file' | 'embedded' | 'missing' | 'generated-fallback' | undefined;
+  coverRelativePath?: string | undefined;
   tags: string[];
   status: RJStatus;
   fileCount: number;
@@ -45,20 +66,32 @@ export interface MusicAlbum {
   title: string;
   artist: string;
   coverUrl: string;
+  /** MVP-37: cover source metadata. Local covers remain tokenized; no absolutePath / file://. */
+  coverSourceKind?: 'mock-url' | 'local-file' | 'embedded' | 'missing' | 'generated-fallback' | undefined;
+  coverRelativePath?: string | undefined;
   releaseYear: string;
   genre: string;
   tracks: AudioTrack[];
 }
+
+export type PlaylistSourceKind = 'system-demo' | 'demo-user' | 'user-local';
 
 export interface Playlist {
   id: string;
   name: string;
   description: string;
   coverUrl: string;
+  /** MVP-37: cover source metadata. Local covers remain tokenized; no absolutePath / file://. */
+  coverSourceKind?: 'mock-url' | 'local-file' | 'embedded' | 'missing' | 'generated-fallback' | undefined;
+  coverRelativePath?: string | undefined;
   creator: string;
   tracksCount: number;
   tracks: AudioTrack[];
   isSystem?: boolean | undefined;
+  /** MVP-36: separates locked demo/system playlists from persisted user playlists. */
+  sourceKind?: PlaylistSourceKind | undefined;
+  createdAt?: string | undefined;
+  updatedAt?: string | undefined;
 }
 
 export type ThemeType = 'dark' | 'acrylic-mist' | 'ocean-drops';
@@ -90,6 +123,12 @@ export interface PlayerState {
   currentIndex: number;
   isMuted: boolean;
   loopMode: 'all' | 'one' | 'shuffle';
+  /** MVP-34: user-facing end-of-track behavior for ASMR and music listening. */
+  playCompletionMode?: PlaybackCompletionMode;
+  /** MVP-25: real HTMLAudio status for tokenized local files; mock fallback remains for demo data. */
+  playbackMode?: 'mock-simulated' | 'resolving-local-media' | 'html-audio' | 'unsupported-local-media' | 'idle';
+  playbackError?: string | null;
+  resolvedMediaUrl?: string | null;
 }
 
 // === Downloader & Metadata Types ===

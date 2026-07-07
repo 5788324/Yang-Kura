@@ -1,0 +1,34 @@
+Yang-Kura MVP82 handoff package
+
+Version: 0.120.0-mvp82
+Base: 0.119.0-mvp81
+Scope: UI bug sweep after DeepSeek review
+
+Added:
+- src/services/uiBugSweepService.ts
+- docs/CURRENT_ROADMAP_MVP82.md
+- docs/UI_BUG_SWEEP_MVP82.md
+- docs/DEEPSEEK_REVIEW_RESULT_MVP81.md
+- scripts/verify-mvp82-ui-bug-sweep.mjs
+- HANDOFF_MVP81_TO_MVP82.md
+- PACKAGE_MANIFEST_MVP82_HANDOFF.txt
+
+Changed:
+- src/components/Dashboard.tsx
+- src/components/AsmrLibrary.tsx
+- src/components/MusicLibrary.tsx
+- src/components/PlaylistPage.tsx
+- src/components/AsmrDetail.tsx
+- src/components/LyricsPanel.tsx
+- src/components/DiagnosticsPage.tsx
+- src/index.css
+- src/services/index.ts
+- package.json
+- package-lock.json
+
+Excluded from package:
+- node_modules
+- dist
+- dist-electron
+- logs
+- Git temp data

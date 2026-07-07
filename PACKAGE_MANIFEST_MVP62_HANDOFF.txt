@@ -1,0 +1,17 @@
+Yang-Kura MVP-62 handoff package
+Version: 0.100.0-mvp62
+
+Key files:
+- scripts/setup-electron-desktop.mjs
+- scripts/desktop-smoke-check.mjs
+- scripts/run-electron-preview.mjs
+- src/services/electronRegressionHardeningService.ts
+- docs/CURRENT_ROADMAP_MVP62.md
+- docs/ELECTRON_REGRESSION_HARDENING_MVP62.md
+- scripts/verify-mvp62-electron-regression-hardening.mjs
+- HANDOFF_MVP61_TO_MVP62.md
+- PACKAGE_MANIFEST_MVP62_HANDOFF.txt
+
+Scope:
+- Fix Electron strict smoke and setup reliability.
+- Do not add playback, scanner, database, downloader, metadata, mpv, or file mutation features.

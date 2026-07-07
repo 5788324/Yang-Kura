@@ -1,16 +1,17 @@
 import { AudioTrack, RJWork, MusicAlbum, Playlist } from './types';
+import { coverArtworkService } from './services/coverArtworkService';
 
-// Let's define some premium image URLs (Unsplash links with optimized sizes)
+// MVP-81: demo covers are generated local SVG data URLs. No remote image request is made in the UI prototype.
 export const COVERS = {
-  windChime: 'https://images.unsplash.com/photo-1508962914676-134849a727f0?q=80&w=350&auto=format&fit=crop',
-  catCafe: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=350&auto=format&fit=crop',
-  campfire: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?q=80&w=350&auto=format&fit=crop',
-  camping: 'https://images.unsplash.com/photo-1510312305653-8ed496efae75?q=80&w=350&auto=format&fit=crop',
-  lofi: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?q=80&w=350&auto=format&fit=crop',
-  acoustic: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=350&auto=format&fit=crop',
-  ambient: 'https://images.unsplash.com/photo-1495563947136-339736c2d12f?q=80&w=350&auto=format&fit=crop',
-  mixedPlaylist: 'https://images.unsplash.com/photo-1487180142328-054b783fc471?q=80&w=350&auto=format&fit=crop',
-  sleepRain: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=350&auto=format&fit=crop',
+  windChime: coverArtworkService.makeFallbackCover('风铃与雨音', '本地音声 Demo', 'asmr'),
+  catCafe: coverArtworkService.makeFallbackCover('猫咖午后', '本地音声 Demo', 'asmr'),
+  campfire: coverArtworkService.makeFallbackCover('营火夜谈', '本地音声 Demo', 'asmr'),
+  camping: coverArtworkService.makeFallbackCover('露营白噪音', '本地音声 Demo', 'asmr'),
+  lofi: coverArtworkService.makeFallbackCover('Lo-Fi 夜行', '本地音乐 Demo', 'music'),
+  acoustic: coverArtworkService.makeFallbackCover('暖色光晕', '本地音乐 Demo', 'music'),
+  ambient: coverArtworkService.makeFallbackCover('深海环境音', '本地音乐 Demo', 'music'),
+  mixedPlaylist: coverArtworkService.makeFallbackCover('混合歌单', '本地歌单 Demo', 'playlist'),
+  sleepRain: coverArtworkService.makeFallbackCover('睡前雨声', '本地歌单 Demo', 'playlist'),
 };
 
 // Generic nature ASMR lyrics for illustration
@@ -493,6 +494,7 @@ export const mockPlaylists: Playlist[] = [
     creator: '本地管理员',
     tracksCount: 3,
     isSystem: true,
+    sourceKind: 'system-demo',
     tracks: [
       mockAsmrTracks.RJ01026048[1], // 碳酸ヘッドスパ (ASMR)
       mockMusicTracks[0],           // Morning Dew (Music)
@@ -506,6 +508,7 @@ export const mockPlaylists: Playlist[] = [
     coverUrl: COVERS.sleepRain,
     creator: 'Yang-Kura Curator',
     tracksCount: 4,
+    sourceKind: 'demo-user',
     tracks: [
       mockAsmrTracks.RJ253912[0],   // 膝枕優しくお耳掃除 (ASMR)
       mockAsmrTracks.RJ312093[1],   // 耳穴オイルマッサージ (ASMR)
@@ -520,6 +523,7 @@ export const mockPlaylists: Playlist[] = [
     coverUrl: COVERS.lofi,
     creator: '本地用户',
     tracksCount: 4,
+    sourceKind: 'demo-user',
     tracks: [
       mockMusicTracks[0],           // Morning Dew (Lo-Fi)
       mockMusicTracks[2],           // Rainy Terminal (Lo-Fi)

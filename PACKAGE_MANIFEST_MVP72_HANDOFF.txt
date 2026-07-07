@@ -1,0 +1,28 @@
+Yang-Kura MVP-72 handoff package
+
+version: 0.110.0-mvp72
+source baseline: MVP-71 / 0.109.0-mvp71
+
+Included important files:
+- package.json
+- package-lock.json
+- src/services/dailySurfaceCleanupService.ts
+- src/components/Dashboard.tsx
+- src/components/SettingsPage.tsx
+- src/components/DiagnosticsPage.tsx
+- src/services/index.ts
+- docs/CURRENT_ROADMAP_MVP72.md
+- docs/UI_DAILY_SURFACE_CLEANUP_MVP72.md
+- scripts/verify-mvp72-daily-surface-cleanup.mjs
+- HANDOFF_MVP71_TO_MVP72.md
+- PACKAGE_MANIFEST_MVP72_HANDOFF.txt
+
+Safety boundaries:
+- 不接 SQLite
+- 不接下载器
+- 不接 ASMR.one / DLsite / 网易云元数据抓取
+- 不接 mpv
+- 不删除 / 移动 / 重命名真实媒体文件
+- 不向 Renderer 暴露 absolutePath
+- 不向 Renderer 暴露 file://
+- 不改真实扫描 / 写 index / 播放内核链路

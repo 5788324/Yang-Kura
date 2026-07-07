@@ -25,6 +25,15 @@ import {
   Clock
 } from 'lucide-react';
 import { AudioTrack, PlayerState, RJWork } from '../types';
+import { playerExperienceService } from '../services/playerExperienceService';
+import { playerSurfaceExperienceService } from '../services/playerSurfaceExperienceService';
+import { playerVisualPolishService } from '../services/playerVisualPolishService';
+import { playerImmersionPolishService } from '../services/playerImmersionPolishService';
+import { homePlayerBetaPolishService } from '../services/homePlayerBetaPolishService';
+import { playerDailyVisualFocusService } from '../services/playerDailyVisualFocusService';
+import { playerPanelLayoutReviewService } from '../services/playerPanelLayoutReviewService';
+import { playerUiBugfixService } from '../services/playerUiBugfixService';
+import CoverArtwork from './CoverArtwork';
 
 interface LyricsPanelProps {
   playerState: PlayerState;
@@ -40,6 +49,7 @@ interface LyricsPanelProps {
   favorites?: string[];
   toggleFavorite?: (trackId: string) => void;
   toggleLoopMode?: () => void;
+  toggleCompletionMode?: () => void;
 }
 
 export default function LyricsPanel({
@@ -55,9 +65,17 @@ export default function LyricsPanel({
   toggleMute,
   favorites = [],
   toggleFavorite,
-  toggleLoopMode
+  toggleLoopMode,
+  toggleCompletionMode
 }: LyricsPanelProps) {
   const { currentTrack, progress, queue, isPlaying, volume, isMuted, loopMode } = playerState;
+  const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+  const getSafeDuration = (seconds: number | undefined) => Number.isFinite(seconds) && (seconds ?? 0) > 0 ? seconds ?? 0 : 0;
+  const getSafeProgress = (seconds: number, duration: number) => {
+    const finiteProgress = Number.isFinite(seconds) ? seconds : 0;
+    return duration > 0 ? clamp(finiteProgress, 0, duration) : 0;
+  };
+  const getSafeVolumePercent = (value: number) => clamp(Number.isFinite(value) ? value : 0, 0, 1) * 100;
   
   // 3 Player styles: classic (经典), vinyl (黑胶), lyrics (歌词)
   const [playerStyle, setPlayerStyle] = useState<'classic' | 'vinyl' | 'lyrics'>('classic');
@@ -98,8 +116,8 @@ export default function LyricsPanel({
       lastTime = now;
 
       const playing = isPlayingRef.current;
-      const prog = progressRef.current;
-      const dur = totalDurationRef.current;
+      const prog = Number.isFinite(progressRef.current) ? Math.max(0, progressRef.current) : 0;
+      const dur = getSafeDuration(totalDurationRef.current);
 
       // 1. Vinyl Record rotation speed physics (elegant acceleration / friction deceleration)
       const targetSpeed = playing ? 0.6 : 0;
@@ -113,7 +131,7 @@ export default function LyricsPanel({
       }
 
       // 2. Tonearm rotation angle physics (air-damped tone-arm entry/return)
-      const progressPercent = dur > 0 ? (prog / dur) * 100 : 0;
+      const progressPercent = dur > 0 ? clamp((prog / dur) * 100, 0, 100) : 0;
       // Resting angle: -18deg. Playing start angle: 8deg. Playing end angle: 22deg.
       const targetArmAngle = playing 
         ? 8 + (progressPercent / 100) * 14 
@@ -145,7 +163,18 @@ export default function LyricsPanel({
   const [isSleepTimerMenuOpen, setIsSleepTimerMenuOpen] = useState<boolean>(false);
 
   // --- Sleep Dim Screen Overlay (睡前暗屏/低亮度) State ---
+  const formatSleepClockText = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const [isSleepDimActive, setIsSleepDimActive] = useState<boolean>(false);
+  const [sleepClockText, setSleepClockText] = useState<string>(formatSleepClockText);
+
+  useEffect(() => {
+    if (!isSleepDimActive) return;
+    setSleepClockText(formatSleepClockText());
+    const clockTimer = window.setInterval(() => {
+      setSleepClockText(formatSleepClockText());
+    }, 1000);
+    return () => window.clearInterval(clockTimer);
+  }, [isSleepDimActive]);
 
   // --- Bookmarks State ---
   const [bookmarks, setBookmarks] = useState<{ id: string; time: number; note: string }[]>([]);
@@ -299,6 +328,13 @@ export default function LyricsPanel({
 
   const lyricsContainerRef = useRef<HTMLDivElement>(null);
 
+  const parseLrcFractionalSeconds = (fraction: string | undefined): number => {
+    if (!fraction) return 0;
+    const parsed = Number.parseInt(fraction, 10);
+    if (!Number.isFinite(parsed)) return 0;
+    return parsed / Math.pow(10, fraction.length);
+  };
+
   // Parse [mm:ss.xx] or [mm:ss] into seconds
   const parseLrcLine = (line: string) => {
     const timeReg = /\[(\d+):(\d+)(?:\.(\d+))?\]/;
@@ -306,7 +342,7 @@ export default function LyricsPanel({
     if (!match) return { time: -1, text: line };
     const mins = parseInt(match[1]);
     const secs = parseInt(match[2]);
-    const ms = match[3] ? parseFloat('0.' + match[3]) : 0;
+    const ms = parseLrcFractionalSeconds(match[3]);
     const time = mins * 60 + secs + ms;
     const text = line.replace(timeReg, '').trim();
     return { time, text };
@@ -378,15 +414,36 @@ export default function LyricsPanel({
   const relatedRjWork = rjWorks.find(rj => rj.id === currentTrack.rjId);
 
   // Format seconds to mm:ss
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
+  const formatTime = (seconds: number | undefined) => {
+    if (!Number.isFinite(seconds)) return '--:--';
+    const safeSeconds = Math.max(0, Math.floor(seconds || 0));
+    const mins = Math.floor(safeSeconds / 60);
+    const secs = safeSeconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const totalDuration = currentTrack.duration;
-  const progressPercent = totalDuration > 0 ? (progress / totalDuration) * 100 : 0;
+  const totalDuration = getSafeDuration(currentTrack.duration);
+  const currentDisplayProgress = getSafeProgress(progress, totalDuration);
+  const progressPercent = totalDuration > 0 ? clamp((currentDisplayProgress / totalDuration) * 100, 0, 100) : 0;
+  const safeVolumePercent = getSafeVolumePercent(isMuted ? 0 : volume);
   const isFavorite = favorites.includes(currentTrack.id);
+  const playerSummary = playerExperienceService.getSummary(playerState);
+  const playerSurfaceSummary = playerSurfaceExperienceService.getSummary(playerState, playerStyle)!;
+  const mvp50PlayerVisual = playerVisualPolishService.getLyricsPanelModel(playerState, playerStyle);
+  const mvp51PlayerImmersion = playerImmersionPolishService.getPanelModel(playerState, playerStyle, activeRightTab);
+  const mvp59LyricsBeta = homePlayerBetaPolishService.getLyricsPanelModel(playerState, playerStyle);
+  const mvp73PlayerFocus = playerDailyVisualFocusService.getPanelModel(playerState, playerStyle);
+  const mvp78PlayerLayout = playerPanelLayoutReviewService.getModel();
+  const mvp79PlayerUi = playerUiBugfixService.getModel();
+  const playerSurfaceChipClass = (tone: string) => {
+    if (tone === 'emerald') return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25';
+    if (tone === 'indigo') return 'bg-indigo-500/10 text-indigo-300 border-indigo-500/25';
+    if (tone === 'amber') return 'bg-amber-500/10 text-amber-300 border-amber-500/25';
+    if (tone === 'rose') return 'bg-rose-500/10 text-rose-300 border-rose-500/25';
+    if (tone === 'purple') return 'bg-purple-500/10 text-purple-300 border-purple-500/25';
+    if (tone === 'sky') return 'bg-sky-500/10 text-sky-300 border-sky-500/25';
+    return 'bg-zinc-500/10 text-zinc-300 border-zinc-500/25';
+  };
 
   return (
     <div 
@@ -425,7 +482,7 @@ export default function LyricsPanel({
           {/* Bottom digital clock & exit hint */}
           <div className="flex flex-col items-center space-y-2">
             <div className="text-4xl font-extrabold font-mono text-zinc-700 tracking-wider">
-              {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {sleepClockText}
             </div>
             <span className="text-[10px] text-zinc-600 uppercase font-mono tracking-widest">
               点击屏幕任意位置唤醒
@@ -463,7 +520,7 @@ export default function LyricsPanel({
       {/* Immersive blurred cover art atmosphere */}
       <div 
         className="absolute inset-0 bg-cover bg-center scale-110 blur-[100px] opacity-25 transition-all duration-1000 pointer-events-none"
-        style={{ backgroundImage: `url(${currentTrack.coverUrl})` }}
+        style={currentTrack.coverUrl ? { backgroundImage: `url(${currentTrack.coverUrl})` } : undefined}
       />
       {/* High-quality dark frosted-glass overlay vignette */}
       <div 
@@ -479,7 +536,7 @@ export default function LyricsPanel({
       </div>
 
       {/* Header Area (Borderless and fades out during inactivity) */}
-      <div className={`relative z-10 px-6 py-4 flex items-center justify-between bg-transparent backdrop-blur-sm transition-all duration-700 ${
+      <div id="mvp78-player-header-wrap-safe" className={`relative z-10 px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-3 bg-transparent backdrop-blur-sm transition-all duration-700 ${
         isUserInactive ? 'opacity-0 pointer-events-none -translate-y-4' : 'opacity-100 translate-y-0'
       }`}>
         
@@ -504,12 +561,12 @@ export default function LyricsPanel({
         </div>
 
         {/* Center: Immersive Player Style Selector */}
-        <div className="flex bg-white/5 border border-white/10 p-0.5 rounded-full text-xs font-semibold shadow-inner">
+        <div className="order-3 w-full justify-center sm:order-none sm:w-auto flex flex-wrap bg-white/5 border border-white/10 p-0.5 rounded-full text-xs font-semibold shadow-inner">
           <button
             onClick={() => setPlayerStyle('classic')}
-            className={`px-4 py-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+            className={`px-3 sm:px-4 py-1.5 rounded-full transition-all duration-300 cursor-pointer ${
               playerStyle === 'classic' 
-                ? 'bg-brand-color text-white shadow-md font-bold scale-102' 
+                ? 'bg-brand-color text-white shadow-md font-bold scale-105' 
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
@@ -517,9 +574,9 @@ export default function LyricsPanel({
           </button>
           <button
             onClick={() => setPlayerStyle('vinyl')}
-            className={`px-4 py-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+            className={`px-3 sm:px-4 py-1.5 rounded-full transition-all duration-300 cursor-pointer ${
               playerStyle === 'vinyl' 
-                ? 'bg-brand-color text-white shadow-md font-bold scale-102' 
+                ? 'bg-brand-color text-white shadow-md font-bold scale-105' 
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
@@ -527,9 +584,9 @@ export default function LyricsPanel({
           </button>
           <button
             onClick={() => setPlayerStyle('lyrics')}
-            className={`px-4 py-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+            className={`px-3 sm:px-4 py-1.5 rounded-full transition-all duration-300 cursor-pointer ${
               playerStyle === 'lyrics' 
-                ? 'bg-brand-color text-white shadow-md font-bold scale-102' 
+                ? 'bg-brand-color text-white shadow-md font-bold scale-105' 
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
@@ -539,15 +596,69 @@ export default function LyricsPanel({
 
         {/* Right: Audio Info details */}
         <div className="text-right hidden sm:block">
-          <span className="text-[9px] bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 px-2.5 py-0.5 rounded-full font-mono font-bold uppercase tracking-wider">
-            无损 Hi-Fi 渲染
+          <span className="text-[9px] bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 px-2.5 py-0.5 rounded-full font-bold tracking-wider">
+            {playerSurfaceSummary.modeTitle}
           </span>
-          <p className="text-[10px] text-zinc-400 mt-1 font-mono">ASMR Direct Audio 24bit</p>
+          <p className="text-[10px] text-zinc-400 mt-1">{playerSurfaceSummary.sourceHint}</p>
         </div>
       </div>
 
+      <div
+        id="mvp73-player-daily-visual-focus"
+        className={`relative z-10 mx-4 hidden rounded-[28px] border border-white/10 bg-gradient-to-r from-white/[0.075] via-white/[0.035] to-sky-500/[0.055] px-4 py-3 backdrop-blur-2xl shadow-2xl shadow-sky-950/25 transition-all duration-700 sm:block lg:mx-16 lg:px-5 lg:py-4 ${
+          isUserInactive ? 'opacity-0 pointer-events-none -translate-y-3' : 'opacity-100 translate-y-0'
+        }`}
+      >
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-2.5 py-1 text-[10px] font-bold tracking-wider text-sky-200">
+                {mvp73PlayerFocus.eyebrow}
+              </span>
+              <span className="text-[10px] font-semibold text-zinc-500">{mvp73PlayerFocus.modeLabel}</span>
+            </div>
+            <h3 className="mt-2 truncate text-xl font-black tracking-tight text-white lg:text-2xl">
+              {mvp73PlayerFocus.title}
+            </h3>
+            <p className="mt-1 truncate text-sm text-zinc-300">{mvp73PlayerFocus.subtitle}</p>
+            <p className="mt-2 truncate text-[12px] text-zinc-500">{mvp73PlayerFocus.focusLine}</p>
+          </div>
+
+          <div className="flex min-w-0 flex-col gap-3 xl:min-w-[560px]">
+            <div className="flex flex-wrap gap-2">
+              {mvp73PlayerFocus.chips.map((chip) => (
+                <span
+                  key={`${chip.label}-${chip.tone}`}
+                  className={`rounded-full border px-2.5 py-1 text-[10px] font-bold ${playerDailyVisualFocusService.getChipClass(chip.tone)}`}
+                >
+                  {chip.label}
+                </span>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {mvp73PlayerFocus.cards.map((card) => (
+                <div key={`${card.title}-${card.tone}`} className="rounded-2xl border border-white/10 bg-zinc-950/35 px-3 py-2.5">
+                  <p className="text-[11px] font-extrabold text-white">{card.title}</p>
+                  <p className="mt-1 line-clamp-2 text-[10px] leading-relaxed text-zinc-400">{card.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="mvp78-player-panel-layout-review" className="sr-only">{mvp78PlayerLayout.hiddenMaintenanceNote}</div>
+      <div id="mvp79-lyrics-panel-ui-bugfix" className="sr-only">{mvp79PlayerUi.lyricsPanelNote}</div>
+      <div id="mvp73-player-maintenance-markers" className="sr-only">
+        <span>{mvp73PlayerFocus.hiddenMaintenanceNote}</span>
+        <span id="mvp50-lyrics-visual-header">播放页状态 · {mvp50PlayerVisual.title} · {mvp50PlayerVisual.subtitle} · {mvp50PlayerVisual.modeHint} · emptyLyricHint: {mvp50PlayerVisual.emptyLyricHint}</span>
+        <span id="mvp59-lyrics-copy-polish">{mvp59LyricsBeta.title} · {mvp59LyricsBeta.focusLine}</span>
+        <span id="mvp51-player-immersion-rail">{mvp51PlayerImmersion.title} · {mvp51PlayerImmersion.focusLine}</span>
+        <span>工程、verifier、MVP 历史、Electron、IPC、Scanner、Contract 信息继续后置到诊断页。</span>
+      </div>
+
       {/* Main Content Area */}
-      <div className={`relative z-10 flex-1 w-full max-w-7xl mx-auto px-6 lg:px-16 py-4 items-center justify-center overflow-hidden ${
+      <div id="mvp78-full-player-responsive-shell" className={`relative z-10 flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-16 py-3 sm:py-4 items-center justify-center overflow-hidden ${
         playerStyle === 'classic' 
           ? 'flex flex-col lg:grid lg:grid-cols-12 lg:gap-16' 
           : 'flex flex-col'
@@ -558,18 +669,19 @@ export default function LyricsPanel({
           /*         NEW PREMIUM CLASSIC PLAYBACK PAGE    */
           /* ========================================== */
           <>
+            <div id="mvp73-classic-player-detail-focus" className="sr-only">经典详情模式优先显示封面、标题、歌词和队列，不显示工程标签。</div>
             {/* Left Side: Selected Album Cover or Simplified spinning Record */}
             <div className="w-full lg:col-span-5 flex flex-col items-center justify-center text-center space-y-8 relative h-full flex-shrink-0 animate-fade-in lg:pr-6">
               
-              <div className="relative w-[320px] h-[320px] lg:w-[420px] lg:h-[420px] flex items-center justify-center">
+              <div id="mvp78-classic-visual-clamp" className="relative flex h-[min(56vh,320px)] w-[min(82vw,320px)] items-center justify-center lg:h-[min(62vh,420px)] lg:w-[min(34vw,420px)]">
                 {classicVisualType === 'record' ? (
                   /* SIMPLIFIED RECORD (圆形唱片图 with white concentric ring and stylus needle) */
-                  <div className="relative w-[300px] h-[300px] lg:w-[400px] lg:h-[400px] flex items-center justify-center">
+                  <div className="relative flex h-[92%] w-[92%] items-center justify-center">
                     
                     {/* Glowing shadow behind record */}
                     <div 
                       className="absolute inset-0 bg-cover bg-center rounded-full blur-3xl opacity-40 scale-105 pointer-events-none transition-transform duration-700"
-                      style={{ backgroundImage: `url(${currentTrack.coverUrl})` }}
+                      style={currentTrack.coverUrl ? { backgroundImage: `url(${currentTrack.coverUrl})` } : undefined}
                     />
 
                     {/* Stylus Needle */}
@@ -620,11 +732,13 @@ export default function LyricsPanel({
                           isPlaying ? 'animate-spin-slow' : '[animation-play-state:paused]'
                         }`}
                       >
-                        <img 
-                          src={currentTrack.coverUrl} 
-                          alt="" 
+                        <CoverArtwork
+                          src={currentTrack.coverUrl}
+                          title={currentTrack.title}
+                          subtitle={currentTrack.artist}
+                          kind={currentTrack.type === 'asmr' ? 'asmr' : 'music'}
                           className="w-full h-full object-cover"
-                          referrerPolicy="no-referrer"
+                          rounded
                         />
                       </div>
 
@@ -642,14 +756,15 @@ export default function LyricsPanel({
                     {/* Glowing shadow behind */}
                     <div 
                       className="absolute inset-0 bg-cover bg-center rounded-3xl blur-3xl opacity-45 scale-105 pointer-events-none transition-transform duration-700 group-hover:scale-110"
-                      style={{ backgroundImage: `url(${currentTrack.coverUrl})` }}
+                      style={currentTrack.coverUrl ? { backgroundImage: `url(${currentTrack.coverUrl})` } : undefined}
                     />
-                    <div className="relative aspect-square w-72 h-72 lg:w-[380px] lg:h-[380px] rounded-2xl overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] transition-transform duration-500 hover:scale-[1.03]">
-                      <img 
-                        src={currentTrack.coverUrl} 
-                        alt={currentTrack.album} 
+                    <div className="relative aspect-square h-[92%] w-[92%] rounded-2xl overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] transition-transform duration-500 hover:scale-[1.03]">
+                      <CoverArtwork
+                        src={currentTrack.coverUrl}
+                        title={currentTrack.title}
+                        subtitle={currentTrack.artist}
+                        kind={currentTrack.type === 'asmr' ? 'asmr' : 'music'}
                         className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer"
                       />
                     </div>
                   </div>
@@ -695,16 +810,36 @@ export default function LyricsPanel({
                   <h1 className="text-2xl lg:text-3xl font-extrabold text-zinc-100 tracking-tight leading-tight select-text">
                     {currentTrack.title}
                   </h1>
-                  {/* VIP Badge matching standard high-fidelity desktop view */}
+                  {/* 本地 Badge matching standard high-fidelity desktop view */}
                   <span className="text-[9px] bg-brand-color/15 text-brand-color border border-brand-color/30 px-1.5 py-0.5 rounded font-extrabold uppercase tracking-widest">
-                    VIP
+                    本地
                   </span>
                 </div>
 
                 {/* Subtitle / Sub-title representation */}
                 <p className="text-xs lg:text-sm text-zinc-400 font-medium">
-                  {currentTrack.type === 'asmr' ? '极高无损立体声 ASMR 特别音声' : '无损极高品质音频重现'}
+                  {playerSurfaceSummary.modeDescription}
                 </p>
+
+                <div id="mvp41-player-surface-chips" className="flex flex-wrap items-center gap-2">
+                  {playerSurfaceSummary.chips.map((chip) => (
+                    <span
+                      key={chip.id}
+                      className={`text-[10px] px-2.5 py-1 rounded-full border font-bold ${playerSurfaceChipClass(chip.tone)}`}
+                    >
+                      {chip.label}
+                    </span>
+                  ))}
+                </div>
+
+                <div id="mvp41-player-surface-stats" className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                  {playerSurfaceSummary.stats.map((stat) => (
+                    <div key={stat.id} className="rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2">
+                      <div className="text-[10px] text-zinc-500 font-bold">{stat.label}</div>
+                      <div className="text-xs text-zinc-200 font-extrabold mt-0.5">{stat.value}</div>
+                    </div>
+                  ))}
+                </div>
 
                 {/* Grid Metadata details matching the user mockup perfectly (Borderless spacing) */}
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-1.5 text-xs text-zinc-400 select-text font-medium pt-2">
@@ -718,7 +853,7 @@ export default function LyricsPanel({
                   </span>
                   <span className="truncate">
                     <span className="text-zinc-500 mr-1.5">来源:</span>
-                    <span className="text-zinc-300">我喜欢的音乐</span>
+                    <span className="text-zinc-300">{playerSurfaceSummary.sourceHint}</span>
                   </span>
                 </div>
               </div>
@@ -767,7 +902,7 @@ export default function LyricsPanel({
                       : 'text-zinc-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  感官标记 ({bookmarks.length})
+                  片段标记 ({bookmarks.length})
                 </button>
               </div>
 
@@ -790,9 +925,15 @@ export default function LyricsPanel({
                     style={{ writingMode: 'horizontal-tb', transform: 'none' }}
                   >
                     {bilingualData.length === 0 ? (
-                      <div className="py-24 text-center text-zinc-500 text-xs flex flex-col items-center justify-center space-y-2">
+                      <div
+                        id="mvp51-lyrics-empty-state"
+                        className="py-24 text-center text-zinc-500 text-xs flex flex-col items-center justify-center space-y-2"
+                      >
                         <Sparkles className="w-7 h-7 text-zinc-600 animate-pulse" />
-                        <span>本音频暂时无歌词字幕数据</span>
+                        <span className="text-[12px] font-bold text-zinc-300">{mvp59LyricsBeta.emptyTitle}</span>
+                        <span className="max-w-sm text-[10px] leading-relaxed text-zinc-500">{mvp59LyricsBeta.emptyDescription}</span>
+                        <span className="text-[9px] text-zinc-600">{mvp51PlayerImmersion.emptyLyricsDescription}</span>
+                        <span className="sr-only">{mvp50PlayerVisual.emptyLyricHint}</span>
                       </div>
                     ) : (
                       bilingualData.map((lrc, idx) => {
@@ -835,7 +976,7 @@ export default function LyricsPanel({
                 {/* Other Tabs content rendering */}
                 {activeRightTab === 'chapters' && relatedRjWork && (
                   <div className="w-full h-full overflow-y-auto p-4 space-y-2 hide-scrollbar text-left">
-                    <div className="text-[10px] text-zinc-500 font-mono mb-2 uppercase px-1">本音声包含的所有分段音轨:</div>
+                    <div className="text-[10px] text-zinc-500 mb-2 px-1 font-bold">本音声包含的所有分段音轨</div>
                     {relatedRjWork.tracks.map((track) => {
                       const isPlayingThis = track.id === currentTrack.id;
                       return (
@@ -845,7 +986,7 @@ export default function LyricsPanel({
                           className={`flex items-center justify-between p-3 rounded-xl transition-all cursor-pointer border ${
                             isPlayingThis 
                               ? 'bg-brand-color/15 border-brand-color text-brand-color font-bold shadow-md' 
-                              : 'bg-white/2 border-white/5 hover:border-white/10 text-zinc-300 hover:text-white'
+                              : 'bg-white/5 border-white/5 hover:border-white/10 text-zinc-300 hover:text-white'
                           }`}
                         >
                           <div className="min-w-0 flex-1 flex items-center space-x-2.5">
@@ -861,7 +1002,7 @@ export default function LyricsPanel({
 
                 {activeRightTab === 'queue' && (
                   <div className="w-full h-full overflow-y-auto p-4 space-y-2 hide-scrollbar text-left">
-                    <div className="text-[10px] text-zinc-500 font-mono mb-2 uppercase px-1">即将播放顺序队列 (可直接点击切换):</div>
+                    <div className="text-[10px] text-zinc-500 mb-2 px-1 font-bold">即将播放顺序队列，可直接点击切换</div>
                     {queue.map((track, idx) => {
                       const isPlayingThis = track.id === currentTrack.id;
                       return (
@@ -871,12 +1012,12 @@ export default function LyricsPanel({
                           className={`flex items-center justify-between p-2.5 rounded-xl transition-all cursor-pointer border ${
                             isPlayingThis 
                               ? 'bg-brand-color/10 border-brand-color/30 text-brand-color font-bold' 
-                              : 'bg-white/2 border-white/5 hover:border-white/10 text-zinc-300 hover:text-white'
+                              : 'bg-white/5 border-white/5 hover:border-white/10 text-zinc-300 hover:text-white'
                           }`}
                         >
                           <div className="min-w-0 flex-1 flex items-center space-x-3">
                             <span className="text-[10px] font-mono text-zinc-500 w-5">{String(idx + 1).padStart(2, '0')}</span>
-                            <img src={track.coverUrl} alt="" className="w-7 h-7 rounded object-cover shadow-sm" referrerPolicy="no-referrer" />
+                            <CoverArtwork src={track.coverUrl} title={track.title} subtitle={track.artist} kind={track.type === 'asmr' ? 'asmr' : 'music'} className="w-7 h-7 rounded object-cover shadow-sm" />
                             <span className="text-xs truncate">{track.title}</span>
                           </div>
                           <span className="text-[10px] font-mono text-zinc-400 ml-3">{Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}</span>
@@ -888,12 +1029,12 @@ export default function LyricsPanel({
 
                 {activeRightTab === 'bookmarks' && (
                   <div className="w-full h-full flex flex-col p-4 overflow-hidden text-left">
-                    <div className="text-[10px] text-zinc-500 font-mono mb-2 uppercase px-1">
-                      当前音轨精彩片段与感官书签 (点击跳转):
+                    <div className="text-[10px] text-zinc-500 mb-2 px-1 font-bold">
+                      当前音轨标记片段，点击即可跳转
                     </div>
                     
                     {/* Add Bookmark form */}
-                    <div className="flex gap-2 mb-3 bg-white/2 p-2 rounded-xl border border-white/5 flex-shrink-0">
+                    <div className="flex gap-2 mb-3 bg-white/5 p-2 rounded-xl border border-white/5 flex-shrink-0">
                       <input
                         type="text"
                         value={bookmarkInput}
@@ -918,8 +1059,8 @@ export default function LyricsPanel({
                       {bookmarks.length === 0 ? (
                         <div className="py-12 text-center text-zinc-500 text-xs flex flex-col items-center justify-center space-y-2">
                           <Bookmark className="w-6 h-6 text-zinc-600 animate-pulse" />
-                          <span>还没有为该音轨添加过任何感官标记</span>
-                          <p className="text-[10px] text-zinc-600">在您想记住的掏耳或呼吸瞬间点击上方“标记”按钮</p>
+                          <span>还没有为该音轨添加过任何片段标记</span>
+                          <p className="text-[10px] text-zinc-600">在想记住的片段点击上方“标记”按钮</p>
                         </div>
                       ) : (
                         bookmarks.map((b) => {
@@ -931,7 +1072,7 @@ export default function LyricsPanel({
                               className={`group/b flex items-center justify-between p-2.5 rounded-xl transition-all cursor-pointer border ${
                                 isCurrentBookmarkActive
                                   ? 'bg-brand-color/15 border-brand-color text-brand-color font-bold shadow-sm'
-                                  : 'bg-white/2 border-white/5 hover:border-white/10 text-zinc-300 hover:text-white'
+                                  : 'bg-white/5 border-white/5 hover:border-white/10 text-zinc-300 hover:text-white'
                               }`}
                             >
                               <div className="min-w-0 flex-1 flex items-center space-x-2.5">
@@ -964,15 +1105,15 @@ export default function LyricsPanel({
           /* ========================================== */
           /*         NEW HIGH-FIDELITY VINYL LAYOUT      */
           /* ========================================== */
-          <div className="w-full flex-1 flex flex-col items-center justify-center text-center space-y-6 md:space-y-8 py-2 relative max-w-2xl mx-auto animate-fade-in">
+          <div id="mvp73-vinyl-player-visual-focus" className="w-full flex-1 flex flex-col items-center justify-center text-center space-y-4 md:space-y-6 py-2 relative max-w-2xl mx-auto animate-fade-in">
             {/* Ambient Album Glow behind Vinyl */}
             <div 
               className="absolute w-[240px] h-[240px] sm:w-[300px] sm:h-[300px] md:w-[360px] md:h-[360px] bg-cover bg-center rounded-full blur-[80px] opacity-35 scale-110 pointer-events-none transition-transform duration-700"
-              style={{ backgroundImage: `url(${currentTrack.coverUrl})` }}
+              style={currentTrack.coverUrl ? { backgroundImage: `url(${currentTrack.coverUrl})` } : undefined}
             />
 
             {/* 3D Vinyl Plate Container */}
-            <div className="relative w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] md:w-[380px] md:h-[380px] aspect-square flex-shrink-0 flex items-center justify-center select-none">
+            <div id="mvp78-vinyl-size-clamp" className="relative flex aspect-square h-[min(52vh,260px)] w-[min(82vw,260px)] flex-shrink-0 select-none items-center justify-center sm:h-[min(56vh,320px)] sm:w-[min(72vw,320px)] md:h-[min(60vh,380px)] md:w-[min(58vw,380px)]">
               
               {/* Stylus Needle (Realistic Golden/Beige Metal Tonearm) - Under raf high fidelity physics control */}
               <div 
@@ -1045,11 +1186,13 @@ export default function LyricsPanel({
                 <div 
                   className="w-[44%] h-[44%] rounded-full overflow-hidden border-[6px] border-zinc-950 shadow-2xl flex-shrink-0 relative z-10 ring-4 ring-[#d4af37]/35"
                 >
-                  <img 
-                    src={currentTrack.coverUrl} 
-                    alt="" 
+                  <CoverArtwork
+                    src={currentTrack.coverUrl}
+                    title={currentTrack.title}
+                    subtitle={currentTrack.artist}
+                    kind={currentTrack.type === 'asmr' ? 'asmr' : 'music'}
                     className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
+                    rounded
                   />
                 </div>
 
@@ -1072,7 +1215,7 @@ export default function LyricsPanel({
               </p>
               {currentTrack.rjId && (
                 <div className="inline-block text-[10px] text-brand-color font-mono font-bold bg-brand-color/10 px-2.5 py-0.5 rounded border border-brand-color/20 mt-1">
-                  来自 RJ工作区 [{currentTrack.rjId}]
+来自音声作品 [{currentTrack.rjId}]
                 </div>
               )}
             </div>
@@ -1107,7 +1250,7 @@ export default function LyricsPanel({
               style={{ transform: 'none', perspective: 'none' }}
             >
               {/* Tab selectors (Fades out in ambient mode) */}
-              <div className={`flex border-b border-white/5 text-xs text-zinc-400 font-semibold bg-white/2 transition-all duration-700 ${
+              <div className={`flex border-b border-white/5 text-xs text-zinc-400 font-semibold bg-white/5 transition-all duration-700 ${
                 isUserInactive ? 'opacity-0 pointer-events-none -translate-y-2' : 'opacity-100 translate-y-0'
               }`}>
                 <button
@@ -1117,7 +1260,7 @@ export default function LyricsPanel({
                   }`}
                 >
                   <Subtitles className="w-4 h-4" />
-                  <span>{playerStyle === 'lyrics' ? '同步双语字幕' : '滚动歌词'}</span>
+                  <span>{playerStyle === 'lyrics' ? '同步歌词' : '滚动歌词'}</span>
                 </button>
                 
                 {currentTrack.type === 'asmr' && relatedRjWork && (
@@ -1158,7 +1301,8 @@ export default function LyricsPanel({
                 {activeRightTab === 'lyrics' && (
                   <div 
                     ref={lyricsContainerRef}
-                    className="relative w-full h-full overflow-y-auto py-28 px-6 space-y-8 hide-scrollbar scroll-smooth text-center"
+                    id="mvp78-lyrics-reading-width"
+                    className="relative w-full h-full overflow-y-auto py-20 sm:py-28 px-4 sm:px-6 space-y-8 hide-scrollbar scroll-smooth text-center"
                     style={{ transform: 'none', writingMode: 'horizontal-tb' }}
                   >
                     {bilingualData.length === 0 ? (
@@ -1221,7 +1365,7 @@ export default function LyricsPanel({
                 {/* Tab: Chapters tracklist selection */}
                 {activeRightTab === 'chapters' && relatedRjWork && (
                   <div className="w-full h-full overflow-y-auto p-4 space-y-2 scrollbar-thin">
-                    <div className="text-[10px] text-zinc-500 font-mono mb-2 uppercase px-1">本音声包含的所有分段音轨:</div>
+                    <div className="text-[10px] text-zinc-500 mb-2 px-1 font-bold">本音声包含的所有分段音轨</div>
                     {relatedRjWork.tracks.map((track) => {
                       const isPlayingThis = track.id === currentTrack.id;
                       return (
@@ -1231,7 +1375,7 @@ export default function LyricsPanel({
                           className={`flex items-center justify-between p-3 rounded-xl transition-all cursor-pointer border ${
                             isPlayingThis 
                               ? 'bg-brand-color/15 border-brand-color text-brand-color font-bold shadow-md' 
-                              : 'bg-white/2 border-white/5 hover:border-white/10 text-zinc-300 hover:text-white'
+                              : 'bg-white/5 border-white/5 hover:border-white/10 text-zinc-300 hover:text-white'
                           }`}
                         >
                           <div className="min-w-0 flex-1 flex items-center space-x-2.5">
@@ -1248,7 +1392,7 @@ export default function LyricsPanel({
                 {/* Tab: Playlist active queue queue list */}
                 {activeRightTab === 'queue' && (
                   <div className="w-full h-full overflow-y-auto p-4 space-y-2 scrollbar-thin">
-                    <div className="text-[10px] text-zinc-500 font-mono mb-2 uppercase px-1">即将播放顺序队列 (可直接点击切换):</div>
+                    <div className="text-[10px] text-zinc-500 mb-2 px-1 font-bold">即将播放顺序队列，可直接点击切换</div>
                     {queue.map((track, idx) => {
                       const isPlayingThis = track.id === currentTrack.id;
                       return (
@@ -1258,12 +1402,12 @@ export default function LyricsPanel({
                           className={`flex items-center justify-between p-2.5 rounded-xl transition-all cursor-pointer border ${
                             isPlayingThis 
                               ? 'bg-brand-color/10 border-brand-color/30 text-brand-color font-bold' 
-                              : 'bg-white/2 border-white/5 hover:border-white/10 text-zinc-300 hover:text-white'
+                              : 'bg-white/5 border-white/5 hover:border-white/10 text-zinc-300 hover:text-white'
                           }`}
                         >
                           <div className="min-w-0 flex-1 flex items-center space-x-3">
                             <span className="text-[10px] font-mono text-zinc-500 w-5">{String(idx + 1).padStart(2, '0')}</span>
-                            <img src={track.coverUrl} alt="" className="w-7 h-7 rounded object-cover shadow-sm" referrerPolicy="no-referrer" />
+                            <CoverArtwork src={track.coverUrl} title={track.title} subtitle={track.artist} kind={track.type === 'asmr' ? 'asmr' : 'music'} className="w-7 h-7 rounded object-cover shadow-sm" />
                             <span className="text-xs truncate">{track.title}</span>
                           </div>
                           <span className="text-[10px] font-mono text-zinc-400 ml-3">{Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}</span>
@@ -1276,12 +1420,12 @@ export default function LyricsPanel({
                 {/* Tab: Sensory Bookmarks & Highlights */}
                 {activeRightTab === 'bookmarks' && (
                   <div className="w-full h-full flex flex-col p-4 overflow-hidden">
-                    <div className="text-[10px] text-zinc-500 font-mono mb-2 uppercase px-1">
-                      当前音轨精彩片段与感官书签 (点击跳转):
+                    <div className="text-[10px] text-zinc-500 mb-2 px-1 font-bold">
+                      当前音轨标记片段，点击即可跳转
                     </div>
                     
                     {/* Add Bookmark form */}
-                    <div className="flex gap-2 mb-3 bg-white/2 p-2 rounded-xl border border-white/5 flex-shrink-0">
+                    <div className="flex gap-2 mb-3 bg-white/5 p-2 rounded-xl border border-white/5 flex-shrink-0">
                       <input
                         type="text"
                         value={bookmarkInput}
@@ -1306,8 +1450,8 @@ export default function LyricsPanel({
                       {bookmarks.length === 0 ? (
                         <div className="py-12 text-center text-zinc-500 text-xs flex flex-col items-center justify-center space-y-2">
                           <Bookmark className="w-6 h-6 text-zinc-600 animate-pulse" />
-                          <span>还没有为该音轨添加过任何感官标记</span>
-                          <p className="text-[10px] text-zinc-600">在您想记住的掏耳或呼吸瞬间点击上方“标记”按钮</p>
+                          <span>还没有为该音轨添加过任何片段标记</span>
+                          <p className="text-[10px] text-zinc-600">在想记住的片段点击上方“标记”按钮</p>
                         </div>
                       ) : (
                         bookmarks.map((b) => {
@@ -1319,7 +1463,7 @@ export default function LyricsPanel({
                               className={`group/b flex items-center justify-between p-2.5 rounded-xl transition-all cursor-pointer border ${
                                 isCurrentBookmarkActive
                                   ? 'bg-brand-color/15 border-brand-color text-brand-color font-bold shadow-sm'
-                                  : 'bg-white/2 border-white/5 hover:border-white/10 text-zinc-300 hover:text-white'
+                                  : 'bg-white/5 border-white/5 hover:border-white/10 text-zinc-300 hover:text-white'
                               }`}
                             >
                               <div className="min-w-0 flex-1 flex items-center space-x-2.5">
@@ -1350,9 +1494,9 @@ export default function LyricsPanel({
               <div className="p-3 border-t border-white/5 bg-zinc-950/40 flex items-center justify-between text-[10px] text-zinc-400 font-mono">
                 <span className="flex items-center space-x-1.5">
                   <span className={`inline-block w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-500'}`} />
-                  <span>本地无损解码中</span>
+                  <span>{playerSurfaceSummary.sourceHint}</span>
                 </span>
-                <span>无损 Hi-Res FLAC | Stereo | 24bit</span>
+                <span>{playerSurfaceSummary.footerStatus}</span>
               </div>
 
             </div>
@@ -1362,21 +1506,22 @@ export default function LyricsPanel({
       </div>
 
       {/* Shared Fixed Player Bottom Controls Bar (Fades out in ambient mode) */}
-      <div className={`relative z-10 w-full bg-zinc-950/70 border-t border-white/5 pt-6 pb-6 px-6 md:px-16 backdrop-blur-2xl flex flex-col space-y-4 transition-all duration-700 ${
+      <div id="mvp78-bottom-control-safe-wrap" className={`relative z-10 w-full bg-zinc-950/70 border-t border-white/5 pt-4 pb-4 sm:pt-6 sm:pb-6 px-4 sm:px-6 md:px-16 backdrop-blur-2xl flex flex-col space-y-4 transition-all duration-700 ${
         isUserInactive ? 'opacity-0 pointer-events-none translate-y-6' : 'opacity-100 translate-y-0'
       }`}>
         
         {/* Timeline Slider with beautiful edge-to-edge floating style */}
         <div className="flex items-center space-x-4 text-[10px] text-zinc-400 font-mono max-w-5xl mx-auto w-full">
-          <span className="w-10 text-right">{formatTime(progress)}</span>
+          <span className="w-10 text-right">{formatTime(currentDisplayProgress)}</span>
           
           <div className="flex-1 relative h-1 group cursor-pointer">
             <input 
               type="range" 
               min="0"
-              max={totalDuration || 100}
-              value={progress}
-              onChange={(e) => onSeek && onSeek(parseFloat(e.target.value))}
+              max={totalDuration || 0}
+              value={currentDisplayProgress}
+              disabled={totalDuration <= 0}
+              onChange={(e) => onSeek && onSeek(getSafeProgress(parseFloat(e.target.value), totalDuration))}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
             />
             {/* Timeline track background */}
@@ -1398,10 +1543,10 @@ export default function LyricsPanel({
         </div>
 
         {/* Playback Button Actions & Utilities Bar */}
-        <div className="flex items-center justify-between max-w-5xl mx-auto w-full gap-4">
+        <div className="flex flex-col items-center justify-between max-w-5xl mx-auto w-full gap-3 lg:flex-row lg:gap-4">
           
           {/* Left Side: Playback Controls & Mode */}
-          <div className="w-1/3 flex items-center justify-start space-x-3">
+          <div className="flex w-full flex-wrap items-center justify-center gap-2 lg:w-1/3 lg:justify-start lg:gap-3">
             {/* Favorite / Like Button */}
             <button
               onClick={() => toggleFavorite?.(currentTrack.id)}
@@ -1459,22 +1604,22 @@ export default function LyricsPanel({
           </div>
 
           {/* Middle Side: Current Track meta thumb */}
-          <div className="w-1/3 flex items-center justify-center text-center">
+          <div className="order-first flex w-full min-w-0 items-center justify-center text-center lg:order-none lg:w-1/3">
             {playerStyle === 'lyrics' ? (
-              <div className="flex items-center space-x-2 bg-white/5 p-1 px-3 rounded-full border border-white/5 max-w-[280px] truncate animate-fade-in">
-                <img src={currentTrack.coverUrl} alt="" className="w-5 h-5 rounded object-cover flex-shrink-0" referrerPolicy="no-referrer" />
+              <div id="mvp73-lyrics-mode-bottom-context" className="flex max-w-full min-w-0 items-center space-x-2 rounded-full border border-white/5 bg-white/5 p-1 px-3 animate-fade-in lg:max-w-[280px]" title="歌词专注模式强调当前歌词和字幕阅读">
+                <CoverArtwork src={currentTrack.coverUrl} title={currentTrack.title} subtitle={currentTrack.artist} kind={currentTrack.type === 'asmr' ? 'asmr' : 'music'} className="w-5 h-5 rounded object-cover flex-shrink-0" />
                 <span className="text-xs font-bold text-zinc-200 truncate">{currentTrack.title}</span>
-                <span className="text-[10px] text-zinc-400 flex-shrink-0">• {currentTrack.artist}</span>
+                <span className="hidden text-[10px] text-zinc-400 flex-shrink-0 sm:inline">• {currentTrack.artist}</span>
               </div>
             ) : (
               <div className="text-[11px] text-zinc-400 font-mono tracking-wide bg-white/5 px-3 py-1 rounded-full border border-white/5">
-                双轨立体声 Hi-Res 解码中
+                本地播放 / 字幕同步
               </div>
             )}
           </div>
 
           {/* Right Side: Volume & Queue shortcuts */}
-          <div className="w-1/3 flex items-center justify-end space-x-3">
+          <div className="flex w-full flex-wrap items-center justify-center gap-2 lg:w-1/3 lg:justify-end lg:gap-3">
             
             {/* Quick volume control icon and slider */}
             <div className="flex items-center space-x-2">
@@ -1485,29 +1630,40 @@ export default function LyricsPanel({
                 {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </button>
               
-              <div className="relative w-16 md:w-24 h-1 bg-white/10 rounded-full flex items-center group/vol cursor-pointer">
+              <div className="relative h-1 w-16 rounded-full bg-white/10 flex items-center group/vol cursor-pointer md:w-24">
                 <input
                   type="range"
                   min="0"
                   max="1"
                   step="0.01"
-                  value={isMuted ? 0 : volume}
+                  value={isMuted ? 0 : clamp(volume, 0, 1)}
                   onChange={(e) => onVolumeChange && onVolumeChange(parseFloat(e.target.value))}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 />
                 <div 
                   className="h-full bg-brand-color group-hover/vol:bg-brand-color rounded-full transition-all duration-75"
-                  style={{ width: `${(isMuted ? 0 : volume) * 100}%` }}
+                  style={{ width: `${safeVolumePercent}%` }}
                 />
                 <div 
                   className="absolute w-2.5 h-2.5 bg-white rounded-full -translate-x-1/2 opacity-0 group-hover/vol:opacity-100 transition-opacity pointer-events-none shadow"
-                  style={{ left: `${(isMuted ? 0 : volume) * 100}%` }}
+                  style={{ left: `${safeVolumePercent}%` }}
                 />
               </div>
             </div>
 
             {/* Divider */}
             <span className="text-white/10">|</span>
+
+            {/* End-of-play behavior */}
+            {toggleCompletionMode && (
+              <button
+                onClick={toggleCompletionMode}
+                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-emerald-300 transition-all cursor-pointer border border-white/5 flex items-center justify-center text-[11px] font-bold min-w-[104px] max-w-[128px] truncate"
+                title={playerSummary.completionModeDescription}
+              >
+                {playerSummary.completionModeLabel}
+              </button>
+            )}
 
             {/* Bedtime Dim Mode Button */}
             <button

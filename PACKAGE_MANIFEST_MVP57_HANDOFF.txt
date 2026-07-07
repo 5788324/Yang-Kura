@@ -1,0 +1,2 @@
+Legacy manifest anchor for MVP-57 verifier compatibility.
+Current package version: 0.97.0-mvp59

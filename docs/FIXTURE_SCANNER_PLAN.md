@@ -100,3 +100,22 @@ This still does not read the real filesystem or write `library-index.json`.
 ## MVP-05 expansion
 
 The fixture scanner now includes broader virtual cases: duplicate RJ, empty/cover-only folders, video ASMR, image/CG assets, multi-language subtitles, multi-disc/bonus folders, duplicate track paths, and missing-cover music. These are still virtual entries and are not discovered by scanning a real directory.
+
+## MVP-09 Update：parser-driven scanner
+
+MVP-09 后，fixture scanner 不再独立维护路径语义判断。
+
+集中到 `virtualLibraryPathParser` 的规则包括：
+
+```text
+extension -> mediaKind
+RJ extraction
+cover candidate
+subtitle candidate
+subtitle language
+disc / trackNo
+specialRole
+collectionType
+```
+
+`fixtureLibraryScanner` 只负责聚合 parser 输出并生成 fixture `LocalJsonIndex`。

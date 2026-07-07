@@ -77,8 +77,8 @@ export const plannedScannerContractService = {
         'MVP-07：把 scanner contract 展示到 Settings/Diagnostics，仍然只读。',
         'MVP-08：添加 virtual path parser 单元用例，不读真实盘。',
         'MVP-09：Electron contract 文档与 IPC stub，不实现真实扫描。',
-        'MVP-10：用户手动选择 tests/small_sample 目录 dry-run 扫描。',
-        'MVP-11：明确写入确认后再生成 library-index.json。',
+        'MVP-10：定义 planned dry-run scanner result contract，不读真实盘。',
+        'MVP-11：把 planned dry-run contract 接入 UI / IPC stub，仍不写 library-index.json。',
       ],
     };
   },

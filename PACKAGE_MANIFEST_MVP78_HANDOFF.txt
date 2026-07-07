@@ -1,0 +1,56 @@
+Yang-Kura MVP-78 handoff package manifest
+
+Version: 0.116.0-mvp78
+
+New:
+- src/services/playerPanelLayoutReviewService.ts
+- docs/CURRENT_ROADMAP_MVP78.md
+- docs/PLAYER_PANEL_LAYOUT_REVIEW_MVP78.md
+- docs/DEEPSEEK_REVIEW_RESULT_MVP77.md
+- scripts/verify-mvp78-player-layout-review.mjs
+- HANDOFF_MVP77_TO_MVP78.md
+- PACKAGE_MANIFEST_MVP78_HANDOFF.txt
+
+Updated:
+- src/components/LyricsPanel.tsx
+- src/components/DiagnosticsPage.tsx
+- src/services/index.ts
+- package.json
+- package-lock.json
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+- docs/PROJECT_STATE.md
+- docs/NEXT_CHAT_HANDOFF.md
+- docs/RUN_ME_FIRST.md
+- 00_NEW_CHAT_START_HERE.md
+- NEW_CHAT_PROMPT.md
+- NEW_CHAT_PROMPT_FULL.md
+- CODEX_MINIMAL_PROMPTS.md
+
+Anchors:
+- mvp78-player-panel-layout-review
+- mvp78-full-player-responsive-shell
+- mvp78-player-header-wrap-safe
+- mvp78-classic-visual-clamp
+- mvp78-vinyl-size-clamp
+- mvp78-lyrics-reading-width
+- mvp78-bottom-control-safe-wrap
+
+Safety:
+- No SQLite
+- No downloader
+- No ASMR.one / DLsite / NetEase metadata scraping
+- No mpv backend
+- No real media file delete/move/rename
+- No absolutePath exposure
+- No file:// exposure
+
+Chinese summary:
+- MVP-78：播放器大页 / 歌词页布局审查。
+- 布局锚点覆盖经典、黑胶、歌词和底部控制栏。
+- 不接 SQLite。
+- 不删除 / 移动 / 重命名真实媒体文件。
+- 不向 Renderer 暴露 absolutePath。
+- 不向 Renderer 暴露 file://。

@@ -1,0 +1,33 @@
+Yang-Kura MVP-75 source package
+Version: 0.113.0-mvp75
+
+Included focus:
+- Diagnostics history folded by phase
+- PlayerBar progress stability fix
+- MVP-75 verifier and docs
+
+Primary files:
+- src/services/diagnosticsHistoryFoldService.ts
+- src/components/DiagnosticsPage.tsx
+- src/components/PlayerBar.tsx
+- scripts/verify-mvp75-diagnostics-history-fold.mjs
+- docs/CURRENT_ROADMAP_MVP75.md
+- docs/DIAGNOSTICS_HISTORY_FOLD_MVP75.md
+- HANDOFF_MVP74_TO_MVP75.md
+
+Excluded from package:
+- node_modules
+- dist
+- dist-electron
+- logs
+- temporary archives
+
+Safety:
+- No SQLite
+- No downloader
+- No metadata scraping
+- No mpv
+- No delete/move/rename of real media files
+- No renderer absolutePath or file:// exposure
+
+Verification tokens: 0.113.0-mvp75 / MVP-75 / 诊断页 / 进度条 / 不接 SQLite / 不删除 / 移动 / 重命名 / absolutePath / file://

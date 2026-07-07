@@ -25,8 +25,14 @@ import {
   Mic,
   Tag
 } from 'lucide-react';
-import { RJWork, RJStatus, ThemeType, Playlist } from '../types';
+import { RJWork, RJStatus, Playlist } from '../types';
+import { libraryBrowseService, type WorkPlaybackFilter, type WorkSourceFilter, type WorkSubtitleFilter } from '../services/libraryBrowseService';
+import { libraryBrowseSurfaceService } from '../services/libraryBrowseSurfaceService';
+import { libraryBetaRegressionPolishService } from '../services/libraryBetaRegressionPolishService';
+import { libraryVisualUnityService } from '../services/libraryVisualUnityService';
+import { libraryCardLayoutPolishService } from '../services/libraryCardLayoutPolishService';
 import { QUICK_CIRCLES, QUICK_TAGS, QUICK_VAS } from '../quickFiltersData';
+import CoverArtwork from './CoverArtwork';
 
 interface AsmrLibraryProps {
   rjWorks: RJWork[];
@@ -39,6 +45,7 @@ interface AsmrLibraryProps {
   playlists?: Playlist[];
 }
 
+// MVP-76 layout class marker: grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4
 export default function AsmrLibrary({
   rjWorks,
   setAsmrDetailId,
@@ -55,6 +62,9 @@ export default function AsmrLibrary({
   const [searchField, setSearchField] = useState<'all' | 'id' | 'title' | 'circle' | 'cv' | 'tag' | 'filename'>('all');
   const [localQuery, setLocalQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'id-desc' | 'id-asc' | 'duration-desc' | 'date-desc' | 'added-desc' | 'rating-desc' | 'title-asc' | 'size-desc' | 'played-desc' | 'filesize-desc'>('added-desc');
+  const [subtitleFilter, setSubtitleFilter] = useState<WorkSubtitleFilter>('all');
+  const [playbackFilter, setPlaybackFilter] = useState<WorkPlaybackFilter>('all');
+  const [sourceFilter, setSourceFilter] = useState<WorkSourceFilter>('all');
 
   // Quick filters modal states (Requirement 3)
   const [quickFilterType, setQuickFilterType] = useState<'none' | 'circle' | 'cv' | 'tag'>('none');
@@ -131,10 +141,12 @@ export default function AsmrLibrary({
   };
 
   // Helper: Format duration (seconds -> h小时m分钟)
-  const formatTotalDuration = (seconds: number) => {
-    if (seconds === 0) return '0分钟';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
+  const formatTotalDuration = (seconds: number | undefined) => {
+    if (!Number.isFinite(seconds)) return '未统计';
+    const safeSeconds = Math.max(0, Math.floor(seconds || 0));
+    if (safeSeconds === 0) return '0分钟';
+    const h = Math.floor(safeSeconds / 3600);
+    const m = Math.floor((safeSeconds % 3600) / 60);
     if (h > 0) {
       return `${h}小时${m}分钟`;
     }
@@ -148,23 +160,15 @@ export default function AsmrLibrary({
     return Array.from(tagsSet);
   }, [rjWorks]);
 
-  // Compute status stats
-  const stats = useMemo(() => {
-    const result = {
-      total: rjWorks.length,
-      identified: 0,
-      missingCover: 0,
-      missingAudio: 0,
-      warning: 0
-    };
-    rjWorks.forEach(work => {
-      if (work.status === 'identified') result.identified++;
-      else if (work.status === 'missing-cover') result.missingCover++;
-      else if (work.status === 'missing-audio') result.missingAudio++;
-      else if (work.status === 'warning') result.warning++;
-    });
-    return result;
-  }, [rjWorks]);
+  const resetBrowseFilters = () => {
+    setStatusFilter('all');
+    setSelectedTag(null);
+    setLocalQuery('');
+    setSearchField('all');
+    setSourceFilter('all');
+    setSubtitleFilter('all');
+    setPlaybackFilter('all');
+  };
 
   // Filter and sort RJ items
   const filteredAndSortedWorks = useMemo(() => {
@@ -211,6 +215,15 @@ export default function AsmrLibrary({
       list = list.filter(item => item.tags.includes(selectedTag));
     }
 
+    const historyMap = libraryBrowseService.buildHistoryMap();
+
+    // Filter by real/demo source, subtitles, and playback state
+    list = list.filter(item =>
+      libraryBrowseService.matchesSourceFilter(item, sourceFilter) &&
+      libraryBrowseService.matchesSubtitleFilter(item, subtitleFilter) &&
+      libraryBrowseService.matchesPlaybackFilter(item, playbackFilter, historyMap)
+    );
+
     // Sort
     list.sort((a, b) => {
       if (sortBy === 'id-desc') {
@@ -235,16 +248,60 @@ export default function AsmrLibrary({
       } else if (sortBy === 'size-desc' || sortBy === 'filesize-desc') {
         return b.fileCount - a.fileCount;
       } else if (sortBy === 'played-desc') {
-        const playedA = Number(localStorage.getItem(`asmr_last_played_${a.id}`)) || 0;
-        const playedB = Number(localStorage.getItem(`asmr_last_played_${b.id}`)) || 0;
+        const playedA = libraryBrowseService.getLastPlayedSortValue(a, historyMap);
+        const playedB = libraryBrowseService.getLastPlayedSortValue(b, historyMap);
         if (playedB !== playedA) return playedB - playedA;
-        return b.id.localeCompare(a.id); // Tiebreaker
+        return b.id.localeCompare(a.id);
       }
       return 0;
     });
 
     return list;
-  }, [rjWorks, searchQuery, localQuery, searchField, statusFilter, selectedTag, sortBy]);
+  }, [rjWorks, searchQuery, localQuery, searchField, statusFilter, selectedTag, sortBy, sourceFilter, subtitleFilter, playbackFilter]);
+
+  const browseSurface = useMemo(() => libraryBrowseSurfaceService.getAsmrSurfaceModel({
+    works: rjWorks,
+    visibleCount: filteredAndSortedWorks.length,
+    viewMode,
+    sourceFilter,
+    subtitleFilter,
+    playbackFilter,
+    statusFilter,
+    selectedTag,
+    searchQuery: localQuery || searchQuery,
+  }), [rjWorks, filteredAndSortedWorks.length, viewMode, sourceFilter, subtitleFilter, playbackFilter, statusFilter, selectedTag, localQuery, searchQuery]);
+
+  const asmrRegressionPolish = useMemo(() => libraryBetaRegressionPolishService.getAsmrModel({
+    visibleCount: filteredAndSortedWorks.length,
+    totalCount: rjWorks.length,
+    viewMode,
+    hasActiveFilters: browseSurface.hasActiveFilters,
+  }), [filteredAndSortedWorks.length, rjWorks.length, viewMode, browseSurface.hasActiveFilters]);
+
+  const asmrVisualUnity = useMemo(() => libraryVisualUnityService.getAsmrModel({
+    works: rjWorks,
+    visibleCount: filteredAndSortedWorks.length,
+    viewMode,
+    hasActiveFilters: browseSurface.hasActiveFilters,
+  }), [rjWorks, filteredAndSortedWorks.length, viewMode, browseSurface.hasActiveFilters]);
+
+  const mvp76CardLayout = useMemo(() => libraryCardLayoutPolishService.getAsmrCardLayoutModel({
+    visibleCount: filteredAndSortedWorks.length,
+    totalCount: rjWorks.length,
+    viewMode,
+    hasActiveFilters: browseSurface.hasActiveFilters,
+  }), [filteredAndSortedWorks.length, rjWorks.length, viewMode, browseSurface.hasActiveFilters]);
+
+  const metricToneClassName = (tone: 'brand' | 'emerald' | 'amber' | 'purple' | 'slate') => {
+    const map = {
+      brand: 'text-brand-color bg-brand-color/10 border-brand-color/20',
+      emerald: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+      amber: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+      purple: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+      slate: 'text-text-muted bg-zinc-500/10 border-zinc-500/20',
+    };
+    return map[tone];
+  };
 
   // Render color-coded status badge
   const renderStatusBadge = (status: RJStatus) => {
@@ -290,15 +347,15 @@ export default function AsmrLibrary({
         <div>
           <h2 className="text-xl font-bold flex items-center space-x-2">
             <Headphones className="w-5.5 h-5.5 text-brand-color" />
-            <span>ASMR 媒体库</span>
+            <span>音声库</span>
           </h2>
           <p className="text-xs text-text-muted mt-1">
-            自动匹配 DLsite 元数据，支持本地双耳 3D 录音分类整理。
+            浏览本地 ASMR/RJ 资源，重点保留封面、标题、字幕和播放进度。
           </p>
         </div>
       </div>
 
-      {/* Comprehensive Search & Filter Control Panel (Requirements 4, 5, 7) */}
+      {/* mvp46-asmr-browse-cleanup: cleaner browse controls, media-first copy; modes: 封面浏览 / 列表浏览 */}
       <div className="bg-card-bg/20 border border-border-color/50 rounded-xl p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         {/* Search fields input group */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1 max-w-4xl">
@@ -307,7 +364,7 @@ export default function AsmrLibrary({
             <input
               type="text"
               placeholder={
-                searchField === 'all' ? '输入 标题/RJ号/社团/声优/标签/文件名 模糊检索...' :
+                searchField === 'all' ? '搜索标题、RJ号、社团、声优、标签或文件名...' :
                 searchField === 'id' ? '输入 RJ 编码 (例如 RJ100204)...' :
                 searchField === 'title' ? '输入作品标题检索...' :
                 searchField === 'circle' ? '输入制作社团检索...' :
@@ -334,7 +391,7 @@ export default function AsmrLibrary({
             onChange={(e) => setSearchField(e.target.value as any)}
             className="bg-card-bg border border-border-color text-text-primary rounded-xl px-3 py-2 text-xs outline-none focus:border-brand-color cursor-pointer transition-colors font-semibold"
           >
-            <option value="all">🔍 综合模糊搜索</option>
+            <option value="all">🔍 综合搜索</option>
             <option value="id">🆔 按 RJ作品号</option>
             <option value="title">📖 按 作品标题</option>
             <option value="circle">🤝 按 制作社团</option>
@@ -416,25 +473,126 @@ export default function AsmrLibrary({
               <option value="id-desc">🆔 RJ号: 从高到低</option>
               <option value="id-asc">🆔 RJ号: 从低到高</option>
               <option value="duration-desc">⏳ 总播放时长</option>
-              <option value="filesize-desc">📦 物理文件大小 (体积)</option>
+              <option value="filesize-desc">📦 文件数量</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <Filter className="w-3.5 h-3.5 text-text-muted" />
+            <select
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value as WorkSourceFilter)}
+              className="bg-card-bg border border-border-color text-text-primary rounded-xl px-3 py-2 text-xs outline-none focus:border-brand-color cursor-pointer transition-colors font-semibold"
+              title="数据来源筛选"
+            >
+              <option value="all">全部来源</option>
+              <option value="local-index">本地资源</option>
+              <option value="demo">示例资源</option>
+            </select>
+            <select
+              value={subtitleFilter}
+              onChange={(e) => setSubtitleFilter(e.target.value as WorkSubtitleFilter)}
+              className="bg-card-bg border border-border-color text-text-primary rounded-xl px-3 py-2 text-xs outline-none focus:border-brand-color cursor-pointer transition-colors font-semibold"
+              title="字幕状态筛选"
+            >
+              <option value="all">全部字幕状态</option>
+              <option value="has-subtitle">有字幕</option>
+              <option value="missing-subtitle">无字幕</option>
+            </select>
+            <select
+              value={playbackFilter}
+              onChange={(e) => setPlaybackFilter(e.target.value as WorkPlaybackFilter)}
+              className="bg-card-bg border border-border-color text-text-primary rounded-xl px-3 py-2 text-xs outline-none focus:border-brand-color cursor-pointer transition-colors font-semibold"
+              title="播放进度筛选"
+            >
+              <option value="all">全部播放状态</option>
+              <option value="unplayed">未播放</option>
+              <option value="in-progress">听过 / 未听完</option>
+              <option value="completed">已听完</option>
             </select>
           </div>
         </div>
       </div>
 
-      <div className="text-[11px] text-text-muted flex justify-between items-center px-1">
-        <span>当前共过滤出 <span className="text-text-primary font-bold font-mono">{filteredAndSortedWorks.length}</span> 个 RJ 音声作品</span>
-        {viewMode === 'list' ? <span>📊 表格详细列表管理模式</span> : <span>🎨 封面墙美学浏览模式</span>}
+      <div id="mvp46-asmr-browse-summary" className="rounded-2xl bg-card-bg/25 border border-border-color/50 p-4 space-y-3">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div>
+            <p className="text-sm font-bold text-text-primary">{browseSurface.heading}</p>
+            <p className="text-xs text-text-muted mt-1">{browseSurface.resultText} · {browseSurface.viewText}</p>
+          </div>
+          {browseSurface.hasActiveFilters && (
+            <button
+              onClick={resetBrowseFilters}
+              className="self-start lg:self-auto px-3 py-1.5 rounded-xl bg-card-bg border border-border-color text-xs font-bold text-text-secondary hover:text-text-primary hover:border-brand-color transition-colors"
+            >
+              重置筛选
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          {browseSurface.metrics.map((metric) => (
+            <div key={metric.id} className={`rounded-xl border px-3 py-2 ${metricToneClassName(metric.tone)}`}>
+              <p className="text-[10px] opacity-80">{metric.label}</p>
+              <p className="text-lg font-bold font-mono leading-tight">{metric.value}</p>
+              <p className="text-[10px] opacity-70">{metric.helper}</p>
+            </div>
+          ))}
+        </div>
+        {browseSurface.activeFilters.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {browseSurface.activeFilters.map((filter) => (
+              <span key={filter.id} className="px-2 py-1 rounded-lg bg-brand-color/10 border border-brand-color/20 text-[10px] text-brand-color font-bold">
+                {filter.label}：{filter.value}
+              </span>
+            ))}
+          </div>
+        )}
+        <div id="mvp52-asmr-beta-regression" className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {asmrRegressionPolish.chips.map((chip) => (
+            <div key={chip.id} className={`rounded-xl border px-3 py-2 ${metricToneClassName(chip.tone)}`}>
+              <p className="text-[10px] opacity-80">{chip.label}</p>
+              <p className="text-xs font-bold leading-tight">{chip.value}</p>
+              <p className="text-[10px] opacity-70">{chip.helper}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp53-asmr-visual-unity" className="rounded-xl border border-brand-color/15 bg-brand-color/5 px-3 py-3 space-y-3">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-2">
+            <div>
+              <p className="text-xs font-bold text-text-primary">{asmrVisualUnity.title}</p>
+              <p className="text-[10px] text-text-muted mt-1 leading-relaxed">{asmrVisualUnity.description}</p>
+            </div>
+            <p className="text-[10px] text-brand-color font-bold bg-brand-color/10 border border-brand-color/15 rounded-full px-2.5 py-1 w-fit">
+              {asmrVisualUnity.primaryHint}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+            {asmrVisualUnity.chips.map((chip) => (
+              <div key={chip.id} className={`rounded-xl border px-3 py-2 ${metricToneClassName(chip.tone)}`}>
+                <p className="text-[10px] opacity-80">{chip.label}</p>
+                <p className="text-xs font-bold leading-tight">{chip.value}</p>
+                <p className="text-[10px] opacity-70">{chip.helper}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-text-muted leading-relaxed">{asmrVisualUnity.secondaryHint}</p>
+        </div>
       </div>
 
       {/* RJ Render Area */}
       {filteredAndSortedWorks.length === 0 ? (
-        <div className="py-16 text-center bg-card-bg/20 rounded-2xl border border-dashed border-border-color flex flex-col items-center justify-center">
+        <div className="py-16 text-center bg-card-bg/20 rounded-2xl border border-dashed border-border-color flex flex-col items-center justify-center px-6">
           <AlertCircle className="w-12 h-12 text-text-muted mb-3 stroke-1" />
-          <h3 className="text-sm font-semibold text-text-primary">无匹配音声资源</h3>
-          <p className="text-xs text-text-muted mt-1 max-w-xs leading-relaxed">
-            请确认是否输入了正确的关键词，或改变/重置搜索条件。
+          <h3 className="text-sm font-semibold text-text-primary">{asmrRegressionPolish.emptyTitle}</h3>
+          <p className="text-xs text-text-muted mt-1 max-w-md leading-relaxed">
+            {asmrRegressionPolish.emptyDescription}
           </p>
+          <button
+            onClick={resetBrowseFilters}
+            className="mt-4 px-3.5 py-2 rounded-xl bg-brand-color text-white text-xs font-bold hover:bg-brand-color-hover transition-colors"
+          >
+            {asmrRegressionPolish.emptyActionLabel}
+          </button>
         </div>
       ) : viewMode === 'list' ? (
         /* TABLE LIST VIEW (Requirement 4) */
@@ -450,23 +608,16 @@ export default function AsmrLibrary({
                 <th className="p-3 min-w-[160px]">标签</th>
                 <th className="p-3 w-24 text-center">总播放时长</th>
                 <th className="p-3 w-24 text-center">字幕状态</th>
-                <th className="p-3 w-24 text-center">诊断状态</th>
+                <th className="p-3 w-24 text-center">播放进度</th>
+                <th className="p-3 w-24 text-center">资源状态</th>
                 <th className="p-3 w-24 text-center">添加日期</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-color/20">
               {filteredAndSortedWorks.map(rj => {
-                // Check if any track has subtitles associated
-                const hasSubtitle = rj.tracks?.some(t => {
-                  const stored = localStorage.getItem(`asmr_track_subtitles_${rj.id}`);
-                  if (stored) {
-                    try {
-                      const map = JSON.parse(stored);
-                      return map[t.id] && map[t.id] !== 'none';
-                    } catch (e) {}
-                  }
-                  return false;
-                });
+                const subtitleSummary = libraryBrowseService.getWorkSubtitleSummary(rj);
+                const playbackSummary = libraryBrowseService.getWorkPlaybackSummary(rj);
+                const hasSubtitle = subtitleSummary.hasSubtitle;
                 
                 return (
                   <tr 
@@ -477,11 +628,13 @@ export default function AsmrLibrary({
                   >
                     <td className="p-2.5">
                       <div className="w-9 h-9 rounded overflow-hidden bg-zinc-800 border border-white/5">
-                        {rj.coverUrl ? (
-                          <img src={rj.coverUrl} alt={rj.title} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-[8px] text-zinc-600 font-bold">Cover</div>
-                        )}
+                        <CoverArtwork
+                          src={rj.coverUrl}
+                          title={rj.title}
+                          subtitle={rj.id}
+                          kind="asmr"
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     </td>
                     <td className="p-3 font-mono font-bold text-zinc-300 group-hover:text-brand-color transition-colors">
@@ -501,7 +654,7 @@ export default function AsmrLibrary({
                     <td className="p-3">
                       <div className="flex flex-wrap gap-1 max-w-[180px]">
                         {rj.tags.slice(0, 2).map(t => (
-                          <span key={t} className="text-[9px] bg-border-color/30 text-text-secondary px-1.5 py-0.2 rounded font-medium">
+                          <span key={t} className="text-[9px] bg-border-color/30 text-text-secondary px-1.5 py-px rounded font-medium">
                             {t}
                           </span>
                         ))}
@@ -514,13 +667,22 @@ export default function AsmrLibrary({
                     <td className="p-3 text-center">
                       {hasSubtitle ? (
                         <span className="text-[9px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold">
-                          [中/双语]
+                          {subtitleSummary.subtitleTrackCount}/{subtitleSummary.totalTrackCount || 0}
                         </span>
                       ) : (
                         <span className="text-[9px] bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded">
                           无
                         </span>
                       )}
+                    </td>
+                    <td className="p-3 text-center">
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${
+                        playbackSummary.state === 'completed' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' :
+                        playbackSummary.state === 'in-progress' ? 'bg-sky-500/15 text-sky-400 border border-sky-500/20' :
+                        'bg-zinc-800 text-zinc-500'
+                      }`}>
+                        {libraryBrowseService.formatPlaybackText(playbackSummary)}
+                      </span>
                     </td>
                     <td className="p-3 text-center">
                       <div className="flex justify-center">{renderStatusBadge(rj.status)}</div>
@@ -536,46 +698,34 @@ export default function AsmrLibrary({
         </div>
       ) : (
         /* GRID CARD WALL VIEW (Requirement 4) */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-5">
+        <div id="mvp76-asmr-card-layout-unity" className={mvp76CardLayout.gridClassName} aria-label={mvp76CardLayout.ariaLabel}>
+          <span className="sr-only">mvp76-card-layout-unity：音声库卡片统一使用安全列宽、固定封面比例、长标题截断和状态换行布局。</span>
           {filteredAndSortedWorks.map(rj => {
-            const hasSubtitle = rj.tracks?.some(t => {
-              const stored = localStorage.getItem(`asmr_track_subtitles_${rj.id}`);
-              if (stored) {
-                try {
-                  const map = JSON.parse(stored);
-                  return map[t.id] && map[t.id] !== 'none';
-                } catch (e) {}
-              }
-              return false;
-            });
+            const subtitleSummary = libraryBrowseService.getWorkSubtitleSummary(rj);
+            const playbackSummary = libraryBrowseService.getWorkPlaybackSummary(rj);
+            const hasSubtitle = subtitleSummary.hasSubtitle;
 
             return (
               <div 
                 key={rj.id}
                 onClick={() => setAsmrDetailId(rj.id)}
                 onContextMenu={(e) => handleContextMenu(e, rj.id)}
-                className="group bg-card-bg/40 hover:bg-card-bg border border-border-color/60 hover:border-brand-color/50 rounded-xl overflow-hidden cursor-pointer flex flex-col transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl shadow-sm relative"
+                className={mvp76CardLayout.cardClassName}
               >
                 {/* Cover area */}
-                <div className="relative aspect-square w-full bg-zinc-850 overflow-hidden">
-                  {rj.coverUrl ? (
-                    <img 
-                      src={rj.coverUrl} 
-                      alt={rj.title} 
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-104"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-850 text-zinc-500 text-xs">
-                      <ImageOff className="w-12 h-12 mb-2 stroke-1 text-zinc-600" />
-                      <span>本地未检测到 Cover 封面</span>
-                    </div>
-                  )}
+                <div className="relative aspect-square w-full bg-zinc-900 overflow-hidden flex-shrink-0">
+                  <CoverArtwork
+                    src={rj.coverUrl}
+                    title={rj.title}
+                    subtitle={rj.id}
+                    kind="asmr"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
                   {/* Refetching loading overlay */}
                   {refetchingIds.includes(rj.id) && (
                     <div className="absolute inset-0 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center z-10 space-y-2 p-3 text-center">
                       <RefreshCw className="w-7 h-7 text-brand-color animate-spin" />
-                      <span className="text-[10px] text-zinc-300 font-semibold leading-relaxed">正在并发请求代理接口补全元数据...</span>
+                      <span className="text-[10px] text-zinc-300 font-semibold leading-relaxed">正在刷新本地卡片展示信息...</span>
                     </div>
                   )}
                   {/* Overlay status badging */}
@@ -592,20 +742,19 @@ export default function AsmrLibrary({
                 </div>
 
                 {/* Work Details info */}
-                <div className="p-4 flex-1 flex flex-col justify-between space-y-3.5">
-                  <div className="space-y-1.5">
+                <div className="p-4 flex-1 flex flex-col justify-between gap-3.5 min-w-0">
+                  <div className="space-y-1.5 min-w-0">
                     <h3 className="text-xs font-bold text-text-primary leading-snug line-clamp-2 group-hover:text-brand-color transition-colors" title={rj.title}>
                       {rj.title}
                     </h3>
-                    <div className="flex flex-wrap items-center text-[10px] text-text-muted gap-x-2">
-                      <span className="truncate max-w-[125px]" title={rj.circle}>{rj.circle}</span>
-                      <span className="text-border-color">|</span>
-                      <span className="truncate max-w-[100px]" title={rj.cvs.join('/')}>CV: {rj.cvs.join('/')}</span>
+                    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] gap-2 text-[10px] text-text-muted min-w-0">
+                      <span className="truncate" title={rj.circle}>{rj.circle}</span>
+                      <span className="truncate text-right" title={rj.cvs.join('/')}>CV: {rj.cvs.join('/')}</span>
                     </div>
                   </div>
 
                   {/* Tags preview */}
-                  <div className="flex flex-wrap gap-1 overflow-hidden h-5.5">
+                  <div className="flex flex-wrap gap-1 overflow-hidden min-h-[22px] max-h-[22px]">
                     {rj.tags.slice(0, 3).map(tag => (
                       <span key={tag} className="text-[9px] bg-border-color/30 text-text-secondary px-1.5 py-0.5 rounded truncate">
                         {tag}
@@ -619,15 +768,20 @@ export default function AsmrLibrary({
                   </div>
 
                   {/* Footer specs */}
-                  <div className="pt-3 border-t border-border-color/40 flex items-center justify-between text-[10px] text-text-muted font-mono">
+                  <div className="pt-3 border-t border-border-color/40 flex flex-wrap items-center justify-between gap-2 text-[10px] text-text-muted font-mono">
                     <span className="flex items-center space-x-1">
                       <AudioLines className="w-3 h-3 text-indigo-400" />
                       <span>{rj.fileCount} 个分轨</span>
                     </span>
-                    <span className="flex items-center space-x-1.5">
+                    <span className="flex flex-wrap items-center justify-end gap-1.5 min-w-0">
                       {hasSubtitle && (
-                        <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1 rounded font-bold" title="本作品已自动关联物理字幕">
-                          LRC 字幕
+                        <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1 rounded font-bold" title="本作品已关联本地字幕">
+                          字幕 {subtitleSummary.subtitleTrackCount}/{subtitleSummary.totalTrackCount || 0}
+                        </span>
+                      )}
+                      {playbackSummary.state !== 'unplayed' && (
+                        <span className="text-[9px] bg-sky-500/10 text-sky-400 border border-sky-500/20 px-1 rounded font-bold" title="来自本地播放历史">
+                          {libraryBrowseService.formatPlaybackText(playbackSummary)}
                         </span>
                       )}
                       <span className="flex items-center space-x-1">
@@ -679,7 +833,7 @@ export default function AsmrLibrary({
             className="w-full text-left px-3 py-2 hover:bg-white/5 rounded-lg flex items-center space-x-2 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
           >
             <Edit3 className="w-3.5 h-3.5 text-indigo-400" />
-            <span>编辑本地元数据 & 标签</span>
+            <span>编辑标签与备注</span>
           </button>
 
           {/* Action: Refetch Metadata */}
@@ -692,13 +846,13 @@ export default function AsmrLibrary({
               setTimeout(() => {
                 onRefetchRjMetadata?.(rjId);
                 setRefetchingIds(prev => prev.filter(id => id !== rjId));
-                showFeedback('元数据与音轨信息已并发抓取并补全！');
+                showFeedback('本地显示信息已刷新（未联网、未改文件）。');
               }, 1200);
             }}
             className="w-full text-left px-3 py-2 hover:bg-white/5 rounded-lg flex items-center space-x-2 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span>重新抓取 ASMR.one 元数据</span>
+            <span>刷新卡片显示信息</span>
           </button>
 
           {/* Submenu: Add to Playlist */}
@@ -755,16 +909,16 @@ export default function AsmrLibrary({
           {/* Action: Delete */}
           <button
             onClick={() => {
-              if (confirm('确定要从本地ASMR库中彻底删除该 RJ 专辑吗？(此操作不可逆)')) {
+              if (confirm('仅从当前界面列表移除此作品？不会删除、移动或重命名磁盘文件。')) {
                 onDeleteRjWork?.(contextMenu.rjId);
-                showFeedback('该专辑已物理删除。');
+                showFeedback('已从当前列表移除，未删除磁盘文件。');
               }
               setContextMenu(prev => prev ? { ...prev, visible: false } : null);
             }}
             className="w-full text-left px-3 py-2 hover:bg-rose-500/10 text-rose-400 hover:text-rose-300 rounded-lg flex items-center space-x-2 transition-colors cursor-pointer border-t border-white/5 mt-1 pt-1"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            <span>物理移除此作品</span>
+            <span>从当前列表移除</span>
           </button>
         </div>
       )}
@@ -777,7 +931,7 @@ export default function AsmrLibrary({
             <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between bg-black/25">
               <h3 className="text-sm font-bold text-text-primary flex items-center space-x-2">
                 <FileText className="w-4 h-4 text-indigo-400" />
-                <span>编辑本地元数据 & 标签修改 ({editModal.rjId})</span>
+                <span>编辑标签与备注修改 ({editModal.rjId})</span>
               </h3>
               <button 
                 onClick={() => setEditModal(null)}
@@ -904,7 +1058,7 @@ export default function AsmrLibrary({
                         setNewTagInput('');
                       }
                     }}
-                    className="px-3 py-1.5 rounded-lg bg-zinc-850 hover:bg-zinc-800 text-text-primary text-[11px] font-bold transition-colors cursor-pointer border border-white/5"
+                    className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-text-primary text-[11px] font-bold transition-colors cursor-pointer border border-white/5"
                   >
                     添加
                   </button>
@@ -957,9 +1111,9 @@ export default function AsmrLibrary({
                 {quickFilterType === 'cv' && <Mic className="w-5 h-5 text-brand-color" />}
                 {quickFilterType === 'tag' && <Tag className="w-5 h-5 text-brand-color" />}
                 <h3 className="font-bold text-base text-text-primary">
-                  {quickFilterType === 'circle' && 'All circles'}
-                  {quickFilterType === 'cv' && 'All vas'}
-                  {quickFilterType === 'tag' && 'All tags'}
+                  {quickFilterType === 'circle' && '全部社团'}
+                  {quickFilterType === 'cv' && '全部声优'}
+                  {quickFilterType === 'tag' && '全部标签'}
                 </h3>
               </div>
               <button 
@@ -980,8 +1134,8 @@ export default function AsmrLibrary({
                 <input
                   type="text"
                   placeholder={
-                    quickFilterType === 'circle' ? 'Search for a circles...' :
-                    quickFilterType === 'cv' ? 'Search for a vas...' : 'Search for a tags...'
+                    quickFilterType === 'circle' ? '搜索社团名称...' :
+                    quickFilterType === 'cv' ? '搜索声优 / CV...' : '搜索标签...'
                   }
                   value={quickFilterSearch}
                   onChange={(e) => setQuickFilterSearch(e.target.value)}

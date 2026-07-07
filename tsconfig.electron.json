@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist-electron",
+    "rootDir": "electron",
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "isolatedModules": false,
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "electron/**/*.ts",
+    "src/types/electron-runtime-shim.d.ts"
+  ]
+}

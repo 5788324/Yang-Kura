@@ -1,0 +1,47 @@
+Yang-Kura MVP-71 handoff manifest
+
+Version:
+0.109.0-mvp71
+
+Core source baseline:
+yk_mvp70_git_ready clean source upgraded to MVP-71
+
+Added:
+src/services/userFacingSimplificationService.ts
+docs/UI_SIMPLIFICATION_MVP71.md
+scripts/verify-mvp71-ui-simplification.mjs
+HANDOFF_MVP70_TO_MVP71.md
+PACKAGE_MANIFEST_MVP71_HANDOFF.txt
+
+Modified:
+package.json
+package-lock.json
+src/components/Dashboard.tsx
+src/components/SettingsPage.tsx
+src/components/DiagnosticsPage.tsx
+src/services/index.ts
+README.md
+PROJECT_STATE.md
+NEXT_CHAT_HANDOFF.md
+RUN_ME_FIRST.md
+docs/PROJECT_STATE.md
+docs/NEXT_CHAT_HANDOFF.md
+docs/RUN_ME_FIRST.md
+
+Safety boundaries:
+No SQLite
+No downloader
+No metadata scraping
+No mpv backend
+No real media file delete/move/rename
+No Renderer absolutePath exposure
+No Renderer file:// exposure
+No scan/index/player engine changes
+
+Verifier:
+npm run verify:mvp71-ui-simplification
+
+Chinese safety boundary summary:
+不接 SQLite
+不删除 / 移动 / 重命名真实媒体文件
+不向 Renderer 暴露 absolutePath 或 file://
