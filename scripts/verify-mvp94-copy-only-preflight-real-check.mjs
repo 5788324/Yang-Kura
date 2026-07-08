@@ -12,8 +12,8 @@ const assert = (condition, message) => { if (!condition) fail(message); };
 
 const pkg = JSON.parse(read('package.json'));
 const lock = JSON.parse(read('package-lock.json'));
-assert(['0.132.0-mvp94', '0.133.0-mvp95'].includes(pkg.version), `package version must be 0.132.0-mvp94 or compatible MVP95, got ${pkg.version}`);
-assert(['0.132.0-mvp94', '0.133.0-mvp95'].includes(lock.version) || ['0.132.0-mvp94', '0.133.0-mvp95'].includes(lock.packages?.['']?.version), 'package-lock root version must be MVP94-compatible');
+assert(['0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96'].includes(pkg.version), `package version must be 0.132.0-mvp94 or compatible MVP95, got ${pkg.version}`);
+assert(['0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96'].includes(lock.version) || ['0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96'].includes(lock.packages?.['']?.version), 'package-lock root version must be MVP94-compatible');
 assert(pkg.scripts['verify:mvp94-copy-only-preflight-real-check'], 'package.json must expose verify:mvp94-copy-only-preflight-real-check');
 assert(pkg.scripts['verify:all'].includes('verify:mvp94-copy-only-preflight-real-check'), 'verify:all must include MVP94 verifier');
 

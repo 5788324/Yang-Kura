@@ -1,0 +1,19 @@
+Yang-Kura MVP96 handoff package
+
+Version: 0.134.0-mvp96
+Theme: copy-only OperationLog minimal persistence
+
+New files:
+- src/services/copyOnlyOperationLogService.ts
+- docs/CURRENT_ROADMAP_MVP96.md
+- docs/COPY_ONLY_OPERATION_LOG_MVP96.md
+- docs/CODEX_OPERATION_LOG_VALIDATION_MVP96.md
+- scripts/verify-mvp96-copy-only-operation-log.mjs
+- HANDOFF_MVP95_TO_MVP96.md
+- PACKAGE_MANIFEST_MVP96_HANDOFF.txt
+
+Safety:
+- no library-index.json mutation
+- no SQLite
+- no move/delete/rename
+- no absolutePath/file:// to renderer

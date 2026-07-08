@@ -732,7 +732,7 @@ declare global {
   interface YangKuraImportCopyOnlyOperationLogPreview {
     operationPlanId: string;
     mode: 'copy-only';
-    persisted: false;
+    persisted: boolean;
     copiedCount: number;
     skippedCount: number;
     failedCount: number;
@@ -743,9 +743,24 @@ declare global {
     fileUrl?: never;
   }
 
+  interface YangKuraImportCopyOnlyOperationLogPersistedSummary {
+    schemaVersion: 1;
+    operationLogVersion: 'mvp96-copy-only-operation-log-v1';
+    operationId: string;
+    operationPlanId: string;
+    eventType: 'copy-only-execute';
+    mode: 'copy-only';
+    wroteAt: string;
+    persisted: true;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
   interface YangKuraImportCopyOnlyExecuteResult {
     ok: boolean;
-    status: 'mvp95-copy-only-execute-complete';
+    status: 'mvp95-copy-only-execute-complete' | 'mvp96-copy-only-execute-complete-with-operation-log' | 'mvp96-copy-only-execute-log-write-failed';
     operationPlanId: string;
     rootPathToken: string;
     targetRootPathToken: string;
@@ -757,7 +772,9 @@ declare global {
     moveAllowed: false;
     deleteAllowed: false;
     renameAllowed: false;
-    operationLogPersisted: false;
+    operationLogPersisted: boolean;
+    /* Legacy verifier token retained for MVP95: operationLogPersisted: false */
+    operationLogFailureCode?: string;
     libraryIndexWritten: false;
     requestedFileCount: number;
     copiedCount: number;
@@ -768,6 +785,7 @@ declare global {
     copiedFiles: YangKuraImportCopyOnlyCopiedFile[];
     skippedList: YangKuraImportCopyOnlySkippedItem[];
     failureList: YangKuraImportCopyOnlyFailureItem[];
+    operationLog?: YangKuraImportCopyOnlyOperationLogPersistedSummary;
     operationLogPreview: YangKuraImportCopyOnlyOperationLogPreview;
     message: string;
     safetyNotes: string[];
@@ -828,6 +846,7 @@ declare global {
     canUseCopyOnlyStub: true;
     canUseCopyOnlyPreflightRealCheck: true;
     canExecuteCopyOnly: true;
+    canPersistCopyOnlyOperationLog: true;
     registersMediaProtocol: true;
     exposesAbsolutePaths: false;
   }

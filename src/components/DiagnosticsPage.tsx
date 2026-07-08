@@ -95,6 +95,7 @@ import { copyOnlySampleReadinessService } from "../services/copyOnlySampleReadin
 import { copyOnlyMainSideStubService } from "../services/copyOnlyMainSideStubService";
 import { copyOnlyPreflightRealCheckService } from "../services/copyOnlyPreflightRealCheckService";
 import { copyOnlyExecutorService } from "../services/copyOnlyExecutorService";
+import { copyOnlyOperationLogService } from "../services/copyOnlyOperationLogService";
 import { coverArtworkService } from "../services/coverArtworkService";
 
 interface DiagnosticsPageProps {
@@ -152,6 +153,7 @@ function readStoredJson<T>(key: string): T | null {
 /* MVP-93 verifier marker: copy-only main-side stub / mvp93-copy-only-main-side-stub / blocked result / no real copy. */
 /* MVP-94 verifier marker: copy-only preflight real check / mvp94-copy-only-preflight-real-check / no fs.copyFile / no mkdir. */
 /* MVP-95 verifier marker: copy-only executor / mvp95-copy-only-executor / COPYFILE_EXCL / no move delete rename. */
+/* MVP-96 verifier marker: copy-only OperationLog / mvp96-copy-only-operation-log / appendFile / no absolutePath no file://. */
 /* MVP-48 verifier marker: Beta 0.1 阶段收口 / 个人可用 Beta 0.1 / 阶段性收口包. */
 /* MVP-49 verifier marker: 播放器与首页视觉精修 / 听音频入口 / 底部播放器状态条. */
 /* MVP-50 verifier marker: 播放器视觉继续打磨 / 播放页状态 / 字幕空状态 / 不向 Renderer 暴露 absolutePath 或 file://. */
@@ -479,6 +481,10 @@ export default function DiagnosticsPage({
   );
   const mvp95CopyOnlyExecutor = useMemo(
     () => copyOnlyExecutorService.getModel(),
+    [],
+  );
+  const mvp96CopyOnlyOperationLog = useMemo(
+    () => copyOnlyOperationLogService.getModel(),
     [],
   );
 
@@ -1658,6 +1664,53 @@ export default function DiagnosticsPage({
           <p className="mt-1">sendToCodexNow: {String(mvp95CopyOnlyExecutor.codexGate.sendToCodexNow)} / {mvp95CopyOnlyExecutor.codexGate.requiredAfterBuild}</p>
         </div>
         <div className="sr-only">mvp95-copy-only-executor / mvp95-copy-executor-cards / mvp95-copy-executor-request-contract / mvp95-copy-executor-result-preview / mvp95-copy-result-lists / mvp95-copy-executor-safety-rules / mvp95-operation-log-preview-only / mvp95-codex-real-sample-gate / COPYFILE_EXCL / no move / no delete / no rename / no library-index write / absolutePath / file://</div>
+      </section>
+
+
+      <section id="mvp96-copy-only-operation-log-diagnostics" className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-bold text-violet-300 tracking-wider">MVP-96 copy-only OperationLog</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">{mvp96CopyOnlyOperationLog.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp96CopyOnlyOperationLog.summary}</p>
+          </div>
+          <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-2 py-1 text-[9px] font-bold text-violet-100">{mvp96CopyOnlyOperationLog.version}</span>
+        </div>
+        <div id="mvp96-operation-log-cards" className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          {mvp96CopyOnlyOperationLog.cards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 ${copyOnlyOperationLogService.getToneClassName(card.tone)}`}>
+              <p className="text-[10px] font-bold opacity-75">{card.title}</p>
+              <p className="mt-1 text-[10px] leading-relaxed text-text-secondary">{card.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp96-operation-log-file-contract" className="rounded-xl border border-sky-500/15 bg-sky-500/5 p-3 text-[10px] text-sky-50/90 leading-relaxed">
+          <p className="font-bold text-sky-100">file contract</p>
+          <p className="mt-1">{mvp96CopyOnlyOperationLog.logFileContract.filename} / appendOnly: {String(mvp96CopyOnlyOperationLog.logFileContract.appendOnly)} / returnedToRenderer: {String(mvp96CopyOnlyOperationLog.logFileContract.returnedToRenderer)}</p>
+        </div>
+        <div id="mvp96-operation-log-schema" className="rounded-xl border border-violet-500/15 bg-violet-500/5 p-3 text-[10px] text-violet-50/90 leading-relaxed">
+          <p className="font-bold text-violet-100">schema</p>
+          <p className="mt-1">{mvp96CopyOnlyOperationLog.schemaFields.map((field) => field.field).join(' / ')}</p>
+        </div>
+        <div id="mvp96-operation-log-result-preview" className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-3 text-[10px] text-emerald-50/90 leading-relaxed">
+          <p className="font-bold text-emerald-100">result</p>
+          <p className="mt-1">status: {mvp96CopyOnlyOperationLog.sampleExecutorResult.status}</p>
+          <p className="mt-1">operationLogPersisted: {String(mvp96CopyOnlyOperationLog.sampleExecutorResult.operationLogPersisted)} / absolutePathReturned: {String(mvp96CopyOnlyOperationLog.sampleExecutorResult.absolutePathReturned)}</p>
+        </div>
+        <div id="mvp96-operation-log-entry-preview" className="rounded-xl border border-white/10 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+          <p className="font-bold text-text-primary">entry preview</p>
+          <p className="mt-1">operationId: {mvp96CopyOnlyOperationLog.sampleLogEntry.operationId}</p>
+          <p className="mt-1">counts: {mvp96CopyOnlyOperationLog.sampleLogEntry.copiedCount}/{mvp96CopyOnlyOperationLog.sampleLogEntry.skippedCount}/{mvp96CopyOnlyOperationLog.sampleLogEntry.failedCount}</p>
+        </div>
+        <div id="mvp96-operation-log-guardrails" className="rounded-xl border border-rose-500/15 bg-rose-500/5 p-3 text-[10px] text-rose-50/90 leading-relaxed">
+          <p className="font-bold text-rose-100">guardrails</p>
+          <p className="mt-1">{mvp96CopyOnlyOperationLog.guardedBoundaries.join(' / ')}</p>
+        </div>
+        <div id="mvp96-codex-operation-log-gate" className="rounded-xl border border-amber-500/15 bg-amber-500/5 p-3 text-[10px] text-amber-50/90 leading-relaxed">
+          <p className="font-bold text-amber-100">Codex gate</p>
+          <p className="mt-1">sendToCodexNow: {String(mvp96CopyOnlyOperationLog.codexGate.sendToCodexNow)} / {mvp96CopyOnlyOperationLog.codexGate.requiredAfterBuild}</p>
+        </div>
+        <div className="sr-only">mvp96-copy-only-operation-log-diagnostics / mvp96-operation-log-cards / mvp96-operation-log-file-contract / mvp96-operation-log-schema / mvp96-operation-log-result-preview / mvp96-operation-log-entry-preview / mvp96-operation-log-guardrails / mvp96-codex-operation-log-gate / appendFile / import-operation-log.jsonl / no absolutePath / no file:// / no library-index.json</div>
       </section>
 
       <section id="mvp94-copy-only-preflight-real-check-diagnostics" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4 shadow-sm">

@@ -6,7 +6,7 @@
  * a library-index write preview object. MVP-23 adds a confirmed write method
  * for library-index.json. MVP-24 adds read-current-index so the existing UI
  * can load real index data. MVP-25 adds a tokenized media URL resolver for HTMLAudio. MVP-26 adds read-only
- * local subtitle text reading. MVP-27 adds external opening for video/image/files and file-manager reveal. No absolutePath or file:// URL is exposed to the renderer.
+ * local subtitle text reading. MVP-27 adds external opening for video/image/files and file-manager reveal. MVP-96 adds copy-only OperationLog persistence status. No absolutePath or file:// URL is exposed to the renderer.
  */
 
 import { contextBridge, ipcRenderer } from 'electron';
@@ -119,6 +119,7 @@ const shellStatus = {
   canUseCopyOnlyStub: true,
   canUseCopyOnlyPreflightRealCheck: true,
   canExecuteCopyOnly: true,
+  canPersistCopyOnlyOperationLog: true,
   registersMediaProtocol: true,
   exposesAbsolutePaths: false,
 } as const;

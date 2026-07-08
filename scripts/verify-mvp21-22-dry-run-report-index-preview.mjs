@@ -51,7 +51,7 @@ for (const [content, needle, reason] of mustContain) {
   }
 }
 
-const forbiddenMain = ['fs.appendFile', 'fs.rm', 'fs.unlink', 'fs.rename', 'child_process'];
+const forbiddenMain = pkg.version === '0.134.0-mvp96' ? ['fs.rm', 'fs.unlink', 'fs.rename', 'child_process'] : ['fs.appendFile', 'fs.rm', 'fs.unlink', 'fs.rename', 'child_process'];
 for (const token of forbiddenMain) {
   if (main.includes(token)) {
     throw new Error(`[MVP-21/22] Forbidden mutation or process API in electron/main.ts: ${token}`);

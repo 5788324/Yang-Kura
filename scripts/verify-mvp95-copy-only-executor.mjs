@@ -12,8 +12,8 @@ const assert = (condition, message) => { if (!condition) fail(message); };
 
 const pkg = JSON.parse(read('package.json'));
 const lock = JSON.parse(read('package-lock.json'));
-assert(pkg.version === '0.133.0-mvp95', `package version must be 0.133.0-mvp95, got ${pkg.version}`);
-assert(lock.version === '0.133.0-mvp95' || lock.packages?.['']?.version === '0.133.0-mvp95', 'package-lock root version must be 0.133.0-mvp95');
+assert(['0.133.0-mvp95', '0.134.0-mvp96'].includes(pkg.version), `package version must be 0.133.0-mvp95 or compatible MVP96, got ${pkg.version}`);
+assert(['0.133.0-mvp95', '0.134.0-mvp96'].includes(lock.version) || ['0.133.0-mvp95', '0.134.0-mvp96'].includes(lock.packages?.['']?.version), 'package-lock root version must be MVP95-compatible');
 assert(pkg.scripts['verify:mvp95-copy-only-executor'] === 'node scripts/verify-mvp95-copy-only-executor.mjs', 'package.json must expose verify:mvp95-copy-only-executor');
 assert(pkg.scripts['verify:all'].includes('verify:mvp95-copy-only-executor'), 'verify:all must include MVP95 verifier');
 

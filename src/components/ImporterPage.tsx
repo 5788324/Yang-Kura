@@ -24,6 +24,7 @@ import { copyOnlySampleReadinessService } from '../services/copyOnlySampleReadin
 import { copyOnlyMainSideStubService } from '../services/copyOnlyMainSideStubService';
 import { copyOnlyPreflightRealCheckService } from '../services/copyOnlyPreflightRealCheckService';
 import { copyOnlyExecutorService } from '../services/copyOnlyExecutorService';
+import { copyOnlyOperationLogService } from '../services/copyOnlyOperationLogService';
 
 function getFileIcon(kind: string) {
   switch (kind) {
@@ -49,6 +50,7 @@ function getFileIcon(kind: string) {
 /* MVP-93 verifier marker: 0.131.0-mvp93 / mvp93-copy-only-main-side-stub / blocked result / no real copy. */
 /* MVP-94 verifier marker: 0.132.0-mvp94 / mvp94-copy-only-preflight-real-check / preflight only / no fs.copyFile. */
 /* MVP-95 verifier marker: 0.133.0-mvp95 / mvp95-copy-only-executor / COPYFILE_EXCL / no move delete rename. */
+/* MVP-96 verifier marker: 0.134.0-mvp96 / mvp96-copy-only-operation-log / appendFile / no absolutePath no file://. */
 export default function ImporterPage() {
   const model = useMemo(() => importerPreviewShellService.getModel(), []);
   const rjDetection = useMemo(() => rjImportReadOnlyDetectionService.getModel(), []);
@@ -60,6 +62,7 @@ export default function ImporterPage() {
   const copyOnlyMainSideStub = useMemo(() => copyOnlyMainSideStubService.getModel(), []);
   const copyOnlyPreflightRealCheck = useMemo(() => copyOnlyPreflightRealCheckService.getModel(), []);
   const copyOnlyExecutor = useMemo(() => copyOnlyExecutorService.getModel(), []);
+  const copyOnlyOperationLog = useMemo(() => copyOnlyOperationLogService.getModel(), []);
   const task = model.mockTask;
   const rjTask = rjDetection.sampleResult.task;
   const musicTask = musicDetection.sampleResult.task;
@@ -70,6 +73,7 @@ export default function ImporterPage() {
   const primaryCopyStubPreview = copyOnlyMainSideStub.preflightPreview;
   const primaryCopyPreflightRealCheck = copyOnlyPreflightRealCheck.sampleResult;
   const primaryCopyExecutorResult = copyOnlyExecutor.resultPreview;
+  const primaryCopyOperationLogResult = copyOnlyOperationLog.sampleExecutorResult;
 
   return (
     <div id="mvp86-importer-ui-shell" className="space-y-6 pb-24 animate-fade-in">
@@ -714,6 +718,63 @@ export default function ImporterPage() {
           UI 按钮仍禁用；真实 copy 只开放给 main-side 受控 IPC + Codex 样本验收
         </button>
         <div className="sr-only">mvp95-copy-only-executor / mvp95-copy-executor-cards / mvp95-copy-executor-request-contract / mvp95-copy-executor-result-preview / mvp95-copy-result-lists / mvp95-copy-executor-safety-rules / mvp95-operation-log-preview-only / mvp95-codex-real-sample-gate / COPYFILE_EXCL / no move / no delete / no rename / no library-index write / absolutePath / file://</div>
+      </section>
+
+
+      <section id="mvp96-copy-only-operation-log" className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-bold text-violet-300 tracking-wider">MVP-96 · OperationLog 最小落盘</p>
+            <h3 className="mt-1 text-sm font-black text-text-primary">{copyOnlyOperationLog.title}</h3>
+            <p className="mt-2 text-xs leading-relaxed text-text-secondary">{copyOnlyOperationLog.summary}</p>
+          </div>
+          <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-2 py-1 text-[10px] font-bold text-violet-100">{copyOnlyOperationLog.version}</span>
+        </div>
+        <div id="mvp96-operation-log-cards" className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          {copyOnlyOperationLog.cards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 ${copyOnlyOperationLogService.getToneClassName(card.tone)}`}>
+              <p className="text-[10px] font-bold opacity-75">{card.title}</p>
+              <p className="mt-1 text-[10px] leading-relaxed text-text-secondary">{card.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp96-operation-log-file-contract" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-4 text-[10px] leading-relaxed text-sky-50/90">
+          <p className="font-bold text-sky-100">日志文件合同</p>
+          <p className="mt-1">filename: {copyOnlyOperationLog.logFileContract.filename} / appendOnly: {String(copyOnlyOperationLog.logFileContract.appendOnly)}</p>
+          <p className="mt-1">returnedToRenderer: {String(copyOnlyOperationLog.logFileContract.returnedToRenderer)} / absolutePathReturned: {String(copyOnlyOperationLog.logFileContract.absolutePathReturned)} / fileUrlReturned: {String(copyOnlyOperationLog.logFileContract.fileUrlReturned)}</p>
+        </div>
+        <div id="mvp96-operation-log-schema" className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {copyOnlyOperationLog.schemaFields.map((field) => (
+            <div key={field.id} className="rounded-xl border border-white/10 bg-black/10 p-3 text-[10px] leading-relaxed">
+              <p className="font-bold text-text-primary">{field.field}</p>
+              <p className="mt-1 text-text-muted">{field.rule}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp96-operation-log-result-preview" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-[10px] leading-relaxed text-emerald-50/90">
+          <p className="font-bold text-emerald-100">executor result + persisted log</p>
+          <p className="mt-1">status: {primaryCopyOperationLogResult.status}</p>
+          <p className="mt-1">operationLogPersisted: {String(primaryCopyOperationLogResult.operationLogPersisted)} / libraryIndexWritten: {String(primaryCopyOperationLogResult.libraryIndexWritten)}</p>
+          <p className="mt-1">operationId: {primaryCopyOperationLogResult.operationLog.operationId}</p>
+        </div>
+        <div id="mvp96-operation-log-entry-preview" className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-4 text-[10px] leading-relaxed text-violet-50/90">
+          <p className="font-bold text-violet-100">JSONL entry preview</p>
+          <p className="mt-1">operationLogVersion: {copyOnlyOperationLog.sampleLogEntry.operationLogVersion}</p>
+          <p className="mt-1">copied/skipped/failed: {copyOnlyOperationLog.sampleLogEntry.copiedCount}/{copyOnlyOperationLog.sampleLogEntry.skippedCount}/{copyOnlyOperationLog.sampleLogEntry.failedCount}</p>
+          <p className="mt-1 break-all">copied: {copyOnlyOperationLog.sampleLogEntry.copiedFiles.map((file) => file.targetRelativePath).join(' / ')}</p>
+        </div>
+        <div id="mvp96-operation-log-guardrails" className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 text-[10px] leading-relaxed text-rose-50/90">
+          <p className="font-bold text-rose-100">安全边界</p>
+          <ul className="mt-2 list-disc pl-4 space-y-1">
+            {copyOnlyOperationLog.guardedBoundaries.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </div>
+        <div id="mvp96-codex-operation-log-gate" className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 text-[10px] leading-relaxed text-amber-50/90">
+          <p className="font-bold text-amber-100">Codex gate</p>
+          <p className="mt-1">sendToCodexNow: {String(copyOnlyOperationLog.codexGate.sendToCodexNow)} / {copyOnlyOperationLog.codexGate.reason}</p>
+          <p className="mt-1">{copyOnlyOperationLog.codexGate.requiredAfterBuild}</p>
+        </div>
+        <div className="sr-only">mvp96-copy-only-operation-log / mvp96-operation-log-cards / mvp96-operation-log-file-contract / mvp96-operation-log-schema / mvp96-operation-log-result-preview / mvp96-operation-log-entry-preview / mvp96-operation-log-guardrails / mvp96-codex-operation-log-gate / appendFile / import-operation-log.jsonl / no absolutePath / no file:// / no library-index.json</div>
       </section>
 
       <section id="mvp94-copy-only-preflight-real-check" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4 shadow-sm">

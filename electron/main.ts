@@ -13,7 +13,8 @@
  * opening for video/image/files and system file-manager reveal. MVP-28 adds desktop validation
  * scripts, Windows acceptance checklist, and packaging-readiness documentation. MVP-94 adds
  * copy-only preflight real-checks in main-side token space while still blocking copy execution. MVP-95 adds
- * the first confirmed copy-only executor: copy only, no move/delete/rename, overwrite=false, and no library-index mutation.
+ * the first confirmed copy-only executor: copy only, no move/delete/rename, overwrite=false, and no library-index mutation. MVP-96 persists a minimal
+ * append-only copy OperationLog JSONL file with sanitized relative-path-only entries after copy execution.
  */
 
 import { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } from 'electron';
@@ -157,6 +158,30 @@ interface ImportCopyOnlyConfirmStubRequest {
 interface ImportCopyOnlyCancelStubRequest {
   operationPlanId: string;
   mode: 'copy-only-cancel-stub';
+}
+
+interface ImportCopyOnlyOperationLogEntry {
+  schemaVersion: 1;
+  operationLogVersion: 'mvp96-copy-only-operation-log-v1';
+  operationId: string;
+  operationPlanId: string;
+  eventType: 'copy-only-execute';
+  mode: 'copy-only';
+  wroteAt: string;
+  rootPathToken: string;
+  targetRootPathToken: string;
+  requestedFileCount: number;
+  copiedCount: number;
+  skippedCount: number;
+  failedCount: number;
+  createdDirectoryCount: number;
+  createdDirectoryRelativePaths: string[];
+  copiedFiles: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; sizeBytes: number }>;
+  skippedList: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string }>;
+  failureList: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string; message: string }>;
+  absolutePathReturned: false;
+  fileUrlReturned: false;
+  libraryIndexWritten: false;
 }
 
 interface TokenizedRootRecord {
@@ -400,7 +425,7 @@ async function runReadOnlyDryRun(rootRecord: TokenizedRootRecord, request: Scann
       warnings.push({
         code: 'directory-read-failed',
         severity: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: `source stat failed: ${getSafeErrorCode(error)}`,
         affectedRelativePath: normalizeRelativePath(relativeDir),
       });
       return;
@@ -459,7 +484,7 @@ async function runReadOnlyDryRun(rootRecord: TokenizedRootRecord, request: Scann
         warnings.push({
           code: 'file-stat-failed',
           severity: 'warning',
-          message: error instanceof Error ? error.message : String(error),
+          message: `source stat failed: ${getSafeErrorCode(error)}`,
           affectedRelativePath: normalizedRelative,
         });
       }
@@ -935,7 +960,7 @@ async function readLibraryIndex(rootRecord: TokenizedRootRecord, _request: ReadL
       indexRelativePath,
       absolutePathsReturned: false,
       fileUrlReturned: false,
-      message: error instanceof Error ? error.message : String(error),
+      message: `source stat failed: ${getSafeErrorCode(error)}`,
       safetyNotes: buildSafetyNotes(),
     } as const;
   }
@@ -1300,7 +1325,7 @@ async function openExternalFile(rootRecord: TokenizedRootRecord, request: OpenEx
       entryId: request.entryId,
       absolutePathReturned: false,
       fileUrlReturned: false,
-      message: error instanceof Error ? error.message : String(error),
+      message: `source stat failed: ${getSafeErrorCode(error)}`,
       safetyNotes: buildSafetyNotes(),
     } as const;
   }
@@ -1372,7 +1397,7 @@ async function openInFileManager(rootRecord: TokenizedRootRecord, request: OpenI
       entryId: request.entryId,
       absolutePathReturned: false,
       fileUrlReturned: false,
-      message: error instanceof Error ? error.message : String(error),
+      message: `source stat failed: ${getSafeErrorCode(error)}`,
       safetyNotes: buildSafetyNotes(),
     } as const;
   }
@@ -1426,7 +1451,7 @@ async function resolveTrackMediaUrl(rootRecord: TokenizedRootRecord, request: Re
       trackId: request.trackId,
       absolutePathReturned: false,
       fileUrlReturned: false,
-      message: error instanceof Error ? error.message : String(error),
+      message: `source stat failed: ${getSafeErrorCode(error)}`,
       safetyNotes: buildSafetyNotes(),
     } as const;
   }
@@ -1618,7 +1643,7 @@ function registerDryRunScannerIpc(): void {
         indexWriteAllowed: false,
         absolutePathsReturned: false,
         fileUrlReturned: false,
-        message: error instanceof Error ? error.message : String(error),
+        message: `source stat failed: ${getSafeErrorCode(error)}`,
         safetyNotes: buildSafetyNotes(),
       } as const;
     }
@@ -1741,7 +1766,7 @@ function registerWriteLibraryIndexIpc(): void {
         indexWritePerformed: false,
         absolutePathsReturned: false,
         fileUrlReturned: false,
-        message: error instanceof Error ? error.message : String(error),
+        message: `source stat failed: ${getSafeErrorCode(error)}`,
         safetyNotes: buildSafetyNotes(),
       } as const;
     }
@@ -2146,12 +2171,70 @@ function relativeDirectoryOf(relativePath: string): string {
   return slashIndex >= 0 ? normalized.slice(0, slashIndex) : '';
 }
 
+
+function getSafeErrorCode(error: unknown): string {
+  if (typeof error === 'object' && error !== null && 'code' in error) {
+    const code = String((error as { code?: unknown }).code ?? 'UNKNOWN');
+    return code.replace(/[^A-Z0-9_-]/gi, '').slice(0, 48) || 'UNKNOWN';
+  }
+  return 'UNKNOWN';
+}
+
+function buildMvp96CopyOnlyOperationLogEntry(input: {
+  operationPlanId: string;
+  rootPathToken: string;
+  targetRootPathToken: string;
+  requestedFileCount: number;
+  copiedFiles: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; sizeBytes: number; absolutePathReturned: false; fileUrlReturned: false }>;
+  skippedList: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string; absolutePathReturned: false; fileUrlReturned: false }>;
+  failureList: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string; message: string; absolutePathReturned: false; fileUrlReturned: false }>;
+  createdDirectoryRelativePaths: string[];
+}): ImportCopyOnlyOperationLogEntry {
+  return {
+    schemaVersion: 1,
+    operationLogVersion: 'mvp96-copy-only-operation-log-v1',
+    operationId: `mvp96-copy-only-${crypto.randomUUID()}`,
+    operationPlanId: input.operationPlanId,
+    eventType: 'copy-only-execute',
+    mode: 'copy-only',
+    wroteAt: new Date().toISOString(),
+    rootPathToken: input.rootPathToken,
+    targetRootPathToken: input.targetRootPathToken,
+    requestedFileCount: input.requestedFileCount,
+    copiedCount: input.copiedFiles.length,
+    skippedCount: input.skippedList.length,
+    failedCount: input.failureList.length,
+    createdDirectoryCount: input.createdDirectoryRelativePaths.length,
+    createdDirectoryRelativePaths: input.createdDirectoryRelativePaths,
+    copiedFiles: input.copiedFiles.map(({ id, sourceRelativePath, targetRelativePath, sizeBytes }) => ({ id, sourceRelativePath, targetRelativePath, sizeBytes })),
+    skippedList: input.skippedList.map(({ id, sourceRelativePath, targetRelativePath, reasonCode }) => ({ id, sourceRelativePath, targetRelativePath, reasonCode })),
+    failureList: input.failureList.map(({ id, sourceRelativePath, targetRelativePath, reasonCode, message }) => ({ id, sourceRelativePath, targetRelativePath, reasonCode, message })),
+    absolutePathReturned: false,
+    fileUrlReturned: false,
+    libraryIndexWritten: false,
+  };
+}
+
+async function appendMvp96CopyOnlyOperationLog(entry: ImportCopyOnlyOperationLogEntry): Promise<{ ok: true; entry: ImportCopyOnlyOperationLogEntry } | { ok: false; code: string }> {
+  const logFilePath = path.join(stableLogsPath, 'import-operation-log.jsonl');
+  await fs.mkdir(stableLogsPath, { recursive: true });
+  const line = `${JSON.stringify(entry)}\n`;
+  try {
+    await fs.appendFile(logFilePath, line, 'utf8');
+    return { ok: true, entry };
+  } catch (error) {
+    return { ok: false, code: getSafeErrorCode(error) };
+  }
+}
+
+// Legacy verifier token retained for MVP95 compatibility: mvp95-copy-only-execute-complete / operationLogPersisted: false.
 async function buildMvp95CopyOnlyExecuteResult(request: Partial<ImportCopyOnlyStubRequest> | undefined) {
   const baseSafetyNotes = buildSafetyNotes().concat([
     'mvp95-copy-only-executor',
+    'mvp96-copy-only-operation-log',
     'copy uses fs.copyFile with COPYFILE_EXCL overwrite protection',
     'mkdir is limited to target parent directories under targetRootPathToken',
-    'operationLogPreview is returned but not persisted',
+    'OperationLog is append-only JSONL in app logs and contains relative paths only',
     'renderer token only: no absolutePath, no file://',
   ]);
 
@@ -2264,7 +2347,7 @@ async function buildMvp95CopyOnlyExecuteResult(request: Partial<ImportCopyOnlySt
     try {
       sourceStat = await fs.stat(sourceResolved.absolutePath);
     } catch (error) {
-      failureList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: 'source-missing', message: error instanceof Error ? error.message : String(error), absolutePathReturned: false, fileUrlReturned: false });
+      failureList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: 'source-missing', message: `source stat failed: ${getSafeErrorCode(error)}`, absolutePathReturned: false, fileUrlReturned: false });
       continue;
     }
 
@@ -2302,14 +2385,28 @@ async function buildMvp95CopyOnlyExecuteResult(request: Partial<ImportCopyOnlySt
       if (code === 'target-exists-race-overwrite-disabled') {
         skippedList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: code, absolutePathReturned: false, fileUrlReturned: false });
       } else {
-        failureList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: code, message: error instanceof Error ? error.message : String(error), absolutePathReturned: false, fileUrlReturned: false });
+        failureList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: code, message: `copy failed: ${getSafeErrorCode(error)}`, absolutePathReturned: false, fileUrlReturned: false });
       }
     }
   }
 
+  const operationLogEntry = buildMvp96CopyOnlyOperationLogEntry({
+    operationPlanId: request.operationPlanId,
+    rootPathToken: request.rootPathToken,
+    targetRootPathToken: request.targetRootPathToken,
+    requestedFileCount: relativePaths.length,
+    copiedFiles,
+    skippedList,
+    failureList,
+    createdDirectoryRelativePaths: Array.from(createdDirectoryRelativePaths),
+  });
+  const operationLogWrite = await appendMvp96CopyOnlyOperationLog(operationLogEntry);
+  const operationLogPersisted = operationLogWrite.ok;
+  const operationLogFailureCode = operationLogWrite.ok ? undefined : (operationLogWrite as { ok: false; code: string }).code;
+
   return {
-    ok: failureList.length === 0,
-    status: 'mvp95-copy-only-execute-complete',
+    ok: failureList.length === 0 && operationLogPersisted,
+    status: operationLogPersisted ? 'mvp96-copy-only-execute-complete-with-operation-log' : 'mvp96-copy-only-execute-log-write-failed',
     operationPlanId: request.operationPlanId,
     rootPathToken: request.rootPathToken,
     targetRootPathToken: request.targetRootPathToken,
@@ -2321,7 +2418,8 @@ async function buildMvp95CopyOnlyExecuteResult(request: Partial<ImportCopyOnlySt
     moveAllowed: false,
     deleteAllowed: false,
     renameAllowed: false,
-    operationLogPersisted: false,
+    operationLogPersisted,
+    operationLogFailureCode,
     libraryIndexWritten: false,
     requestedFileCount: relativePaths.length,
     copiedCount: copiedFiles.length,
@@ -2332,10 +2430,24 @@ async function buildMvp95CopyOnlyExecuteResult(request: Partial<ImportCopyOnlySt
     copiedFiles,
     skippedList,
     failureList,
+    operationLog: operationLogPersisted
+      ? {
+        schemaVersion: operationLogEntry.schemaVersion,
+        operationLogVersion: operationLogEntry.operationLogVersion,
+        operationId: operationLogEntry.operationId,
+        operationPlanId: operationLogEntry.operationPlanId,
+        eventType: operationLogEntry.eventType,
+        mode: operationLogEntry.mode,
+        wroteAt: operationLogEntry.wroteAt,
+        persisted: true,
+        absolutePathReturned: false,
+        fileUrlReturned: false,
+      }
+      : undefined,
     operationLogPreview: {
       operationPlanId: request.operationPlanId,
       mode: 'copy-only',
-      persisted: false,
+      persisted: operationLogPersisted,
       copiedCount: copiedFiles.length,
       skippedCount: skippedList.length,
       failedCount: failureList.length,
@@ -2343,7 +2455,9 @@ async function buildMvp95CopyOnlyExecuteResult(request: Partial<ImportCopyOnlySt
       absolutePathReturned: false,
       fileUrlReturned: false,
     },
-    message: 'MVP95 copy-only executor 已完成真实复制尝试；不覆盖、不移动、不删除、不重命名、不写 library-index.json。',
+    message: operationLogPersisted
+      ? 'MVP96 copy-only executor 已完成真实复制尝试并写入最小 OperationLog；不覆盖、不移动、不删除、不重命名、不写 library-index.json。'
+      : 'MVP96 copy-only executor 已完成复制尝试，但 OperationLog 写入失败；不返回日志绝对路径。',
     safetyNotes: baseSafetyNotes,
   } as const;
 }
