@@ -15,9 +15,9 @@ const assert = (condition, message) => {
 const pkg = JSON.parse(read('package.json'));
 const lock = JSON.parse(read('package-lock.json'));
 
-assert(['0.126.0-mvp88', '0.127.0-mvp89', '0.128.0-mvp90', '0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93'].includes(pkg.version), `package.json version must be 0.126.0-mvp88 or compatible MVP89, got ${pkg.version}`);
-assert(['0.126.0-mvp88', '0.127.0-mvp89', '0.128.0-mvp90', '0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93'].includes(lock.version), `package-lock version must be 0.126.0-mvp88 or compatible MVP89, got ${lock.version}`);
-assert(['0.126.0-mvp88', '0.127.0-mvp89', '0.128.0-mvp90', '0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93'].includes(lock.packages?.['']?.version), 'package-lock root package version must be 0.126.0-mvp88 or compatible MVP89');
+assert(['0.126.0-mvp88', '0.127.0-mvp89', '0.128.0-mvp90', '0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95'].includes(pkg.version), `package.json version must be 0.126.0-mvp88 or compatible MVP89, got ${pkg.version}`);
+assert(['0.126.0-mvp88', '0.127.0-mvp89', '0.128.0-mvp90', '0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95'].includes(lock.version), `package-lock version must be 0.126.0-mvp88 or compatible MVP89, got ${lock.version}`);
+assert(['0.126.0-mvp88', '0.127.0-mvp89', '0.128.0-mvp90', '0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95'].includes(lock.packages?.['']?.version), 'package-lock root package version must be 0.126.0-mvp88 or compatible MVP89');
 assert(pkg.scripts?.['verify:mvp88-music-import-readonly-detection'] === 'node scripts/verify-mvp88-music-import-readonly-detection.mjs', 'package.json must expose MVP88 verifier script');
 assert(pkg.scripts?.['verify:all']?.includes('verify:mvp88-music-import-readonly-detection'), 'verify:all must include MVP88 verifier');
 

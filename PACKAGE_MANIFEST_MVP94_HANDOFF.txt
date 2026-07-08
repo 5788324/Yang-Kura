@@ -1,0 +1,35 @@
+Yang-Kura MVP94 package manifest
+
+Version: 0.132.0-mvp94
+Baseline: 0.131.0-mvp93
+
+Added:
+- src/services/copyOnlyPreflightRealCheckService.ts
+- docs/CURRENT_ROADMAP_MVP94.md
+- docs/COPY_ONLY_PREFLIGHT_REAL_CHECK_MVP94.md
+- scripts/verify-mvp94-copy-only-preflight-real-check.mjs
+- HANDOFF_MVP93_TO_MVP94.md
+
+Modified:
+- electron/main.ts
+- electron/preload.ts
+- src/types/electron-api.d.ts
+- src/components/ImporterPage.tsx
+- src/components/DiagnosticsPage.tsx
+- src/services/index.ts
+- package.json
+- package-lock.json
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+
+Excluded from package:
+- node_modules
+- dist
+- dist-electron
+- .git
+- tmp
+- *.log
+- *.db
+- historical zip outputs

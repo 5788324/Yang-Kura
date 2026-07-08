@@ -19,9 +19,9 @@ function assert(condition, message) {
 const pkg = readJson('package.json');
 const lock = readJson('package-lock.json');
 
-assert(pkg.version === '0.131.0-mvp93', `package.json version must be 0.131.0-mvp93, got ${pkg.version}`);
-assert(lock.version === '0.131.0-mvp93', `package-lock version must be 0.131.0-mvp93, got ${lock.version}`);
-assert(lock.packages?.['']?.version === '0.131.0-mvp93', 'package-lock root package version must be 0.131.0-mvp93');
+assert(['0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95'].includes(pkg.version), `package.json version must be 0.131.0-mvp93 or compatible later MVP, got ${pkg.version}`);
+assert(['0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95'].includes(lock.version), `package-lock version must be 0.131.0-mvp93 or compatible later MVP, got ${lock.version}`);
+assert(['0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95'].includes(lock.packages?.['']?.version), 'package-lock root package version must be 0.131.0-mvp93 or compatible later MVP');
 assert(pkg.scripts?.['verify:mvp93-copy-only-main-side-stub'] === 'node scripts/verify-mvp93-copy-only-main-side-stub.mjs', 'package.json must expose MVP93 verifier script');
 assert(pkg.scripts?.['verify:all']?.includes('verify:mvp93-copy-only-main-side-stub'), 'verify:all must include MVP93 verifier');
 
@@ -95,7 +95,7 @@ const electronTypes = read('src/types/electron-api.d.ts');
   'requestImportCopyOnlyCancel',
   'yang-kura:import:copy-only:execute',
   'canUseCopyOnlyStub: true',
-  'canExecuteCopyOnly: false',
+  pkg.version === '0.133.0-mvp95' ? 'canExecuteCopyOnly: true' : 'canExecuteCopyOnly: false',
 ].forEach((token) => assert(preload.includes(token), `electron/preload missing token: ${token}`));
 
 [
@@ -105,7 +105,7 @@ const electronTypes = read('src/types/electron-api.d.ts');
   'requestImportCopyOnlyPreflight',
   'requestImportCopyOnlyExecute',
   'canUseCopyOnlyStub: true',
-  'canExecuteCopyOnly: false',
+  pkg.version === '0.133.0-mvp95' ? 'canExecuteCopyOnly: true' : 'canExecuteCopyOnly: false',
   'absolutePath?: never',
   'fileUrl?: never',
 ].forEach((token) => assert(electronTypes.includes(token), `electron-api types missing token: ${token}`));
@@ -140,7 +140,7 @@ for (const token of forbiddenServiceTokens) {
 ].forEach((file) => {
   const text = read(file);
   assert(text.includes('MVP-93'), `${file} missing MVP-93`);
-  assert(text.includes('0.131.0-mvp93'), `${file} missing version`);
+  assert(text.includes('0.131.0-mvp93', '0.132.0-mvp94'), `${file} missing version`);
   assert(text.includes('copy-only') || text.includes('copy only'), `${file} missing copy-only summary`);
   assert(text.includes('stub') || text.includes('阻断'), `${file} missing stub/blocking summary`);
   assert(text.includes('不执行') || text.includes('不复制'), `${file} missing no-execution boundary`);

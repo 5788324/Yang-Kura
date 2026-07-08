@@ -19,9 +19,9 @@ function assert(condition, message) {
 const pkg = readJson('package.json');
 const lock = readJson('package-lock.json');
 
-assert(['0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93'].includes(pkg.version), `package.json version must be 0.129.0-mvp91, got ${pkg.version}`);
-assert(['0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93'].includes(lock.version), `package-lock version must be 0.129.0-mvp91, got ${lock.version}`);
-assert(['0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93'].includes(lock.packages?.['']?.version), 'package-lock root package version must be 0.129.0-mvp91');
+assert(['0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95'].includes(pkg.version), `package.json version must be 0.129.0-mvp91, got ${pkg.version}`);
+assert(['0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95'].includes(lock.version), `package-lock version must be 0.129.0-mvp91, got ${lock.version}`);
+assert(['0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95'].includes(lock.packages?.['']?.version), 'package-lock root package version must be 0.129.0-mvp91');
 assert(pkg.scripts?.['verify:mvp91-copy-execution-readiness'] === 'node scripts/verify-mvp91-copy-execution-readiness.mjs', 'package.json must expose MVP91 verifier script');
 assert(pkg.scripts?.['verify:all']?.includes('verify:mvp91-copy-execution-readiness'), 'verify:all must include MVP91 verifier');
 

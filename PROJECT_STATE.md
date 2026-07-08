@@ -1,3 +1,11 @@
+# MVP-94 更新
+
+当前版本：`0.132.0-mvp94`。
+
+本轮完成：copy-only preflight 真实化。Electron main 侧可以在 token map 内只读检查 source / target relativePath、源文件存在性、目标冲突和目标父目录状态。
+
+安全边界：不执行真实 copy，不创建目录，不写 OperationLog，不写 library-index.json。Renderer 不接收 absolutePath 或 file://。
+
 当前最新版本：0.129.0-mvp91。MVP-91：copy only 导入前执行合同 / 二次确认设计；冻结预检、OperationLog、失败列表、跳过列表和 disabled-preview-only 执行状态，不执行 copy / move / delete / rename。
 
 ## MVP-91 / 0.129.0-mvp91
@@ -492,3 +500,21 @@ version: `0.131.0-mvp93`
 本轮新增 copy-only main-side stub / preload methods / blocked result contract。真实 copy 仍不执行；不创建目录、不复制、不移动、不删除、不重命名、不覆盖、不写 OperationLog、不写 `library-index.json`，Renderer 仍不接收 `absolutePath` 或 `file://`。
 
 Codex 当前不需要介入；若下一轮进入真实 copy 前置验证，应暂停开发并使用 `docs/CODEX_COPY_ONLY_GATE_MVP93.md` 的提示词让 Codex 本机验收。
+
+
+## MVP-95 copy-only executor / 0.133.0-mvp95
+
+当前阶段：MVP-95。
+
+本轮加入真实 copy-only executor：Electron main 侧允许在二次确认后执行 copy-only。
+
+安全边界：
+- 只 copy，不 move/delete/rename。
+- overwriteAllowed=false，目标已存在进入 skippedList。
+- 使用 COPYFILE_EXCL 防覆盖竞态。
+- 只在 targetRootPathToken 下创建目标父目录。
+- OperationLog 只返回 preview，不落盘。
+- 不写 library-index.json。
+- Renderer 不接收 absolutePath，不接收 file://。
+
+Codex gate：MVP95 涉及真实 fs.copyFile / fs.mkdir，源码包生成后必须交给 Codex 做本机最小样本验收。

@@ -634,6 +634,9 @@ declare global {
     targetRootPathToken: string;
     mode: 'copy-only-stub';
     relativePaths?: string[];
+    targetRelativePaths?: string[];
+    confirmedCopyOnly?: boolean;
+    confirmationText?: string;
     absolutePath?: never;
     fileUrl?: never;
   }
@@ -653,22 +656,151 @@ declare global {
     fileUrl?: never;
   }
 
+  interface YangKuraImportCopyOnlyPreflightFileCheck {
+    id: string;
+    sourceRelativePath: string;
+    targetRelativePath: string;
+    sourceExists: boolean;
+    sourceIsFile: boolean;
+    targetExists: boolean;
+    targetParentExists: boolean;
+    blockedReasonCodes: string[];
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraImportCopyOnlyPreflightRealCheckResult {
+    ok: true;
+    status: 'mvp94-copy-only-preflight-real-check-complete';
+    operationPlanId: string;
+    rootPathToken: string;
+    targetRootPathToken: string;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    executeAllowed: false;
+    copyAllowed: false;
+    copiedCount: 0;
+    createdDirectoryCount: 0;
+    checkedFileCount: number;
+    sourceMissingCount: number;
+    targetExistingCount: number;
+    targetParentMissingCount: number;
+    blockedFileCount: number;
+    fileChecks: YangKuraImportCopyOnlyPreflightFileCheck[];
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraImportCopyOnlyCopiedFile {
+    id: string;
+    sourceRelativePath: string;
+    targetRelativePath: string;
+    sizeBytes: number;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraImportCopyOnlySkippedItem {
+    id: string;
+    sourceRelativePath: string;
+    targetRelativePath: string;
+    reasonCode: string;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraImportCopyOnlyFailureItem {
+    id: string;
+    sourceRelativePath: string;
+    targetRelativePath: string;
+    reasonCode: string;
+    message: string;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraImportCopyOnlyOperationLogPreview {
+    operationPlanId: string;
+    mode: 'copy-only';
+    persisted: false;
+    copiedCount: number;
+    skippedCount: number;
+    failedCount: number;
+    createdDirectoryCount: number;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraImportCopyOnlyExecuteResult {
+    ok: boolean;
+    status: 'mvp95-copy-only-execute-complete';
+    operationPlanId: string;
+    rootPathToken: string;
+    targetRootPathToken: string;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    executeAllowed: true;
+    copyAllowed: true;
+    overwriteAllowed: false;
+    moveAllowed: false;
+    deleteAllowed: false;
+    renameAllowed: false;
+    operationLogPersisted: false;
+    libraryIndexWritten: false;
+    requestedFileCount: number;
+    copiedCount: number;
+    skippedCount: number;
+    failedCount: number;
+    createdDirectoryCount: number;
+    createdDirectoryRelativePaths: string[];
+    copiedFiles: YangKuraImportCopyOnlyCopiedFile[];
+    skippedList: YangKuraImportCopyOnlySkippedItem[];
+    failureList: YangKuraImportCopyOnlyFailureItem[];
+    operationLogPreview: YangKuraImportCopyOnlyOperationLogPreview;
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
   interface YangKuraImportCopyOnlyStubBlockedResult {
     ok: false;
     status:
       | 'mvp93-copy-only-stub-blocked'
       | 'mvp93-copy-only-preflight-stub-blocked'
       | 'mvp93-copy-only-confirm-stub-blocked'
-      | 'mvp93-copy-only-cancel-stub-blocked';
+      | 'mvp93-copy-only-cancel-stub-blocked'
+      | 'mvp94-copy-only-preflight-invalid-request'
+      | 'mvp94-copy-only-preflight-invalid-root-token'
+      | 'mvp94-copy-only-preflight-empty-file-list'
+      | 'mvp95-copy-only-execute-invalid-request'
+      | 'mvp95-copy-only-execute-confirmation-required'
+      | 'mvp95-copy-only-execute-invalid-root-token'
+      | 'mvp95-copy-only-execute-empty-file-list';
     operationPlanId: string;
     rootPathToken?: string;
     targetRootPathToken?: string;
     absolutePathReturned: false;
     fileUrlReturned: false;
     executeAllowed: false;
+    copyAllowed?: false;
     copiedCount?: 0;
     skippedCount?: number;
     failedCount?: number;
+    createdDirectoryCount?: 0;
+    checkedFileCount?: number;
     confirmationAccepted?: false;
     message: string;
     safetyNotes: string[];
@@ -676,7 +808,7 @@ declare global {
     fileUrl?: never;
   }
 
-  type YangKuraImportCopyOnlyStubResult = YangKuraImportCopyOnlyStubBlockedResult;
+  type YangKuraImportCopyOnlyStubResult = YangKuraImportCopyOnlyStubBlockedResult | YangKuraImportCopyOnlyPreflightRealCheckResult | YangKuraImportCopyOnlyExecuteResult;
 
   /* Legacy verifier token retained for MVP-26 compatibility: mvp26-shell-runtime-track-lyrics-read. Legacy verifier token retained for MVP-27 compatibility: mvp27-shell-runtime-external-open.
  * Legacy verifier token retained for MVP-20 compatibility: status: 'mvp20-shell-runtime-read-only-dry-run'. */
@@ -694,7 +826,8 @@ declare global {
     canOpenExternalFile: true;
     canOpenInFileManager: true;
     canUseCopyOnlyStub: true;
-    canExecuteCopyOnly: false;
+    canUseCopyOnlyPreflightRealCheck: true;
+    canExecuteCopyOnly: true;
     registersMediaProtocol: true;
     exposesAbsolutePaths: false;
   }

@@ -11,8 +11,9 @@
  * MVP-26 adds read-only LRC/SRT/VTT/ASS subtitle text reading and converts it
  * into LRC-compatible lines for the existing lyrics panel. MVP-27 adds external
  * opening for video/image/files and system file-manager reveal. MVP-28 adds desktop validation
- * scripts, Windows acceptance checklist, and packaging-readiness documentation. This stage still
- * does not write SQLite or mutate media files.
+ * scripts, Windows acceptance checklist, and packaging-readiness documentation. MVP-94 adds
+ * copy-only preflight real-checks in main-side token space while still blocking copy execution. MVP-95 adds
+ * the first confirmed copy-only executor: copy only, no move/delete/rename, overwrite=false, and no library-index mutation.
  */
 
 import { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } from 'electron';
@@ -142,6 +143,9 @@ interface ImportCopyOnlyStubRequest {
   targetRootPathToken: string;
   mode: 'copy-only-stub';
   relativePaths?: string[];
+  targetRelativePaths?: string[];
+  confirmedCopyOnly?: boolean;
+  confirmationText?: string;
 }
 
 interface ImportCopyOnlyConfirmStubRequest {
@@ -280,6 +284,8 @@ function buildSafetyNotes(): string[] {
     'MVP-25 允许把 rootPathToken + relativePath 解析成受控 yang-kura-media:// URL 供 HTMLAudio 播放。',
     'MVP-26 允许只读读取同一 rootPathToken 下的 .lrc / .srt / .vtt / .ass 字幕正文。',
     'MVP-27 允许用系统默认应用打开同一 rootPathToken 下的视频/图片/文件，并可在文件管理器中定位。',
+    'MVP-94 允许 copy-only preflight 在 main 侧只读检查源/目标文件状态，但仍不执行 copy、不创建目录、不写日志。',
+    'MVP-95 允许用户确认后在 Electron main 侧执行 copy-only：COPYFILE_EXCL 防覆盖、只创建目标父目录、不写 library-index.json。',
     'Renderer 仍不会拿到 absolutePath 或 file://。',
   ];
 }
@@ -1944,6 +1950,174 @@ function registerExternalOpenIpc(): void {
 }
 
 
+function resolveSafeCopyPath(rootRecord: TokenizedRootRecord, relativePath: string): { ok: true; absolutePath: string; relativePath: string } | { ok: false; message: string; code: string } {
+  if (isUnsafeRelativePath(relativePath)) {
+    return { ok: false, code: 'unsafe-relative-path', message: 'copy-only preflight 的相对路径不合法，已拒绝解析。' };
+  }
+  const normalizedRelativePath = normalizeRelativePath(relativePath);
+  const rootAbsolute = path.resolve(rootRecord.absolutePath);
+  const absolutePath = path.resolve(rootAbsolute, ...normalizedRelativePath.split('/'));
+  if (absolutePath !== rootAbsolute && !absolutePath.startsWith(`${rootAbsolute}${path.sep}`)) {
+    return { ok: false, code: 'path-escape-blocked', message: 'copy-only preflight 路径越过了 rootPathToken 根目录，已拒绝。' };
+  }
+  return { ok: true, absolutePath, relativePath: normalizedRelativePath };
+}
+
+async function buildMvp94CopyOnlyPreflightResult(request: Partial<ImportCopyOnlyStubRequest> | undefined) {
+  const baseSafetyNotes = buildSafetyNotes().concat([
+    'mvp94-copy-only-preflight-real-check',
+    'preflight may stat source/target paths in main-side token space',
+    'execute remains disabled: no fs.copyFile, no mkdir, no OperationLog write',
+    'renderer token only: no absolutePath, no file://',
+  ]);
+
+  if (!request?.operationPlanId || !request.rootPathToken || !request.targetRootPathToken || request.mode !== 'copy-only-stub') {
+    return {
+      ok: false,
+      status: 'mvp94-copy-only-preflight-invalid-request',
+      operationPlanId: request?.operationPlanId ?? 'mvp94-missing-operation-plan',
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      executeAllowed: false,
+      copyAllowed: false,
+      copiedCount: 0,
+      createdDirectoryCount: 0,
+      message: 'copy-only preflight 请求必须包含 operationPlanId、rootPathToken、targetRootPathToken，且 mode=copy-only-stub。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const sourceRoot = rootTokenMap.get(request.rootPathToken);
+  const targetRoot = rootTokenMap.get(request.targetRootPathToken);
+  if (!sourceRoot || !targetRoot) {
+    return {
+      ok: false,
+      status: 'mvp94-copy-only-preflight-invalid-root-token',
+      operationPlanId: request.operationPlanId,
+      rootPathToken: request.rootPathToken,
+      targetRootPathToken: request.targetRootPathToken,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      executeAllowed: false,
+      copyAllowed: false,
+      copiedCount: 0,
+      createdDirectoryCount: 0,
+      message: 'rootPathToken 或 targetRootPathToken 无效。请重新选择源目录和目标仓库目录。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const relativePaths = Array.isArray(request.relativePaths) ? request.relativePaths.slice(0, 200) : [];
+  const targetRelativePaths = Array.isArray(request.targetRelativePaths) ? request.targetRelativePaths.slice(0, 200) : [];
+  if (relativePaths.length === 0) {
+    return {
+      ok: false,
+      status: 'mvp94-copy-only-preflight-empty-file-list',
+      operationPlanId: request.operationPlanId,
+      rootPathToken: request.rootPathToken,
+      targetRootPathToken: request.targetRootPathToken,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      executeAllowed: false,
+      copyAllowed: false,
+      copiedCount: 0,
+      createdDirectoryCount: 0,
+      checkedFileCount: 0,
+      message: 'copy-only preflight 至少需要一个 source relativePath。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const fileChecks = [];
+  let sourceMissingCount = 0;
+  let targetExistingCount = 0;
+  let targetParentMissingCount = 0;
+  let blockedFileCount = 0;
+
+  for (let index = 0; index < relativePaths.length; index += 1) {
+    const sourceRelativePath = relativePaths[index];
+    const targetRelativePath = targetRelativePaths[index] ?? sourceRelativePath;
+    const blockedReasonCodes: string[] = [];
+    let sourceExists = false;
+    let sourceIsFile = false;
+    let targetExists = false;
+    let targetParentExists = false;
+
+    const sourceResolved = typeof sourceRelativePath === 'string' ? resolveSafeCopyPath(sourceRoot, sourceRelativePath) : { ok: false as const, code: 'missing-source-relative-path', message: '缺少源相对路径。' };
+    const targetResolved = typeof targetRelativePath === 'string' ? resolveSafeCopyPath(targetRoot, targetRelativePath) : { ok: false as const, code: 'missing-target-relative-path', message: '缺少目标相对路径。' };
+
+    if (sourceResolved.ok === false) blockedReasonCodes.push(sourceResolved.code);
+    if (targetResolved.ok === false) blockedReasonCodes.push(targetResolved.code);
+
+    if (sourceResolved.ok && targetResolved.ok) {
+      try {
+        const stat = await fs.stat(sourceResolved.absolutePath);
+        sourceExists = true;
+        sourceIsFile = stat.isFile();
+        if (!sourceIsFile) blockedReasonCodes.push('source-not-file');
+      } catch {
+        sourceMissingCount += 1;
+        blockedReasonCodes.push('source-missing');
+      }
+
+      try {
+        const targetStat = await fs.stat(targetResolved.absolutePath);
+        targetExists = true;
+        if (!targetStat.isFile()) blockedReasonCodes.push('target-exists-not-file');
+        targetExistingCount += 1;
+        blockedReasonCodes.push('target-exists');
+      } catch {
+        targetExists = false;
+      }
+
+      try {
+        const parentStat = await fs.stat(path.dirname(targetResolved.absolutePath));
+        targetParentExists = parentStat.isDirectory();
+        if (!targetParentExists) blockedReasonCodes.push('target-parent-not-directory');
+      } catch {
+        targetParentMissingCount += 1;
+        blockedReasonCodes.push('target-parent-missing-preview-only');
+      }
+    }
+
+    if (blockedReasonCodes.length > 0) blockedFileCount += 1;
+    fileChecks.push({
+      id: `mvp94-copy-preflight-${index + 1}`,
+      sourceRelativePath: typeof sourceRelativePath === 'string' ? normalizeRelativePath(sourceRelativePath) : 'invalid-source-relative-path',
+      targetRelativePath: typeof targetRelativePath === 'string' ? normalizeRelativePath(targetRelativePath) : 'invalid-target-relative-path',
+      sourceExists,
+      sourceIsFile,
+      targetExists,
+      targetParentExists,
+      blockedReasonCodes,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+    });
+  }
+
+  return {
+    ok: true,
+    status: 'mvp94-copy-only-preflight-real-check-complete',
+    operationPlanId: request.operationPlanId,
+    rootPathToken: request.rootPathToken,
+    targetRootPathToken: request.targetRootPathToken,
+    absolutePathReturned: false,
+    fileUrlReturned: false,
+    executeAllowed: false,
+    copyAllowed: false,
+    copiedCount: 0,
+    createdDirectoryCount: 0,
+    checkedFileCount: fileChecks.length,
+    sourceMissingCount,
+    targetExistingCount,
+    targetParentMissingCount,
+    blockedFileCount,
+    fileChecks,
+    message: 'MVP94 已完成 main-side copy-only 真实预检；执行仍被禁用，不复制、不创建目录、不写日志。',
+    safetyNotes: baseSafetyNotes,
+  } as const;
+}
+
 function buildMvp93CopyOnlyStubBlockedResult(request: Partial<ImportCopyOnlyStubRequest> | undefined) {
   return {
     ok: false,
@@ -1966,14 +2140,218 @@ function buildMvp93CopyOnlyStubBlockedResult(request: Partial<ImportCopyOnlyStub
   } as const;
 }
 
+function relativeDirectoryOf(relativePath: string): string {
+  const normalized = normalizeRelativePath(relativePath);
+  const slashIndex = normalized.lastIndexOf('/');
+  return slashIndex >= 0 ? normalized.slice(0, slashIndex) : '';
+}
+
+async function buildMvp95CopyOnlyExecuteResult(request: Partial<ImportCopyOnlyStubRequest> | undefined) {
+  const baseSafetyNotes = buildSafetyNotes().concat([
+    'mvp95-copy-only-executor',
+    'copy uses fs.copyFile with COPYFILE_EXCL overwrite protection',
+    'mkdir is limited to target parent directories under targetRootPathToken',
+    'operationLogPreview is returned but not persisted',
+    'renderer token only: no absolutePath, no file://',
+  ]);
+
+  if (!request?.operationPlanId || !request.rootPathToken || !request.targetRootPathToken || request.mode !== 'copy-only-stub') {
+    return {
+      ok: false,
+      status: 'mvp95-copy-only-execute-invalid-request',
+      operationPlanId: request?.operationPlanId ?? 'mvp95-missing-operation-plan',
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      executeAllowed: false,
+      copyAllowed: false,
+      copiedCount: 0,
+      skippedCount: 0,
+      failedCount: 0,
+      createdDirectoryCount: 0,
+      message: 'copy-only execute 请求必须包含 operationPlanId、rootPathToken、targetRootPathToken，且 mode=copy-only-stub。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  if (request.confirmedCopyOnly !== true || request.confirmationText !== 'COPY ONLY') {
+    return {
+      ok: false,
+      status: 'mvp95-copy-only-execute-confirmation-required',
+      operationPlanId: request.operationPlanId,
+      rootPathToken: request.rootPathToken,
+      targetRootPathToken: request.targetRootPathToken,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      executeAllowed: false,
+      copyAllowed: false,
+      copiedCount: 0,
+      skippedCount: Array.isArray(request.relativePaths) ? request.relativePaths.length : 0,
+      failedCount: 0,
+      createdDirectoryCount: 0,
+      message: '真实 copy-only 执行需要 confirmedCopyOnly=true 且 confirmationText="COPY ONLY"。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const sourceRoot = rootTokenMap.get(request.rootPathToken);
+  const targetRoot = rootTokenMap.get(request.targetRootPathToken);
+  if (!sourceRoot || !targetRoot) {
+    return {
+      ok: false,
+      status: 'mvp95-copy-only-execute-invalid-root-token',
+      operationPlanId: request.operationPlanId,
+      rootPathToken: request.rootPathToken,
+      targetRootPathToken: request.targetRootPathToken,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      executeAllowed: false,
+      copyAllowed: false,
+      copiedCount: 0,
+      skippedCount: 0,
+      failedCount: 0,
+      createdDirectoryCount: 0,
+      message: 'rootPathToken 或 targetRootPathToken 无效。请重新选择源目录和目标仓库目录。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const relativePaths = Array.isArray(request.relativePaths) ? request.relativePaths.slice(0, 200) : [];
+  const targetRelativePaths = Array.isArray(request.targetRelativePaths) ? request.targetRelativePaths.slice(0, 200) : [];
+  if (relativePaths.length === 0) {
+    return {
+      ok: false,
+      status: 'mvp95-copy-only-execute-empty-file-list',
+      operationPlanId: request.operationPlanId,
+      rootPathToken: request.rootPathToken,
+      targetRootPathToken: request.targetRootPathToken,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      executeAllowed: false,
+      copyAllowed: false,
+      copiedCount: 0,
+      skippedCount: 0,
+      failedCount: 0,
+      createdDirectoryCount: 0,
+      message: 'copy-only execute 至少需要一个 source relativePath。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const copiedFiles: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; sizeBytes: number; absolutePathReturned: false; fileUrlReturned: false }> = [];
+  const skippedList: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string; absolutePathReturned: false; fileUrlReturned: false }> = [];
+  const failureList: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string; message: string; absolutePathReturned: false; fileUrlReturned: false }> = [];
+  const createdDirectoryRelativePaths = new Set<string>();
+
+  for (let index = 0; index < relativePaths.length; index += 1) {
+    const id = `mvp95-copy-execute-${index + 1}`;
+    const sourceInput = relativePaths[index];
+    const targetInput = targetRelativePaths[index] ?? sourceInput;
+    const sourceRelativePath = typeof sourceInput === 'string' ? normalizeRelativePath(sourceInput) : 'invalid-source-relative-path';
+    const targetRelativePath = typeof targetInput === 'string' ? normalizeRelativePath(targetInput) : 'invalid-target-relative-path';
+    const sourceResolved = typeof sourceInput === 'string' ? resolveSafeCopyPath(sourceRoot, sourceInput) : { ok: false as const, code: 'missing-source-relative-path', message: '缺少源相对路径。' };
+    const targetResolved = typeof targetInput === 'string' ? resolveSafeCopyPath(targetRoot, targetInput) : { ok: false as const, code: 'missing-target-relative-path', message: '缺少目标相对路径。' };
+
+    if (sourceResolved.ok === false) {
+      failureList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: sourceResolved.code, message: sourceResolved.message, absolutePathReturned: false, fileUrlReturned: false });
+      continue;
+    }
+    if (targetResolved.ok === false) {
+      failureList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: targetResolved.code, message: targetResolved.message, absolutePathReturned: false, fileUrlReturned: false });
+      continue;
+    }
+
+    let sourceStat;
+    try {
+      sourceStat = await fs.stat(sourceResolved.absolutePath);
+    } catch (error) {
+      failureList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: 'source-missing', message: error instanceof Error ? error.message : String(error), absolutePathReturned: false, fileUrlReturned: false });
+      continue;
+    }
+
+    if (!sourceStat.isFile()) {
+      failureList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: 'source-not-file', message: '源路径不是文件，copy-only executor 已拒绝。', absolutePathReturned: false, fileUrlReturned: false });
+      continue;
+    }
+
+    try {
+      await fs.stat(targetResolved.absolutePath);
+      skippedList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: 'target-exists-overwrite-disabled', absolutePathReturned: false, fileUrlReturned: false });
+      continue;
+    } catch {
+      // target does not exist; COPYFILE_EXCL will still guard races.
+    }
+
+    const parentAbsolutePath = path.dirname(targetResolved.absolutePath);
+    const parentRelativePath = relativeDirectoryOf(targetResolved.relativePath);
+    try {
+      const parentStat = await fs.stat(parentAbsolutePath);
+      if (!parentStat.isDirectory()) {
+        failureList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: 'target-parent-not-directory', message: '目标父路径存在但不是目录。', absolutePathReturned: false, fileUrlReturned: false });
+        continue;
+      }
+    } catch {
+      await fs.mkdir(parentAbsolutePath, { recursive: true });
+      if (parentRelativePath) createdDirectoryRelativePaths.add(parentRelativePath);
+    }
+
+    try {
+      await fs.copyFile(sourceResolved.absolutePath, targetResolved.absolutePath, fsSync.constants.COPYFILE_EXCL);
+      copiedFiles.push({ id, sourceRelativePath, targetRelativePath, sizeBytes: sourceStat.size, absolutePathReturned: false, fileUrlReturned: false });
+    } catch (error: any) {
+      const code = error?.code === 'EEXIST' ? 'target-exists-race-overwrite-disabled' : 'copy-failed';
+      if (code === 'target-exists-race-overwrite-disabled') {
+        skippedList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: code, absolutePathReturned: false, fileUrlReturned: false });
+      } else {
+        failureList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: code, message: error instanceof Error ? error.message : String(error), absolutePathReturned: false, fileUrlReturned: false });
+      }
+    }
+  }
+
+  return {
+    ok: failureList.length === 0,
+    status: 'mvp95-copy-only-execute-complete',
+    operationPlanId: request.operationPlanId,
+    rootPathToken: request.rootPathToken,
+    targetRootPathToken: request.targetRootPathToken,
+    absolutePathReturned: false,
+    fileUrlReturned: false,
+    executeAllowed: true,
+    copyAllowed: true,
+    overwriteAllowed: false,
+    moveAllowed: false,
+    deleteAllowed: false,
+    renameAllowed: false,
+    operationLogPersisted: false,
+    libraryIndexWritten: false,
+    requestedFileCount: relativePaths.length,
+    copiedCount: copiedFiles.length,
+    skippedCount: skippedList.length,
+    failedCount: failureList.length,
+    createdDirectoryCount: createdDirectoryRelativePaths.size,
+    createdDirectoryRelativePaths: Array.from(createdDirectoryRelativePaths),
+    copiedFiles,
+    skippedList,
+    failureList,
+    operationLogPreview: {
+      operationPlanId: request.operationPlanId,
+      mode: 'copy-only',
+      persisted: false,
+      copiedCount: copiedFiles.length,
+      skippedCount: skippedList.length,
+      failedCount: failureList.length,
+      createdDirectoryCount: createdDirectoryRelativePaths.size,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+    },
+    message: 'MVP95 copy-only executor 已完成真实复制尝试；不覆盖、不移动、不删除、不重命名、不写 library-index.json。',
+    safetyNotes: baseSafetyNotes,
+  } as const;
+}
+
 function registerCopyOnlyMainSideStubIpc(): void {
   ipcMain.handle('yang-kura:import:copy-only:preflight', async (_event, request: unknown) => {
     const payload = request as Partial<ImportCopyOnlyStubRequest> | undefined;
-    return {
-      ...buildMvp93CopyOnlyStubBlockedResult(payload),
-      status: 'mvp93-copy-only-preflight-stub-blocked',
-      message: 'MVP93 preflight 只返回 blocked stub，不检查真实文件系统。',
-    } as const;
+    return buildMvp94CopyOnlyPreflightResult(payload);
   });
 
   ipcMain.handle('yang-kura:import:copy-only:confirm', async (_event, request: unknown) => {
@@ -1993,7 +2371,7 @@ function registerCopyOnlyMainSideStubIpc(): void {
 
   ipcMain.handle('yang-kura:import:copy-only:execute', async (_event, request: unknown) => {
     const payload = request as Partial<ImportCopyOnlyStubRequest> | undefined;
-    return buildMvp93CopyOnlyStubBlockedResult(payload);
+    return buildMvp95CopyOnlyExecuteResult(payload);
   });
 
   ipcMain.handle('yang-kura:import:copy-only:cancel', async (_event, request: unknown) => {

@@ -1,0 +1,37 @@
+Yang-Kura MVP95 handoff package
+Version: 0.133.0-mvp95
+Theme: copy-only executor
+
+New files:
+- src/services/copyOnlyExecutorService.ts
+- docs/CURRENT_ROADMAP_MVP95.md
+- docs/COPY_ONLY_EXECUTOR_MVP95.md
+- docs/CODEX_COPY_ONLY_EXECUTOR_VALIDATION_MVP95.md
+- scripts/verify-mvp95-copy-only-executor.mjs
+- HANDOFF_MVP94_TO_MVP95.md
+- PACKAGE_MANIFEST_MVP95_HANDOFF.txt
+
+Modified files:
+- electron/main.ts
+- electron/preload.ts
+- src/types/electron-api.d.ts
+- src/components/ImporterPage.tsx
+- src/components/DiagnosticsPage.tsx
+- src/services/index.ts
+- package.json
+- package-lock.json
+- .npmrc
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+
+Excluded from package:
+- node_modules
+- dist
+- dist-electron
+- .npm-cache
+- tmp
+- *.zip
+- *.log
+- *.db

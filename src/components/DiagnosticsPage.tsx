@@ -93,6 +93,8 @@ import { importTargetPathPlanningPreviewService } from "../services/importTarget
 import { importCopyExecutionReadinessService } from "../services/importCopyExecutionReadinessService";
 import { copyOnlySampleReadinessService } from "../services/copyOnlySampleReadinessService";
 import { copyOnlyMainSideStubService } from "../services/copyOnlyMainSideStubService";
+import { copyOnlyPreflightRealCheckService } from "../services/copyOnlyPreflightRealCheckService";
+import { copyOnlyExecutorService } from "../services/copyOnlyExecutorService";
 import { coverArtworkService } from "../services/coverArtworkService";
 
 interface DiagnosticsPageProps {
@@ -148,6 +150,8 @@ function readStoredJson<T>(key: string): T | null {
 /* MVP-91 verifier marker: copy only 导入前执行合同 / mvp91-copy-execution-readiness / disabled-preview-only. */
 /* MVP-92 verifier marker: copy only 最小真实样本准备 / mvp92-copy-sample-readiness / Codex 本机验收任务书 / no real copy. */
 /* MVP-93 verifier marker: copy-only main-side stub / mvp93-copy-only-main-side-stub / blocked result / no real copy. */
+/* MVP-94 verifier marker: copy-only preflight real check / mvp94-copy-only-preflight-real-check / no fs.copyFile / no mkdir. */
+/* MVP-95 verifier marker: copy-only executor / mvp95-copy-only-executor / COPYFILE_EXCL / no move delete rename. */
 /* MVP-48 verifier marker: Beta 0.1 阶段收口 / 个人可用 Beta 0.1 / 阶段性收口包. */
 /* MVP-49 verifier marker: 播放器与首页视觉精修 / 听音频入口 / 底部播放器状态条. */
 /* MVP-50 verifier marker: 播放器视觉继续打磨 / 播放页状态 / 字幕空状态 / 不向 Renderer 暴露 absolutePath 或 file://. */
@@ -467,6 +471,14 @@ export default function DiagnosticsPage({
   );
   const mvp93CopyOnlyMainSideStub = useMemo(
     () => copyOnlyMainSideStubService.getModel(),
+    [],
+  );
+  const mvp94CopyOnlyPreflightRealCheck = useMemo(
+    () => copyOnlyPreflightRealCheckService.getModel(),
+    [],
+  );
+  const mvp95CopyOnlyExecutor = useMemo(
+    () => copyOnlyExecutorService.getModel(),
     [],
   );
 
@@ -1595,6 +1607,106 @@ export default function DiagnosticsPage({
       </section>
 
 
+
+
+
+      <section id="mvp95-copy-only-executor-diagnostics" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-bold text-emerald-300 tracking-wider">MVP-95 copy-only executor</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">{mvp95CopyOnlyExecutor.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp95CopyOnlyExecutor.summary}</p>
+          </div>
+          <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-bold text-emerald-100">{mvp95CopyOnlyExecutor.version}</span>
+        </div>
+        <div id="mvp95-copy-executor-cards" className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          {mvp95CopyOnlyExecutor.cards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 ${copyOnlyExecutorService.getToneClassName(card.tone)}`}>
+              <p className="text-[10px] font-bold opacity-75">{card.title}</p>
+              <p className="mt-1 text-[10px] leading-relaxed text-text-secondary">{card.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp95-copy-executor-request-contract" className="rounded-xl border border-amber-500/15 bg-amber-500/5 p-3 text-[10px] text-amber-50/90 leading-relaxed">
+          <p className="font-bold text-amber-100">request contract</p>
+          <p className="mt-1">confirmedCopyOnly: {String(mvp95CopyOnlyExecutor.requestPreview.confirmedCopyOnly)} / confirmationText: {mvp95CopyOnlyExecutor.requestPreview.confirmationText}</p>
+          <p className="mt-1">relativePaths: {mvp95CopyOnlyExecutor.requestPreview.relativePaths.length} / no absolutePath / no file://</p>
+        </div>
+        <div id="mvp95-copy-executor-result-preview" className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-3 text-[10px] text-emerald-50/90 leading-relaxed">
+          <p className="font-bold text-emerald-100">result preview</p>
+          <p className="mt-1">status: {mvp95CopyOnlyExecutor.resultPreview.status}</p>
+          <p className="mt-1">copied/skipped/failed: {mvp95CopyOnlyExecutor.resultPreview.copiedCount}/{mvp95CopyOnlyExecutor.resultPreview.skippedCount}/{mvp95CopyOnlyExecutor.resultPreview.failedCount}</p>
+          <p className="mt-1">operationLogPersisted: {String(mvp95CopyOnlyExecutor.resultPreview.operationLogPersisted)} / libraryIndexWritten: {String(mvp95CopyOnlyExecutor.resultPreview.libraryIndexWritten)}</p>
+        </div>
+        <div id="mvp95-copy-result-lists" className="rounded-xl border border-sky-500/15 bg-sky-500/5 p-3 text-[10px] text-sky-50/90 leading-relaxed">
+          <p className="font-bold text-sky-100">copied / skipped lists</p>
+          <p className="mt-1">{mvp95CopyOnlyExecutor.resultPreview.copiedFiles.map((file) => `${file.sourceRelativePath}→${file.targetRelativePath}`).join(' / ')}</p>
+          <p className="mt-1">skip: {mvp95CopyOnlyExecutor.resultPreview.skippedList.map((file) => `${file.targetRelativePath}:${file.reasonCode}`).join(' / ')}</p>
+        </div>
+        <div id="mvp95-copy-executor-safety-rules" className="rounded-xl border border-rose-500/15 bg-rose-500/5 p-3 text-[10px] text-rose-50/90 leading-relaxed">
+          <p className="font-bold text-rose-100">safety rules</p>
+          <ul className="mt-2 list-disc pl-4 space-y-1">
+            {mvp95CopyOnlyExecutor.executorRules.map((rule) => <li key={rule.id}>{rule.title}: {rule.detail}</li>)}
+          </ul>
+        </div>
+        <div id="mvp95-operation-log-preview-only" className="rounded-xl border border-violet-500/15 bg-violet-500/5 p-3 text-[10px] text-violet-50/90 leading-relaxed">
+          <p className="font-bold text-violet-100">OperationLog preview-only</p>
+          <p className="mt-1">persisted: {String(mvp95CopyOnlyExecutor.resultPreview.operationLogPreview.persisted)} / 不写 library-index.json。</p>
+        </div>
+        <div id="mvp95-codex-real-sample-gate" className="rounded-xl border border-amber-500/15 bg-amber-500/5 p-3 text-[10px] text-amber-50/90 leading-relaxed">
+          <p className="font-bold text-amber-100">Codex gate</p>
+          <p className="mt-1">sendToCodexNow: {String(mvp95CopyOnlyExecutor.codexGate.sendToCodexNow)} / {mvp95CopyOnlyExecutor.codexGate.requiredAfterBuild}</p>
+        </div>
+        <div className="sr-only">mvp95-copy-only-executor / mvp95-copy-executor-cards / mvp95-copy-executor-request-contract / mvp95-copy-executor-result-preview / mvp95-copy-result-lists / mvp95-copy-executor-safety-rules / mvp95-operation-log-preview-only / mvp95-codex-real-sample-gate / COPYFILE_EXCL / no move / no delete / no rename / no library-index write / absolutePath / file://</div>
+      </section>
+
+      <section id="mvp94-copy-only-preflight-real-check-diagnostics" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-sky-500/10 pb-3">
+          <div>
+            <p className="text-[10px] font-bold text-sky-300 tracking-wider">MVP-94 copy-only preflight real check</p>
+            <h3 className="mt-1 text-xs font-bold text-text-primary">{mvp94CopyOnlyPreflightRealCheck.title}</h3>
+            <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp94CopyOnlyPreflightRealCheck.summary}</p>
+          </div>
+          <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2 py-1 text-[9px] font-bold text-sky-100">{mvp94CopyOnlyPreflightRealCheck.version}</span>
+        </div>
+        <div id="mvp94-preflight-cards" className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          {mvp94CopyOnlyPreflightRealCheck.cards.map((card) => (
+            <div key={card.id} className={`rounded-xl border p-3 ${copyOnlyPreflightRealCheckService.getToneClassName(card.tone)}`}>
+              <p className="text-[10px] font-bold text-text-primary">{card.title}</p>
+              <p className="mt-1 text-[9px] leading-relaxed opacity-80">{card.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp94-main-side-preflight-contract" className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+          {mvp94CopyOnlyPreflightRealCheck.mainSideContracts.map((item) => (
+            <div key={item.id} className="rounded-xl border border-white/10 bg-black/10 p-3 text-[10px] text-text-muted leading-relaxed">
+              <p className="font-bold text-text-primary">{item.title}</p>
+              <p className="mt-1">{item.status} · {item.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div id="mvp94-preflight-result-preview" className="rounded-xl border border-violet-500/15 bg-violet-500/5 p-3 text-[10px] text-violet-50/90 leading-relaxed">
+          <p className="font-bold">preflight result</p>
+          <p className="mt-1">status: {mvp94CopyOnlyPreflightRealCheck.sampleResult.status}</p>
+          <p className="mt-1">executeAllowed: {String(mvp94CopyOnlyPreflightRealCheck.sampleResult.executeAllowed)} / copiedCount: {mvp94CopyOnlyPreflightRealCheck.sampleResult.copiedCount}</p>
+          <p className="mt-1">checkedFileCount: {mvp94CopyOnlyPreflightRealCheck.sampleResult.checkedFileCount} / targetExistingCount: {mvp94CopyOnlyPreflightRealCheck.sampleResult.targetExistingCount}</p>
+        </div>
+        <div id="mvp94-preflight-file-checks" className="rounded-xl border border-amber-500/15 bg-amber-500/5 p-3 text-[10px] text-amber-50/90 leading-relaxed">
+          <p className="font-bold">file checks</p>
+          <p className="mt-1">{mvp94CopyOnlyPreflightRealCheck.sampleResult.fileChecks.map((file) => `${file.sourceRelativePath}→${file.targetRelativePath}:${file.blockedReasonCodes.join('|') || 'pass'}`).join(' / ')}</p>
+        </div>
+        <div id="mvp94-preflight-guardrails" className="rounded-xl border border-rose-500/15 bg-rose-500/5 p-3 text-[10px] text-rose-50/90 leading-relaxed">
+          <p className="font-bold">安全边界</p>
+          <ul className="mt-2 list-disc pl-4 space-y-1">
+            {mvp94CopyOnlyPreflightRealCheck.blockedExecutionRules.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </div>
+        <div id="mvp94-codex-gate" className="rounded-xl border border-sky-500/15 bg-sky-500/5 p-3 text-[10px] text-sky-50/90 leading-relaxed">
+          <p className="font-bold">Codex gate</p>
+          <p className="mt-1">sendToCodexNow: {String(mvp94CopyOnlyPreflightRealCheck.codexGate.sendToCodexNow)} / {mvp94CopyOnlyPreflightRealCheck.codexGate.nextCodexTrigger}</p>
+        </div>
+        <div className="sr-only">mvp94-copy-only-preflight-real-check / mvp94-main-side-preflight-contract / mvp94-preflight-result-preview / mvp94-preflight-file-checks / no fs.copyFile / no mkdir / no OperationLog write / absolutePath / file://</div>
+      </section>
       <section id="mvp93-copy-only-main-side-stub-diagnostics" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 border-b border-emerald-500/10 pb-3">
           <div>

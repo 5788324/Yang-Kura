@@ -84,6 +84,9 @@ type ImportCopyOnlyStubRequest = {
   targetRootPathToken: string;
   mode: 'copy-only-stub';
   relativePaths?: string[];
+  targetRelativePaths?: string[];
+  confirmedCopyOnly?: boolean;
+  confirmationText?: string;
 };
 
 type ImportCopyOnlyConfirmStubRequest = {
@@ -114,7 +117,8 @@ const shellStatus = {
   canOpenExternalFile: true,
   canOpenInFileManager: true,
   canUseCopyOnlyStub: true,
-  canExecuteCopyOnly: false,
+  canUseCopyOnlyPreflightRealCheck: true,
+  canExecuteCopyOnly: true,
   registersMediaProtocol: true,
   exposesAbsolutePaths: false,
 } as const;

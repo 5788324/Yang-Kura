@@ -19,9 +19,9 @@ function assert(condition, message) {
 const pkg = readJson('package.json');
 const lock = readJson('package-lock.json');
 
-assert(['0.130.0-mvp92', '0.131.0-mvp93'].includes(pkg.version), `package.json version must be MVP92-compatible, got ${pkg.version}`);
-assert(['0.130.0-mvp92', '0.131.0-mvp93'].includes(lock.version), `package-lock version must be MVP92-compatible, got ${lock.version}`);
-assert(['0.130.0-mvp92', '0.131.0-mvp93'].includes(lock.packages?.['']?.version), 'package-lock root package version must be MVP92-compatible');
+assert(['0.130.0-mvp92', '0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95'].includes(pkg.version), `package.json version must be MVP92-compatible, got ${pkg.version}`);
+assert(['0.130.0-mvp92', '0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95'].includes(lock.version), `package-lock version must be MVP92-compatible, got ${lock.version}`);
+assert(['0.130.0-mvp92', '0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95'].includes(lock.packages?.['']?.version), 'package-lock root package version must be MVP92-compatible');
 assert(pkg.scripts?.['verify:mvp92-copy-sample-readiness'] === 'node scripts/verify-mvp92-copy-sample-readiness.mjs', 'package.json must expose MVP92 verifier script');
 assert(pkg.scripts?.['verify:all']?.includes('verify:mvp92-copy-sample-readiness'), 'verify:all must include MVP92 verifier');
 
@@ -110,7 +110,7 @@ for (const token of forbiddenImplementationTokens) {
 ].forEach((file) => {
   const text = read(file);
   assert(text.includes('MVP-92'), `${file} missing MVP-92`);
-  assert(text.includes('0.130.0-mvp92') || text.includes('0.131.0-mvp93'), `${file} missing version`);
+  assert(text.includes('0.130.0-mvp92') || text.includes('0.131.0-mvp93', '0.132.0-mvp94'), `${file} missing version`);
   assert(text.includes('Codex'), `${file} missing Codex validation note`);
   assert(text.includes('copy only') || text.includes('copy-only'), `${file} missing copy-only summary`);
   assert(text.includes('不执行') || text.includes('不实现真实 copy'), `${file} missing no-execution boundary`);
