@@ -14,7 +14,13 @@
  * scripts, Windows acceptance checklist, and packaging-readiness documentation. MVP-94 adds
  * copy-only preflight real-checks in main-side token space while still blocking copy execution. MVP-95 adds
  * the first confirmed copy-only executor: copy only, no move/delete/rename, overwrite=false, and no library-index mutation. MVP-96 persists a minimal
- * append-only copy OperationLog JSONL file with sanitized relative-path-only entries after copy execution.
+ * append-only copy OperationLog JSONL file with sanitized relative-path-only entries after copy execution. MVP-97 adds a
+ * post-copy refresh preview gate: read-only target checks and index refresh plan, still no library-index mutation. MVP-98 adds
+ * library-index patch preview from refreshCandidates: preview collections/tracks/covers/subtitles only, still no library-index mutation. MVP-99 adds
+ * confirmed library-index patch write readiness: confirmation + backup gate for MVP100. MVP-100 adds the first confirmed
+ * library-index.json patch write for copy-only additions: backup first, merge only, no delete, no SQLite. MVP-101 adds
+ * post-patch UI refresh: read current library-index.json after a confirmed patch write so the renderer can refresh library views without a full scan.
+ * MVP-105 adds the first small-sample move-only executor: CONFIRM_MOVE_IMPORT, overwrite=false, failure-stop, sanitized OperationLog, no index write.
  */
 
 import { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } from 'electron';
@@ -160,6 +166,93 @@ interface ImportCopyOnlyCancelStubRequest {
   mode: 'copy-only-cancel-stub';
 }
 
+interface ImportPostCopyRefreshPreviewRequest {
+  operationPlanId: string;
+  targetRootPathToken: string;
+  mode: 'post-copy-refresh-preview';
+  sourceOperationLogVersion?: 'mvp96-copy-only-operation-log-v1';
+  targetRelativePaths?: string[];
+}
+
+interface ImportLibraryIndexPatchPreviewRequest {
+  operationPlanId: string;
+  targetRootPathToken: string;
+  mode: 'library-index-patch-preview';
+  sourceRefreshPlanVersion?: 'mvp97-post-copy-refresh-plan-v1';
+  refreshCandidates?: Array<{
+    id?: string;
+    targetRelativePath?: string;
+    entryKind?: DryRunEntryKind;
+    plannedAction?: DryRunPlannedAction;
+    sizeBytes?: number;
+    warningCodes?: string[];
+  }>;
+  maxPatchItems?: number;
+}
+
+
+interface ImportLibraryIndexPatchWriteReadinessRequest {
+  operationPlanId: string;
+  targetRootPathToken: string;
+  mode: 'library-index-patch-write-readiness';
+  sourcePatchPreviewVersion?: 'mvp98-library-index-patch-preview-v1';
+  indexPatchPreview?: {
+    patchPreviewVersion?: 'mvp98-library-index-patch-preview-v1';
+    collections?: unknown[];
+    tracks?: unknown[];
+    covers?: unknown[];
+    subtitles?: unknown[];
+    patchOperations?: unknown[];
+    warnings?: string[];
+  };
+  userConfirmedPatchPreview?: boolean;
+  createBackup?: boolean;
+  confirmationText?: 'CONFIRM_WRITE_LIBRARY_INDEX_PATCH' | string;
+}
+
+interface ImportLibraryIndexPatchWriteRequest {
+  operationPlanId: string;
+  targetRootPathToken: string;
+  mode: 'library-index-patch-write-confirmed';
+  sourceReadinessVersion?: 'mvp99-library-index-patch-write-readiness-v1';
+  sourcePatchPreviewVersion?: 'mvp98-library-index-patch-preview-v1';
+  indexPatchPreview?: {
+    patchPreviewVersion?: 'mvp98-library-index-patch-preview-v1';
+    root?: unknown;
+    collections?: unknown[];
+    tracks?: unknown[];
+    covers?: unknown[];
+    subtitles?: unknown[];
+    patchOperations?: unknown[];
+    warnings?: string[];
+  };
+  userConfirmedPatchWrite?: boolean;
+  createBackup?: boolean;
+  confirmationText?: 'CONFIRM_WRITE_LIBRARY_INDEX_PATCH' | string;
+}
+
+interface ImportLibraryIndexPatchUiRefreshRequest {
+  operationPlanId: string;
+  targetRootPathToken: string;
+  mode: 'refresh-after-patch-write';
+  sourcePatchWriteVersion?: 'mvp100-library-index-patch-write-v1';
+  patchWriteStatus?: 'mvp100-library-index-patch-write-complete' | string;
+}
+
+
+interface ImportMoveOnlyExecuteRequest {
+  operationPlanId: string;
+  rootPathToken: string;
+  targetRootPathToken: string;
+  mode: 'move-only-small-sample';
+  relativePaths?: string[];
+  targetRelativePaths?: string[];
+  confirmedMoveOnly?: boolean;
+  confirmationText?: 'CONFIRM_MOVE_IMPORT' | string;
+  overwriteAllowed?: false;
+  maxMoveItems?: number;
+}
+
 interface ImportCopyOnlyOperationLogEntry {
   schemaVersion: 1;
   operationLogVersion: 'mvp96-copy-only-operation-log-v1';
@@ -182,6 +275,35 @@ interface ImportCopyOnlyOperationLogEntry {
   absolutePathReturned: false;
   fileUrlReturned: false;
   libraryIndexWritten: false;
+}
+
+
+
+interface ImportMoveOnlyOperationLogEntry {
+  schemaVersion: 1;
+  operationLogVersion: 'mvp105-move-only-operation-log-v1';
+  operationId: string;
+  operationPlanId: string;
+  eventType: 'move-only-execute';
+  mode: 'move-only';
+  executorVersion: 'mvp105-small-sample-move-only-executor-v1';
+  wroteAt: string;
+  rootPathToken: string;
+  targetRootPathToken: string;
+  requestedFileCount: number;
+  movedCount: number;
+  skippedCount: number;
+  failedCount: number;
+  createdDirectoryCount: number;
+  failureStopTriggered: boolean;
+  createdDirectoryRelativePaths: string[];
+  movedFiles: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; sizeBytes: number; moveMethod: 'rename' | 'copy-verify-unlink' }>;
+  skippedList: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string }>;
+  failureList: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string; message: string }>;
+  absolutePathReturned: false;
+  fileUrlReturned: false;
+  libraryIndexWritten: false;
+  sqliteWritten: false;
 }
 
 interface TokenizedRootRecord {
@@ -311,6 +433,10 @@ function buildSafetyNotes(): string[] {
     'MVP-27 允许用系统默认应用打开同一 rootPathToken 下的视频/图片/文件，并可在文件管理器中定位。',
     'MVP-94 允许 copy-only preflight 在 main 侧只读检查源/目标文件状态，但仍不执行 copy、不创建目录、不写日志。',
     'MVP-95 允许用户确认后在 Electron main 侧执行 copy-only：COPYFILE_EXCL 防覆盖、只创建目标父目录、不写 library-index.json。',
+    'MVP-97 允许 copy 后对目标相对路径做只读刷新预览，但仍不写 library-index.json、不接 SQLite。',
+    'MVP-98 允许根据 refreshCandidates 生成 library-index patch 预览，但仍不写 library-index.json、不接 SQLite。',
+    'MVP-100 允许用户确认后在目标库内执行 library-index.json patch 写入：先备份、只合并新增 patch、不删除既有数据、不接 SQLite。',
+    'MVP-105 允许用户二次确认后执行小样本真实 move-only：最多 20 个文件、overwrite=false、失败停止、写相对路径 OperationLog、不写 index。',
     'Renderer 仍不会拿到 absolutePath 或 file://。',
   ];
 }
@@ -781,6 +907,341 @@ function validateWrittenIndexShape(value: unknown): {ok: true; summary: {schemaV
       warningCount: Array.isArray(index.warnings) ? index.warnings.length : 0,
     },
   };
+}
+
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function stripUndefinedFields<T extends Record<string, unknown>>(value: T): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined));
+}
+
+function upsertByIdPreservingExisting(existingValue: unknown, patchValue: unknown, timestamp: string): { items: unknown[]; added: number; updated: number; skipped: number } {
+  const existingItems = Array.isArray(existingValue) ? existingValue.filter(isPlainObject) : [];
+  const patchItems = Array.isArray(patchValue) ? patchValue.filter(isPlainObject) : [];
+  const byId = new Map<string, Record<string, unknown>>();
+  const order: string[] = [];
+  let anonymousIndex = 0;
+
+  for (const item of existingItems) {
+    const id = typeof item.id === 'string' && item.id.trim() ? item.id : `mvp100-existing-anonymous-${anonymousIndex += 1}`;
+    byId.set(id, item);
+    order.push(id);
+  }
+
+  let added = 0;
+  let updated = 0;
+  let skipped = 0;
+
+  for (const rawPatchItem of patchItems) {
+    const id = typeof rawPatchItem.id === 'string' && rawPatchItem.id.trim() ? rawPatchItem.id : undefined;
+    if (!id) {
+      skipped += 1;
+      continue;
+    }
+    const patchItem = stripUndefinedFields(rawPatchItem);
+    const existing = byId.get(id);
+    if (existing) {
+      byId.set(id, { ...existing, ...patchItem, updatedAt: timestamp });
+      updated += 1;
+    } else {
+      byId.set(id, { ...patchItem, addedAt: rawPatchItem.addedAt ?? timestamp, updatedAt: rawPatchItem.updatedAt ?? timestamp });
+      order.push(id);
+      added += 1;
+    }
+  }
+
+  return {
+    items: order.map((id) => byId.get(id)).filter(Boolean),
+    added,
+    updated,
+    skipped,
+  };
+}
+
+function buildPatchWriteSafetyNotes(): string[] {
+  return buildSafetyNotes().concat([
+    'mvp100-library-index-patch-write',
+    'confirmed patch write: backup first, merge only, no delete',
+    'Local JSON Index only: no SQLite',
+    'renderer token only: no absolutePath, no file://',
+  ]);
+}
+
+function validatePatchPreviewForWrite(patchPreview: ImportLibraryIndexPatchWriteRequest['indexPatchPreview']): { ok: true } | { ok: false; message: string } {
+  if (!patchPreview || patchPreview.patchPreviewVersion !== 'mvp98-library-index-patch-preview-v1') {
+    return { ok: false, message: '缺少有效的 mvp98-library-index-patch-preview-v1。' };
+  }
+  const raw = JSON.stringify(patchPreview);
+  if (raw.includes('file://')) return { ok: false, message: 'patchPreview 中包含 file://，拒绝写入。' };
+  if (/"absolutePath"\s*:/.test(raw)) return { ok: false, message: 'patchPreview 中包含 absolutePath，拒绝写入。' };
+  if (/"fileUrl"\s*:/.test(raw)) return { ok: false, message: 'patchPreview 中包含 fileUrl，拒绝写入。' };
+  return { ok: true };
+}
+
+async function writeLibraryIndexPatchWithBackup(rootRecord: TokenizedRootRecord, request: ImportLibraryIndexPatchWriteRequest) {
+  const safetyNotes = buildPatchWriteSafetyNotes();
+  const writtenAt = new Date().toISOString();
+  const indexRelativePath = 'library-index.json';
+  const indexPath = path.join(rootRecord.absolutePath, indexRelativePath);
+
+  const patchValidation = validatePatchPreviewForWrite(request.indexPatchPreview);
+  if (patchValidation.ok === false) {
+    return {
+      ok: false,
+      status: 'mvp100-library-index-patch-write-missing-patch-preview',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      indexPatchWritten: false,
+      libraryIndexWritten: false,
+      backupCreated: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      message: patchValidation.message,
+      safetyNotes,
+    } as const;
+  }
+
+  const confirmationAccepted = request.userConfirmedPatchWrite === true && request.confirmationText === 'CONFIRM_WRITE_LIBRARY_INDEX_PATCH';
+  if (!confirmationAccepted) {
+    return {
+      ok: false,
+      status: 'mvp100-library-index-patch-write-confirmation-required',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      indexPatchWritten: false,
+      libraryIndexWritten: false,
+      backupCreated: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      requiredConfirmationText: 'CONFIRM_WRITE_LIBRARY_INDEX_PATCH',
+      message: 'MVP100 写入必须显式确认 CONFIRM_WRITE_LIBRARY_INDEX_PATCH。',
+      safetyNotes,
+    } as const;
+  }
+
+  if (request.createBackup !== true) {
+    return {
+      ok: false,
+      status: 'mvp100-library-index-patch-write-backup-required',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      indexPatchWritten: false,
+      libraryIndexWritten: false,
+      backupCreated: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      message: 'MVP100 写入必须 createBackup=true；不允许无备份 patch index。',
+      safetyNotes,
+    } as const;
+  }
+
+  if (!await pathExists(indexPath)) {
+    return {
+      ok: false,
+      status: 'mvp100-library-index-patch-write-missing-index',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      indexPatchWritten: false,
+      libraryIndexWritten: false,
+      backupCreated: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      message: '目标资源库缺少 library-index.json；请先完成基础扫描写入，再执行 copy-only patch。',
+      safetyNotes,
+    } as const;
+  }
+
+  let currentIndex: any;
+  let currentText = '';
+  try {
+    currentText = await fs.readFile(indexPath, 'utf8');
+    currentIndex = JSON.parse(currentText) as unknown;
+  } catch (error) {
+    return {
+      ok: false,
+      status: 'mvp100-library-index-patch-write-read-index-failed',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      indexPatchWritten: false,
+      libraryIndexWritten: false,
+      backupCreated: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      message: `读取或解析现有 library-index.json 失败：${getSafeErrorCode(error)}；已停止写入。`,
+      safetyNotes,
+    } as const;
+  }
+
+  const currentValidation = validateWrittenIndexShape(currentIndex);
+  if (currentValidation.ok === false) {
+    return {
+      ok: false,
+      status: 'mvp100-library-index-patch-write-invalid-current-index',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      indexPatchWritten: false,
+      libraryIndexWritten: false,
+      backupCreated: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      message: `现有 library-index.json 结构无效：${currentValidation.message}；已停止写入。`,
+      safetyNotes,
+    } as const;
+  }
+
+  const patchPreview = request.indexPatchPreview;
+  const collections = upsertByIdPreservingExisting(currentIndex.collections, patchPreview?.collections, writtenAt);
+  const tracks = upsertByIdPreservingExisting(currentIndex.tracks, patchPreview?.tracks, writtenAt);
+  const covers = upsertByIdPreservingExisting(currentIndex.covers, patchPreview?.covers, writtenAt);
+  const subtitles = upsertByIdPreservingExisting(currentIndex.subtitles, patchPreview?.subtitles, writtenAt);
+  const warnings = Array.from(new Set([...(Array.isArray(currentIndex.warnings) ? currentIndex.warnings : []), ...(Array.isArray(patchPreview?.warnings) ? patchPreview.warnings : [])]));
+
+  const patchedIndex = {
+    ...currentIndex,
+    collections: collections.items,
+    tracks: tracks.items,
+    covers: covers.items,
+    subtitles: subtitles.items,
+    warnings,
+    updatedAt: writtenAt,
+    lastPatch: {
+      patchVersion: 'mvp100-library-index-patch-write-v1',
+      sourcePatchPreviewVersion: 'mvp98-library-index-patch-preview-v1',
+      sourceReadinessVersion: request.sourceReadinessVersion ?? 'mvp99-library-index-patch-write-readiness-v1',
+      operationPlanId: request.operationPlanId,
+      patchedAt: writtenAt,
+      collectionPatchCount: Array.isArray(patchPreview?.collections) ? patchPreview.collections.length : 0,
+      trackPatchCount: Array.isArray(patchPreview?.tracks) ? patchPreview.tracks.length : 0,
+      coverPatchCount: Array.isArray(patchPreview?.covers) ? patchPreview.covers.length : 0,
+      subtitlePatchCount: Array.isArray(patchPreview?.subtitles) ? patchPreview.subtitles.length : 0,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+    },
+  };
+
+  const serialized = JSON.stringify(patchedIndex, null, 2);
+  if (serialized.includes('file://') || /"absolutePath"\s*:/.test(serialized) || /"fileUrl"\s*:/.test(serialized)) {
+    return {
+      ok: false,
+      status: 'mvp100-library-index-patch-write-unsafe-content',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      indexPatchWritten: false,
+      libraryIndexWritten: false,
+      backupCreated: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      message: '合并后的 index 含 unsafe path 字段或 file://，已停止写入。',
+      safetyNotes,
+    } as const;
+  }
+
+  const backupRelativePath = `library-index.backup.before-mvp100-${toSafeTimestamp(writtenAt)}.json`;
+  const backupPath = path.join(rootRecord.absolutePath, backupRelativePath);
+
+  try {
+    await fs.writeFile(backupPath, currentText, { encoding: 'utf8', flag: 'wx' });
+    await fs.writeFile(indexPath, `${serialized}\n`, 'utf8');
+  } catch (error) {
+    return {
+      ok: false,
+      status: 'mvp100-library-index-patch-write-error',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      indexPatchWritten: false,
+      libraryIndexWritten: false,
+      backupCreated: await pathExists(backupPath),
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      backupRelativePath: await pathExists(backupPath) ? backupRelativePath : undefined,
+      message: `写入 library-index.json patch 失败：${getSafeErrorCode(error)}。如已生成 backup，原 index 内容仍可从备份恢复。`,
+      safetyNotes,
+    } as const;
+  }
+
+  const readBackText = await fs.readFile(indexPath, 'utf8');
+  const parsed = JSON.parse(readBackText) as unknown;
+  const validation = validateWrittenIndexShape(parsed);
+  if (validation.ok === false) {
+    return {
+      ok: false,
+      status: 'mvp100-library-index-patch-write-verify-failed',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      indexPatchWritten: true,
+      libraryIndexWritten: true,
+      backupCreated: true,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      indexRelativePath,
+      backupRelativePath,
+      message: `library-index.json patch 已写入，但读回校验失败：${validation.message}`,
+      safetyNotes,
+    } as const;
+  }
+
+  const sha256 = crypto.createHash('sha256').update(readBackText).digest('hex');
+  return {
+    ok: true,
+    status: 'mvp100-library-index-patch-write-complete',
+    schemaVersion: 1,
+    patchWriteVersion: 'mvp100-library-index-patch-write-v1',
+    operationPlanId: request.operationPlanId,
+    targetRootPathToken: request.targetRootPathToken,
+    displayName: rootRecord.displayName,
+    libraryType: rootRecord.libraryType,
+    mode: 'library-index-patch-write-confirmed',
+    sourceReadinessVersion: request.sourceReadinessVersion ?? 'mvp99-library-index-patch-write-readiness-v1',
+    sourcePatchPreviewVersion: 'mvp98-library-index-patch-preview-v1',
+    indexPatchWritten: true,
+    libraryIndexWritten: true,
+    backupCreated: true,
+    scannerRunTriggered: false,
+    sqliteWritten: false,
+    absolutePathReturned: false,
+    fileUrlReturned: false,
+    writtenAt,
+    indexRelativePath,
+    backupRelativePath,
+    bytesWritten: Buffer.byteLength(readBackText, 'utf8'),
+    sha256,
+    summary: {
+      before: currentValidation.summary,
+      after: validation.summary,
+      collectionsAdded: collections.added,
+      collectionsUpdated: collections.updated,
+      tracksAdded: tracks.added,
+      tracksUpdated: tracks.updated,
+      coversAdded: covers.added,
+      coversUpdated: covers.updated,
+      subtitlesAdded: subtitles.added,
+      subtitlesUpdated: subtitles.updated,
+      skippedPatchItems: collections.skipped + tracks.skipped + covers.skipped + subtitles.skipped,
+    },
+    message: 'MVP100 已在备份后写入 library-index.json patch；只合并 copy-only 新增项，不删除旧数据，不接 SQLite，不返回 absolutePath/file://。',
+    safetyNotes,
+  } as const;
 }
 
 async function writeLibraryIndex(rootRecord: TokenizedRootRecord, dryRun: DryRunSuccessPayload, request: WriteLibraryIndexRequest) {
@@ -2227,6 +2688,378 @@ async function appendMvp96CopyOnlyOperationLog(entry: ImportCopyOnlyOperationLog
   }
 }
 
+
+
+function buildMvp105MoveOnlyOperationLogEntry(input: {
+  operationPlanId: string;
+  rootPathToken: string;
+  targetRootPathToken: string;
+  requestedFileCount: number;
+  movedFiles: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; sizeBytes: number; moveMethod: 'rename' | 'copy-verify-unlink'; absolutePathReturned: false; fileUrlReturned: false }>;
+  skippedList: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string; absolutePathReturned: false; fileUrlReturned: false }>;
+  failureList: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string; message: string; absolutePathReturned: false; fileUrlReturned: false }>;
+  createdDirectoryRelativePaths: string[];
+  failureStopTriggered: boolean;
+}): ImportMoveOnlyOperationLogEntry {
+  return {
+    schemaVersion: 1,
+    operationLogVersion: 'mvp105-move-only-operation-log-v1',
+    operationId: `mvp105-move-only-${crypto.randomUUID()}`,
+    operationPlanId: input.operationPlanId,
+    eventType: 'move-only-execute',
+    mode: 'move-only',
+    executorVersion: 'mvp105-small-sample-move-only-executor-v1',
+    wroteAt: new Date().toISOString(),
+    rootPathToken: input.rootPathToken,
+    targetRootPathToken: input.targetRootPathToken,
+    requestedFileCount: input.requestedFileCount,
+    movedCount: input.movedFiles.length,
+    skippedCount: input.skippedList.length,
+    failedCount: input.failureList.length,
+    createdDirectoryCount: input.createdDirectoryRelativePaths.length,
+    failureStopTriggered: input.failureStopTriggered,
+    createdDirectoryRelativePaths: input.createdDirectoryRelativePaths,
+    movedFiles: input.movedFiles.map(({ id, sourceRelativePath, targetRelativePath, sizeBytes, moveMethod }) => ({ id, sourceRelativePath, targetRelativePath, sizeBytes, moveMethod })),
+    skippedList: input.skippedList.map(({ id, sourceRelativePath, targetRelativePath, reasonCode }) => ({ id, sourceRelativePath, targetRelativePath, reasonCode })),
+    failureList: input.failureList.map(({ id, sourceRelativePath, targetRelativePath, reasonCode, message }) => ({ id, sourceRelativePath, targetRelativePath, reasonCode, message })),
+    absolutePathReturned: false,
+    fileUrlReturned: false,
+    libraryIndexWritten: false,
+    sqliteWritten: false,
+  };
+}
+
+async function appendMvp105MoveOnlyOperationLog(entry: ImportMoveOnlyOperationLogEntry): Promise<{ ok: true; entry: ImportMoveOnlyOperationLogEntry } | { ok: false; code: string }> {
+  const logFilePath = path.join(stableLogsPath, 'import-operation-log.jsonl');
+  await fs.mkdir(stableLogsPath, { recursive: true });
+  try {
+    await fs.appendFile(logFilePath, `${JSON.stringify(entry)}
+`, 'utf8');
+    return { ok: true, entry };
+  } catch (error) {
+    return { ok: false, code: getSafeErrorCode(error) };
+  }
+}
+
+async function buildMvp105MoveOnlyExecuteResult(request: Partial<ImportMoveOnlyExecuteRequest> | undefined) {
+  const baseSafetyNotes = buildSafetyNotes().concat([
+    'mvp105-small-sample-move-only-executor-v1',
+    'move-only-small-sample real executor: max 20 files',
+    'requires CONFIRM_MOVE_IMPORT and confirmedMoveOnly=true',
+    'overwrite=false; target exists skip',
+    'failure-stop: first failed move stops remaining items',
+    'uses fs.rename for same-device move and copy-verify-unlink for EXDEV only',
+    'OperationLog is append-only JSONL with relative paths only',
+    'no library-index.json write, no SQLite, no absolutePath, no file://',
+  ]);
+
+  if (!request?.operationPlanId || !request.rootPathToken || !request.targetRootPathToken || request.mode !== 'move-only-small-sample') {
+    return {
+      ok: false,
+      status: 'mvp105-move-only-execute-invalid-request',
+      executorVersion: 'mvp105-small-sample-move-only-executor-v1',
+      operationPlanId: request?.operationPlanId ?? 'mvp105-missing-operation-plan',
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      executeAllowed: false,
+      moveAllowed: false,
+      movedCount: 0,
+      skippedCount: 0,
+      failedCount: 0,
+      libraryIndexWritten: false,
+      sqliteWritten: false,
+      message: 'move-only execute 请求必须包含 operationPlanId、rootPathToken、targetRootPathToken，且 mode=move-only-small-sample。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  if (request.confirmedMoveOnly !== true || request.confirmationText !== 'CONFIRM_MOVE_IMPORT') {
+    return {
+      ok: false,
+      status: 'mvp105-move-only-execute-confirmation-required',
+      executorVersion: 'mvp105-small-sample-move-only-executor-v1',
+      operationPlanId: request.operationPlanId,
+      rootPathToken: request.rootPathToken,
+      targetRootPathToken: request.targetRootPathToken,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      executeAllowed: false,
+      moveAllowed: false,
+      movedCount: 0,
+      skippedCount: Array.isArray(request.relativePaths) ? request.relativePaths.length : 0,
+      failedCount: 0,
+      libraryIndexWritten: false,
+      sqliteWritten: false,
+      message: '真实 move-only 执行需要 confirmedMoveOnly=true 且 confirmationText=CONFIRM_MOVE_IMPORT。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  if (request.overwriteAllowed !== false && request.overwriteAllowed !== undefined) {
+    return {
+      ok: false,
+      status: 'mvp105-move-only-execute-overwrite-blocked',
+      executorVersion: 'mvp105-small-sample-move-only-executor-v1',
+      operationPlanId: request.operationPlanId,
+      rootPathToken: request.rootPathToken,
+      targetRootPathToken: request.targetRootPathToken,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      executeAllowed: false,
+      moveAllowed: false,
+      movedCount: 0,
+      skippedCount: 0,
+      failedCount: 0,
+      libraryIndexWritten: false,
+      sqliteWritten: false,
+      message: 'MVP105 固定 overwriteAllowed=false；任何覆盖请求都会被拒绝。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const sourceRoot = rootTokenMap.get(request.rootPathToken);
+  const targetRoot = rootTokenMap.get(request.targetRootPathToken);
+  if (!sourceRoot || !targetRoot) {
+    return {
+      ok: false,
+      status: 'mvp105-move-only-execute-invalid-root-token',
+      executorVersion: 'mvp105-small-sample-move-only-executor-v1',
+      operationPlanId: request.operationPlanId,
+      rootPathToken: request.rootPathToken,
+      targetRootPathToken: request.targetRootPathToken,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      executeAllowed: false,
+      moveAllowed: false,
+      movedCount: 0,
+      skippedCount: 0,
+      failedCount: 0,
+      libraryIndexWritten: false,
+      sqliteWritten: false,
+      message: 'rootPathToken 或 targetRootPathToken 无效。请重新选择源目录和目标仓库目录。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const relativePaths = Array.isArray(request.relativePaths) ? request.relativePaths.slice(0, 200) : [];
+  const targetRelativePaths = Array.isArray(request.targetRelativePaths) ? request.targetRelativePaths.slice(0, 200) : [];
+  const maxMoveItems = normalizeLimit(request.maxMoveItems, 20, 20);
+  if (relativePaths.length === 0) {
+    return {
+      ok: false,
+      status: 'mvp105-move-only-execute-empty-file-list',
+      executorVersion: 'mvp105-small-sample-move-only-executor-v1',
+      operationPlanId: request.operationPlanId,
+      rootPathToken: request.rootPathToken,
+      targetRootPathToken: request.targetRootPathToken,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      executeAllowed: false,
+      moveAllowed: false,
+      movedCount: 0,
+      skippedCount: 0,
+      failedCount: 0,
+      libraryIndexWritten: false,
+      sqliteWritten: false,
+      message: 'move-only execute 至少需要一个 source relativePath。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+  if (relativePaths.length > maxMoveItems) {
+    return {
+      ok: false,
+      status: 'mvp105-move-only-execute-too-many-files',
+      executorVersion: 'mvp105-small-sample-move-only-executor-v1',
+      operationPlanId: request.operationPlanId,
+      rootPathToken: request.rootPathToken,
+      targetRootPathToken: request.targetRootPathToken,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      executeAllowed: false,
+      moveAllowed: false,
+      movedCount: 0,
+      skippedCount: relativePaths.length,
+      failedCount: 0,
+      libraryIndexWritten: false,
+      sqliteWritten: false,
+      message: `MVP105 是小样本 move-only executor，最多允许 ${maxMoveItems} 个文件。`,
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const movedFiles: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; sizeBytes: number; moveMethod: 'rename' | 'copy-verify-unlink'; absolutePathReturned: false; fileUrlReturned: false }> = [];
+  const skippedList: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string; absolutePathReturned: false; fileUrlReturned: false }> = [];
+  const failureList: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string; message: string; absolutePathReturned: false; fileUrlReturned: false }> = [];
+  const createdDirectoryRelativePaths = new Set<string>();
+  let failureStopTriggered = false;
+
+  for (let index = 0; index < relativePaths.length; index += 1) {
+    const id = `mvp105-move-execute-${index + 1}`;
+    const sourceInput = relativePaths[index];
+    const targetInput = targetRelativePaths[index] ?? sourceInput;
+    const sourceRelativePath = typeof sourceInput === 'string' ? normalizeRelativePath(sourceInput) : 'invalid-source-relative-path';
+    const targetRelativePath = typeof targetInput === 'string' ? normalizeRelativePath(targetInput) : 'invalid-target-relative-path';
+
+    if (failureStopTriggered) {
+      skippedList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: 'remaining-after-failure-stop', absolutePathReturned: false, fileUrlReturned: false });
+      continue;
+    }
+
+    const sourceResolved = typeof sourceInput === 'string' ? resolveSafeCopyPath(sourceRoot, sourceInput) : { ok: false as const, code: 'missing-source-relative-path', message: '缺少源相对路径。' };
+    const targetResolved = typeof targetInput === 'string' ? resolveSafeCopyPath(targetRoot, targetInput) : { ok: false as const, code: 'missing-target-relative-path', message: '缺少目标相对路径。' };
+    const failAndStop = (reasonCode: string, message: string) => {
+      failureList.push({ id, sourceRelativePath, targetRelativePath, reasonCode, message, absolutePathReturned: false, fileUrlReturned: false });
+      failureStopTriggered = true;
+    };
+
+    if (sourceResolved.ok === false) {
+      failAndStop(sourceResolved.code, sourceResolved.message);
+      continue;
+    }
+    if (targetResolved.ok === false) {
+      failAndStop(targetResolved.code, targetResolved.message);
+      continue;
+    }
+
+    let sourceStat;
+    try {
+      sourceStat = await fs.stat(sourceResolved.absolutePath);
+    } catch (error) {
+      failAndStop('source-missing', `source stat failed: ${getSafeErrorCode(error)}`);
+      continue;
+    }
+    if (!sourceStat.isFile()) {
+      failAndStop('source-not-file', '源路径不是文件，move-only executor 已拒绝。');
+      continue;
+    }
+
+    try {
+      await fs.stat(targetResolved.absolutePath);
+      skippedList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: 'target-exists-overwrite-disabled', absolutePathReturned: false, fileUrlReturned: false });
+      continue;
+    } catch {
+      // target does not exist; move remains guarded by rename/copy pre-checks.
+    }
+
+    const parentAbsolutePath = path.dirname(targetResolved.absolutePath);
+    const parentRelativePath = relativeDirectoryOf(targetResolved.relativePath);
+    try {
+      const parentStat = await fs.stat(parentAbsolutePath);
+      if (!parentStat.isDirectory()) {
+        failAndStop('target-parent-not-directory', '目标父路径存在但不是目录。');
+        continue;
+      }
+    } catch {
+      await fs.mkdir(parentAbsolutePath, { recursive: true });
+      if (parentRelativePath) createdDirectoryRelativePaths.add(parentRelativePath);
+    }
+
+    try {
+      await fs.rename(sourceResolved.absolutePath, targetResolved.absolutePath);
+      movedFiles.push({ id, sourceRelativePath, targetRelativePath, sizeBytes: sourceStat.size, moveMethod: 'rename', absolutePathReturned: false, fileUrlReturned: false });
+    } catch (error: any) {
+      if (error?.code !== 'EXDEV') {
+        failAndStop('move-rename-failed', `rename failed: ${getSafeErrorCode(error)}`);
+        continue;
+      }
+      try {
+        await fs.copyFile(sourceResolved.absolutePath, targetResolved.absolutePath, fsSync.constants.COPYFILE_EXCL);
+        const targetStat = await fs.stat(targetResolved.absolutePath);
+        if (!targetStat.isFile() || targetStat.size !== sourceStat.size) {
+          failAndStop('copy-verify-failed', '跨盘 move fallback 复制后校验失败，源文件保留。');
+          continue;
+        }
+        await fs.unlink(sourceResolved.absolutePath);
+        movedFiles.push({ id, sourceRelativePath, targetRelativePath, sizeBytes: sourceStat.size, moveMethod: 'copy-verify-unlink', absolutePathReturned: false, fileUrlReturned: false });
+      } catch (fallbackError: any) {
+        if (fallbackError?.code === 'EEXIST') {
+          skippedList.push({ id, sourceRelativePath, targetRelativePath, reasonCode: 'target-exists-overwrite-disabled', absolutePathReturned: false, fileUrlReturned: false });
+        } else {
+          failAndStop('copy-verify-unlink-failed', `copy-verify-unlink failed: ${getSafeErrorCode(fallbackError)}`);
+        }
+      }
+    }
+  }
+
+  const operationLogEntry = buildMvp105MoveOnlyOperationLogEntry({
+    operationPlanId: request.operationPlanId,
+    rootPathToken: request.rootPathToken,
+    targetRootPathToken: request.targetRootPathToken,
+    requestedFileCount: relativePaths.length,
+    movedFiles,
+    skippedList,
+    failureList,
+    createdDirectoryRelativePaths: Array.from(createdDirectoryRelativePaths),
+    failureStopTriggered,
+  });
+  const operationLogWrite = await appendMvp105MoveOnlyOperationLog(operationLogEntry);
+  const operationLogPersisted = operationLogWrite.ok;
+  const operationLogFailureCode = operationLogWrite.ok ? undefined : (operationLogWrite as { ok: false; code: string }).code;
+
+  return {
+    ok: failureList.length === 0 && operationLogPersisted,
+    status: operationLogPersisted ? 'mvp105-move-only-execute-complete-with-operation-log' : 'mvp105-move-only-execute-log-write-failed',
+    executorVersion: 'mvp105-small-sample-move-only-executor-v1',
+    operationPlanId: request.operationPlanId,
+    rootPathToken: request.rootPathToken,
+    targetRootPathToken: request.targetRootPathToken,
+    absolutePathReturned: false,
+    fileUrlReturned: false,
+    executeAllowed: true,
+    moveAllowed: true,
+    copyAllowed: false,
+    overwriteAllowed: false,
+    deleteAllowed: false,
+    renameAllowed: true,
+    sourceDirectoryCleanupAllowed: false,
+    operationLogPersisted,
+    operationLogFailureCode,
+    libraryIndexWritten: false,
+    scannerRunTriggered: false,
+    sqliteWritten: false,
+    requestedFileCount: relativePaths.length,
+    movedCount: movedFiles.length,
+    skippedCount: skippedList.length,
+    failedCount: failureList.length,
+    createdDirectoryCount: createdDirectoryRelativePaths.size,
+    createdDirectoryRelativePaths: Array.from(createdDirectoryRelativePaths),
+    failureStopTriggered,
+    movedFiles,
+    skippedList,
+    failureList,
+    operationLog: operationLogPersisted
+      ? {
+        schemaVersion: operationLogEntry.schemaVersion,
+        operationLogVersion: operationLogEntry.operationLogVersion,
+        operationId: operationLogEntry.operationId,
+        operationPlanId: operationLogEntry.operationPlanId,
+        eventType: operationLogEntry.eventType,
+        mode: operationLogEntry.mode,
+        executorVersion: operationLogEntry.executorVersion,
+        wroteAt: operationLogEntry.wroteAt,
+        persisted: true,
+        absolutePathReturned: false,
+        fileUrlReturned: false,
+      }
+      : undefined,
+    operationLogPreview: {
+      operationPlanId: request.operationPlanId,
+      mode: 'move-only',
+      persisted: operationLogPersisted,
+      movedCount: movedFiles.length,
+      skippedCount: skippedList.length,
+      failedCount: failureList.length,
+      createdDirectoryCount: createdDirectoryRelativePaths.size,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+    },
+    message: operationLogPersisted
+      ? 'MVP105 move-only executor 已完成小样本真实移动尝试并写入 OperationLog；不覆盖、不清理空源目录、不写 library-index.json。'
+      : 'MVP105 move-only executor 已完成移动尝试，但 OperationLog 写入失败；不返回日志绝对路径。',
+    safetyNotes: baseSafetyNotes,
+  } as const;
+}
+
 // Legacy verifier token retained for MVP95 compatibility: mvp95-copy-only-execute-complete / operationLogPersisted: false.
 async function buildMvp95CopyOnlyExecuteResult(request: Partial<ImportCopyOnlyStubRequest> | undefined) {
   const baseSafetyNotes = buildSafetyNotes().concat([
@@ -2462,6 +3295,813 @@ async function buildMvp95CopyOnlyExecuteResult(request: Partial<ImportCopyOnlySt
   } as const;
 }
 
+
+async function buildMvp97PostCopyRefreshPreviewResult(request: Partial<ImportPostCopyRefreshPreviewRequest> | undefined) {
+  const baseSafetyNotes = buildSafetyNotes().concat([
+    'mvp97-post-copy-refresh-preview',
+    'post-copy refresh preview is read-only: stat target files only',
+    'library-index.json write remains blocked',
+    'renderer token only: no absolutePath, no file://',
+  ]);
+
+  if (!request?.operationPlanId || !request.targetRootPathToken || request.mode !== 'post-copy-refresh-preview') {
+    return {
+      ok: false,
+      status: 'mvp97-post-copy-refresh-preview-invalid-request',
+      operationPlanId: request?.operationPlanId ?? 'mvp97-missing-operation-plan',
+      targetRootPathToken: request?.targetRootPathToken ?? 'mvp97-missing-target-root-token',
+      previewOnly: true,
+      indexWriteAllowed: false,
+      libraryIndexWritten: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      candidateCount: 0,
+      message: 'post-copy refresh preview 请求必须包含 operationPlanId、targetRootPathToken，且 mode=post-copy-refresh-preview。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const targetRoot = rootTokenMap.get(request.targetRootPathToken);
+  if (!targetRoot) {
+    return {
+      ok: false,
+      status: 'mvp97-post-copy-refresh-preview-invalid-root-token',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      previewOnly: true,
+      indexWriteAllowed: false,
+      libraryIndexWritten: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      candidateCount: 0,
+      message: 'targetRootPathToken 无效。请重新选择目标仓库目录。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const targetRelativePaths = Array.isArray(request.targetRelativePaths) ? request.targetRelativePaths.slice(0, 200) : [];
+  if (targetRelativePaths.length === 0) {
+    return {
+      ok: false,
+      status: 'mvp97-post-copy-refresh-preview-empty-target-list',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      previewOnly: true,
+      indexWriteAllowed: false,
+      libraryIndexWritten: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      candidateCount: 0,
+      message: 'post-copy refresh preview 至少需要一个 target relativePath。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const refreshCandidates: Array<{
+    id: string;
+    targetRelativePath: string;
+    entryKind: DryRunEntryKind;
+    plannedAction: DryRunPlannedAction;
+    sizeBytes: number;
+    warningCodes: string[];
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+  }> = [];
+  const blockedTargets: Array<{
+    id: string;
+    targetRelativePath: string;
+    reasonCode: string;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+  }> = [];
+  const collectionCandidateRelativePaths = new Set<string>();
+
+  for (let index = 0; index < targetRelativePaths.length; index += 1) {
+    const id = `mvp97-refresh-target-${index + 1}`;
+    const targetInput = targetRelativePaths[index];
+    const targetRelativePath = typeof targetInput === 'string' ? normalizeRelativePath(targetInput) : 'invalid-target-relative-path';
+    const targetResolved = typeof targetInput === 'string' ? resolveSafeCopyPath(targetRoot, targetInput) : { ok: false as const, code: 'missing-target-relative-path', message: '缺少目标相对路径。' };
+
+    if (targetResolved.ok === false) {
+      blockedTargets.push({ id, targetRelativePath, reasonCode: targetResolved.code, absolutePathReturned: false, fileUrlReturned: false });
+      continue;
+    }
+
+    try {
+      const stat = await fs.stat(targetResolved.absolutePath);
+      if (!stat.isFile()) {
+        blockedTargets.push({ id, targetRelativePath, reasonCode: 'target-not-file', absolutePathReturned: false, fileUrlReturned: false });
+        continue;
+      }
+      const entry = buildEntry(targetRoot.absolutePath, targetResolved.absolutePath, targetResolved.relativePath, false, stat.size, stat.mtimeMs);
+      refreshCandidates.push({
+        id,
+        targetRelativePath: entry.relativePath,
+        entryKind: entry.entryKind,
+        plannedAction: entry.plannedAction,
+        sizeBytes: entry.sizeBytes ?? 0,
+        warningCodes: entry.warningCodes,
+        absolutePathReturned: false,
+        fileUrlReturned: false,
+      });
+      const collectionCandidate = relativeDirectoryOf(entry.relativePath) || entry.collectionCandidate || 'root';
+      if (collectionCandidate) collectionCandidateRelativePaths.add(collectionCandidate);
+    } catch (error) {
+      blockedTargets.push({ id, targetRelativePath, reasonCode: `target-stat-failed-${getSafeErrorCode(error)}`, absolutePathReturned: false, fileUrlReturned: false });
+    }
+  }
+
+  const audioCount = refreshCandidates.filter((item) => item.entryKind === 'audio').length;
+  const coverCount = refreshCandidates.filter((item) => item.entryKind === 'cover').length;
+  const subtitleCount = refreshCandidates.filter((item) => item.entryKind === 'subtitle').length;
+  const warningCount = refreshCandidates.reduce((sum, item) => sum + item.warningCodes.length, 0) + blockedTargets.length;
+
+  return {
+    ok: blockedTargets.length === 0,
+    status: 'mvp97-post-copy-refresh-preview-ready',
+    schemaVersion: 1,
+    refreshPlanVersion: 'mvp97-post-copy-refresh-plan-v1',
+    operationPlanId: request.operationPlanId,
+    sourceOperationLogVersion: request.sourceOperationLogVersion ?? 'mvp96-copy-only-operation-log-v1',
+    mode: 'post-copy-refresh-preview',
+    previewOnly: true,
+    targetRootPathToken: request.targetRootPathToken,
+    absolutePathReturned: false,
+    fileUrlReturned: false,
+    indexWriteAllowed: false,
+    libraryIndexWritten: false,
+    scannerRunTriggered: false,
+    sqliteWritten: false,
+    requestedTargetCount: targetRelativePaths.length,
+    candidateCount: refreshCandidates.length,
+    blockedTargetCount: blockedTargets.length,
+    audioCount,
+    coverCount,
+    subtitleCount,
+    warningCount,
+    collectionCandidateRelativePaths: Array.from(collectionCandidateRelativePaths),
+    refreshCandidates,
+    blockedTargets,
+    message: 'MVP97 已生成 copy 后刷新预览；本轮不写 library-index.json、不接 SQLite、不触发全量扫描。',
+    safetyNotes: baseSafetyNotes,
+  } as const;
+}
+
+function languageFromSubtitlePath(relativePath: string): 'ja' | 'zh' | 'bilingual' | 'unknown' {
+  const normalized = relativePath.toLowerCase();
+  if (normalized.includes('.bilingual.')) return 'bilingual';
+  if (normalized.includes('.zh.')) return 'zh';
+  if (normalized.includes('.ja.')) return 'ja';
+  return 'unknown';
+}
+
+function collectionTitleFromRelativePath(collectionRelativePath: string, fallback: string): string {
+  const segment = collectionRelativePath.split('/').filter(Boolean).pop();
+  if (!segment) return fallback;
+  return segment;
+}
+
+function buildMvp98LibraryIndexPatchPreviewResult(request: Partial<ImportLibraryIndexPatchPreviewRequest> | undefined) {
+  const baseSafetyNotes = buildSafetyNotes().concat([
+    'mvp98-library-index-patch-preview',
+    'library-index patch preview only: no writeFile, no SQLite, no full scan',
+    'preview collections/tracks/covers/subtitles only',
+    'renderer token only: no absolutePath, no file://',
+  ]);
+
+  if (!request?.operationPlanId || !request.targetRootPathToken || request.mode !== 'library-index-patch-preview') {
+    return {
+      ok: false,
+      status: 'mvp98-library-index-patch-preview-invalid-request',
+      operationPlanId: request?.operationPlanId ?? 'mvp98-missing-operation-plan',
+      targetRootPathToken: request?.targetRootPathToken ?? 'mvp98-missing-target-root-token',
+      previewOnly: true,
+      indexPatchWriteAllowed: false,
+      libraryIndexWritten: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      patchItemCount: 0,
+      message: 'library-index patch preview 请求必须包含 operationPlanId、targetRootPathToken，且 mode=library-index-patch-preview。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const targetRoot = rootTokenMap.get(request.targetRootPathToken);
+  if (!targetRoot) {
+    return {
+      ok: false,
+      status: 'mvp98-library-index-patch-preview-invalid-root-token',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      previewOnly: true,
+      indexPatchWriteAllowed: false,
+      libraryIndexWritten: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      patchItemCount: 0,
+      message: 'targetRootPathToken 无效。请重新选择目标仓库目录。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const maxPatchItems = normalizeLimit(request.maxPatchItems, 500, 2000);
+  const refreshCandidates = Array.isArray(request.refreshCandidates) ? request.refreshCandidates.slice(0, maxPatchItems) : [];
+  if (refreshCandidates.length === 0) {
+    return {
+      ok: false,
+      status: 'mvp98-library-index-patch-preview-empty-refresh-candidates',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      previewOnly: true,
+      indexPatchWriteAllowed: false,
+      libraryIndexWritten: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      patchItemCount: 0,
+      message: 'library-index patch preview 至少需要一个 MVP97 refreshCandidate。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const generatedAt = new Date().toISOString();
+  const rootId = stablePreviewId('root', request.targetRootPathToken);
+  const collectionMap = new Map<string, any>();
+  const tracks: any[] = [];
+  const covers: any[] = [];
+  const subtitles: any[] = [];
+  const warnings = new Set<string>();
+  const patchOperations: any[] = [];
+
+  const ensureCollection = (targetRelativePath: string, entryKind: DryRunEntryKind, warningCodes: string[]) => {
+    const collectionRelativePath = relativeDirectoryOf(targetRelativePath) || 'root';
+    const rjIdNorm = detectRjId(targetRelativePath);
+    const collectionId = stablePreviewId('collection', `${rootId}:${collectionRelativePath}`);
+    let collection = collectionMap.get(collectionId);
+    if (!collection) {
+      const pseudoEntry: DryRunDiscoveredEntry = {
+        id: stablePreviewId('mvp98-entry', `${collectionId}:${targetRelativePath}`),
+        relativePath: targetRelativePath,
+        entryKind,
+        plannedAction: 'create-collection-candidate',
+        parserStatus: warningCodes.length ? 'parsed-with-warning' : 'parsed',
+        collectionCandidate: collectionRelativePath,
+        rjIdNorm,
+        warningCodes,
+      };
+      collection = {
+        id: collectionId,
+        rootId,
+        collectionType: getCollectionType(targetRoot.libraryType, pseudoEntry),
+        title: rjIdNorm || collectionTitleFromRelativePath(collectionRelativePath, targetRoot.displayName),
+        sortTitle: collectionRelativePath,
+        codeRaw: rjIdNorm,
+        codeNorm: rjIdNorm,
+        artist: undefined,
+        circle: undefined,
+        cvs: [],
+        album: targetRoot.libraryType === 'music' ? collectionTitleFromRelativePath(collectionRelativePath, targetRoot.displayName) : undefined,
+        folderPath: collectionRelativePath,
+        cover: undefined,
+        tags: [],
+        status: warningCodes.length ? 'warning' : 'identified',
+        trackIds: [],
+        addedAt: generatedAt,
+        updatedAt: generatedAt,
+        absolutePathReturned: false,
+        fileUrlReturned: false,
+      };
+      collectionMap.set(collectionId, collection);
+      patchOperations.push({ operation: 'upsert-collection', collectionId, targetRelativePath: collectionRelativePath, absolutePathReturned: false, fileUrlReturned: false });
+    } else if (warningCodes.length && collection.status !== 'warning') {
+      collection.status = 'warning';
+    }
+    return collection;
+  };
+
+  for (let index = 0; index < refreshCandidates.length; index += 1) {
+    const candidate = refreshCandidates[index];
+    const rawTargetRelativePath = typeof candidate?.targetRelativePath === 'string' ? candidate.targetRelativePath : '';
+    if (isUnsafeRelativePath(rawTargetRelativePath)) {
+      warnings.add(`mvp98-unsafe-relative-path: ${rawTargetRelativePath || `candidate-${index + 1}`}`);
+      continue;
+    }
+    const targetRelativePath = normalizeRelativePath(rawTargetRelativePath);
+    const entryKind = candidate.entryKind || 'other';
+    const plannedAction = candidate.plannedAction || 'warn-only';
+    const warningCodes = Array.isArray(candidate.warningCodes) ? candidate.warningCodes.filter((item): item is string => typeof item === 'string') : [];
+    const extension = extensionOf(targetRelativePath);
+    const collection = ensureCollection(targetRelativePath, entryKind, warningCodes);
+
+    if (warningCodes.length) {
+      warningCodes.forEach((code) => warnings.add(`${code}: ${targetRelativePath}`));
+    }
+
+    if (plannedAction === 'include-track') {
+      const trackId = stablePreviewId('track', `${collection.id}:${targetRelativePath}`);
+      const track = {
+        id: trackId,
+        rootId,
+        collectionId: collection.id,
+        kind: mapEntryKindToTrackKind(entryKind),
+        title: baseNameOf(targetRelativePath.split('/').pop() || targetRelativePath),
+        displayArtist: collection.artist,
+        displayAlbum: collection.title,
+        rjId: detectRjId(targetRelativePath),
+        trackNo: detectTrackNo(targetRelativePath.split('/').pop() || targetRelativePath),
+        source: {
+          id: stablePreviewId('source', `${trackId}:${targetRelativePath}`),
+          trackId,
+          sourceKind: 'local-file',
+          relativePath: targetRelativePath,
+          extension,
+          sizeBytes: typeof candidate.sizeBytes === 'number' ? candidate.sizeBytes : 0,
+          absolutePathReturned: false,
+          fileUrlReturned: false,
+        },
+        subtitles: [],
+        tags: [],
+        addedAt: generatedAt,
+        absolutePathReturned: false,
+        fileUrlReturned: false,
+      };
+      tracks.push(track);
+      collection.trackIds.push(trackId);
+      patchOperations.push({ operation: 'upsert-track', trackId, collectionId: collection.id, targetRelativePath, absolutePathReturned: false, fileUrlReturned: false });
+      continue;
+    }
+
+    if (plannedAction === 'attach-cover' || entryKind === 'cover') {
+      const coverId = stablePreviewId('cover', `${collection.id}:${targetRelativePath}`);
+      const cover = {
+        id: coverId,
+        collectionId: collection.id,
+        sourceKind: 'local-file',
+        relativePath: targetRelativePath,
+        isPrimary: !collection.cover,
+        absolutePathReturned: false,
+        fileUrlReturned: false,
+      };
+      covers.push(cover);
+      if (!collection.cover) collection.cover = cover;
+      patchOperations.push({ operation: 'attach-cover', coverId, collectionId: collection.id, targetRelativePath, absolutePathReturned: false, fileUrlReturned: false });
+      continue;
+    }
+
+    if (plannedAction === 'attach-subtitle' || entryKind === 'subtitle') {
+      const subtitleId = stablePreviewId('subtitle', `${collection.id}:${targetRelativePath}`);
+      const subtitle = {
+        id: subtitleId,
+        collectionId: collection.id,
+        trackMatchStrategy: 'same-basename-or-manual-review',
+        sourceKind: 'local-file',
+        language: languageFromSubtitlePath(targetRelativePath),
+        format: extension,
+        relativePath: targetRelativePath,
+        absolutePathReturned: false,
+        fileUrlReturned: false,
+      };
+      subtitles.push(subtitle);
+      patchOperations.push({ operation: 'attach-subtitle', subtitleId, collectionId: collection.id, targetRelativePath, absolutePathReturned: false, fileUrlReturned: false });
+      continue;
+    }
+
+    warnings.add(`mvp98-warn-only: ${targetRelativePath}`);
+    patchOperations.push({ operation: 'warn-only', collectionId: collection.id, targetRelativePath, absolutePathReturned: false, fileUrlReturned: false });
+  }
+
+  const collections = Array.from(collectionMap.values()).map((collection) => ({
+    ...collection,
+    status: collection.trackIds.length === 0 && collection.status !== 'warning' ? 'missing-audio' : collection.status,
+  }));
+
+  return {
+    ok: true,
+    status: 'mvp98-library-index-patch-preview-ready',
+    schemaVersion: 1,
+    patchPreviewVersion: 'mvp98-library-index-patch-preview-v1',
+    operationPlanId: request.operationPlanId,
+    sourceRefreshPlanVersion: request.sourceRefreshPlanVersion ?? 'mvp97-post-copy-refresh-plan-v1',
+    mode: 'library-index-patch-preview',
+    previewOnly: true,
+    targetRootPathToken: request.targetRootPathToken,
+    displayName: targetRoot.displayName,
+    libraryType: targetRoot.libraryType,
+    absolutePathReturned: false,
+    fileUrlReturned: false,
+    indexPatchWriteAllowed: false,
+    libraryIndexWritten: false,
+    scannerRunTriggered: false,
+    sqliteWritten: false,
+    requestedCandidateCount: Array.isArray(request.refreshCandidates) ? request.refreshCandidates.length : 0,
+    consumedCandidateCount: refreshCandidates.length,
+    patchItemCount: patchOperations.length,
+    collectionPatchCount: collections.length,
+    trackPatchCount: tracks.length,
+    coverPatchCount: covers.length,
+    subtitlePatchCount: subtitles.length,
+    warningCount: warnings.size,
+    indexPatchPreview: {
+      schemaVersion: 1,
+      generatedAt,
+      patchPreviewVersion: 'mvp98-library-index-patch-preview-v1',
+      sourceKind: 'post-copy-refresh-preview',
+      root: {
+        id: rootId,
+        rootPathToken: request.targetRootPathToken,
+        displayName: targetRoot.displayName,
+        libraryType: targetRoot.libraryType,
+        absolutePathReturned: false,
+        fileUrlReturned: false,
+      },
+      collections,
+      tracks,
+      covers,
+      subtitles,
+      patchOperations,
+      warnings: Array.from(warnings),
+    },
+    message: 'MVP98 已生成 library-index patch 预览；本轮不写 library-index.json、不接 SQLite、不触发全量扫描。',
+    safetyNotes: baseSafetyNotes,
+  } as const;
+}
+
+
+
+function buildMvp99LibraryIndexPatchWriteReadinessResult(request: Partial<ImportLibraryIndexPatchWriteReadinessRequest> | undefined) {
+  const baseSafetyNotes = buildSafetyNotes().concat([
+    'mvp99-library-index-patch-write-readiness',
+    'MVP99 readiness only: no library-index.json write',
+    'MVP100 must create backup before writing',
+    'renderer token only: no absolutePath, no file://',
+  ]);
+
+  if (!request || request.mode !== 'library-index-patch-write-readiness' || !request.operationPlanId || !request.targetRootPathToken) {
+    return {
+      ok: false,
+      status: 'mvp99-library-index-patch-write-readiness-invalid-request',
+      operationPlanId: request?.operationPlanId ?? 'mvp99-missing-operation-plan',
+      targetRootPathToken: request?.targetRootPathToken ?? 'mvp99-missing-target-root-token',
+      previewOnly: true,
+      readyForMvp100Write: false,
+      writeExecutionAllowedInMvp99: false,
+      libraryIndexWritten: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      confirmationAccepted: false,
+      backupRequired: true,
+      message: 'MVP99 需要 operationPlanId、targetRootPathToken 和 mode=library-index-patch-write-readiness。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const targetRoot = rootTokenMap.get(request.targetRootPathToken);
+  if (!targetRoot) {
+    return {
+      ok: false,
+      status: 'mvp99-library-index-patch-write-readiness-invalid-root-token',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      previewOnly: true,
+      readyForMvp100Write: false,
+      writeExecutionAllowedInMvp99: false,
+      libraryIndexWritten: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      confirmationAccepted: false,
+      backupRequired: true,
+      message: '无法找到 targetRootPathToken；请重新选择目标资源库。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const patchPreview = request.indexPatchPreview;
+  const hasValidPatchPreview = Boolean(patchPreview && patchPreview.patchPreviewVersion === 'mvp98-library-index-patch-preview-v1');
+  if (!hasValidPatchPreview) {
+    return {
+      ok: false,
+      status: 'mvp99-library-index-patch-write-readiness-missing-patch-preview',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      previewOnly: true,
+      readyForMvp100Write: false,
+      writeExecutionAllowedInMvp99: false,
+      libraryIndexWritten: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      confirmationAccepted: false,
+      backupRequired: true,
+      message: 'MVP99 需要来自 MVP98 的 indexPatchPreview，且 patchPreviewVersion 必须是 mvp98-library-index-patch-preview-v1。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  const confirmationAccepted = request.userConfirmedPatchPreview === true && request.confirmationText === 'CONFIRM_WRITE_LIBRARY_INDEX_PATCH';
+  const backupAccepted = request.createBackup === true;
+  const patchOperations = Array.isArray(patchPreview?.patchOperations) ? patchPreview.patchOperations : [];
+
+  if (!confirmationAccepted) {
+    return {
+      ok: false,
+      status: 'mvp99-library-index-patch-write-readiness-confirmation-required',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      previewOnly: true,
+      readyForMvp100Write: false,
+      writeExecutionAllowedInMvp99: false,
+      libraryIndexWritten: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      requiredConfirmationText: 'CONFIRM_WRITE_LIBRARY_INDEX_PATCH',
+      confirmationAccepted: false,
+      backupRequired: true,
+      message: '写入准备需要二次确认；MVP99 仍不会执行写入。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  if (!backupAccepted) {
+    return {
+      ok: false,
+      status: 'mvp99-library-index-patch-write-readiness-backup-required',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      previewOnly: true,
+      readyForMvp100Write: false,
+      writeExecutionAllowedInMvp99: false,
+      libraryIndexWritten: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      requiredConfirmationText: 'CONFIRM_WRITE_LIBRARY_INDEX_PATCH',
+      confirmationAccepted: true,
+      backupRequired: true,
+      message: 'MVP100 写入前必须创建 library-index.json 备份；请确认 createBackup=true。',
+      safetyNotes: baseSafetyNotes,
+    } as const;
+  }
+
+  return {
+    ok: true,
+    status: 'mvp99-library-index-patch-write-readiness-ready',
+    schemaVersion: 1,
+    readinessVersion: 'mvp99-library-index-patch-write-readiness-v1',
+    operationPlanId: request.operationPlanId,
+    targetRootPathToken: request.targetRootPathToken,
+    displayName: targetRoot.displayName,
+    libraryType: targetRoot.libraryType,
+    mode: 'library-index-patch-write-readiness',
+    sourcePatchPreviewVersion: 'mvp98-library-index-patch-preview-v1',
+    previewOnly: true,
+    readyForMvp100Write: true,
+    writeExecutionAllowedInMvp99: false,
+    libraryIndexWritten: false,
+    scannerRunTriggered: false,
+    sqliteWritten: false,
+    absolutePathReturned: false,
+    fileUrlReturned: false,
+    requiredConfirmationText: 'CONFIRM_WRITE_LIBRARY_INDEX_PATCH',
+    confirmationAccepted: true,
+    backupRequired: true,
+    backupPlanPreview: {
+      backupFileNamePattern: 'library-index.backup.before-mvp100-*.json',
+      backupLocation: 'same-directory-as-library-index',
+      overwriteBackup: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+    },
+    patchOperationCount: patchOperations.length,
+    collectionPatchCount: Array.isArray(patchPreview?.collections) ? patchPreview.collections.length : 0,
+    trackPatchCount: Array.isArray(patchPreview?.tracks) ? patchPreview.tracks.length : 0,
+    coverPatchCount: Array.isArray(patchPreview?.covers) ? patchPreview.covers.length : 0,
+    subtitlePatchCount: Array.isArray(patchPreview?.subtitles) ? patchPreview.subtitles.length : 0,
+    warningCount: Array.isArray(patchPreview?.warnings) ? patchPreview.warnings.length : 0,
+    message: 'MVP99 写入准备已通过；下一轮 MVP100 可在备份后执行 library-index.json patch 写入。本轮未写入任何文件。',
+    safetyNotes: baseSafetyNotes,
+  } as const;
+}
+
+
+function buildMvp100LibraryIndexPatchWriteInvalidResult(request: Partial<ImportLibraryIndexPatchWriteRequest> | undefined) {
+  return {
+    ok: false,
+    status: 'mvp100-library-index-patch-write-invalid-request',
+    operationPlanId: request?.operationPlanId ?? 'mvp100-missing-operation-plan',
+    targetRootPathToken: request?.targetRootPathToken ?? 'mvp100-missing-target-root-token',
+    indexPatchWritten: false,
+    libraryIndexWritten: false,
+    backupCreated: false,
+    scannerRunTriggered: false,
+    sqliteWritten: false,
+    absolutePathReturned: false,
+    fileUrlReturned: false,
+    message: 'MVP100 需要 operationPlanId、targetRootPathToken，且 mode=library-index-patch-write-confirmed。',
+    safetyNotes: buildPatchWriteSafetyNotes(),
+  } as const;
+}
+
+async function buildMvp100LibraryIndexPatchWriteResult(request: Partial<ImportLibraryIndexPatchWriteRequest> | undefined) {
+  if (!request || request.mode !== 'library-index-patch-write-confirmed' || !request.operationPlanId || !request.targetRootPathToken) {
+    return buildMvp100LibraryIndexPatchWriteInvalidResult(request);
+  }
+
+  const targetRoot = rootTokenMap.get(request.targetRootPathToken);
+  if (!targetRoot) {
+    return {
+      ok: false,
+      status: 'mvp100-library-index-patch-write-invalid-root-token',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      indexPatchWritten: false,
+      libraryIndexWritten: false,
+      backupCreated: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      message: '无法找到 targetRootPathToken；请重新选择目标资源库。',
+      safetyNotes: buildPatchWriteSafetyNotes(),
+    } as const;
+  }
+
+  return writeLibraryIndexPatchWithBackup(targetRoot, {
+    operationPlanId: request.operationPlanId,
+    targetRootPathToken: request.targetRootPathToken,
+    mode: 'library-index-patch-write-confirmed',
+    sourceReadinessVersion: request.sourceReadinessVersion,
+    sourcePatchPreviewVersion: request.sourcePatchPreviewVersion,
+    indexPatchPreview: request.indexPatchPreview,
+    userConfirmedPatchWrite: request.userConfirmedPatchWrite,
+    createBackup: request.createBackup,
+    confirmationText: request.confirmationText,
+  });
+}
+
+function buildMvp101PatchUiRefreshSafetyNotes(): string[] {
+  return buildSafetyNotes().concat([
+    'mvp101-import-ui-refresh-after-patch',
+    'read current library-index.json after confirmed patch write',
+    'reuse renderer yang-kura-library-index-loaded refresh path',
+    'no full scan, no SQLite, no copy/move/delete/rename',
+    'renderer token only: no absolutePath, no file://',
+  ]);
+}
+
+function buildMvp101PatchUiRefreshInvalidResult(request: Partial<ImportLibraryIndexPatchUiRefreshRequest> | undefined) {
+  return {
+    ok: false,
+    status: 'mvp101-import-ui-refresh-after-patch-invalid-request',
+    operationPlanId: request?.operationPlanId ?? 'mvp101-missing-operation-plan',
+    targetRootPathToken: request?.targetRootPathToken ?? 'mvp101-missing-target-root-token',
+    indexReadPerformed: false,
+    rendererRefreshExpected: false,
+    libraryIndexWritten: false,
+    scannerRunTriggered: false,
+    sqliteWritten: false,
+    fileMutationPerformed: false,
+    absolutePathReturned: false,
+    fileUrlReturned: false,
+    message: 'MVP101 refresh 请求必须包含 operationPlanId、targetRootPathToken，且 mode=refresh-after-patch-write。',
+    safetyNotes: buildMvp101PatchUiRefreshSafetyNotes(),
+  } as const;
+}
+
+async function buildMvp101PatchUiRefreshAfterWriteResult(request: Partial<ImportLibraryIndexPatchUiRefreshRequest> | undefined) {
+  if (!request || request.mode !== 'refresh-after-patch-write' || !request.operationPlanId || !request.targetRootPathToken) {
+    return buildMvp101PatchUiRefreshInvalidResult(request);
+  }
+
+  if (request.sourcePatchWriteVersion && request.sourcePatchWriteVersion !== 'mvp100-library-index-patch-write-v1') {
+    return {
+      ok: false,
+      status: 'mvp101-import-ui-refresh-after-patch-invalid-source-write',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      indexReadPerformed: false,
+      rendererRefreshExpected: false,
+      libraryIndexWritten: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      fileMutationPerformed: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      message: 'MVP101 只接受 mvp100-library-index-patch-write-v1 后的刷新请求。',
+      safetyNotes: buildMvp101PatchUiRefreshSafetyNotes(),
+    } as const;
+  }
+
+  if (request.patchWriteStatus && request.patchWriteStatus !== 'mvp100-library-index-patch-write-complete') {
+    return {
+      ok: false,
+      status: 'mvp101-import-ui-refresh-after-patch-write-not-complete',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      indexReadPerformed: false,
+      rendererRefreshExpected: false,
+      libraryIndexWritten: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      fileMutationPerformed: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      message: 'MVP100 patch 写入未成功完成；MVP101 不刷新 UI，避免把失败写入误认为成功。',
+      safetyNotes: buildMvp101PatchUiRefreshSafetyNotes(),
+    } as const;
+  }
+
+  const targetRoot = rootTokenMap.get(request.targetRootPathToken);
+  if (!targetRoot) {
+    return {
+      ok: false,
+      status: 'mvp101-import-ui-refresh-after-patch-invalid-root-token',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      indexReadPerformed: false,
+      rendererRefreshExpected: false,
+      libraryIndexWritten: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      fileMutationPerformed: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      message: '无法找到 targetRootPathToken；请重新选择目标资源库后再刷新。',
+      safetyNotes: buildMvp101PatchUiRefreshSafetyNotes(),
+    } as const;
+  }
+
+  const readResult = await readLibraryIndex(targetRoot, {
+    rootPathToken: request.targetRootPathToken,
+    mode: 'read-current-index',
+  });
+
+  if (!readResult.ok) {
+    return {
+      ok: false,
+      status: 'mvp101-import-ui-refresh-after-patch-read-failed',
+      operationPlanId: request.operationPlanId,
+      targetRootPathToken: request.targetRootPathToken,
+      indexReadPerformed: Boolean(readResult.indexReadPerformed),
+      rendererRefreshExpected: false,
+      libraryIndexWritten: false,
+      scannerRunTriggered: false,
+      sqliteWritten: false,
+      fileMutationPerformed: false,
+      absolutePathReturned: false,
+      fileUrlReturned: false,
+      readResult,
+      message: `patch 写入后读取 library-index.json 失败：${readResult.message}`,
+      safetyNotes: buildMvp101PatchUiRefreshSafetyNotes(),
+    } as const;
+  }
+
+  return {
+    ok: true,
+    status: 'mvp101-import-ui-refresh-after-patch-complete',
+    schemaVersion: 1,
+    refreshVersion: 'mvp101-import-ui-refresh-after-patch-v1',
+    sourcePatchWriteVersion: 'mvp100-library-index-patch-write-v1',
+    operationPlanId: request.operationPlanId,
+    targetRootPathToken: request.targetRootPathToken,
+    displayName: targetRoot.displayName,
+    libraryType: targetRoot.libraryType,
+    mode: 'refresh-after-patch-write',
+    indexReadPerformed: true,
+    rendererRefreshExpected: true,
+    libraryIndexWritten: false,
+    scannerRunTriggered: false,
+    sqliteWritten: false,
+    fileMutationPerformed: false,
+    absolutePathReturned: false,
+    fileUrlReturned: false,
+    eventName: 'yang-kura-library-index-loaded',
+    cacheKey: 'yang_kura_last_read_library_index_result',
+    readResult,
+    summary: readResult.summary,
+    message: 'MVP101 已读取 patch 后的 library-index.json；Renderer 应保存 readResult 并 dispatch yang-kura-library-index-loaded 刷新首页、音声库和音乐库。',
+    safetyNotes: buildMvp101PatchUiRefreshSafetyNotes(),
+  } as const;
+}
+
 function registerCopyOnlyMainSideStubIpc(): void {
   ipcMain.handle('yang-kura:import:copy-only:preflight', async (_event, request: unknown) => {
     const payload = request as Partial<ImportCopyOnlyStubRequest> | undefined;
@@ -2487,6 +4127,37 @@ function registerCopyOnlyMainSideStubIpc(): void {
     const payload = request as Partial<ImportCopyOnlyStubRequest> | undefined;
     return buildMvp95CopyOnlyExecuteResult(payload);
   });
+
+  ipcMain.handle('yang-kura:import:post-copy:refresh-preview', async (_event, request: unknown) => {
+    const payload = request as Partial<ImportPostCopyRefreshPreviewRequest> | undefined;
+    return buildMvp97PostCopyRefreshPreviewResult(payload);
+  });
+
+  ipcMain.handle('yang-kura:import:library-index-patch:preview', async (_event, request: unknown) => {
+    const payload = request as Partial<ImportLibraryIndexPatchPreviewRequest> | undefined;
+    return buildMvp98LibraryIndexPatchPreviewResult(payload);
+  });
+
+  ipcMain.handle('yang-kura:import:library-index-patch:write-readiness', async (_event, request: unknown) => {
+    const payload = request as Partial<ImportLibraryIndexPatchWriteReadinessRequest> | undefined;
+    return buildMvp99LibraryIndexPatchWriteReadinessResult(payload);
+  });
+
+  ipcMain.handle('yang-kura:import:library-index-patch:write-confirmed', async (_event, request: unknown) => {
+    const payload = request as Partial<ImportLibraryIndexPatchWriteRequest> | undefined;
+    return buildMvp100LibraryIndexPatchWriteResult(payload);
+  });
+
+  ipcMain.handle('yang-kura:import:library-index-patch:refresh-after-write', async (_event, request: unknown) => {
+    const payload = request as Partial<ImportLibraryIndexPatchUiRefreshRequest> | undefined;
+    return buildMvp101PatchUiRefreshAfterWriteResult(payload);
+  });
+
+
+ipcMain.handle('yang-kura:import:move-only:execute', async (_event, request: unknown) => {
+  const payload = request as Partial<ImportMoveOnlyExecuteRequest> | undefined;
+  return buildMvp105MoveOnlyExecuteResult(payload);
+});
 
   ipcMain.handle('yang-kura:import:copy-only:cancel', async (_event, request: unknown) => {
     const payload = request as Partial<ImportCopyOnlyCancelStubRequest> | undefined;

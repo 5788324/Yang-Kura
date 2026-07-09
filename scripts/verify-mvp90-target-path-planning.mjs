@@ -19,9 +19,9 @@ function assert(condition, message) {
 const pkg = readJson('package.json');
 const lock = readJson('package-lock.json');
 
-assert(['0.128.0-mvp90', '0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96'].includes(pkg.version), `package.json version must be 0.128.0-mvp90 or compatible MVP-91, got ${pkg.version}`);
-assert(['0.128.0-mvp90', '0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96'].includes(lock.version), `package-lock version must be 0.128.0-mvp90 or compatible MVP-91, got ${lock.version}`);
-assert(['0.128.0-mvp90', '0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96'].includes(lock.packages?.['']?.version), 'package-lock root package version must be 0.128.0-mvp90 or compatible MVP-91');
+assert(['0.128.0-mvp90', '0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96', '0.135.0-mvp97', '0.136.0-mvp98', '0.137.0-mvp99', '0.138.0-mvp100', '0.139.0-mvp101', '0.140.0-mvp102'].includes(pkg.version), `package.json version must be 0.128.0-mvp90 or compatible MVP-91, got ${pkg.version}`);
+assert(['0.128.0-mvp90', '0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96', '0.135.0-mvp97', '0.136.0-mvp98', '0.137.0-mvp99', '0.138.0-mvp100', '0.139.0-mvp101', '0.140.0-mvp102'].includes(lock.version), `package-lock version must be 0.128.0-mvp90 or compatible MVP-91, got ${lock.version}`);
+assert(['0.128.0-mvp90', '0.129.0-mvp91', '0.130.0-mvp92', '0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96', '0.135.0-mvp97', '0.136.0-mvp98', '0.137.0-mvp99', '0.138.0-mvp100', '0.139.0-mvp101', '0.140.0-mvp102'].includes(lock.packages?.['']?.version), 'package-lock root package version must be 0.128.0-mvp90 or compatible MVP-91');
 assert(pkg.scripts?.['verify:mvp90-target-path-planning'] === 'node scripts/verify-mvp90-target-path-planning.mjs', 'package.json must expose MVP90 verifier script');
 assert(pkg.scripts?.['verify:all']?.includes('verify:mvp90-target-path-planning'), 'verify:all must include MVP90 verifier');
 

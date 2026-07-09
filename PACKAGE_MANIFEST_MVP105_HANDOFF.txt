@@ -1,0 +1,13 @@
+PACKAGE MANIFEST MVP105
+
+Version: 0.143.0-mvp105
+
+New files:
+- src/services/moveOnlyExecutorService.ts
+- docs/CURRENT_ROADMAP_MVP105.md
+- docs/SMALL_SAMPLE_MOVE_ONLY_EXECUTOR_MVP105.md
+- scripts/verify-mvp105-small-sample-move-only-executor.mjs
+- HANDOFF_MVP104_TO_MVP105.md
+- PACKAGE_MANIFEST_MVP105_HANDOFF.txt
+
+Modified files include package.json, package-lock.json, electron/main.ts, electron/preload.ts, src/types/electron-api.d.ts, src/services/index.ts, ImporterPage, DiagnosticsPage, README, PROJECT_STATE, NEXT_CHAT_HANDOFF, RUN_ME_FIRST.

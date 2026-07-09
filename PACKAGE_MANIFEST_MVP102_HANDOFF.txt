@@ -1,0 +1,23 @@
+Yang-Kura MVP102 package manifest
+
+Version: 0.140.0-mvp102
+Main change: copy-only import closeout
+
+Added:
+- src/services/copyOnlyImportCloseoutService.ts
+- docs/CURRENT_ROADMAP_MVP102.md
+- docs/COPY_ONLY_IMPORT_CLOSEOUT_MVP102.md
+- scripts/verify-mvp102-copy-only-import-closeout.mjs
+- HANDOFF_MVP101_TO_MVP102.md
+- PACKAGE_MANIFEST_MVP102_HANDOFF.txt
+
+Modified:
+- package.json
+- package-lock.json
+- src/services/index.ts
+- src/components/ImporterPage.tsx
+- src/components/DiagnosticsPage.tsx
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md

@@ -1,0 +1,33 @@
+Yang-Kura MVP108 handoff package
+Version: 0.146.0-mvp108
+
+Added:
+- src/services/importerFinalRegressionChecklistService.ts
+- docs/CURRENT_ROADMAP_MVP108.md
+- docs/IMPORTER_FINAL_REGRESSION_CHECKLIST_MVP108.md
+- scripts/verify-mvp108-importer-final-regression-checklist.mjs
+- HANDOFF_MVP107_TO_MVP108.md
+- PACKAGE_MANIFEST_MVP108_HANDOFF.txt
+
+Modified:
+- package.json
+- package-lock.json
+- src/components/ImporterPage.tsx
+- src/components/DiagnosticsPage.tsx
+- src/services/index.ts
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+
+Boundary:
+- no copy executor change
+- no move executor change
+- no library-index.json write in MVP108
+- no SQLite
+- no downloader
+- no metadata Provider
+- no mpv
+- no absolutePath
+- no file://
+- no Codex scheduled

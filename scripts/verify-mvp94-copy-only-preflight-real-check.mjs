@@ -12,8 +12,8 @@ const assert = (condition, message) => { if (!condition) fail(message); };
 
 const pkg = JSON.parse(read('package.json'));
 const lock = JSON.parse(read('package-lock.json'));
-assert(['0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96'].includes(pkg.version), `package version must be 0.132.0-mvp94 or compatible MVP95, got ${pkg.version}`);
-assert(['0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96'].includes(lock.version) || ['0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96'].includes(lock.packages?.['']?.version), 'package-lock root version must be MVP94-compatible');
+assert(['0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96', '0.135.0-mvp97', '0.136.0-mvp98', '0.137.0-mvp99', '0.138.0-mvp100', '0.139.0-mvp101', '0.140.0-mvp102'].includes(pkg.version), `package version must be 0.132.0-mvp94 or compatible MVP95, got ${pkg.version}`);
+assert(['0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96', '0.135.0-mvp97', '0.136.0-mvp98', '0.137.0-mvp99', '0.138.0-mvp100', '0.139.0-mvp101', '0.140.0-mvp102'].includes(lock.version) || ['0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96', '0.135.0-mvp97', '0.136.0-mvp98', '0.137.0-mvp99', '0.138.0-mvp100', '0.139.0-mvp101', '0.140.0-mvp102'].includes(lock.packages?.['']?.version), 'package-lock root version must be MVP94-compatible');
 assert(pkg.scripts['verify:mvp94-copy-only-preflight-real-check'], 'package.json must expose verify:mvp94-copy-only-preflight-real-check');
 assert(pkg.scripts['verify:all'].includes('verify:mvp94-copy-only-preflight-real-check'), 'verify:all must include MVP94 verifier');
 

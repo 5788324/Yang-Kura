@@ -348,3 +348,57 @@ export type {Mvp95CopyExecutorCard, Mvp95CopyExecutorContractRule, Mvp95CopyExec
 
 export {copyOnlyOperationLogService} from './copyOnlyOperationLogService';
 export type {Mvp96CopyOnlyOperationLogModel, Mvp96OperationLogCard, Mvp96OperationLogEntryPreview, Mvp96OperationLogSchemaField, Mvp96OperationLogTone} from './copyOnlyOperationLogService';
+
+export {copyOnlyPostCopyRefreshService} from './copyOnlyPostCopyRefreshService';
+export type {Mvp97IndexRefreshPlanPreview, Mvp97PostCopyRefreshCard, Mvp97PostCopyRefreshModel, Mvp97PostCopyRefreshTone, Mvp97RefreshCandidatePreview} from './copyOnlyPostCopyRefreshService';
+
+export {libraryIndexPatchPreviewService} from './libraryIndexPatchPreviewService';
+export type {Mvp98IndexPatchPreviewSummary, Mvp98LibraryIndexPatchPreviewModel, Mvp98PatchOperationPreview, Mvp98PatchPreviewCard, Mvp98PatchPreviewTone} from './libraryIndexPatchPreviewService';
+
+export {libraryIndexPatchWriteReadinessService} from './libraryIndexPatchWriteReadinessService';
+export type {Mvp99BackupPlanPreview, Mvp99LibraryIndexPatchWriteReadinessModel, Mvp99PatchWriteReadinessPreview, Mvp99WriteReadinessCard, Mvp99WriteReadinessChecklistItem, Mvp99WriteReadinessTone} from './libraryIndexPatchWriteReadinessService';
+
+export {libraryIndexPatchWriteService} from './libraryIndexPatchWriteService';
+export type {Mvp100LibraryIndexPatchWriteModel, Mvp100PatchWriteCard, Mvp100PatchWriteContract, Mvp100PatchWriteResultPreview, Mvp100PatchWriteRule, Mvp100PatchWriteTone} from './libraryIndexPatchWriteService';
+
+export {importPatchUiRefreshService} from './importPatchUiRefreshService';
+export type {Mvp101ImportUiRefreshModel, Mvp101RefreshCard, Mvp101RefreshResultPreview, Mvp101RefreshRuntimeContract, Mvp101RefreshTone} from './importPatchUiRefreshService';
+
+export {copyOnlyImportCloseoutService} from './copyOnlyImportCloseoutService';
+export type {Mvp102CopyOnlyImportCloseoutModel, Mvp102CloseoutCard, Mvp102CloseoutStage, Mvp102CloseoutTone, Mvp102CopyOnlyImportCloseoutResultPreview} from './copyOnlyImportCloseoutService';
+
+export {moveOnlyStrategyService} from './moveOnlyStrategyService';
+export type {Mvp103MoveOnlyStrategyModel, Mvp103MoveOnlyStrategyCard, Mvp103MoveOnlyPhase, Mvp103MoveOnlyGuardrail, Mvp103MoveOnlyStrategyTone, Mvp103MoveOnlyStrategyPreview} from './moveOnlyStrategyService';
+
+export {moveOnlyExecutionReadinessService, buildMoveOnlyExecutionReadinessPreview} from './moveOnlyExecutionReadinessService';
+export type {
+  ImportMoveExecutionReadinessResult,
+  ImportMoveFileExecutionPlanPreview,
+  ImportMovePreflightCheck,
+  Mvp104MoveOnlyExecutionReadinessModel,
+} from './moveOnlyExecutionReadinessService';
+
+export { moveOnlyExecutorService } from './moveOnlyExecutorService';
+export type { Mvp105SmallSampleMoveOnlyExecutorModel, ImportMoveOnlyExecutorResultPreview } from './moveOnlyExecutorService';
+
+export { moveOnlyCloseoutService } from './moveOnlyCloseoutService';
+export type { Mvp106MoveOnlyCloseoutModel, Mvp106MoveOnlyCloseoutResultPreview } from './moveOnlyCloseoutService';
+
+export { importerDailyUiCleanupService } from './importerDailyUiCleanupService';
+export type {
+  Mvp107ImporterDailyUiCleanupModel,
+  Mvp107ImporterDailyUiCleanupResult,
+  Mvp107ImporterDailyAction,
+  Mvp107ImporterDailyStep,
+  Mvp107ImporterDailyStatusCard,
+} from './importerDailyUiCleanupService';
+
+export {importerFinalRegressionChecklistService} from './importerFinalRegressionChecklistService';
+export type {
+  Mvp108ImporterAuditFinding,
+  Mvp108ImporterFinalRegressionModel,
+  Mvp108ImporterFinalRegressionResult,
+  Mvp108ImporterFinalRegressionTone,
+  Mvp108RegressionChecklistItem,
+  Mvp108RegressionGroup,
+} from './importerFinalRegressionChecklistService';

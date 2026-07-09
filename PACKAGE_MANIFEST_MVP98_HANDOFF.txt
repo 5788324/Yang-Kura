@@ -1,0 +1,40 @@
+Yang-Kura MVP-98 handoff package
+Version: 0.136.0-mvp98
+
+Core additions:
+- src/services/libraryIndexPatchPreviewService.ts
+- scripts/verify-mvp98-library-index-patch-preview.mjs
+- docs/CURRENT_ROADMAP_MVP98.md
+- docs/LIBRARY_INDEX_PATCH_PREVIEW_MVP98.md
+- HANDOFF_MVP97_TO_MVP98.md
+- PACKAGE_MANIFEST_MVP98_HANDOFF.txt
+
+Core modifications:
+- package.json
+- package-lock.json
+- electron/main.ts
+- electron/preload.ts
+- src/types/electron-api.d.ts
+- src/services/index.ts
+- src/components/ImporterPage.tsx
+- src/components/DiagnosticsPage.tsx
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+
+Boundary:
+- preview only
+- no library-index.json write
+- no SQLite
+- no full scan
+- no OperationLog write
+- no copy/move/delete/rename
+- no absolutePath/file:// returned
+
+Project policy:
+- personal local project
+- not shared
+- non-commercial
+- not open-source publication target
+- relaxed safety boundary: preview + confirmation + backup + logs, avoid enterprise-grade overengineering

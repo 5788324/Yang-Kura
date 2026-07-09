@@ -793,6 +793,409 @@ declare global {
     fileUrl?: never;
   }
 
+
+  interface YangKuraImportPostCopyRefreshPreviewRequest {
+    operationPlanId: string;
+    targetRootPathToken: string;
+    mode: 'post-copy-refresh-preview';
+    sourceOperationLogVersion?: 'mvp96-copy-only-operation-log-v1';
+    targetRelativePaths?: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraPostCopyRefreshCandidate {
+    id: string;
+    targetRelativePath: string;
+    entryKind: YangKuraScannerDryRunEntryKind;
+    plannedAction: YangKuraScannerDryRunPlannedAction;
+    sizeBytes: number;
+    warningCodes: string[];
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraPostCopyRefreshBlockedTarget {
+    id: string;
+    targetRelativePath: string;
+    reasonCode: string;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraPostCopyRefreshPreviewResult {
+    ok: boolean;
+    status:
+      | 'mvp97-post-copy-refresh-preview-ready'
+      | 'mvp97-post-copy-refresh-preview-invalid-request'
+      | 'mvp97-post-copy-refresh-preview-invalid-root-token'
+      | 'mvp97-post-copy-refresh-preview-empty-target-list';
+    schemaVersion?: 1;
+    refreshPlanVersion?: 'mvp97-post-copy-refresh-plan-v1';
+    operationPlanId: string;
+    sourceOperationLogVersion?: 'mvp96-copy-only-operation-log-v1';
+    mode?: 'post-copy-refresh-preview';
+    previewOnly: true;
+    targetRootPathToken: string;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    indexWriteAllowed: false;
+    libraryIndexWritten: false;
+    scannerRunTriggered: false;
+    sqliteWritten: false;
+    requestedTargetCount?: number;
+    candidateCount: number;
+    blockedTargetCount?: number;
+    audioCount?: number;
+    coverCount?: number;
+    subtitleCount?: number;
+    warningCount?: number;
+    collectionCandidateRelativePaths?: string[];
+    refreshCandidates?: YangKuraPostCopyRefreshCandidate[];
+    blockedTargets?: YangKuraPostCopyRefreshBlockedTarget[];
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+
+  interface YangKuraImportLibraryIndexPatchPreviewRequest {
+    operationPlanId: string;
+    targetRootPathToken: string;
+    mode: 'library-index-patch-preview';
+    sourceRefreshPlanVersion?: 'mvp97-post-copy-refresh-plan-v1';
+    refreshCandidates?: YangKuraPostCopyRefreshCandidate[];
+    maxPatchItems?: number;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraLibraryIndexPatchOperationPreview {
+    operation: 'upsert-collection' | 'upsert-track' | 'attach-cover' | 'attach-subtitle' | 'warn-only';
+    collectionId?: string;
+    trackId?: string;
+    coverId?: string;
+    subtitleId?: string;
+    targetRelativePath: string;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraLibraryIndexPatchPreviewPayload {
+    schemaVersion: 1;
+    generatedAt: string;
+    patchPreviewVersion: 'mvp98-library-index-patch-preview-v1';
+    sourceKind: 'post-copy-refresh-preview';
+    root: {
+      id: string;
+      rootPathToken: string;
+      displayName: string;
+      libraryType: YangKuraLibraryType;
+      absolutePathReturned: false;
+      fileUrlReturned: false;
+      absolutePath?: never;
+      fileUrl?: never;
+    };
+    collections: unknown[];
+    tracks: unknown[];
+    covers: unknown[];
+    subtitles: unknown[];
+    patchOperations: YangKuraLibraryIndexPatchOperationPreview[];
+    warnings: string[];
+  }
+
+  interface YangKuraLibraryIndexPatchPreviewResult {
+    ok: boolean;
+    status:
+      | 'mvp98-library-index-patch-preview-ready'
+      | 'mvp98-library-index-patch-preview-invalid-request'
+      | 'mvp98-library-index-patch-preview-invalid-root-token'
+      | 'mvp98-library-index-patch-preview-empty-refresh-candidates';
+    schemaVersion?: 1;
+    patchPreviewVersion?: 'mvp98-library-index-patch-preview-v1';
+    operationPlanId: string;
+    sourceRefreshPlanVersion?: 'mvp97-post-copy-refresh-plan-v1';
+    mode?: 'library-index-patch-preview';
+    previewOnly: true;
+    targetRootPathToken: string;
+    displayName?: string;
+    libraryType?: YangKuraLibraryType;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    indexPatchWriteAllowed: false;
+    libraryIndexWritten: false;
+    scannerRunTriggered: false;
+    sqliteWritten: false;
+    requestedCandidateCount?: number;
+    consumedCandidateCount?: number;
+    patchItemCount: number;
+    collectionPatchCount?: number;
+    trackPatchCount?: number;
+    coverPatchCount?: number;
+    subtitlePatchCount?: number;
+    warningCount?: number;
+    indexPatchPreview?: YangKuraLibraryIndexPatchPreviewPayload;
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+
+  interface YangKuraImportLibraryIndexPatchWriteReadinessRequest {
+    operationPlanId: string;
+    targetRootPathToken: string;
+    mode: 'library-index-patch-write-readiness';
+    sourcePatchPreviewVersion?: 'mvp98-library-index-patch-preview-v1';
+    indexPatchPreview?: YangKuraLibraryIndexPatchPreviewPayload;
+    userConfirmedPatchPreview?: boolean;
+    createBackup?: boolean;
+    confirmationText?: 'CONFIRM_WRITE_LIBRARY_INDEX_PATCH' | string;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraLibraryIndexPatchWriteReadinessResult {
+    ok: boolean;
+    status:
+      | 'mvp99-library-index-patch-write-readiness-ready'
+      | 'mvp99-library-index-patch-write-readiness-invalid-request'
+      | 'mvp99-library-index-patch-write-readiness-invalid-root-token'
+      | 'mvp99-library-index-patch-write-readiness-missing-patch-preview'
+      | 'mvp99-library-index-patch-write-readiness-confirmation-required'
+      | 'mvp99-library-index-patch-write-readiness-backup-required';
+    schemaVersion?: 1;
+    readinessVersion?: 'mvp99-library-index-patch-write-readiness-v1';
+    operationPlanId: string;
+    targetRootPathToken: string;
+    displayName?: string;
+    libraryType?: YangKuraLibraryType;
+    mode?: 'library-index-patch-write-readiness';
+    sourcePatchPreviewVersion?: 'mvp98-library-index-patch-preview-v1';
+    previewOnly: true;
+    readyForMvp100Write: boolean;
+    writeExecutionAllowedInMvp99: false;
+    libraryIndexWritten: false;
+    scannerRunTriggered: false;
+    sqliteWritten: false;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    requiredConfirmationText?: 'CONFIRM_WRITE_LIBRARY_INDEX_PATCH';
+    confirmationAccepted: boolean;
+    backupRequired: true;
+    backupPlanPreview?: {
+      backupFileNamePattern: 'library-index.backup.before-mvp100-*.json';
+      backupLocation: 'same-directory-as-library-index';
+      overwriteBackup: false;
+      absolutePathReturned: false;
+      fileUrlReturned: false;
+      absolutePath?: never;
+      fileUrl?: never;
+    };
+    patchOperationCount?: number;
+    collectionPatchCount?: number;
+    trackPatchCount?: number;
+    coverPatchCount?: number;
+    subtitlePatchCount?: number;
+    warningCount?: number;
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+
+  interface YangKuraImportLibraryIndexPatchWriteRequest {
+    operationPlanId: string;
+    targetRootPathToken: string;
+    mode: 'library-index-patch-write-confirmed';
+    sourceReadinessVersion?: 'mvp99-library-index-patch-write-readiness-v1';
+    sourcePatchPreviewVersion?: 'mvp98-library-index-patch-preview-v1';
+    indexPatchPreview?: YangKuraLibraryIndexPatchPreviewPayload;
+    userConfirmedPatchWrite?: boolean;
+    createBackup?: boolean;
+    confirmationText?: 'CONFIRM_WRITE_LIBRARY_INDEX_PATCH' | string;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraLibraryIndexPatchWriteResult {
+    ok: boolean;
+    status:
+      | 'mvp100-library-index-patch-write-complete'
+      | 'mvp100-library-index-patch-write-invalid-request'
+      | 'mvp100-library-index-patch-write-invalid-root-token'
+      | 'mvp100-library-index-patch-write-missing-patch-preview'
+      | 'mvp100-library-index-patch-write-confirmation-required'
+      | 'mvp100-library-index-patch-write-backup-required'
+      | 'mvp100-library-index-patch-write-missing-index'
+      | 'mvp100-library-index-patch-write-read-index-failed'
+      | 'mvp100-library-index-patch-write-invalid-current-index'
+      | 'mvp100-library-index-patch-write-unsafe-content'
+      | 'mvp100-library-index-patch-write-error'
+      | 'mvp100-library-index-patch-write-verify-failed';
+    schemaVersion?: 1;
+    patchWriteVersion?: 'mvp100-library-index-patch-write-v1';
+    operationPlanId: string;
+    targetRootPathToken: string;
+    displayName?: string;
+    libraryType?: YangKuraLibraryType;
+    mode?: 'library-index-patch-write-confirmed';
+    sourceReadinessVersion?: 'mvp99-library-index-patch-write-readiness-v1';
+    sourcePatchPreviewVersion?: 'mvp98-library-index-patch-preview-v1';
+    indexPatchWritten: boolean;
+    libraryIndexWritten: boolean;
+    backupCreated: boolean;
+    scannerRunTriggered: false;
+    sqliteWritten: false;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    writtenAt?: string;
+    indexRelativePath?: 'library-index.json' | string;
+    backupRelativePath?: string;
+    bytesWritten?: number;
+    sha256?: string;
+    requiredConfirmationText?: 'CONFIRM_WRITE_LIBRARY_INDEX_PATCH';
+    summary?: {
+      before?: unknown;
+      after?: unknown;
+      collectionsAdded?: number;
+      collectionsUpdated?: number;
+      tracksAdded?: number;
+      tracksUpdated?: number;
+      coversAdded?: number;
+      coversUpdated?: number;
+      subtitlesAdded?: number;
+      subtitlesUpdated?: number;
+      skippedPatchItems?: number;
+    };
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+
+  interface YangKuraImportLibraryIndexPatchUiRefreshRequest {
+    operationPlanId: string;
+    targetRootPathToken: string;
+    mode: 'refresh-after-patch-write';
+    sourcePatchWriteVersion?: 'mvp100-library-index-patch-write-v1';
+    patchWriteStatus?: 'mvp100-library-index-patch-write-complete' | string;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraImportLibraryIndexPatchUiRefreshResult {
+    ok: boolean;
+    status:
+      | 'mvp101-import-ui-refresh-after-patch-complete'
+      | 'mvp101-import-ui-refresh-after-patch-invalid-request'
+      | 'mvp101-import-ui-refresh-after-patch-invalid-source-write'
+      | 'mvp101-import-ui-refresh-after-patch-write-not-complete'
+      | 'mvp101-import-ui-refresh-after-patch-invalid-root-token'
+      | 'mvp101-import-ui-refresh-after-patch-read-failed';
+    schemaVersion?: 1;
+    refreshVersion?: 'mvp101-import-ui-refresh-after-patch-v1';
+    sourcePatchWriteVersion?: 'mvp100-library-index-patch-write-v1';
+    operationPlanId: string;
+    targetRootPathToken: string;
+    displayName?: string;
+    libraryType?: YangKuraLibraryType;
+    mode?: 'refresh-after-patch-write';
+    indexReadPerformed: boolean;
+    rendererRefreshExpected: boolean;
+    libraryIndexWritten: false;
+    scannerRunTriggered: false;
+    sqliteWritten: false;
+    fileMutationPerformed: false;
+    absolutePathReturned: false;
+    fileUrlReturned: false;
+    eventName?: 'yang-kura-library-index-loaded';
+    cacheKey?: 'yang_kura_last_read_library_index_result';
+    readResult?: YangKuraReadLibraryIndexResult;
+    summary?: YangKuraReadLibraryIndexSummary;
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+
+interface YangKuraImportMoveOnlyExecuteRequest {
+  operationPlanId: string;
+  rootPathToken: string;
+  targetRootPathToken: string;
+  mode: 'move-only-small-sample';
+  relativePaths?: string[];
+  targetRelativePaths?: string[];
+  confirmedMoveOnly?: boolean;
+  confirmationText?: 'CONFIRM_MOVE_IMPORT' | string;
+  overwriteAllowed?: false;
+  maxMoveItems?: number;
+}
+
+interface YangKuraImportMoveOnlyMovedFile {
+  id: string;
+  sourceRelativePath: string;
+  targetRelativePath: string;
+  sizeBytes: number;
+  moveMethod: 'rename' | 'copy-verify-unlink';
+  absolutePathReturned: false;
+  fileUrlReturned: false;
+  absolutePath?: never;
+  fileUrl?: never;
+}
+
+interface YangKuraImportMoveOnlyExecuteResult {
+  ok: boolean;
+  status:
+    | 'mvp105-move-only-execute-complete-with-operation-log'
+    | 'mvp105-move-only-execute-log-write-failed'
+    | 'mvp105-move-only-execute-invalid-request'
+    | 'mvp105-move-only-execute-confirmation-required'
+    | 'mvp105-move-only-execute-overwrite-blocked'
+    | 'mvp105-move-only-execute-invalid-root-token'
+    | 'mvp105-move-only-execute-empty-file-list'
+    | 'mvp105-move-only-execute-too-many-files';
+  executorVersion: 'mvp105-small-sample-move-only-executor-v1';
+  operationPlanId: string;
+  rootPathToken?: string;
+  targetRootPathToken?: string;
+  executeAllowed: boolean;
+  moveAllowed: boolean;
+  copyAllowed?: false;
+  overwriteAllowed?: false;
+  deleteAllowed?: false;
+  renameAllowed?: true;
+  sourceDirectoryCleanupAllowed?: false;
+  operationLogPersisted?: boolean;
+  libraryIndexWritten: false;
+  scannerRunTriggered?: false;
+  sqliteWritten: false;
+  movedCount: number;
+  skippedCount: number;
+  failedCount: number;
+  createdDirectoryCount?: number;
+  failureStopTriggered?: boolean;
+  movedFiles?: YangKuraImportMoveOnlyMovedFile[];
+  skippedList?: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string; absolutePathReturned: false; fileUrlReturned: false; absolutePath?: never; fileUrl?: never }>;
+  failureList?: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string; message: string; absolutePathReturned: false; fileUrlReturned: false; absolutePath?: never; fileUrl?: never }>;
+  message: string;
+  safetyNotes: string[];
+  absolutePathReturned: false;
+  fileUrlReturned: false;
+  absolutePath?: never;
+  fileUrl?: never;
+}
+
   interface YangKuraImportCopyOnlyStubBlockedResult {
     ok: false;
     status:
@@ -847,6 +1250,12 @@ declare global {
     canUseCopyOnlyPreflightRealCheck: true;
     canExecuteCopyOnly: true;
     canPersistCopyOnlyOperationLog: true;
+    canPreviewPostCopyRefresh: true;
+    canPreviewLibraryIndexPatch: true;
+    canCheckLibraryIndexPatchWriteReadiness: true;
+    canWriteLibraryIndexPatch: true;
+    canRefreshLibraryIndexAfterPatch: true;
+    canExecuteMoveOnly: true;
     registersMediaProtocol: true;
     exposesAbsolutePaths: false;
   }
@@ -864,6 +1273,12 @@ declare global {
     requestImportCopyOnlyPreflight(request: YangKuraImportCopyOnlyStubRequest): Promise<YangKuraImportCopyOnlyStubResult>;
     requestImportCopyOnlyConfirm(request: YangKuraImportCopyOnlyConfirmStubRequest): Promise<YangKuraImportCopyOnlyStubResult>;
     requestImportCopyOnlyExecute(request: YangKuraImportCopyOnlyStubRequest): Promise<YangKuraImportCopyOnlyStubResult>;
+    requestImportPostCopyRefreshPreview(request: YangKuraImportPostCopyRefreshPreviewRequest): Promise<YangKuraPostCopyRefreshPreviewResult>;
+    requestImportLibraryIndexPatchPreview(request: YangKuraImportLibraryIndexPatchPreviewRequest): Promise<YangKuraLibraryIndexPatchPreviewResult>;
+    requestImportLibraryIndexPatchWriteReadiness(request: YangKuraImportLibraryIndexPatchWriteReadinessRequest): Promise<YangKuraLibraryIndexPatchWriteReadinessResult>;
+    requestImportLibraryIndexPatchWrite(request: YangKuraImportLibraryIndexPatchWriteRequest): Promise<YangKuraLibraryIndexPatchWriteResult>;
+    requestImportLibraryIndexPatchRefreshAfterWrite(request: YangKuraImportLibraryIndexPatchUiRefreshRequest): Promise<YangKuraImportLibraryIndexPatchUiRefreshResult>;
+    requestImportMoveOnlyExecute(request: YangKuraImportMoveOnlyExecuteRequest): Promise<YangKuraImportMoveOnlyExecuteResult>;
     requestImportCopyOnlyCancel(request: YangKuraImportCopyOnlyCancelStubRequest): Promise<YangKuraImportCopyOnlyStubResult>;
     getElectronShellStatus(): Promise<YangKuraElectronShellStatus>;
   }

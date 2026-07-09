@@ -19,9 +19,9 @@ function assert(condition, message) {
 const pkg = readJson('package.json');
 const lock = readJson('package-lock.json');
 
-assert(['0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96'].includes(pkg.version), `package.json version must be 0.131.0-mvp93 or compatible later MVP, got ${pkg.version}`);
-assert(['0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96'].includes(lock.version), `package-lock version must be 0.131.0-mvp93 or compatible later MVP, got ${lock.version}`);
-assert(['0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96'].includes(lock.packages?.['']?.version), 'package-lock root package version must be 0.131.0-mvp93 or compatible later MVP');
+assert(['0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96', '0.135.0-mvp97', '0.136.0-mvp98', '0.137.0-mvp99', '0.138.0-mvp100', '0.139.0-mvp101', '0.140.0-mvp102'].includes(pkg.version), `package.json version must be 0.131.0-mvp93 or compatible later MVP, got ${pkg.version}`);
+assert(['0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96', '0.135.0-mvp97', '0.136.0-mvp98', '0.137.0-mvp99', '0.138.0-mvp100', '0.139.0-mvp101', '0.140.0-mvp102'].includes(lock.version), `package-lock version must be 0.131.0-mvp93 or compatible later MVP, got ${lock.version}`);
+assert(['0.131.0-mvp93', '0.132.0-mvp94', '0.133.0-mvp95', '0.134.0-mvp96', '0.135.0-mvp97', '0.136.0-mvp98', '0.137.0-mvp99', '0.138.0-mvp100', '0.139.0-mvp101', '0.140.0-mvp102'].includes(lock.packages?.['']?.version), 'package-lock root package version must be 0.131.0-mvp93 or compatible later MVP');
 assert(pkg.scripts?.['verify:mvp93-copy-only-main-side-stub'] === 'node scripts/verify-mvp93-copy-only-main-side-stub.mjs', 'package.json must expose MVP93 verifier script');
 assert(pkg.scripts?.['verify:all']?.includes('verify:mvp93-copy-only-main-side-stub'), 'verify:all must include MVP93 verifier');
 
@@ -95,7 +95,7 @@ const electronTypes = read('src/types/electron-api.d.ts');
   'requestImportCopyOnlyCancel',
   'yang-kura:import:copy-only:execute',
   'canUseCopyOnlyStub: true',
-  ['0.133.0-mvp95', '0.134.0-mvp96'].includes(pkg.version) ? 'canExecuteCopyOnly: true' : 'canExecuteCopyOnly: false',
+  ['0.133.0-mvp95', '0.134.0-mvp96', '0.135.0-mvp97', '0.136.0-mvp98', '0.137.0-mvp99', '0.138.0-mvp100', '0.139.0-mvp101', '0.140.0-mvp102'].includes(pkg.version) ? 'canExecuteCopyOnly: true' : 'canExecuteCopyOnly: false',
 ].forEach((token) => assert(preload.includes(token), `electron/preload missing token: ${token}`));
 
 [
@@ -105,7 +105,7 @@ const electronTypes = read('src/types/electron-api.d.ts');
   'requestImportCopyOnlyPreflight',
   'requestImportCopyOnlyExecute',
   'canUseCopyOnlyStub: true',
-  ['0.133.0-mvp95', '0.134.0-mvp96'].includes(pkg.version) ? 'canExecuteCopyOnly: true' : 'canExecuteCopyOnly: false',
+  ['0.133.0-mvp95', '0.134.0-mvp96', '0.135.0-mvp97', '0.136.0-mvp98', '0.137.0-mvp99', '0.138.0-mvp100', '0.139.0-mvp101', '0.140.0-mvp102'].includes(pkg.version) ? 'canExecuteCopyOnly: true' : 'canExecuteCopyOnly: false',
   'absolutePath?: never',
   'fileUrl?: never',
 ].forEach((token) => assert(electronTypes.includes(token), `electron-api types missing token: ${token}`));

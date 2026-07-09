@@ -1,0 +1,27 @@
+Yang-Kura MVP103 handoff package
+Version: 0.141.0-mvp103
+
+Added:
+- src/services/moveOnlyStrategyService.ts
+- docs/CURRENT_ROADMAP_MVP103.md
+- docs/MOVE_ONLY_STRATEGY_MVP103.md
+- scripts/verify-mvp103-move-only-strategy.mjs
+- HANDOFF_MVP102_TO_MVP103.md
+
+Updated:
+- package.json
+- package-lock.json
+- src/services/index.ts
+- src/components/ImporterPage.tsx
+- src/components/DiagnosticsPage.tsx
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+
+Excluded from source zip:
+- node_modules
+- dist
+- dist-electron
+- logs
+- temporary folders

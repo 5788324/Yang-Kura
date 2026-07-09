@@ -1,0 +1,37 @@
+Yang-Kura MVP108 repo cleanup / git-ready source package
+
+Baseline version: 0.146.0-mvp108
+Purpose: project documentation refresh, repository cleanup, importer smoke test, Git-ready source packaging.
+
+Changed / added:
+- README.md rewritten as current project introduction.
+- PROJECT_STATE.md rewritten as current status summary.
+- PROJECT_ROADMAP.md added as current forward plan.
+- RUN_ME_FIRST.md rewritten as concise startup instructions.
+- NEXT_CHAT_HANDOFF.md rewritten as concise next-chat handoff.
+- 00_NEW_CHAT_START_HERE.md / NEW_CHAT_PROMPT.md / CODEX_MINIMAL_PROMPTS.md simplified.
+- docs/PROJECT_OVERVIEW.md added.
+- docs/PROJECT_FILE_CLEANUP_MVP108.md added.
+- docs/IMPORTER_SMOKE_TEST_MVP108.md added.
+- scripts/smoke-importer-file-ops.mjs added.
+- package.json adds test:importer:smoke.
+- .gitignore added.
+- .npm-cache removed from source package.
+
+Validated:
+- npm ci --ignore-scripts --no-audit --no-fund --prefer-offline --cache /mnt/data/.npm-cache
+- npm run lint
+- npm run build:electron
+- npm run verify:mvp108-importer-final-regression-checklist
+- npm run test:importer:smoke
+- npm run build
+- npm audit --audit-level=high
+
+Not included in package:
+- node_modules
+- dist
+- dist-electron
+- .npm-cache
+
+Note:
+Historical HANDOFF_MVPxx and PACKAGE_MANIFEST_MVPxx files remain at root because several legacy verifier scripts still reference them directly.

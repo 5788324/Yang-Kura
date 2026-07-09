@@ -65,10 +65,10 @@ assert(musicLibrary.includes('requestOpenExternalFile'), 'Music library can open
 assert(musicLibrary.includes('requestOpenInFileManager'), 'Music library can reveal tokenized files.');
 assert(service.includes('MVP-27'), 'MVP-27 service exists.');
 assert(docs.includes('不内置视频播放器'), 'MVP-27 docs declare no built-in video player.');
-assert(pkg.includes('0.65.0-mvp27') || pkg.includes('0.66.0-mvp28') || pkg.includes('0.67.0-mvp29') || pkg.includes('0.67.1-mvp29.1') || (pkg.includes('0.68.0-mvp30') || pkg.includes('0.69.0-mvp31') || pkg.includes('0.70.0-mvp32') || pkg.includes('0.71.0-mvp33') || pkg.includes('0.72.0-mvp34') || pkg.includes('0.73.0-mvp35') || pkg.includes('0.74.0-mvp36') || pkg.includes('0.75.0-mvp37') || pkg.includes('0.76.0-mvp38') || pkg.includes('0.134.0-mvp96')), 'Package version is advanced to MVP-27.');
+assert(pkg.includes('0.65.0-mvp27') || pkg.includes('0.66.0-mvp28') || pkg.includes('0.67.0-mvp29') || pkg.includes('0.67.1-mvp29.1') || (pkg.includes('0.68.0-mvp30') || pkg.includes('0.69.0-mvp31') || pkg.includes('0.70.0-mvp32') || pkg.includes('0.71.0-mvp33') || pkg.includes('0.72.0-mvp34') || pkg.includes('0.73.0-mvp35') || pkg.includes('0.74.0-mvp36') || pkg.includes('0.75.0-mvp37') || pkg.includes('0.76.0-mvp38') || pkg.includes('0.134.0-mvp96') || pkg.includes('0.135.0-mvp97') || pkg.includes('0.136.0-mvp98') || pkg.includes('0.137.0-mvp99') || pkg.includes('0.138.0-mvp100') || pkg.includes('0.139.0-mvp101') || pkg.includes('0.140.0-mvp102')), 'Package version is advanced to MVP-27.');
 assert(pkg.includes('verify:mvp27-external-open'), 'Package includes MVP-27 verifier.');
 
-const forbiddenMainSnippets = (pkg.includes('0.133.0-mvp95') || pkg.includes('0.134.0-mvp96')) ? ['fs.rm(', 'fs.unlink(', 'fs.rename(', 'child_process'] : ['fs.rm(', 'fs.unlink(', 'fs.rename(', 'fs.copyFile(', 'child_process'];
+const forbiddenMainSnippets = (pkg.includes('0.133.0-mvp95') || pkg.includes('0.134.0-mvp96') || pkg.includes('0.135.0-mvp97') || pkg.includes('0.136.0-mvp98') || pkg.includes('0.137.0-mvp99') || pkg.includes('0.138.0-mvp100') || pkg.includes('0.139.0-mvp101') || pkg.includes('0.140.0-mvp102')) ? ['fs.rm(', 'fs.unlink(', 'fs.rename(', 'child_process'] : ['fs.rm(', 'fs.unlink(', 'fs.rename(', 'fs.copyFile(', 'child_process'];
 for (const snippet of forbiddenMainSnippets) {
   assert(!main.includes(snippet), `MVP-27 must not introduce mutation/child-process API: ${snippet}`);
 }

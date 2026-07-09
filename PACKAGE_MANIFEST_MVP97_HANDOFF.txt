@@ -1,0 +1,20 @@
+Yang-Kura MVP97 source handoff
+
+Version: 0.135.0-mvp97
+Baseline: 0.134.0-mvp96
+
+New files:
+- src/services/copyOnlyPostCopyRefreshService.ts
+- docs/CURRENT_ROADMAP_MVP97.md
+- docs/POST_COPY_REFRESH_PREVIEW_MVP97.md
+- docs/CODEX_POST_COPY_REFRESH_VALIDATION_MVP97.md
+- scripts/verify-mvp97-post-copy-refresh-preview.mjs
+- HANDOFF_MVP96_TO_MVP97.md
+- PACKAGE_MANIFEST_MVP97_HANDOFF.txt
+
+Safety:
+- no library-index.json write
+- no SQLite
+- no full scanner run
+- no copy/move/delete/rename
+- no absolutePath/file:// to renderer

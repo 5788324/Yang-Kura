@@ -51,14 +51,14 @@ for (const [content, needle, reason] of mustContain) {
   }
 }
 
-const forbiddenMain = pkg.version === '0.134.0-mvp96' ? ['fs.rm', 'fs.unlink', 'fs.rename', 'child_process'] : ['fs.appendFile', 'fs.rm', 'fs.unlink', 'fs.rename', 'child_process'];
+const forbiddenMain = ['0.134.0-mvp96', '0.135.0-mvp97', '0.136.0-mvp98', '0.137.0-mvp99', '0.138.0-mvp100', '0.139.0-mvp101', '0.140.0-mvp102'].includes(pkg.version) ? ['fs.rm', 'fs.unlink', 'fs.rename', 'child_process'] : ['fs.appendFile', 'fs.rm', 'fs.unlink', 'fs.rename', 'child_process'];
 for (const token of forbiddenMain) {
   if (main.includes(token)) {
     throw new Error(`[MVP-21/22] Forbidden mutation or process API in electron/main.ts: ${token}`);
   }
 }
 
-const compatibleStage = /mvp(2[2-9]|3[0-9]|4[0-9]|5[0-9]|6[0-9]|7[0-9]|8[0-9]|9[0-9])/.test(pkg.version) || pkg.version.includes('mvp28.1') || pkg.version.includes('mvp28.2') || pkg.version.includes('mvp29.1');
+const compatibleStage = /mvp(2[2-9]|3[0-9]|4[0-9]|5[0-9]|6[0-9]|7[0-9]|8[0-9]|9[0-9]|10[0-9])/.test(pkg.version) || pkg.version.includes('mvp28.1') || pkg.version.includes('mvp28.2') || pkg.version.includes('mvp29.1');
 if (!compatibleStage) {
   throw new Error('[MVP-21/22] package version must include mvp22 or a later compatible stage');
 }

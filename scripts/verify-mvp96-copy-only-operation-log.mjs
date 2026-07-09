@@ -12,8 +12,8 @@ const assert = (condition, message) => { if (!condition) fail(message); };
 
 const pkg = JSON.parse(read('package.json'));
 const lock = JSON.parse(read('package-lock.json'));
-assert(pkg.version === '0.134.0-mvp96', `package version must be 0.134.0-mvp96, got ${pkg.version}`);
-assert(lock.version === '0.134.0-mvp96' || lock.packages?.['']?.version === '0.134.0-mvp96', 'package-lock root version must be 0.134.0-mvp96');
+assert(['0.134.0-mvp96', '0.135.0-mvp97', '0.136.0-mvp98', '0.137.0-mvp99', '0.138.0-mvp100', '0.139.0-mvp101', '0.140.0-mvp102', '0.141.0-mvp103', '0.142.0-mvp104', '0.143.0-mvp105', '0.144.0-mvp106'].includes(pkg.version), `package version must be 0.134.0-mvp96 or compatible MVP97, got ${pkg.version}`);
+assert(['0.134.0-mvp96', '0.135.0-mvp97', '0.136.0-mvp98', '0.137.0-mvp99', '0.138.0-mvp100', '0.139.0-mvp101', '0.140.0-mvp102', '0.141.0-mvp103', '0.142.0-mvp104', '0.143.0-mvp105', '0.144.0-mvp106'].includes(lock.version) || ['0.134.0-mvp96', '0.135.0-mvp97', '0.136.0-mvp98', '0.137.0-mvp99', '0.138.0-mvp100', '0.139.0-mvp101', '0.140.0-mvp102', '0.141.0-mvp103', '0.142.0-mvp104', '0.143.0-mvp105', '0.144.0-mvp106'].includes(lock.packages?.['']?.version), 'package-lock root version must be MVP96-compatible');
 assert(pkg.scripts['verify:mvp96-copy-only-operation-log'] === 'node scripts/verify-mvp96-copy-only-operation-log.mjs', 'package.json must expose verify:mvp96-copy-only-operation-log');
 assert(pkg.scripts['verify:all'].includes('verify:mvp96-copy-only-operation-log'), 'verify:all must include MVP96 verifier');
 
@@ -34,11 +34,13 @@ const main = read('electron/main.ts');
   'fileUrlReturned: false',
   'getSafeErrorCode',
 ].forEach((token) => assert(main.includes(token), `electron/main.ts missing token: ${token}`));
-assert(!main.includes('fs.rename('), 'MVP96 must not call fs.rename');
-assert(!main.includes('fs.rm('), 'MVP96 must not call fs.rm');
-assert(!main.includes('fs.unlink('), 'MVP96 must not call fs.unlink');
+
 assert(!main.includes('fs.writeFile(') || main.includes('library-index.json'), 'MVP96 must not add OperationLog writeFile; existing library-index writer may remain from prior MVPs');
-assert(!main.includes('libraryIndexWritten: true'), 'MVP96 copy executor must not write library-index.json');
+const mvp96Function = main.slice(main.indexOf('async function appendMvp96CopyOnlyOperationLog'), main.indexOf('function buildMvp105MoveOnlyOperationLogEntry'));
+assert(!mvp96Function.includes('fs.rename('), 'MVP96 function must not call fs.rename');
+assert(!mvp96Function.includes('fs.rm('), 'MVP96 function must not call fs.rm');
+assert(!mvp96Function.includes('fs.unlink('), 'MVP96 function must not call fs.unlink');
+assert(!mvp96Function.includes('libraryIndexWritten: true'), 'MVP96 copy executor must not write library-index.json');
 
 const preload = read('electron/preload.ts');
 assert(preload.includes('canPersistCopyOnlyOperationLog: true'), 'preload shell status must expose OperationLog capability');

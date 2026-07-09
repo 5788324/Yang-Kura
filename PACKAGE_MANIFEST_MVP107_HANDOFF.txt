@@ -1,0 +1,33 @@
+Yang-Kura MVP107 handoff package
+version: 0.145.0-mvp107
+
+Added:
+- src/services/importerDailyUiCleanupService.ts
+- docs/CURRENT_ROADMAP_MVP107.md
+- docs/IMPORTER_DAILY_UI_CLEANUP_MVP107.md
+- scripts/verify-mvp107-importer-daily-ui-cleanup.mjs
+- HANDOFF_MVP106_TO_MVP107.md
+- PACKAGE_MANIFEST_MVP107_HANDOFF.txt
+
+Modified:
+- package.json
+- package-lock.json
+- src/services/index.ts
+- src/components/ImporterPage.tsx
+- src/components/DiagnosticsPage.tsx
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+
+Boundaries:
+- no copy-only executor change
+- no move-only executor change
+- no library-index.json write in MVP107
+- no SQLite
+- no downloader
+- no metadata Provider
+- no mpv
+- no absolutePath
+- no file://
+- Codex not required unless necessary

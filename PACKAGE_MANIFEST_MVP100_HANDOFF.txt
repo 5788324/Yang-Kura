@@ -1,0 +1,10 @@
+Yang-Kura MVP100 handoff package
+Version: 0.138.0-mvp100
+
+Includes:
+- source code excluding node_modules/dist/dist-electron
+- MVP100 library-index patch write implementation
+- MVP100 verifier
+- MVP100 docs and handoff
+
+Do not treat GitHub main as newer unless its package.json is also 0.138.0-mvp100 or later.

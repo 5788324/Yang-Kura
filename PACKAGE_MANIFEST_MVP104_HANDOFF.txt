@@ -1,0 +1,29 @@
+Yang-Kura MVP104 package manifest
+
+Version: 0.142.0-mvp104
+
+Added:
+- src/services/moveOnlyExecutionReadinessService.ts
+- scripts/verify-mvp104-move-only-execution-readiness.mjs
+- docs/CURRENT_ROADMAP_MVP104.md
+- docs/MOVE_ONLY_EXECUTION_READINESS_MVP104.md
+- HANDOFF_MVP103_TO_MVP104.md
+- PACKAGE_MANIFEST_MVP104_HANDOFF.txt
+
+Modified:
+- package.json
+- package-lock.json
+- src/services/index.ts
+- src/components/ImporterPage.tsx
+- src/components/DiagnosticsPage.tsx
+- README.md
+- PROJECT_STATE.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+
+Excluded from package:
+- node_modules
+- dist
+- dist-electron
+- logs
+- .git

@@ -61,7 +61,7 @@ for (const forbidden of ['fs.rm', 'fs.unlink', 'fs.rename', 'child_process']) {
   if (main.includes(forbidden)) throw new Error(`[MVP-23] Forbidden API or URL in electron/main.ts: ${forbidden}`);
 }
 
-const compatibleStage = /mvp(2[3-9]|3[0-9]|4[0-9]|5[0-9]|6[0-9]|7[0-9]|8[0-9]|9[0-9])/.test(pkg.version) || pkg.version.includes('mvp28.1') || pkg.version.includes('mvp28.2') || pkg.version.includes('mvp29.1');
+const compatibleStage = /mvp(2[3-9]|3[0-9]|4[0-9]|5[0-9]|6[0-9]|7[0-9]|8[0-9]|9[0-9]|10[0-9])/.test(pkg.version) || pkg.version.includes('mvp28.1') || pkg.version.includes('mvp28.2') || pkg.version.includes('mvp29.1');
 if (!compatibleStage) throw new Error('[MVP-23] package version must include mvp23 or a later mvp24 package');
 if (!pkg.scripts?.['verify:mvp23-library-index-write']) throw new Error('[MVP-23] package script is missing');
 if (!pkg.scripts?.['verify:all']?.includes('verify:mvp23-library-index-write')) throw new Error('[MVP-23] verify:all must include MVP-23 verifier');
