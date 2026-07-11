@@ -1,5 +1,5 @@
 // Legacy verifier marker: Demo / Coming Soon / 不联网 / 无真实下载
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { 
   DownloadCloud, 
@@ -38,12 +38,15 @@ import {
 } from 'lucide-react';
 import { AudioTrack, FileProgress, DownloadTask, AsmrMetadata, MusicMetadata } from '../types';
 import { coverArtworkService } from '../services/coverArtworkService';
+import { globalDailyUiCleanupService } from '../services/globalDailyUiCleanupService';
 
 interface DownloaderPageProps {
   onPlayTrack?: (track: AudioTrack) => void;
 }
 
 export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
+  const mvp110DailyUi = globalDailyUiCleanupService.getModel();
+  const mvp110DownloaderSurface = mvp110DailyUi.surfaces.find((surface) => surface.id === 'downloader');
   const [activeTab, setActiveTab] = useState<'asmr' | 'music'>('asmr');
   const [taskFilter, setTaskFilter] = useState<'all' | 'downloading' | 'completed' | 'paused-failed'>('all');
   const [taskSearch, setTaskSearch] = useState('');
@@ -168,9 +171,11 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
   
   // Floating notifications Toast list
   const [notifications, setNotifications] = useState<{ id: string; message: string }[]>([]);
+  const notificationSequenceRef = useRef(0);
 
   const addNotification = (msg: string) => {
-    const id = Date.now().toString();
+    notificationSequenceRef.current += 1;
+    const id = `${Date.now()}-${notificationSequenceRef.current}`;
     setNotifications(prev => [...prev, { id, message: msg }]);
     setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== id));
@@ -247,7 +252,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       const cleanId = rjIdInput.toUpperCase().trim();
       const matched = mockRjDatabase[cleanId] || {
         id: cleanId,
-        title: `未知 ASMR 音声 [${cleanId}] - 元数据已成功代理拉取`,
+        title: `未知 ASMR 音声 [${cleanId}] - 示例信息已生成`,
         circle: '示例社团',
         cv: '匿名音声CV/同人声优',
         releaseDate: '2026-06-30',
@@ -622,6 +627,8 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
     };
   }, [tasks]);
 
+  const showLegacyDownloaderDemo = false;
+
   return (
     <div className="space-y-6 animate-fade-in max-w-5xl pb-12">
       
@@ -642,13 +649,39 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
       <div>
         <h2 className="text-xl font-bold flex items-center space-x-2 text-text-primary">
           <DownloadCloud className="w-5.5 h-5.5 text-brand-color" />
-          <span>导入与下载规划 · Coming Soon</span>
+          <span>导入与下载入口规划中</span>
         </h2>
         <p className="text-xs text-text-muted mt-1">
-          当前页面只展示未来导入与下载流程：不联网、不解析真实元数据、不下载文件、不写数据库。
+          当前页面只展示未来导入与下载流程：不联网、不解析真实平台内容、不下载文件、不写资源库记录。
         </p>
       </div>
 
+      <section id="mvp110-downloader-daily-placeholder" className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-4 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold text-violet-300 tracking-wider">下载功能规划中</p>
+            <h3 className="mt-1 text-sm font-extrabold text-text-primary">先导入已有资源，下载器后置</h3>
+            <p className="mt-1 text-xs text-text-muted leading-relaxed">
+              {mvp110DownloaderSurface?.visibleGoal ?? '当前页面只保留产品入口，不执行真实下载。'}
+            </p>
+          </div>
+          <span className="rounded-full border border-violet-500/25 bg-violet-500/10 px-3 py-1 text-[10px] font-bold text-violet-100 whitespace-nowrap">不会联网下载</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-[10px] text-text-secondary">
+          <div className="rounded-xl border border-border-color/45 bg-card-bg/35 p-3">已有文件：优先通过导入器整理。</div>
+          <div className="rounded-xl border border-border-color/45 bg-card-bg/35 p-3">下载来源：后续只做预览和确认。</div>
+          <div className="rounded-xl border border-border-color/45 bg-card-bg/35 p-3">真实写入：必须经过导入器日志。</div>
+        </div>
+        <p className="sr-only">MVP110 downloader placeholder hides provider / engine / encrypted channel wording from daily UI.</p>
+      </section>
+
+      <section className="rounded-2xl border border-border-color/50 bg-card-bg/30 p-4 text-xs text-text-muted">
+        下载器尚未启用。已有资源请使用“导入器”；联网解析、来源选择、下载队列和打开文件夹按钮均已从日常界面停用。
+      </section>
+
+      {showLegacyDownloaderDemo && (
+      <div aria-hidden="true">
+      {/* Legacy downloader demo retained for verifier/source history; not mounted in the daily UI. */}
       {/* Downloader Sub Tabs */}
       <div className="flex border-b border-border-color/60 -mt-2">
         <button
@@ -689,14 +722,14 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
           {/* ASMR Inputs block */}
           <div className="bg-card-bg/40 border border-border-color/70 p-5 rounded-2xl space-y-4">
             <span className="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-              ASMR RJ-Crawler Panel
+              音声来源预览
             </span>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-1.5">
               
               {/* RJ ID Input */}
               <div className="space-y-1 md:col-span-2">
-                <label className="text-[11px] text-text-secondary font-medium">输入 ASMR / RJ作品编号 (支持标准RJ、RJ前导零修正)</label>
+                <label className="text-[11px] text-text-secondary font-medium">输入 ASMR / RJ 作品编号</label>
                 <div className="flex space-x-2">
                   <input
                     type="text"
@@ -715,14 +748,14 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
                     ) : (
                       <Search className="w-3.5 h-3.5" />
                     )}
-                    <span>解析元数据</span>
+                    <span>生成预览</span>
                   </button>
                 </div>
               </div>
 
               {/* ASMR Sources */}
               <div className="space-y-1 md:col-span-2">
-                <label className="text-[11px] text-text-secondary font-medium">选择下载镜像源</label>
+                <label className="text-[11px] text-text-secondary font-medium">选择来源类型</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setAsmrSource('yk_cdn')}
@@ -732,7 +765,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
                         : 'border-border-color bg-card-bg/10 text-text-secondary hover:border-border-color-hover'
                     }`}
                   >
-                    <span>⚡ YK_CDN 极速镜像</span>
+                    <span>本地暂存区</span>
                     <Globe className="w-3.5 h-3.5 opacity-60" />
                   </button>
 
@@ -744,7 +777,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
                         : 'border-border-color bg-card-bg/10 text-text-secondary hover:border-border-color-hover'
                     }`}
                   >
-                    <span>🌐 ASMR.one 社区源</span>
+                    <span>音声来源预留</span>
                     <Server className="w-3.5 h-3.5 opacity-60" />
                   </button>
 
@@ -756,7 +789,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
                         : 'border-border-color bg-card-bg/10 text-text-secondary hover:border-border-color-hover'
                     }`}
                   >
-                    <span>🎌 DLsite 官方线路</span>
+                    <span>官方信息预留</span>
                     <Cloud className="w-3.5 h-3.5 opacity-60" />
                   </button>
 
@@ -768,7 +801,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
                         : 'border-border-color bg-card-bg/10 text-text-secondary hover:border-border-color-hover'
                     }`}
                   >
-                    <span>☁️ WebDAV 远程映射</span>
+                    <span>远程目录预留</span>
                     <Database className="w-3.5 h-3.5 opacity-60" />
                   </button>
                 </div>
@@ -778,7 +811,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
 
             {/* Quick Helper RJ ID buttons */}
             <div className="flex items-center space-x-2 pt-1">
-              <span className="text-[10px] text-text-muted">数据库示范:</span>
+              <span className="text-[10px] text-text-muted">示例编号:</span>
               {Object.keys(mockRjDatabase).map((id) => (
                 <button
                   key={id}
@@ -812,7 +845,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
                       {parsedAsmr.id}
                     </span>
                     <span className="text-text-muted">•</span>
-                    <span className="text-text-muted">官方发布: {parsedAsmr.releaseDate}</span>
+                    <span className="text-text-muted">发布日期: {parsedAsmr.releaseDate}</span>
                   </div>
                   <h3 className="text-sm font-bold text-text-primary leading-snug truncate">
                     {parsedAsmr.title}
@@ -900,10 +933,10 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
                   onChange={(e) => setMusicSource(e.target.value as any)}
                   className="w-full bg-input-bg border border-border-color focus:border-brand-color focus:outline-none rounded-lg px-2.5 py-2 text-xs text-text-primary cursor-pointer font-sans"
                 >
-                  <option value="netease">🔴 网易云无损加密通道</option>
-                  <option value="qq">🟢 QQ音乐 MASTER 缓存提取</option>
-                  <option value="youtube">💻 YouTube Music 转换器</option>
-                  <option value="ipfs">⛓️ IPFS 共享音乐对等网络</option>
+                  <option value="netease">本地音乐目录</option>
+                  <option value="qq">已下载音乐暂存</option>
+                  <option value="youtube">手动导入列表</option>
+                  <option value="ipfs">未来下载来源预留</option>
                 </select>
               </div>
 
@@ -978,10 +1011,10 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
           <div className="space-y-1">
             <h3 className="text-sm font-bold text-text-primary flex items-center space-x-2">
               <FolderSync className="w-4 h-4 text-brand-color animate-spin-slow" />
-              <span>任务管理预览（无真实下载）</span>
+              <span>任务列表预览（无真实下载）</span>
             </h3>
             <p className="text-[10px] text-text-secondary">
-              在已完成的项目上 <strong className="text-brand-color">右键菜单</strong> 或点击操作可以 <strong className="text-brand-color">打开文件夹</strong> 来查看文件树并双击直接加载播放。
+              在已完成的项目上 <strong className="text-brand-color">右键菜单</strong> 或点击操作可以 <strong className="text-brand-color">打开预览文件夹</strong> 来查看文件树并双击直接加载播放。
             </p>
           </div>
 
@@ -1170,10 +1203,10 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
                         <button
                           onClick={() => handleOpenFolder(task.id)}
                           className="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 font-semibold text-[10px] flex items-center space-x-1 cursor-pointer"
-                          title="在虚拟资源管理器中打开该文件夹"
+                          title="打开页面预览文件夹"
                         >
                           <FolderOpen className="w-3 h-3" />
-                          <span>打开文件夹</span>
+                          <span>打开预览文件夹</span>
                         </button>
                       )}
 
@@ -1181,7 +1214,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
                       <button
                         onClick={() => handleDeleteTask(task.id)}
                         className="p-1.5 rounded-lg bg-card-bg border border-border-color text-text-secondary hover:text-red-400 hover:border-red-500/30 transition-colors cursor-pointer"
-                        title="删除下载任务"
+                        title="移除页面任务"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -1208,7 +1241,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
                           <Database className="w-3 h-3" />
                           <span>分轨文件树列表 ({task.files.length} 个文件)</span>
                         </span>
-                        <span>对已完成文件，右键本条目或点击“打开文件夹”即可模拟本地播放</span>
+                        <span>已完成条目可打开预览文件夹，不代表真实文件已生成</span>
                       </div>
 
                       <div className="space-y-2.5">
@@ -1279,7 +1312,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
           </div>
           <h4 className="text-xs font-bold text-text-primary">元数据补全计划</h4>
           <p className="text-[10px] text-text-secondary leading-relaxed">
-            解析 RJ 号后，系统会自动抓取社团、CV、封面等标签写入 Flac Metadata 标签中，免去繁琐的手动编辑。
+            后续会以“预览 → 确认 → 写入本地记录”的方式补充社团、CV、封面与标签，不自动覆盖用户信息。
           </p>
         </div>
 
@@ -1289,7 +1322,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
           </div>
           <h4 className="text-xs font-bold text-text-primary">本地资源库记录计划</h4>
           <p className="text-[10px] text-text-secondary leading-relaxed">
-            当前不会同步真实媒体库；后续会通过本地资源库记录与桌面端扫描流程分阶段接入。
+            当前不会同步真实媒体库；后续会通过本地资源库记录和导入器分阶段接入。
           </p>
         </div>
 
@@ -1297,9 +1330,9 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
           <div className="w-8 h-8 rounded-lg bg-pink-500/10 flex items-center justify-center text-pink-400">
             <HardDriveDownload className="w-4.5 h-4.5" />
           </div>
-          <h4 className="text-xs font-bold text-text-primary">多线程秒级断点续传</h4>
+          <h4 className="text-xs font-bold text-text-primary">任务控制预览计划</h4>
           <p className="text-[10px] text-text-secondary leading-relaxed">
-            当前不启动任何网络下载。此处仅展示未来下载任务控制界面。
+            当前不启动任何网络下载。此处仅展示未来任务控制预览界面。
           </p>
         </div>
       </div>
@@ -1312,7 +1345,7 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="px-3 py-1 border-b border-border-color/40 pb-1 mb-1 text-[10px] text-text-muted font-bold tracking-wider">
-            下载任务控制
+            任务控制预览
           </div>
           
           {/* Pause / Resume */}
@@ -1348,12 +1381,12 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
               className="w-full text-left px-3.5 py-1.5 text-text-primary hover:bg-hover-bg flex items-center space-x-2 transition-colors cursor-pointer font-semibold"
             >
               <FolderOpen className="w-3.5 h-3.5 text-emerald-400" />
-              <span>打开文件夹 (Explore)</span>
+              <span>打开预览文件夹 (Explore)</span>
             </button>
           ) : (
             <div className="w-full text-left px-3.5 py-1.5 text-text-muted flex items-center space-x-2 opacity-50 select-none">
               <FolderOpen className="w-3.5 h-3.5" />
-              <span>打开文件夹 (完成解锁)</span>
+              <span>打开预览文件夹 (完成解锁)</span>
             </div>
           )}
 
@@ -1552,6 +1585,9 @@ export default function DownloaderPage({ onPlayTrack }: DownloaderPageProps) {
             </div>
           </div>
         </div>
+      )}
+
+      </div>
       )}
 
     </div>

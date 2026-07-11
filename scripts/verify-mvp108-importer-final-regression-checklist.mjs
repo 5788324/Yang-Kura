@@ -23,7 +23,7 @@ function read(rel) {
 for (const rel of requiredFiles) read(rel);
 
 const pkg = JSON.parse(read('package.json'));
-if (pkg.version !== '0.146.0-mvp108') {
+if (!['0.146.0-mvp108', '0.147.0-mvp109', '0.148.0-mvp110', '0.149.0-mvp111', '0.150.0-mvp112'].includes(pkg.version)) {
   throw new Error(`[MVP108 verify] package.json version mismatch: ${pkg.version}`);
 }
 if (!pkg.scripts['verify:mvp108-importer-final-regression-checklist']) {

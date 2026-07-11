@@ -15,7 +15,14 @@ npm ci --ignore-scripts --no-audit --no-fund --prefer-offline --cache "$repoRoot
 npm run lint
 npm run build:electron
 npm run verify:mvp108-importer-final-regression-checklist
+npm run verify:mvp109-ui-engineering-panel-cleanup
+npm run verify:mvp110-global-daily-ui-cleanup
+npm run verify:mvp111-ui-cleanup-closeout-baseline-sync
 npm run test:importer:smoke
 npm run build
 npm audit --audit-level=high
 ```
+
+## Scope
+
+For MVP111 merge, Codex should only validate commands, commit, and push if requested. It should not implement new features.

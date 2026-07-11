@@ -52,7 +52,7 @@ export class DiagnosticsRuntimeBoundary extends Component<
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[10px] font-bold text-amber-200">
               <AlertTriangle className="h-3.5 w-3.5" />
-              <span>MVP-64 诊断页运行时保护</span>
+              <span>诊断页运行时保护</span>
             </div>
             <h2 className="text-lg font-bold text-text-primary">诊断页已进入安全降级视图</h2>
             <p className="max-w-2xl text-xs leading-relaxed text-text-secondary">
@@ -71,8 +71,8 @@ export class DiagnosticsRuntimeBoundary extends Component<
         <div className="grid gap-3 md:grid-cols-3">
           {[
             ['主流程保护', '首页、音声库、音乐库、播放器不应被诊断页错误拖崩。'],
-            ['本地安全边界', 'Renderer 仍不接收 absolutePath / file://。'],
-            ['下一步复测', '重新进入诊断页，确认不再出现黑视图。'],
+            ['本地安全边界', '主界面不会显示真实系统路径或本地文件链接。'],
+            ['下一步复测', '重新进入诊断页，确认页面能正常打开。'],
           ].map(([title, desc]) => (
             <div key={title} className="rounded-2xl border border-white/10 bg-bg-primary/35 p-3">
               <p className="text-xs font-bold text-text-primary">{title}</p>

@@ -65,6 +65,7 @@ export default function AsmrLibrary({
   const [subtitleFilter, setSubtitleFilter] = useState<WorkSubtitleFilter>('all');
   const [playbackFilter, setPlaybackFilter] = useState<WorkPlaybackFilter>('all');
   const [sourceFilter, setSourceFilter] = useState<WorkSourceFilter>('all');
+  const [personalStatusFilter, setPersonalStatusFilter] = useState<'all' | 'unheard' | 'listening' | 'completed' | 'abandoned'>('all');
 
   // Quick filters modal states (Requirement 3)
   const [quickFilterType, setQuickFilterType] = useState<'none' | 'circle' | 'cv' | 'tag'>('none');
@@ -168,6 +169,7 @@ export default function AsmrLibrary({
     setSourceFilter('all');
     setSubtitleFilter('all');
     setPlaybackFilter('all');
+    setPersonalStatusFilter('all');
   };
 
   // Filter and sort RJ items
@@ -199,7 +201,15 @@ export default function AsmrLibrary({
               item.circle.toLowerCase().includes(rawQ) ||
               item.cvs.some(cv => cv.toLowerCase().includes(rawQ)) ||
               item.tags.some(t => t.toLowerCase().includes(rawQ)) ||
-              item.tracks?.some(t => t.fileTreePath?.toLowerCase().includes(rawQ))
+              item.description?.toLowerCase().includes(rawQ) ||
+              item.personalNotes?.toLowerCase().includes(rawQ) ||
+              item.personalStatus?.toLowerCase().includes(rawQ) ||
+              item.tracks?.some(t =>
+                t.title.toLowerCase().includes(rawQ) ||
+                t.artist.toLowerCase().includes(rawQ) ||
+                t.album.toLowerCase().includes(rawQ) ||
+                t.fileTreePath?.toLowerCase().includes(rawQ)
+              )
             );
         }
       });
@@ -213,6 +223,10 @@ export default function AsmrLibrary({
     // Filter by selected tag
     if (selectedTag) {
       list = list.filter(item => item.tags.includes(selectedTag));
+    }
+
+    if (personalStatusFilter !== 'all') {
+      list = list.filter(item => (item.personalStatus ?? 'unheard') === personalStatusFilter);
     }
 
     const historyMap = libraryBrowseService.buildHistoryMap();
@@ -257,7 +271,7 @@ export default function AsmrLibrary({
     });
 
     return list;
-  }, [rjWorks, searchQuery, localQuery, searchField, statusFilter, selectedTag, sortBy, sourceFilter, subtitleFilter, playbackFilter]);
+  }, [rjWorks, searchQuery, localQuery, searchField, statusFilter, selectedTag, sortBy, sourceFilter, subtitleFilter, playbackFilter, personalStatusFilter]);
 
   const browseSurface = useMemo(() => libraryBrowseSurfaceService.getAsmrSurfaceModel({
     works: rjWorks,
@@ -364,7 +378,7 @@ export default function AsmrLibrary({
             <input
               type="text"
               placeholder={
-                searchField === 'all' ? '搜索标题、RJ号、社团、声优、标签或文件名...' :
+                searchField === 'all' ? '搜索标题、RJ号、社团、声优、标签、备注或文件名...' :
                 searchField === 'id' ? '输入 RJ 编码 (例如 RJ100204)...' :
                 searchField === 'title' ? '输入作品标题检索...' :
                 searchField === 'circle' ? '输入制作社团检索...' :
@@ -509,6 +523,18 @@ export default function AsmrLibrary({
               <option value="unplayed">未播放</option>
               <option value="in-progress">听过 / 未听完</option>
               <option value="completed">已听完</option>
+            </select>
+            <select
+              value={personalStatusFilter}
+              onChange={(e) => setPersonalStatusFilter(e.target.value as typeof personalStatusFilter)}
+              className="bg-card-bg border border-border-color text-text-primary rounded-xl px-3 py-2 text-xs outline-none focus:border-brand-color cursor-pointer transition-colors font-semibold"
+              title="个人收听标记筛选"
+            >
+              <option value="all">全部个人标记</option>
+              <option value="unheard">待听</option>
+              <option value="listening">收听中</option>
+              <option value="completed">已完成</option>
+              <option value="abandoned">已搁置</option>
             </select>
           </div>
         </div>
@@ -699,7 +725,7 @@ export default function AsmrLibrary({
       ) : (
         /* GRID CARD WALL VIEW (Requirement 4) */
         <div id="mvp76-asmr-card-layout-unity" className={mvp76CardLayout.gridClassName} aria-label={mvp76CardLayout.ariaLabel}>
-          <span className="sr-only">mvp76-card-layout-unity：音声库卡片统一使用安全列宽、固定封面比例、长标题截断和状态换行布局。</span>
+          <span hidden aria-hidden="true">mvp76-card-layout-unity：音声库卡片统一使用安全列宽、固定封面比例、长标题截断和状态换行布局。</span>
           {filteredAndSortedWorks.map(rj => {
             const subtitleSummary = libraryBrowseService.getWorkSubtitleSummary(rj);
             const playbackSummary = libraryBrowseService.getWorkPlaybackSummary(rj);

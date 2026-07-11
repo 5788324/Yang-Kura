@@ -1,0 +1,5 @@
+Yang-Kura 0.150.0-mvp112
+Focus: Codex GUI audit bugfix
+New: settingsPathPrivacyService, MVP112 verifier/docs
+Changed: App, SettingsPage, DownloaderPage, ImporterPage, DiagnosticsPage, MusicLibrary, accessibility markers
+No changes: scanner/index/player/subtitle/external-open/import executors

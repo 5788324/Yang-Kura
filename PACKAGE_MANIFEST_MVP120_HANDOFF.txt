@@ -1,0 +1,13 @@
+Yang-Kura 0.158.0-mvp120
+Base: 0.157.0-mvp119
+Added:
+- electron/providerRequestDeadline.ts
+- scripts/verify-mvp120-dlsite-total-deadline.mjs
+- docs/DLSITE_TOTAL_DEADLINE_MVP120.md
+- docs/CURRENT_ROADMAP_MVP120.md
+- HANDOFF_MVP119_TO_MVP120.md
+Modified:
+- electron/dlsiteMetadataProvider.ts
+- package.json / package-lock.json
+- recent verifiers and project status documents
+- CODEX_MVP120_RETEST_PROMPT.md

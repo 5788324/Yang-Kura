@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 // Legacy verifier marker: Demo 模式 / 尚未接入真实扫描 / No SQLite
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
@@ -6,12 +6,7 @@ import AsmrLibrary from './components/AsmrLibrary';
 import AsmrDetail from './components/AsmrDetail';
 import MusicLibrary from './components/MusicLibrary';
 import PlaylistPage from './components/PlaylistPage';
-import DownloaderPage from './components/DownloaderPage';
-import ImporterPage from './components/ImporterPage';
-import SettingsPage from './components/SettingsPage';
 import PlayerBar from './components/PlayerBar';
-import LyricsPanel from './components/LyricsPanel';
-import DiagnosticsPage from './components/DiagnosticsPage';
 import DiagnosticsRuntimeBoundary from './components/DiagnosticsRuntimeBoundary';
 
 import { PageType, AudioTrack, PlayerState, LibrarySettings, ThemeType, RJWork, Playlist, MusicAlbum, LocalJsonIndex } from './types';
@@ -26,18 +21,29 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import CoverArtwork from './components/CoverArtwork';
 import { coverArtworkService } from './services/coverArtworkService';
+import { settingsPathPrivacyService } from './services/settingsPathPrivacyService';
+import { metadataOverrideService } from './services/metadataOverrideService';
+
+const ImporterPage = lazy(() => import('./components/ImporterPage'));
+const DownloaderPage = lazy(() => import('./components/DownloaderPage'));
+const SettingsPage = lazy(() => import('./components/SettingsPage'));
+const DiagnosticsPage = lazy(() => import('./components/DiagnosticsPage'));
+const LyricsPanel = lazy(() => import('./components/LyricsPanel'));
 
 export default function App() {
   // Navigation States
   const [currentPage, setCurrentPage] = useState<PageType>('dashboard');
+  const mainContentRef = useRef<HTMLElement | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   
   // Demo prototype states. These localStorage keys are historical mock names; they are not SQLite or real disk sync.
   const [rjWorks, setRjWorks] = useLocalStorage<RJWork[]>('sqlite_rj_works', mockRjWorks);
+  const rjWorksBaseRef = useRef<RJWork[]>(mockRjWorks);
   const [playlists, setPlaylists] = useState<Playlist[]>(() =>
     playlistPersistenceService.hydrateInitialPlaylists(mockPlaylists),
   );
   const [musicAlbums, setMusicAlbums] = useLocalStorage<MusicAlbum[]>('sqlite_music_albums', mockMusicAlbums);
+  const musicAlbumsBaseRef = useRef<MusicAlbum[]>(musicAlbums);
   const [recentTracks, setRecentTracks] = useState<AudioTrack[]>([]);
   const [librarySessionSnapshot, setLibrarySessionSnapshot] = useState<LibrarySessionSnapshot>(() =>
     librarySessionService.getSnapshot(),
@@ -80,7 +86,7 @@ export default function App() {
     currentTheme: 'acrylic-mist',
     enableOverlay: true,
     privacyMode: true,
-  });
+  }, settingsPathPrivacyService.sanitizeSettings.bind(settingsPathPrivacyService));
 
   // Second-level Playback Resume Toast State
   const [resumeToast, setResumeToast] = useState<{
@@ -112,6 +118,32 @@ export default function App() {
     }
   }, []);
 
+  useEffect(() => {
+    let asmrBase = rjWorks;
+    try {
+      const cached = localStorage.getItem('yang_kura_last_read_library_index_result');
+      if (cached) {
+        const result = JSON.parse(cached) as YangKuraReadLibraryIndexResult;
+        if (result.ok) {
+          const mapped = libraryIndexAdapter.fromLocalJsonIndexToAppData(result.index as LocalJsonIndex);
+          if (mapped.rjWorks.length > 0) asmrBase = mapped.rjWorks;
+        }
+      }
+    } catch {
+      // Keep the current local base when no readable index cache exists.
+    }
+    rjWorksBaseRef.current = asmrBase;
+    setRjWorks(metadataOverrideService.applyAsmrOverrides(asmrBase));
+    musicAlbumsBaseRef.current = musicAlbums;
+    setMusicAlbums(metadataOverrideService.applyMusicAlbumOverrides(musicAlbums));
+  }, []);
+
+  useEffect(() => {
+    const main = mainContentRef.current;
+    if (!main) return;
+    main.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [currentPage, asmrDetailId, playlistDetailId]);
+
   // Diagnostic Scan Logs Simulation State
   const [scanStatus, setScanStatus] = useState<string>(
     '当前已支持真实 index 读取、HTMLAudio 本地音频播放、LRC 字幕读取、视频/图片外部打开；仍未接 SQLite / 下载器。'
@@ -126,10 +158,12 @@ export default function App() {
       librarySessionService.recordIndexRead(result);
       const mapped = libraryIndexAdapter.fromLocalJsonIndexToAppData(result.index as LocalJsonIndex);
       if (mapped.rjWorks.length > 0) {
-        setRjWorks(mapped.rjWorks);
+        rjWorksBaseRef.current = mapped.rjWorks;
+        setRjWorks(metadataOverrideService.applyAsmrOverrides(mapped.rjWorks));
       }
       if (mapped.musicAlbums.length > 0) {
-        setMusicAlbums(mapped.musicAlbums);
+        musicAlbumsBaseRef.current = mapped.musicAlbums;
+        setMusicAlbums(metadataOverrideService.applyMusicAlbumOverrides(mapped.musicAlbums));
       }
       setScanStatus(
         `已加载真实 library-index.json：${mapped.rjWorks.length} 个音声集合，${mapped.musicAlbums.length} 个音乐集合，${result.summary.trackCount} 条轨道。`
@@ -238,7 +272,54 @@ export default function App() {
 
   // Handler: Update metadata / manually added tags
   const handleUpdateRjWork = (updated: RJWork) => {
-    setRjWorks(prev => prev.map(item => item.id === updated.id ? updated : item));
+    const base = rjWorksBaseRef.current.find((item) => item.id === updated.id) ?? updated;
+    const patch = metadataOverrideService.buildAsmrPatch(base, updated);
+    if (Object.keys(patch).length === 0) metadataOverrideService.clearAsmrOverride(updated.id);
+    else metadataOverrideService.upsertAsmrOverride(updated.id, patch);
+    setRjWorks((previous) => previous.map((item) => item.id === updated.id ? metadataOverrideService.applyAsmrOverride(base) : item));
+  };
+
+  const handleClearRjWorkOverride = (workId: string) => {
+    metadataOverrideService.clearAsmrOverride(workId);
+    const base = rjWorksBaseRef.current.find((item) => item.id === workId);
+    setRjWorks((previous) => previous.map((item) => item.id === workId ? (base ?? item) : item));
+  };
+
+  const refreshMusicMetadataFromBase = () => {
+    setMusicAlbums(metadataOverrideService.applyMusicAlbumOverrides(musicAlbumsBaseRef.current));
+  };
+
+  const refreshAllMetadataFromBase = () => {
+    setRjWorks(metadataOverrideService.applyAsmrOverrides(rjWorksBaseRef.current));
+    refreshMusicMetadataFromBase();
+  };
+
+  const handleUpdateMusicAlbum = (updated: MusicAlbum) => {
+    const current = musicAlbumsBaseRef.current.find((album) => album.id === updated.id);
+    if (!current) return;
+    const patch = metadataOverrideService.buildMusicAlbumPatch(current, updated);
+    if (Object.keys(patch).length === 0) metadataOverrideService.clearMusicAlbumOverride(updated.id);
+    else metadataOverrideService.upsertMusicAlbumOverride(updated.id, patch);
+    refreshMusicMetadataFromBase();
+  };
+
+  const handleUpdateMusicTrack = (updated: AudioTrack) => {
+    const current = musicAlbumsBaseRef.current.flatMap((album) => album.tracks).find((track) => track.id === updated.id);
+    if (!current) return;
+    const patch = metadataOverrideService.buildTrackPatch(current, updated);
+    if (Object.keys(patch).length === 0) metadataOverrideService.clearTrackOverride(updated.id);
+    else metadataOverrideService.upsertTrackOverride(updated.id, patch);
+    refreshMusicMetadataFromBase();
+  };
+
+  const handleClearMusicAlbumOverride = (albumId: string) => {
+    metadataOverrideService.clearMusicAlbumOverride(albumId);
+    refreshMusicMetadataFromBase();
+  };
+
+  const handleClearMusicTrackOverride = (trackId: string) => {
+    metadataOverrideService.clearTrackOverride(trackId);
+    refreshMusicMetadataFromBase();
   };
 
   // Handler: Delete an album
@@ -350,7 +431,9 @@ export default function App() {
 
   // Helper for updating settings
   const handleUpdateSettings = (updates: Partial<LibrarySettings>) => {
-    setSettings(prev => ({ ...prev, ...updates }));
+    setSettings((previous) =>
+      settingsPathPrivacyService.sanitizeSettings({ ...previous, ...updates }),
+    );
   };
 
   // Set active RJ Detail
@@ -411,7 +494,8 @@ export default function App() {
         />
 
         {/* Central Scrollable Content Area */}
-        <main className="flex-1 h-full overflow-y-auto scrollbar-thin px-6 md:px-10 py-6 bg-bg-primary">
+        <main ref={mainContentRef} className="flex-1 h-full overflow-y-auto scrollbar-thin px-6 md:px-10 py-6 bg-bg-primary">
+          <Suspense fallback={<div className="min-h-[240px] rounded-2xl border border-border-color/50 bg-card-bg/30 p-6 text-sm text-text-muted">正在打开页面…</div>}>
           
           {/* Page Router with Drilldowns */}
           {currentPage === 'dashboard' && !asmrDetailId && !playlistDetailId && (
@@ -452,6 +536,7 @@ export default function App() {
               favorites={favorites}
               toggleFavorite={toggleFavorite}
               onUpdateRjWork={handleUpdateRjWork}
+              onClearRjWorkOverride={handleClearRjWorkOverride}
               onExplore={(query) => {
                 setSearchQuery(query);
                 setAsmrDetailId(null);
@@ -468,6 +553,11 @@ export default function App() {
               favorites={favorites}
               toggleFavorite={toggleFavorite}
               searchQuery={searchQuery}
+              onUpdateMusicAlbum={handleUpdateMusicAlbum}
+              onUpdateMusicTrack={handleUpdateMusicTrack}
+              onClearMusicAlbumOverride={handleClearMusicAlbumOverride}
+              onClearMusicTrackOverride={handleClearMusicTrackOverride}
+              onMetadataStoreChanged={refreshAllMetadataFromBase}
             />
           )}
 
@@ -517,6 +607,7 @@ export default function App() {
             </DiagnosticsRuntimeBoundary>
           )}
 
+          </Suspense>
         </main>
 
         {/* MVP-35 verifier anchor: 队列会在本机保存；不保存真实路径或媒体链接。 */}
@@ -635,6 +726,7 @@ export default function App() {
 
       {/* Full Screen Ambient Lyrics scrolling detail overlays */}
       {isLyricsOpen && (
+        <Suspense fallback={<div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center text-sm text-white">正在打开播放详情…</div>}>
         <LyricsPanel 
           playerState={playerState}
           onClose={() => setIsLyricsOpen(false)}
@@ -651,6 +743,7 @@ export default function App() {
           toggleLoopMode={handleToggleLoopMode}
           toggleCompletionMode={handleToggleCompletionMode}
         />
+        </Suspense>
       )}
 
       {/* Floating Second-level Playback Resume Toast */}

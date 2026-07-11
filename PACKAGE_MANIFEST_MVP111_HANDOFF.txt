@@ -1,0 +1,43 @@
+Yang-Kura MVP111 package manifest
+
+Version: 0.149.0-mvp111
+Task: UI cleanup closeout + GitHub baseline sync
+
+Added:
+- src/services/uiCleanupCloseoutBaselineSyncService.ts
+- scripts/verify-mvp111-ui-cleanup-closeout-baseline-sync.mjs
+- scripts/verify-mvp108-importer-final-regression-checklist.mjs (version compatibility updated)
+- scripts/verify-mvp109-ui-engineering-panel-cleanup.mjs (version compatibility updated)
+- scripts/verify-mvp110-global-daily-ui-cleanup.mjs (version compatibility updated)
+- docs/CURRENT_ROADMAP_MVP111.md
+- docs/UI_CLEANUP_CLOSEOUT_BASELINE_SYNC_MVP111.md
+- HANDOFF_MVP110_TO_MVP111.md
+- PACKAGE_MANIFEST_MVP111_HANDOFF.txt
+
+Modified:
+- package.json
+- package-lock.json
+- src/services/index.ts
+- src/components/Dashboard.tsx
+- src/components/SettingsPage.tsx
+- README.md
+- PROJECT_STATE.md
+- PROJECT_ROADMAP.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+- 00_NEW_CHAT_START_HERE.md
+- NEW_CHAT_PROMPT.md
+- NEW_CHAT_PROMPT_FULL.md
+- CODEX_MINIMAL_PROMPTS.md
+- docs/PROJECT_STATE.md
+- docs/NEXT_CHAT_HANDOFF.md
+- docs/RUN_ME_FIRST.md
+
+Not modified intentionally:
+- Importer executor logic
+- Scanner logic
+- library-index write/read logic
+- Playback engine
+- Lyrics reader
+- External-open chain
+- Electron packaging chain

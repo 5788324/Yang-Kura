@@ -1,0 +1,36 @@
+Yang-Kura MVP119 source handoff
+Version: 0.157.0-mvp119
+
+Added:
+- electron/metadataProviderCache.ts
+- scripts/verify-mvp119-provider-cache-throttle.mjs
+- docs/CURRENT_ROADMAP_MVP119.md
+- docs/PROVIDER_CACHE_THROTTLE_MVP119.md
+- HANDOFF_MVP118_TO_MVP119.md
+- CODEX_MVP119_REVIEW_PROMPT.md
+- PACKAGE_MANIFEST_MVP119_HANDOFF.txt
+
+Modified:
+- electron/dlsiteMetadataProvider.ts
+- electron/main.ts
+- electron/preload.ts
+- src/types/electron-api.d.ts
+- src/components/AsmrMetadataProviderPreview.tsx
+- package.json
+- package-lock.json
+- recent MVP verifier compatibility
+- README.md
+- PROJECT_STATE.md
+- PROJECT_ROADMAP.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md
+- docs/PROJECT_STATE.md
+- docs/NEXT_CHAT_HANDOFF.md
+- docs/RUN_ME_FIRST.md
+
+Excluded from source zip:
+- node_modules
+- dist
+- dist-electron
+- release output
+- npm cache

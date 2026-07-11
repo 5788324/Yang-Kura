@@ -1,0 +1,17 @@
+Yang-Kura MVP117 source handoff
+Version: 0.155.0-mvp117
+
+Key additions:
+- src/services/asmrMetadataProviderPreviewService.ts
+- src/components/AsmrMetadataProviderPreview.tsx
+- scripts/verify-mvp117-single-rj-provider-preview.mjs
+- docs/CURRENT_ROADMAP_MVP117.md
+- docs/LOCAL_METADATA_CLOSEOUT_PROVIDER_PREVIEW_MVP117.md
+- HANDOFF_MVP116_TO_MVP117.md
+
+Safety:
+- no network provider
+- no automatic metadata write
+- no media tag write
+- no SQLite
+- no absolutePath/file:// persistence

@@ -1,0 +1,21 @@
+Yang-Kura 0.152.0-mvp114
+
+Added:
+- src/services/metadataOverrideService.ts
+- scripts/verify-mvp114-local-metadata-overrides.mjs
+- docs/CURRENT_ROADMAP_MVP114.md
+- docs/LOCAL_METADATA_OVERRIDES_MVP114.md
+- HANDOFF_MVP113_TO_MVP114.md
+- PACKAGE_MANIFEST_MVP114_HANDOFF.txt
+
+Updated:
+- package.json
+- package-lock.json
+- src/App.tsx
+- src/components/AsmrDetail.tsx
+- src/services/index.ts
+- README.md
+- PROJECT_STATE.md
+- PROJECT_ROADMAP.md
+- NEXT_CHAT_HANDOFF.md
+- RUN_ME_FIRST.md

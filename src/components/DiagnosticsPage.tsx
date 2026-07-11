@@ -183,7 +183,59 @@ function readStoredJson<T>(key: string): T | null {
 /* MVP-69 verifier marker: Beta 0.1 Release Candidate 整包确认 / mvp69-beta-release-candidate / 只修真实缺陷 / 不改真实链路. */
 /* MVP-70 verifier marker: Beta 0.1 最终交接包 / mvp70-beta-final-handoff / 可交付 / 可暂停 / 轻量验证 / 不改真实链路. */
 /* MVP-62 verifier marker: Electron 回归加固 / desktop:setup / desktop:smoke-check:strict / cmd.exe /d /c / npm rebuild electron. */
-export default function DiagnosticsPage({
+
+export default function DiagnosticsPage(props: DiagnosticsPageProps) {
+  const [showMaintenanceDetails, setShowMaintenanceDetails] = useState(false);
+  const workCount = Array.isArray(props.rjWorks) ? props.rjWorks.length : 0;
+  const albumCount = Array.isArray(props.musicAlbums) ? props.musicAlbums.length : 0;
+
+  return (
+    <div id="mvp112-diagnostics-lightweight-shell" className="space-y-5 pb-20 animate-fade-in">
+      <section className="rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-sky-500/5 to-transparent p-6 shadow-sm">
+        <p className="text-[10px] font-bold tracking-wider text-emerald-300">系统诊断</p>
+        <h2 className="mt-1 text-xl font-black text-text-primary">日常状态</h2>
+        <p className="mt-2 max-w-3xl text-xs leading-relaxed text-text-muted">
+          默认只显示资源库状态。历史验证、扫描合同和开发维护信息仅在需要排错时加载。
+        </p>
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="rounded-2xl border border-border-color/50 bg-card-bg/40 p-4">
+            <p className="text-[10px] text-text-muted">音声作品</p>
+            <p className="mt-1 text-xl font-black text-text-primary">{workCount}</p>
+          </div>
+          <div className="rounded-2xl border border-border-color/50 bg-card-bg/40 p-4">
+            <p className="text-[10px] text-text-muted">音乐专辑</p>
+            <p className="mt-1 text-xl font-black text-text-primary">{albumCount}</p>
+          </div>
+          <div className="rounded-2xl border border-border-color/50 bg-card-bg/40 p-4">
+            <p className="text-[10px] text-text-muted">当前状态</p>
+            <p className="mt-1 text-sm font-bold text-emerald-300">{props.scanStatus || "等待检查"}</p>
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" onClick={props.onScanLibrary} className="rounded-xl bg-brand-color px-4 py-2 text-xs font-bold text-white hover:opacity-90">刷新资源状态</button>
+          <button
+            type="button"
+            onClick={() => setShowMaintenanceDetails((value) => !value)}
+            aria-expanded={showMaintenanceDetails}
+            className="rounded-xl border border-border-color bg-card-bg/50 px-4 py-2 text-xs font-bold text-text-primary hover:border-brand-color/50"
+          >
+            {showMaintenanceDetails ? "收起高级诊断" : "打开高级诊断"}
+          </button>
+        </div>
+      </section>
+
+      {showMaintenanceDetails ? (
+        <DiagnosticsMaintenanceContent {...props} />
+      ) : (
+        <section className="rounded-2xl border border-border-color/50 bg-card-bg/30 p-4 text-xs text-text-muted">
+          高级诊断尚未加载，因此页面不会一次渲染全部历史 MVP、IPC、Scanner 和 Contract 信息。
+        </section>
+      )}
+    </div>
+  );
+}
+
+function DiagnosticsMaintenanceContent({
   onScanLibrary,
   scanStatus,
   rjWorks = [],

@@ -77,6 +77,9 @@ type OpenInFileManagerRequest = {
   mode: 'open-in-file-manager';
 };
 
+type AsmrMetadataProviderRequest = { provider: 'dlsite'; rjId: string; mode: 'single-rj-preview'; timeoutMs?: number; cacheMode?: 'prefer-cache' | 'force-refresh'; };
+type AsmrMetadataProviderCacheClearRequest = { provider: 'dlsite'; rjId: string; mode: 'clear-single-rj-cache'; };
+
 
 type ImportCopyOnlyStubRequest = {
   operationPlanId: string;
@@ -202,6 +205,7 @@ const shellStatus = {
   canReadTrackLyrics: true,
   canOpenExternalFile: true,
   canOpenInFileManager: true,
+  canFetchSingleRjMetadata: true,
   canUseCopyOnlyStub: true,
   canUseCopyOnlyPreflightRealCheck: true,
   canExecuteCopyOnly: true,
@@ -251,6 +255,14 @@ const yangKuraApi = {
 
   async requestOpenInFileManager(request: OpenInFileManagerRequest) {
     return ipcRenderer.invoke('yang-kura:external:open-in-file-manager', request);
+  },
+
+  async requestAsmrMetadataProvider(request: AsmrMetadataProviderRequest) {
+    return ipcRenderer.invoke('yang-kura:metadata:asmr:single-rj-preview', request);
+  },
+
+  async clearAsmrMetadataProviderCache(request: AsmrMetadataProviderCacheClearRequest) {
+    return ipcRenderer.invoke('yang-kura:metadata:asmr:single-rj-cache-clear', request);
   },
 
 

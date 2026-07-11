@@ -9,9 +9,9 @@ const assert = (condition, message) => { if (!condition) fail(message); };
 
 const pkg = JSON.parse(read('package.json'));
 const lock = JSON.parse(read('package-lock.json'));
-const compatibleVersions = ['0.145.0-mvp107', '0.146.0-mvp108'];
-assert(compatibleVersions.includes(pkg.version), `package version must be 0.145.0-mvp107 or compatible 0.146.0-mvp108, got ${pkg.version}`);
-assert(compatibleVersions.includes(lock.version) || compatibleVersions.includes(lock.packages?.['']?.version), 'package-lock root version must be 0.145.0-mvp107 or compatible 0.146.0-mvp108');
+const compatibleVersions = ['0.145.0-mvp107', '0.146.0-mvp108', '0.147.0-mvp109', '0.148.0-mvp110', '0.149.0-mvp111', '0.150.0-mvp112'];
+assert(compatibleVersions.includes(pkg.version), `package version must be 0.145.0-mvp107 or compatible later importer UI cleanup versions, got ${pkg.version}`);
+assert(compatibleVersions.includes(lock.version) || compatibleVersions.includes(lock.packages?.['']?.version), 'package-lock root version must be compatible with MVP107+ importer UI cleanup');
 assert(pkg.scripts['verify:mvp107-importer-daily-ui-cleanup'] === 'node scripts/verify-mvp107-importer-daily-ui-cleanup.mjs', 'package.json must expose MVP107 verifier');
 assert(pkg.scripts['verify:all'].includes('verify:mvp107-importer-daily-ui-cleanup'), 'verify:all must include MVP107 verifier');
 

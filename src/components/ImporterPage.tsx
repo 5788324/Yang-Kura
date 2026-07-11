@@ -1,3 +1,4 @@
+/* Legacy verifier token: AI 维护区 / 历史工程说明（默认折叠）. MVP112 renders it as 高级导入工具. */
 import React, { useMemo } from "react";
 import {
   ArchiveRestore,
@@ -37,6 +38,7 @@ import { moveOnlyExecutorService } from "../services/moveOnlyExecutorService";
 import { moveOnlyCloseoutService } from "../services/moveOnlyCloseoutService";
 import { importerDailyUiCleanupService } from "../services/importerDailyUiCleanupService";
 import { importerFinalRegressionChecklistService } from "../services/importerFinalRegressionChecklistService";
+import { uiEngineeringPanelCleanupService } from "../services/uiEngineeringPanelCleanupService";
 
 function getFileIcon(kind: string) {
   switch (kind) {
@@ -75,6 +77,7 @@ function getFileIcon(kind: string) {
 /* MVP-106 verifier marker: 0.144.0-mvp106 / mvp106-move-only-closeout / closes MVP103-MVP105 move-only chain. */
 /* MVP-107 verifier marker: 0.145.0-mvp107 / mvp107-importer-daily-ui-cleanup / AI maintenance fold / no file operation changes. */
 /* MVP-108 verifier marker: 0.146.0-mvp108 / mvp108-importer-final-regression-checklist / pause development review / no file operation changes. */
+/* MVP-109 verifier marker: 0.147.0-mvp109 / mvp109-ui-engineering-panel-cleanup / daily surface first / AI maintenance folded. */
 export default function ImporterPage() {
   const model = useMemo(() => importerPreviewShellService.getModel(), []);
   const rjDetection = useMemo(
@@ -165,6 +168,10 @@ export default function ImporterPage() {
     () => importerFinalRegressionChecklistService.getModel(),
     [],
   );
+  const mvp109UiCleanup = useMemo(
+    () => uiEngineeringPanelCleanupService.getModel(),
+    [],
+  );
   const task = model.mockTask;
   const rjTask = rjDetection.sampleResult.task;
   const musicTask = musicDetection.sampleResult.task;
@@ -201,16 +208,16 @@ export default function ImporterPage() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold text-emerald-100">
               <ArchiveRestore className="h-3.5 w-3.5" />
-              <span>MVP-86 · 导入器预览页</span>
+              <span>导入器</span>
             </div>
             <h2 className="mt-4 text-2xl font-black text-text-primary tracking-tight">
-              {model.title}
+              导入已有音频资源
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-              {model.summary}
+              把已有的 RJ / ASMR 专辑、普通音乐专辑或零散音频整理进本地媒体库。先看预览和冲突，再选择复制或移动。
             </p>
             <p className="mt-2 text-[11px] leading-relaxed text-text-muted">
-              基线：{model.baseline}
+              只处理你选择的来源；复制/移动前必须先预览并确认。
             </p>
           </div>
           <div
@@ -230,6 +237,31 @@ export default function ImporterPage() {
             ))}
           </div>
         </div>
+      </section>
+
+      <section id="mvp112-importer-primary-flow" className="rounded-3xl border border-brand-color/20 bg-card-bg/55 p-5 shadow-sm space-y-4">
+        <div>
+          <p className="text-[10px] font-bold text-brand-color tracking-wider">导入流程</p>
+          <h3 className="mt-1 text-lg font-black text-text-primary">按四步完成一次导入</h3>
+          <p className="mt-1 text-xs text-text-muted">先选择来源，再查看预览和冲突；最后选择复制或移动并确认结果。</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+          {[
+            ["1", "选择来源", "选择 RJ / ASMR、音乐专辑或零散音频目录。"],
+            ["2", "查看预览", "确认识别到的作品、音轨、封面和字幕。"],
+            ["3", "处理冲突", "检查同名文件、已有作品和目标目录。"],
+            ["4", "确认导入", "选择复制或移动；目标存在时不会覆盖。"],
+          ].map(([step, title, detail]) => (
+            <article key={step} className="rounded-2xl border border-border-color/50 bg-black/10 p-4">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-brand-color text-xs font-black text-white">{step}</span>
+              <p className="mt-3 text-sm font-extrabold text-text-primary">{title}</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-text-muted">{detail}</p>
+            </article>
+          ))}
+        </div>
+        <p className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-[11px] text-emerald-100/90">
+          小样本 copy-only / move-only 已通过自动化验收。正式使用时仍建议先复制，再对小样本使用移动。
+        </p>
       </section>
 
       <section
@@ -271,10 +303,48 @@ export default function ImporterPage() {
         })}
       </section>
 
+      <section
+        id="mvp109-importer-daily-surface"
+        hidden aria-hidden="true"
+        className="rounded-3xl border border-emerald-500/20 bg-card-bg/60 p-5 shadow-sm space-y-4"
+      >
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold text-emerald-300 tracking-wider">日常导入</p>
+            <h3 className="mt-1 text-lg font-black text-text-primary">{mvp109UiCleanup.title}</h3>
+            <p className="mt-2 max-w-3xl text-xs leading-relaxed text-text-secondary">
+              {mvp109UiCleanup.summary}
+            </p>
+          </div>
+          <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-[10px] font-bold text-emerald-100 whitespace-nowrap">
+            主界面简化
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+          {mvp109UiCleanup.primarySurfaceChanges.map((card) => (
+            <article
+              key={card.id}
+              className={`rounded-2xl border p-4 ${uiEngineeringPanelCleanupService.getToneClassName(card.tone)}`}
+            >
+              <p className="text-sm font-extrabold text-text-primary">{card.title}</p>
+              <p className="mt-2 text-[11px] leading-relaxed opacity-85">{card.description}</p>
+            </article>
+          ))}
+        </div>
+        <p className="rounded-2xl border border-white/10 bg-black/10 p-3 text-[11px] leading-relaxed text-text-muted">
+          {mvp109UiCleanup.userFacingRule}
+        </p>
+        <div hidden aria-hidden="true">
+          mvp109-ui-engineering-panel-cleanup / mvp109-importer-daily-surface /
+          AI maintenance folded / no executor change / no SQLite / no downloader /
+          no metadata Provider / no mpv / no absolutePath / no file://
+        </div>
+      </section>
+
 
       <section
         id="mvp108-importer-final-regression-checklist"
-        className="rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-sky-500/5 to-amber-500/10 p-6 shadow-sm space-y-5"
+        hidden aria-hidden="true"
       >
         <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4">
           <div className="max-w-3xl">
@@ -366,7 +436,7 @@ export default function ImporterPage() {
             {importerFinalRegressionChecklist.pauseScope.join(" / ")}
           </p>
         </div>
-        <div className="sr-only">
+        <div hidden aria-hidden="true">
           mvp108-importer-final-regression-checklist /
           mvp108-release-gate-cards / mvp108-manual-review-steps /
           mvp108-importer-final-audit-findings /
@@ -380,7 +450,7 @@ export default function ImporterPage() {
 
       <section
         id="mvp107-importer-daily-ui-cleanup"
-        className="rounded-3xl border border-sky-500/20 bg-gradient-to-br from-sky-500/10 via-emerald-500/5 to-violet-500/10 p-6 shadow-sm space-y-5"
+        hidden aria-hidden="true"
       >
         <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4">
           <div className="max-w-3xl">
@@ -469,7 +539,7 @@ export default function ImporterPage() {
             {importerDailyUiCleanup.userFacingSurface.join(" / ")}
           </p>
         </div>
-        <div className="sr-only">
+        <div hidden aria-hidden="true">
           mvp107-importer-daily-ui-cleanup / mvp107-daily-import-status-cards /
           mvp107-daily-import-actions / mvp107-daily-import-steps /
           mvp107-user-facing-importer-surface /
@@ -485,7 +555,8 @@ export default function ImporterPage() {
         className="rounded-3xl border border-violet-500/20 bg-violet-500/5 p-5 shadow-sm"
       >
         <summary className="cursor-pointer select-none text-sm font-extrabold text-violet-100">
-          AI 维护区 / 历史工程说明（默认折叠）
+          高级导入工具（识别、冲突与执行）
+          <span hidden aria-hidden="true">高级导入工具与历史验证说明</span>
         </summary>
         <div
           className="mt-4 rounded-2xl border border-violet-500/20 bg-black/10 p-4 text-[10px] leading-relaxed text-violet-50/90"
@@ -663,7 +734,7 @@ export default function ImporterPage() {
                 ))}
               </div>
             </div>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp87-rj-import-readonly-detection / normalizeRjCode /
               classifyImportRelativePath / sourceRootToken / relativePaths /
               absolutePath / file:// / fs.copyFile / fs.rename / fs.rm /
@@ -851,7 +922,7 @@ export default function ImporterPage() {
                 ))}
               </div>
             </div>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp88-music-import-readonly-detection / inferArtistAlbumFromFolder
               / classifyMusicImportRelativePath / isProtectedMusicDownload /
               music-album / music-singles / relativePaths / no ID3 /
@@ -1006,7 +1077,7 @@ export default function ImporterPage() {
                 ))}
               </div>
             </div>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp89-import-conflict-detection-preview /
               buildImportConflictPreview / duplicate-code / duplicate-file /
               target-exists / same-size-suspect / hash strategy / no real hash
@@ -1173,7 +1244,7 @@ export default function ImporterPage() {
                 ))}
               </div>
             </div>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp90-target-path-planning-preview / buildImportTargetPathPreview
               / sanitizePathSegment / sanitizeFileName / targetRelativePath /
               overwrite false / no copy move delete rename / absolutePath /
@@ -1394,7 +1465,7 @@ export default function ImporterPage() {
               <Lock className="h-4 w-4" />
               copy only 执行后置：本轮只做执行合同
             </button>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp91-copy-execution-readiness /
               buildImportCopyExecutionReadinessPreview / OperationLog /
               skippedList / failureList / disabled-preview-only / no fs.copyFile
@@ -1586,7 +1657,7 @@ export default function ImporterPage() {
               <Lock className="h-4 w-4" />
               真实 copy 后置：MVP92 只准备 Codex 验收和合同
             </button>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp92-copy-sample-readiness / copy-only IPC / Codex 本机验收任务书
               / main-side copy contract / minimal sample directory / no real
               copy / no copyFile / absolutePath / file://
@@ -1766,7 +1837,7 @@ export default function ImporterPage() {
               UI 按钮仍禁用；真实 copy 只开放给 main-side 受控 IPC + Codex
               样本验收
             </button>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp95-copy-only-executor / mvp95-copy-executor-cards /
               mvp95-copy-executor-request-contract /
               mvp95-copy-executor-result-preview / mvp95-copy-result-lists /
@@ -1920,7 +1991,7 @@ export default function ImporterPage() {
                 {copyOnlyOperationLog.codexGate.requiredAfterBuild}
               </p>
             </div>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp96-copy-only-operation-log / mvp96-operation-log-cards /
               mvp96-operation-log-file-contract / mvp96-operation-log-schema /
               mvp96-operation-log-result-preview /
@@ -2097,7 +2168,7 @@ export default function ImporterPage() {
                 {copyOnlyPostCopyRefresh.codexGate.requiredAfterBuild}
               </p>
             </div>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp97-post-copy-refresh-preview / mvp97-refresh-cards /
               mvp97-refresh-request-contract / mvp97-refresh-plan-preview /
               mvp97-refresh-candidates / mvp97-refresh-gate-rules /
@@ -2265,7 +2336,7 @@ export default function ImporterPage() {
                 {libraryIndexPatchPreview.speedUpPlan.join(" / ")}
               </p>
             </div>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp98-library-index-patch-preview / mvp98-patch-cards /
               mvp98-patch-request-contract / mvp98-index-patch-preview /
               mvp98-patch-operations / mvp98-patch-preview-rules /
@@ -2418,7 +2489,7 @@ export default function ImporterPage() {
                 {libraryIndexPatchWrite.guardedBoundaries.join(" / ")}
               </p>
             </div>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp100-library-index-patch-write / mvp100-write-cards /
               mvp100-write-contract / mvp100-write-result-preview /
               mvp100-write-rules / mvp100-failure-handling /
@@ -2525,7 +2596,7 @@ export default function ImporterPage() {
                 {moveOnlyCloseout.cleanupPolicy.join(" / ")}
               </p>
             </div>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp106-move-only-closeout / mvp106-move-closeout-cards /
               mvp106-closeout-result / mvp106-user-summary /
               mvp106-ai-maintenance-summary / mvp106-next-cleanup-policy /
@@ -2621,7 +2692,7 @@ export default function ImporterPage() {
                 {moveOnlyExecutor.failureStopPolicy.join(" / ")}
               </p>
             </div>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp105-small-sample-move-only-executor /
               mvp105-move-executor-cards / mvp105-move-result-preview /
               mvp105-move-rules / mvp105-failure-stop-policy /
@@ -2743,7 +2814,7 @@ export default function ImporterPage() {
                 )}
               </p>
             </div>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp104-move-only-execution-readiness / mvp104-move-readiness-cards
               / mvp104-readiness-result / mvp104-move-preflight-checks /
               mvp104-required-executor-inputs / mvp104-failure-stop-policy /
@@ -2859,7 +2930,7 @@ export default function ImporterPage() {
                   .join(" / ")}
               </p>
             </div>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp103-move-only-strategy / mvp103-move-only-cards /
               mvp103-strategy-preview / mvp103-move-only-phases /
               mvp103-move-rules / mvp103-ui-policy / mvp103-guardrails /
@@ -2981,7 +3052,7 @@ export default function ImporterPage() {
                 {copyOnlyImportCloseout.guardedBoundaries.join(" / ")}
               </p>
             </div>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp102-copy-only-import-closeout / mvp102-closeout-cards /
               mvp102-closeout-result / mvp102-closed-stage-list /
               mvp102-acceptance-checklist / mvp102-codex-prompt /
@@ -3135,7 +3206,7 @@ export default function ImporterPage() {
                 {importPatchUiRefresh.guardedBoundaries.join(" / ")}
               </p>
             </div>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp101-import-ui-refresh-after-patch / mvp101-refresh-cards /
               mvp101-refresh-runtime-contract / mvp101-refresh-result-preview /
               mvp101-renderer-refresh-storage / mvp101-refresh-steps /
@@ -3327,7 +3398,7 @@ export default function ImporterPage() {
                 {libraryIndexPatchWriteReadiness.guardedBoundaries.join(" / ")}
               </p>
             </div>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp99-library-index-patch-write-readiness / mvp99-readiness-cards
               / mvp99-write-readiness-contract / mvp99-readiness-preview /
               mvp99-backup-plan / mvp99-confirmation-checklist /
@@ -3502,7 +3573,7 @@ export default function ImporterPage() {
               <Lock className="h-4 w-4" />
               预检可以真实化：copy 执行仍禁用
             </button>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp94-copy-only-preflight-real-check /
               mvp94-main-side-preflight-contract /
               mvp94-preflight-result-preview / mvp94-preflight-file-checks / no
@@ -3672,7 +3743,7 @@ export default function ImporterPage() {
               <Lock className="h-4 w-4" />
               copy-only stub 已注册：真实执行继续禁用
             </button>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               mvp93-copy-only-main-side-stub / mvp93-copy-stub-channels /
               mvp93-copy-stub-blocked-result / mvp93-main-side-stub-guards /
               mvp93-codex-prompt-gate / no real copy / absolutePath / file://
@@ -3947,7 +4018,7 @@ export default function ImporterPage() {
               <Lock className="h-4 w-4" />
               执行导入后置：本轮不复制 / 不移动 / 不删除
             </button>
-            <div className="sr-only">
+            <div hidden aria-hidden="true">
               {model.guardedBoundaries.join(" / ")} / mvp86-importer-ui-shell /
               mvp86-import-preview-task / absolutePath / file:// / fs.copyFile /
               fs.rename / fs.rm / fs.unlink

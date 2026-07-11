@@ -14,6 +14,8 @@ import { homePlayerBetaPolishService } from '../services/homePlayerBetaPolishSer
 import { userFacingSimplificationService } from '../services/userFacingSimplificationService';
 import { dailySurfaceCleanupService } from '../services/dailySurfaceCleanupService';
 import { playerBarDailyCleanupService } from '../services/playerBarDailyCleanupService';
+import { globalDailyUiCleanupService } from '../services/globalDailyUiCleanupService';
+import { uiCleanupCloseoutBaselineSyncService } from '../services/uiCleanupCloseoutBaselineSyncService';
 
 interface DashboardProps {
   recentTracks: AudioTrack[];
@@ -126,6 +128,8 @@ export default function Dashboard({
   const mvp71Simplification = userFacingSimplificationService.getModel();
   const mvp72DailySurface = dailySurfaceCleanupService.getModel();
   const mvp74HomeCleanup = playerBarDailyCleanupService.getHomeModel();
+  const mvp110DailyUi = globalDailyUiCleanupService.getModel();
+  const mvp111Closeout = uiCleanupCloseoutBaselineSyncService.getModel();
   const mvp71MainEntryCards = mvp71Simplification.mainEntryCards;
   const handleMvp71EntryClick = (entryId: string) => {
     if (entryId === 'continue-listening' && continueTrack) onPlayTrack(continueTrack);
@@ -323,7 +327,7 @@ export default function Dashboard({
         </div>
       </section>
 
-      <section id="mvp59-home-beta-polish" className="sr-only">
+      <section id="mvp59-home-beta-polish" hidden aria-hidden="true">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
           <div className="space-y-1">
             <p className="text-[10px] font-bold text-sky-300 tracking-wider">Beta 首页收口</p>
@@ -400,15 +404,57 @@ export default function Dashboard({
         </div>
       </section>
 
+      <section id="mvp110-dashboard-daily-surface" className="rounded-3xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold text-sky-300 tracking-wider">日常首页</p>
+            <h3 className="mt-1 text-base font-extrabold text-text-primary">{mvp110DailyUi.title}</h3>
+            <p className="mt-1 text-xs text-text-muted leading-relaxed max-w-3xl">{mvp110DailyUi.summary}</p>
+          </div>
+          <span className="rounded-full border border-sky-500/25 bg-sky-500/10 px-3 py-1 text-[10px] font-bold text-sky-100 whitespace-nowrap">媒体入口优先</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+          {mvp110DailyUi.visibleCards.map((card) => (
+            <div key={card.id} className={`rounded-2xl border p-3 text-xs leading-relaxed ${globalDailyUiCleanupService.getToneClassName(card.tone)}`}>
+              <p className="font-bold text-text-primary mb-1">{card.title}</p>
+              <p className="opacity-80">{card.description}</p>
+            </div>
+          ))}
+        </div>
+        <p id="mvp110-hidden-engineering-terms" hidden aria-hidden="true">
+          {mvp110DailyUi.termsMovedBehindMaintenance.join(' / ')} 已从日常首页后置到诊断页或维护区。
+        </p>
+      </section>
+
+
+      <section id="mvp111-ui-cleanup-closeout" className="rounded-3xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold text-emerald-300 tracking-wider">界面收口</p>
+            <h3 className="mt-1 text-base font-extrabold text-text-primary">{mvp111Closeout.title}</h3>
+            <p className="mt-1 text-xs text-text-muted leading-relaxed max-w-3xl">{mvp111Closeout.summary}</p>
+          </div>
+          <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-[10px] font-bold text-emerald-100 whitespace-nowrap">MVP111 收口包</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+          {mvp111Closeout.closeoutCards.map((card) => (
+            <div key={card.id} className={`rounded-2xl border p-3 text-xs leading-relaxed ${uiCleanupCloseoutBaselineSyncService.getToneClassName(card.tone)}`}>
+              <p className="font-bold text-text-primary mb-1">{card.title}</p>
+              <p className="opacity-80">{card.description}</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-text-muted leading-relaxed">{mvp111Closeout.dailyConclusion}</p>
+      </section>
       <section id="mvp71-home-user-facing-simplification" className="rounded-3xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
           <div>
             <p className="text-[10px] font-bold text-emerald-300 tracking-wider">日常首页</p>
             <h3 className="mt-1 text-base font-extrabold text-text-primary">{mvp74HomeCleanup.title}</h3>
             <p className="mt-1 text-xs text-text-muted leading-relaxed">{mvp74HomeCleanup.subtitle}</p>
-            <p id="mvp72-home-daily-surface-cleanup" className="sr-only">{mvp72DailySurface.userVisibleRule}</p>
-            <p id="mvp74-home-daily-entry-cleanup" className="sr-only">{mvp74HomeCleanup.visibleRule}</p>
-            <p id="mvp74-home-maintenance-markers" className="sr-only">{mvp74HomeCleanup.hiddenMaintenanceNote}</p>
+            <p id="mvp72-home-daily-surface-cleanup" hidden aria-hidden="true">{mvp72DailySurface.userVisibleRule}</p>
+            <p id="mvp74-home-daily-entry-cleanup" hidden aria-hidden="true">{mvp74HomeCleanup.visibleRule}</p>
+            <p id="mvp74-home-maintenance-markers" hidden aria-hidden="true">{mvp74HomeCleanup.hiddenMaintenanceNote}</p>
           </div>
           <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-[10px] font-bold text-emerald-100 whitespace-nowrap">日常使用</span>
         </div>
@@ -439,13 +485,13 @@ export default function Dashboard({
       </section>
 
       {/* Legacy verifier marker: mediaOverview.cards.map */}
-      <section id="mvp39-media-overview" className="sr-only">
+      <section id="mvp39-media-overview" hidden aria-hidden="true">
         <div id="mvp49-home-media-focus" className="rounded-2xl border border-border-color/70 bg-card-bg/55 p-4 space-y-2">
-          <p className="text-[10px] font-bold text-brand-color tracking-wider"><span className="sr-only">今日入口</span>听音频入口</p>
+          <p className="text-[10px] font-bold text-brand-color tracking-wider"><span hidden aria-hidden="true">今日入口</span>听音频入口</p>
           <h3 className="text-base font-extrabold text-text-primary">{mvp49Listening.title}</h3>
           <p className="text-xs text-text-muted leading-relaxed">{mvp49Listening.description}</p>
           <p className="text-[10px] text-text-muted/90 leading-relaxed border-t border-border-color/40 pt-2">{mvp49Listening.helper}</p>
-          <div id="mvp54-home-regression-hint" className="sr-only">
+          <div id="mvp54-home-regression-hint" hidden aria-hidden="true">
             {mvp54Regression.chips.map((chip) => (
               <span key={chip.id}>{chip.label}：{chip.value}</span>
             ))}

@@ -1,0 +1,8 @@
+Yang-Kura 0.156.0-mvp118
+- electron/dlsiteMetadataParser.ts
+- electron/dlsiteMetadataProvider.ts
+- scripts/verify-mvp118-dlsite-single-rj-provider.mjs
+- docs/DLSITE_SINGLE_RJ_PROVIDER_MVP118.md
+- docs/CURRENT_ROADMAP_MVP118.md
+- HANDOFF_MVP117_TO_MVP118.md
+Safety: single RJ only; DLsite allowlist; preview only; no auto-save; no file mutation; no absolutePath/file://.

@@ -1,0 +1,30 @@
+Yang-Kura MVP110 Package Manifest
+
+Version: 0.148.0-mvp110
+
+Added:
+- src/services/globalDailyUiCleanupService.ts
+- scripts/verify-mvp110-global-daily-ui-cleanup.mjs
+- docs/CURRENT_ROADMAP_MVP110.md
+- docs/GLOBAL_DAILY_UI_CLEANUP_MVP110.md
+- HANDOFF_MVP109_TO_MVP110.md
+- PACKAGE_MANIFEST_MVP110_HANDOFF.txt
+
+Modified:
+- package.json
+- package-lock.json
+- src/services/index.ts
+- src/components/Dashboard.tsx
+- src/components/SettingsPage.tsx
+- src/components/DownloaderPage.tsx
+- scripts/verify-mvp107-importer-daily-ui-cleanup.mjs
+- scripts/verify-mvp108-importer-final-regression-checklist.mjs
+- scripts/verify-mvp109-ui-engineering-panel-cleanup.mjs
+
+Not changed:
+- copy-only executor
+- move-only executor
+- scanner
+- library-index writer / reader
+- player backend
+- SQLite / downloader / metadata / mpv scope

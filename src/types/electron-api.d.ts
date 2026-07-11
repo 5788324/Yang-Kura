@@ -1233,6 +1233,15 @@ interface YangKuraImportMoveOnlyExecuteResult {
 
   /* Legacy verifier token retained for MVP-26 compatibility: mvp26-shell-runtime-track-lyrics-read. Legacy verifier token retained for MVP-27 compatibility: mvp27-shell-runtime-external-open.
  * Legacy verifier token retained for MVP-20 compatibility: status: 'mvp20-shell-runtime-read-only-dry-run'. */
+  interface YangKuraAsmrMetadataProviderRequest { provider: 'dlsite'; rjId: string; mode: 'single-rj-preview'; timeoutMs?: number; cacheMode?: 'prefer-cache' | 'force-refresh'; }
+  interface YangKuraAsmrMetadataProviderCacheClearRequest { provider: 'dlsite'; rjId: string; mode: 'clear-single-rj-cache'; }
+  interface YangKuraAsmrMetadataProviderCandidate { schemaVersion: 1; provider: 'dlsite'; rjId: string; sourceLabel: string; sourceUrl: string; fetchedAt: string; title?: string; circle?: string; cvs?: string[]; releaseDate?: string; description?: string; tags?: string[]; }
+  interface YangKuraAsmrMetadataProviderCacheInfo { source: 'memory-cache' | 'network'; cacheHit: boolean; cachedAt: string; expiresAt: string; ttlMs: number; nextNetworkAllowedAt?: string; }
+  interface YangKuraAsmrMetadataProviderSuccessResult { ok: true; status: 'mvp119-dlsite-single-rj-metadata-ready'; provider: 'dlsite'; requestedRjId: string; fetchedAt: string; candidate: YangKuraAsmrMetadataProviderCandidate; cache: YangKuraAsmrMetadataProviderCacheInfo; networkRequestPerformed: boolean; metadataWritePerformed: false; mediaFileMutationPerformed: false; absolutePathReturned: false; fileUrlReturned: false; message: string; safetyNotes: string[]; absolutePath?: never; fileUrl?: never; }
+  interface YangKuraAsmrMetadataProviderErrorResult { ok: false; status: 'mvp119-dlsite-invalid-request' | 'mvp119-dlsite-throttled' | 'mvp119-dlsite-timeout' | 'mvp119-dlsite-not-found' | 'mvp119-dlsite-http-error' | 'mvp119-dlsite-network-error' | 'mvp119-dlsite-parse-error'; provider: 'dlsite'; requestedRjId: string; networkRequestPerformed: boolean; retryAfterMs?: number; nextNetworkAllowedAt?: string; cachedCandidateAvailable?: boolean; metadataWritePerformed: false; mediaFileMutationPerformed: false; absolutePathReturned: false; fileUrlReturned: false; message: string; safetyNotes: string[]; absolutePath?: never; fileUrl?: never; }
+  interface YangKuraAsmrMetadataProviderCacheClearResult { ok: boolean; status: 'mvp119-dlsite-cache-cleared' | 'mvp119-dlsite-cache-clear-invalid-request'; provider: 'dlsite'; requestedRjId: string; cleared: boolean; metadataWritePerformed: false; mediaFileMutationPerformed: false; absolutePathReturned: false; fileUrlReturned: false; message: string; safetyNotes: string[]; absolutePath?: never; fileUrl?: never; }
+  type YangKuraAsmrMetadataProviderResult = YangKuraAsmrMetadataProviderSuccessResult | YangKuraAsmrMetadataProviderErrorResult;
+
   interface YangKuraElectronShellStatus {
     status: 'mvp28-shell-runtime-validation-ready';
     hasRealElectronRuntime: true;
@@ -1246,6 +1255,7 @@ interface YangKuraImportMoveOnlyExecuteResult {
     canReadTrackLyrics: true;
     canOpenExternalFile: true;
     canOpenInFileManager: true;
+    canFetchSingleRjMetadata: true;
     canUseCopyOnlyStub: true;
     canUseCopyOnlyPreflightRealCheck: true;
     canExecuteCopyOnly: true;
@@ -1270,6 +1280,8 @@ interface YangKuraImportMoveOnlyExecuteResult {
     requestReadTrackLyrics(request: YangKuraReadTrackLyricsRequest): Promise<YangKuraReadTrackLyricsResult>;
     requestOpenExternalFile(request: YangKuraOpenExternalFileRequest): Promise<YangKuraOpenExternalFileResult>;
     requestOpenInFileManager(request: YangKuraOpenInFileManagerRequest): Promise<YangKuraOpenInFileManagerResult>;
+    requestAsmrMetadataProvider(request: YangKuraAsmrMetadataProviderRequest): Promise<YangKuraAsmrMetadataProviderResult>;
+    clearAsmrMetadataProviderCache(request: YangKuraAsmrMetadataProviderCacheClearRequest): Promise<YangKuraAsmrMetadataProviderCacheClearResult>;
     requestImportCopyOnlyPreflight(request: YangKuraImportCopyOnlyStubRequest): Promise<YangKuraImportCopyOnlyStubResult>;
     requestImportCopyOnlyConfirm(request: YangKuraImportCopyOnlyConfirmStubRequest): Promise<YangKuraImportCopyOnlyStubResult>;
     requestImportCopyOnlyExecute(request: YangKuraImportCopyOnlyStubRequest): Promise<YangKuraImportCopyOnlyStubResult>;

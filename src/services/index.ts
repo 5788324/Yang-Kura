@@ -402,3 +402,51 @@ export type {
   Mvp108RegressionChecklistItem,
   Mvp108RegressionGroup,
 } from './importerFinalRegressionChecklistService';
+
+
+export { uiEngineeringPanelCleanupService } from './uiEngineeringPanelCleanupService';
+export type {
+  Mvp109UiCleanupCard,
+  Mvp109UiCleanupTone,
+  Mvp109UiEngineeringPanelCleanupModel,
+} from './uiEngineeringPanelCleanupService';
+
+
+export { globalDailyUiCleanupService } from './globalDailyUiCleanupService';
+export type {
+  Mvp110DailyUiCard,
+  Mvp110DailyUiSurface,
+  Mvp110DailyUiTone,
+  Mvp110GlobalDailyUiCleanupModel,
+} from './globalDailyUiCleanupService';
+
+export { uiCleanupCloseoutBaselineSyncService } from './uiCleanupCloseoutBaselineSyncService';
+export type {
+  Mvp111BaselineItem,
+  Mvp111CloseoutCard,
+  Mvp111CloseoutTone,
+  Mvp111UiCleanupCloseoutModel,
+} from './uiCleanupCloseoutBaselineSyncService';
+
+export * from "./settingsPathPrivacyService";
+
+export { metadataOverrideService } from './metadataOverrideService';
+export type {
+  MetadataOverrideStoreV1,
+  AsmrMetadataOverride,
+  MusicAlbumMetadataOverride,
+  TrackMetadataOverride,
+  AsmrMetadataOverridePatch,
+  MusicAlbumMetadataOverridePatch,
+  TrackMetadataOverridePatch,
+  MetadataOverrideImportResult,
+} from './metadataOverrideService';
+
+export { asmrMetadataProviderPreviewService } from './asmrMetadataProviderPreviewService';
+export type {
+  AsmrMetadataProviderId,
+  AsmrMetadataProviderField,
+  AsmrMetadataProviderCandidateV1,
+  AsmrMetadataProviderFieldDiff,
+  AsmrMetadataProviderPreviewResult,
+} from './asmrMetadataProviderPreviewService';

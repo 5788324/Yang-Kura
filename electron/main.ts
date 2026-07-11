@@ -30,6 +30,7 @@ import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { clearDlsiteMetadataCache, fetchDlsiteMetadata, type DlsiteMetadataCacheClearRequest, type DlsiteMetadataRequest } from './dlsiteMetadataProvider.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -142,6 +143,9 @@ interface OpenInFileManagerRequest {
   entryId?: string;
   mode: 'open-in-file-manager';
 }
+
+interface AsmrMetadataProviderRequest extends DlsiteMetadataRequest {}
+interface AsmrMetadataProviderCacheClearRequest extends DlsiteMetadataCacheClearRequest {}
 
 
 interface ImportCopyOnlyStubRequest {
@@ -2357,6 +2361,19 @@ function registerReadTrackLyricsIpc(): void {
 
 
 
+function registerAsmrMetadataProviderIpc(): void {
+  ipcMain.handle('yang-kura:metadata:asmr:single-rj-preview', async (_event, request: unknown) => {
+    const payload = request as Partial<AsmrMetadataProviderRequest> | undefined;
+    return fetchDlsiteMetadata(payload);
+  });
+
+  ipcMain.handle('yang-kura:metadata:asmr:single-rj-cache-clear', async (_event, request: unknown) => {
+    const payload = request as Partial<AsmrMetadataProviderCacheClearRequest> | undefined;
+    return clearDlsiteMetadataCache(payload);
+  });
+}
+
+
 function registerExternalOpenIpc(): void {
   ipcMain.handle('yang-kura:external:open-file', async (_event, request: unknown) => {
     const payload = request as Partial<OpenExternalFileRequest> | undefined;
@@ -4199,6 +4216,7 @@ async function createMainWindow(): Promise<BrowserWindow> {
   registerReadLibraryIndexIpc();
   registerResolveTrackMediaUrlIpc();
   registerReadTrackLyricsIpc();
+  registerAsmrMetadataProviderIpc();
   registerExternalOpenIpc();
   registerCopyOnlyMainSideStubIpc();
 

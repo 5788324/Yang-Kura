@@ -1,8 +1,8 @@
 # NEW_CHAT_PROMPT
 
-你接手的是 Yang-Kura：个人本地音频媒体库。当前基线 `0.146.0-mvp108`。
+你接手的是 Yang-Kura：个人本地音频媒体库。当前源码包 `0.149.0-mvp111`。
 
-项目已完成本地媒体库主链路和导入器阶段收尾。现在暂停开发，先做整理审查和人工小样本回归。
+GitHub main 当前正式基线是 `0.146.0-mvp108 / 2e4a4aa`。MVP109～MVP111 是待合入的 UI 日常化整理包，不改导入器、扫描、播放、字幕或外部打开真实链路。
 
 优先阅读：
 
@@ -14,4 +14,4 @@ RUN_ME_FIRST.md
 NEXT_CHAT_HANDOFF.md
 ```
 
-不要直接开下载器、SQLite、mpv、元数据全库抓取或大批量 move。
+不要直接开下载器、SQLite、mpv、联网元数据 Provider、元数据全库抓取或大批量 move。

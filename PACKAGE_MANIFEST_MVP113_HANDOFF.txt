@@ -1,0 +1,22 @@
+Yang-Kura 0.151.0-mvp113
+
+Modified:
+- package.json
+- package-lock.json
+- scripts/verify-mvp112-ui-audit-bugfix.mjs
+- src/services/libraryCardLayoutPolishService.ts
+- README.md
+- PROJECT_STATE.md
+- PROJECT_ROADMAP.md
+- RUN_ME_FIRST.md
+- NEXT_CHAT_HANDOFF.md
+- docs/PROJECT_STATE.md
+- docs/NEXT_CHAT_HANDOFF.md
+- docs/RUN_ME_FIRST.md
+
+Added:
+- scripts/verify-mvp113-accessibility-label-hotfix.mjs
+- docs/CURRENT_ROADMAP_MVP113.md
+- docs/ACCESSIBILITY_LABEL_HOTFIX_MVP113.md
+- HANDOFF_MVP112_TO_MVP113.md
+- PACKAGE_MANIFEST_MVP113_HANDOFF.txt

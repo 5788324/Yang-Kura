@@ -13,9 +13,9 @@ NEXT_CHAT_HANDOFF.md
 当前状态：
 
 ```text
-Yang-Kura 0.146.0-mvp108
-导入器阶段收尾后暂停开发
-本轮重点是整理、审查、人工小样本回归
+当前源码包：0.149.0-mvp111
+GitHub main：0.146.0-mvp108 / 2e4a4aa
+MVP109～MVP111：UI 日常化整理包，待合入
 ```
 
 历史 `HANDOFF_MVPxx` / `PACKAGE_MANIFEST_MVPxx` 文件多数只为 legacy verifier 和 AI 维护保留，日常不要读。

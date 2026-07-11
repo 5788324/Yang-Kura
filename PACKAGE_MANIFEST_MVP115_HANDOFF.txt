@@ -1,0 +1,15 @@
+Yang-Kura 0.153.0-mvp115
+
+新增：
+- src/components/MusicMetadataManagementPanel.tsx
+- scripts/verify-mvp115-music-metadata-management.mjs
+- docs/CURRENT_ROADMAP_MVP115.md
+- docs/MUSIC_METADATA_MANAGEMENT_MVP115.md
+- HANDOFF_MVP114_TO_MVP115.md
+
+核心修改：
+- src/services/metadataOverrideService.ts
+- src/components/MusicLibrary.tsx
+- src/App.tsx
+- package.json / package-lock.json
+- README.md / PROJECT_STATE.md / PROJECT_ROADMAP.md / NEXT_CHAT_HANDOFF.md / RUN_ME_FIRST.md

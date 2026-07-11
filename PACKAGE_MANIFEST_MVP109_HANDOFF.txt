@@ -1,0 +1,35 @@
+Yang-Kura MVP109 handoff package
+
+Version:
+  0.147.0-mvp109
+
+Added:
+  src/services/uiEngineeringPanelCleanupService.ts
+  docs/UI_ENGINEERING_PANEL_CLEANUP_MVP109.md
+  docs/CURRENT_ROADMAP_MVP109.md
+  scripts/verify-mvp109-ui-engineering-panel-cleanup.mjs
+  HANDOFF_MVP108_TO_MVP109.md
+  PACKAGE_MANIFEST_MVP109_HANDOFF.txt
+
+Modified:
+  src/components/ImporterPage.tsx
+  src/components/SettingsPage.tsx
+  src/components/DiagnosticsRuntimeBoundary.tsx
+  src/services/index.ts
+  package.json
+  package-lock.json
+  README.md
+  PROJECT_STATE.md
+  NEXT_CHAT_HANDOFF.md
+  RUN_ME_FIRST.md
+
+Not changed:
+  copy-only executor
+  move-only executor
+  library-index patch writer
+  scanner
+  playback
+  lyrics
+  external open
+  packaging
+  SQLite/downloader/metadata/mpv remain postponed

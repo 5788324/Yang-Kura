@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { MusicAlbum, AudioTrack } from "../types";
 import CoverArtwork from "./CoverArtwork";
+import MusicMetadataManagementPanel from "./MusicMetadataManagementPanel";
 import {
   mediaSurfaceStatusService,
   type MediaSurfaceBadge,
@@ -33,6 +34,11 @@ interface MusicLibraryProps {
   favorites: string[];
   toggleFavorite: (trackId: string) => void;
   searchQuery: string;
+  onUpdateMusicAlbum: (album: MusicAlbum) => void;
+  onUpdateMusicTrack: (track: AudioTrack) => void;
+  onClearMusicAlbumOverride: (albumId: string) => void;
+  onClearMusicTrackOverride: (trackId: string) => void;
+  onMetadataStoreChanged: () => void;
 }
 
 type SubViewType = "tracks" | "albums" | "artists" | "folders";
@@ -45,6 +51,11 @@ export default function MusicLibrary({
   favorites,
   toggleFavorite,
   searchQuery,
+  onUpdateMusicAlbum,
+  onUpdateMusicTrack,
+  onClearMusicAlbumOverride,
+  onClearMusicTrackOverride,
+  onMetadataStoreChanged,
 }: MusicLibraryProps) {
   const [activeSubView, setActiveSubView] = useState<SubViewType>("tracks");
   const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
@@ -146,6 +157,22 @@ export default function MusicLibrary({
     return albums.flatMap((album) => album.tracks);
   }, [albums]);
 
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const filteredAlbums = useMemo(() => {
+    if (!normalizedSearchQuery) return albums;
+    return albums.filter((album) =>
+      album.title.toLowerCase().includes(normalizedSearchQuery) ||
+      album.artist.toLowerCase().includes(normalizedSearchQuery) ||
+      album.genre.toLowerCase().includes(normalizedSearchQuery) ||
+      album.releaseYear.toLowerCase().includes(normalizedSearchQuery) ||
+      album.tracks.some((track) =>
+        track.title.toLowerCase().includes(normalizedSearchQuery) ||
+        track.artist.toLowerCase().includes(normalizedSearchQuery) ||
+        track.album.toLowerCase().includes(normalizedSearchQuery)
+      )
+    );
+  }, [albums, normalizedSearchQuery]);
+
   // Format single track duration (mm:ss)
   const formatDuration = (seconds: number | undefined) => {
     if (!Number.isFinite(seconds)) return '--:--';
@@ -158,9 +185,9 @@ export default function MusicLibrary({
   // Get list of unique artists
   const artistsList = useMemo(() => {
     const list = new Set<string>();
-    albums.forEach((album) => list.add(album.artist));
+    filteredAlbums.forEach((album) => list.add(album.artist));
     return Array.from(list);
-  }, [albums]);
+  }, [filteredAlbums]);
 
   const musicSummary = useMemo(
     () => mediaSurfaceStatusService.getMusicSummary(albums, favorites),
@@ -168,7 +195,7 @@ export default function MusicLibrary({
   );
 
   const folderGroups = useMemo(() => {
-    return albums.map((album) => ({
+    return filteredAlbums.map((album) => ({
       name: album.title,
       count: album.tracks.length,
       artist: album.artist,
@@ -178,7 +205,7 @@ export default function MusicLibrary({
           track.externalOpenSourceKind === "tokenized-local-file",
       ).length,
     }));
-  }, [albums]);
+  }, [filteredAlbums]);
 
   const badgeClassName = (badge: MediaSurfaceBadge) => {
     const base =
@@ -199,22 +226,22 @@ export default function MusicLibrary({
     let list = [...allTracks];
 
     // Filter by global search query
-    if (searchQuery.trim().length > 0) {
-      const q = searchQuery.toLowerCase();
-      list = list.filter(
-        (track) =>
-          track.title.toLowerCase().includes(q) ||
-          track.artist.toLowerCase().includes(q) ||
-          track.album.toLowerCase().includes(q),
-      );
+    if (normalizedSearchQuery) {
+      const albumByTrackId = new Map(albums.flatMap((album) => album.tracks.map((track) => [track.id, album] as const)));
+      list = list.filter((track) => {
+        const album = albumByTrackId.get(track.id);
+        return track.title.toLowerCase().includes(normalizedSearchQuery) ||
+          track.artist.toLowerCase().includes(normalizedSearchQuery) ||
+          track.album.toLowerCase().includes(normalizedSearchQuery) ||
+          album?.genre.toLowerCase().includes(normalizedSearchQuery) ||
+          album?.releaseYear.toLowerCase().includes(normalizedSearchQuery);
+      });
     }
 
-    // Filter by selected album
+    // Filter by selected album using stable track IDs, even when display metadata was overridden.
     if (selectedAlbumId) {
-      list = list.filter((track) => {
-        const albumObj = albums.find((a) => a.id === selectedAlbumId);
-        return track.album === albumObj?.title;
-      });
+      const albumTrackIds = new Set(albums.find((album) => album.id === selectedAlbumId)?.tracks.map((track) => track.id) ?? []);
+      list = list.filter((track) => albumTrackIds.has(track.id));
     }
 
     // Filter by selected artist
@@ -246,7 +273,7 @@ export default function MusicLibrary({
     return list;
   }, [
     allTracks,
-    searchQuery,
+    normalizedSearchQuery,
     selectedAlbumId,
     selectedArtist,
     selectedFolder,
@@ -405,6 +432,15 @@ export default function MusicLibrary({
         </div>
       </div>
 
+      <MusicMetadataManagementPanel
+        albums={albums}
+        onUpdateAlbum={onUpdateMusicAlbum}
+        onUpdateTrack={onUpdateMusicTrack}
+        onClearAlbumOverride={onClearMusicAlbumOverride}
+        onClearTrackOverride={onClearMusicTrackOverride}
+        onMetadataStoreChanged={onMetadataStoreChanged}
+      />
+
       <div
         id="mvp40-music-library-overview"
         className="rounded-2xl bg-card-bg/25 border border-border-color/50 p-4 space-y-3"
@@ -538,7 +574,7 @@ export default function MusicLibrary({
             }))
           ) : (
             <div id="mvp76-music-track-layout-unity" className="bg-card-bg/40 border border-border-color/60 rounded-xl overflow-hidden divide-y divide-border-color/40" aria-label={mvp76CardLayout.trackListAriaLabel}>
-              <span className="sr-only">mvp76-card-layout-unity：音乐歌曲行在窄屏会换行，封面、标题、状态与操作按钮不挤压。</span>
+              <span hidden aria-hidden="true">mvp76-card-layout-unity：音乐歌曲行在窄屏会换行，封面、标题、状态与操作按钮不挤压。</span>
               {filteredTracks.map((track, idx) => {
                 const isFav = favorites.includes(track.id);
                 return (
@@ -600,6 +636,8 @@ export default function MusicLibrary({
                       <div className="flex items-center gap-1 flex-shrink-0">
                         <button
                           onClick={() => toggleFavorite(track.id)}
+                          aria-label={isFav ? `取消收藏 ${track.title}` : `收藏 ${track.title}`}
+                          title={isFav ? "取消收藏" : "收藏"}
                           className="p-1.5 rounded-lg text-text-muted hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
                         >
                           <Heart
@@ -608,6 +646,7 @@ export default function MusicLibrary({
                         </button>
                         <button
                           onClick={() => onAddToQueue(track)}
+                          aria-label={`将 ${track.title} 加入播放队列`}
                           className="p-1.5 rounded-lg text-text-muted hover:text-brand-color hover:bg-indigo-500/10 transition-colors"
                           title="加入播放队列"
                         >
@@ -616,6 +655,7 @@ export default function MusicLibrary({
                         <button
                           onClick={() => void handleOpenExternalTrack(track)}
                           disabled={!canUseExternalOpen(track)}
+                          aria-label={`用系统应用打开 ${track.title}`}
                           className="p-1.5 rounded-lg text-text-muted hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-text-muted"
                           title="用系统默认应用打开本地文件"
                         >
@@ -626,6 +666,7 @@ export default function MusicLibrary({
                             void handleOpenTrackInFileManager(track)
                           }
                           disabled={!canUseExternalOpen(track)}
+                          aria-label={`在文件管理器中定位 ${track.title}`}
                           className="p-1.5 rounded-lg text-text-muted hover:text-amber-400 hover:bg-amber-500/10 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-text-muted"
                           title="在文件管理器中定位"
                         >
@@ -637,7 +678,9 @@ export default function MusicLibrary({
                               onPlayTrack(track, filteredTracks);
                             else void handleOpenExternalTrack(track);
                           }}
-                          className="p-1.5 rounded-lg bg-brand-color text-white opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all cursor-pointer"
+                          aria-label={`播放 ${track.title}`}
+                          title="播放"
+                          className="p-1.5 rounded-lg bg-brand-color text-white opacity-70 hover:opacity-100 focus-visible:opacity-100 transform scale-95 hover:scale-100 focus-visible:scale-100 transition-all cursor-pointer"
                         >
                           <Play className="w-3.5 h-3.5 fill-current" />
                         </button>
@@ -651,11 +694,11 @@ export default function MusicLibrary({
         </div>
       ) : activeSubView === "albums" ? (
         /* SubView: Albums Cover Wall */
-        albums.length === 0 ? (
+        filteredAlbums.length === 0 ? (
           renderEmptyState(collectionDetailExperienceService.getMusicEmptyState({ view: 'albums', hasFilters: false, searchQuery }))
         ) : (
         <div id="mvp76-music-card-layout-unity" className={mvp76CardLayout.albumGridClassName} aria-label={mvp76CardLayout.albumGridAriaLabel}>
-          {albums.map((album) => (
+          {filteredAlbums.map((album) => (
             <div
               key={album.id}
               onClick={() => setSelectedAlbumId(album.id)}
@@ -707,8 +750,8 @@ export default function MusicLibrary({
         ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {artistsList.map((artist) => {
-            const count = allTracks.filter((t) => t.artist === artist).length;
-            const artistCover = albums.find(
+            const count = filteredAlbums.flatMap((album) => album.tracks).filter((t) => t.artist === artist).length;
+            const artistCover = filteredAlbums.find(
               (a) => a.artist === artist,
             )?.coverUrl;
             return (

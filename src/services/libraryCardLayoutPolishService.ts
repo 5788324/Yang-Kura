@@ -43,7 +43,7 @@ export const libraryCardLayoutPolishService = {
   }): Mvp76AsmrCardLayoutModel {
     const { visibleCount, totalCount, viewMode, hasActiveFilters } = args;
     return {
-      ariaLabel: 'MVP76 音声库卡片布局统一：封面比例、标题截断、状态换行与安全列宽',
+      ariaLabel: '音声作品列表',
       gridClassName: 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-5 items-stretch',
       cardClassName: `${sharedCardClass} min-h-[390px]`,
       note: `当前 ${visibleCount}/${totalCount} 个音声作品，${viewMode === 'grid' ? '封面浏览' : '列表浏览'}，${hasActiveFilters ? '已启用筛选' : '未启用筛选'}。`,
@@ -64,8 +64,8 @@ export const libraryCardLayoutPolishService = {
   }): Mvp76MusicCardLayoutModel {
     const { albumCount, visibleTrackCount, activeView, hasActiveFilters } = args;
     return {
-      trackListAriaLabel: 'MVP76 音乐库歌曲行布局统一：窄屏换行、标题截断、操作区不挤压',
-      albumGridAriaLabel: 'MVP76 音乐库专辑卡片布局统一：封面比例、标题高度、徽章区域和底部信息稳定',
+      trackListAriaLabel: '音乐库歌曲列表',
+      albumGridAriaLabel: '音乐专辑列表',
       albumGridClassName: 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-5 items-stretch',
       albumCardClassName: `${sharedCardClass} p-3 min-h-[360px]`,
       note: `当前 ${visibleTrackCount} 首可见歌曲，${albumCount} 张专辑，浏览方式为 ${activeView}，${hasActiveFilters ? '已启用筛选' : '未启用筛选'}。`,

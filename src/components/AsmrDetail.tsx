@@ -30,6 +30,9 @@ import CoverArtwork from './CoverArtwork';
 import { collectionDetailExperienceService, type CollectionDetailStatusChip } from '../services/collectionDetailExperienceService';
 import { asmrDetailSurfaceService, type AsmrDetailSurfaceChip } from '../services/asmrDetailSurfaceService';
 import { asmrDetailSideRailService, type AsmrDetailSideRailChip } from '../services/asmrDetailSideRailService';
+import { metadataOverrideService } from '../services/metadataOverrideService';
+import AsmrMetadataProviderPreview from './AsmrMetadataProviderPreview';
+import type { AsmrMetadataProviderCandidateV1 } from '../services/asmrMetadataProviderPreviewService';
 
 interface AsmrDetailProps {
   rjWork: RJWork;
@@ -40,6 +43,7 @@ interface AsmrDetailProps {
   toggleFavorite: (trackId: string) => void;
   onExplore?: (query: string) => void;
   onUpdateRjWork?: (updated: RJWork) => void;
+  onClearRjWorkOverride?: (workId: string) => void;
 }
 
 export default function AsmrDetail({
@@ -50,7 +54,8 @@ export default function AsmrDetail({
   favorites,
   toggleFavorite,
   onExplore,
-  onUpdateRjWork
+  onUpdateRjWork,
+  onClearRjWorkOverride
 }: AsmrDetailProps) {
   const [activeTab, setActiveTab] = useState<'tracks' | 'info'>('tracks');
 
@@ -414,6 +419,11 @@ export default function AsmrDetail({
                   <CheckCircle className="w-2.5 h-2.5" />
                   <span>本地信息已记录</span>
                 </span>
+                {metadataOverrideService.hasAsmrOverride(rjWork.id) && (
+                  <span className="bg-sky-500/10 border border-sky-500/20 text-sky-300 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
+                    本地修改 {metadataOverrideService.getAsmrOverrideFieldCount(rjWork.id)} 项
+                  </span>
+                )}
               </div>
               <h2 className="text-xl md:text-2xl font-bold text-text-primary leading-snug tracking-tight">
                 {rjWork.title}
@@ -1201,10 +1211,42 @@ export default function AsmrDetail({
                   </button>
                 </div>
               </div>
+
+              <AsmrMetadataProviderPreview
+                work={rjWork}
+                onApplyToDraft={(candidate: AsmrMetadataProviderCandidateV1) => {
+                  if (candidate.title !== undefined) setEditTitle(candidate.title);
+                  if (candidate.circle !== undefined) setEditCircle(candidate.circle);
+                  if (candidate.cvs !== undefined) setEditCvsStr(candidate.cvs.join(', '));
+                  if (candidate.releaseDate !== undefined) setEditReleaseDate(candidate.releaseDate);
+                  if (candidate.description !== undefined) setEditDescription(candidate.description);
+                  if (candidate.tags !== undefined) setEditTags(candidate.tags);
+                  showFeedback('外部信息已填入编辑表单，点击“保存修改”后才会写入本地覆盖层。');
+                }}
+              />
+            </div>
+
+            <div className="px-5 pb-3 text-[11px] leading-5 text-text-muted">
+              修改会保存到独立的本地元数据覆盖层。重新扫描资源库时会继续应用，不修改音频文件标签，也不联网。
             </div>
 
             {/* Actions */}
-            <div className="px-5 py-4 border-t border-white/5 flex items-center justify-end space-x-2 bg-black/25">
+            <div className="px-5 py-4 border-t border-white/5 flex items-center justify-between gap-2 bg-black/25">
+              <div>
+                {metadataOverrideService.hasAsmrOverride(rjWork.id) && onClearRjWorkOverride && (
+                  <button
+                    onClick={() => {
+                      onClearRjWorkOverride(rjWork.id);
+                      setIsEditModalOpen(false);
+                      showFeedback('该作品的本地修改已还原为资源库记录。');
+                    }}
+                    className="px-4 py-2 rounded-xl bg-transparent hover:bg-rose-500/10 text-rose-400 text-xs font-semibold transition-colors cursor-pointer border border-rose-500/20"
+                  >
+                    还原本地修改
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center space-x-2">
               <button
                 onClick={() => setIsEditModalOpen(false)}
                 className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors cursor-pointer border border-white/5"
@@ -1225,12 +1267,13 @@ export default function AsmrDetail({
                     });
                   }
                   setIsEditModalOpen(false);
-                  showFeedback('元数据及标签保存修改成功！');
+                  showFeedback('本地元数据修改已保存，重新扫描后仍会保留。');
                 }}
                 className="px-4 py-2 rounded-xl bg-brand-color hover:bg-brand-color-hover text-white text-xs font-semibold transition-colors cursor-pointer"
               >
                 保存修改
               </button>
+              </div>
             </div>
           </div>
         </div>

@@ -647,9 +647,9 @@ export default function LyricsPanel({
         </div>
       </div>
 
-      <div id="mvp78-player-panel-layout-review" className="sr-only">{mvp78PlayerLayout.hiddenMaintenanceNote}</div>
-      <div id="mvp79-lyrics-panel-ui-bugfix" className="sr-only">{mvp79PlayerUi.lyricsPanelNote}</div>
-      <div id="mvp73-player-maintenance-markers" className="sr-only">
+      <div id="mvp78-player-panel-layout-review" hidden aria-hidden="true">{mvp78PlayerLayout.hiddenMaintenanceNote}</div>
+      <div id="mvp79-lyrics-panel-ui-bugfix" hidden aria-hidden="true">{mvp79PlayerUi.lyricsPanelNote}</div>
+      <div id="mvp73-player-maintenance-markers" hidden aria-hidden="true">
         <span>{mvp73PlayerFocus.hiddenMaintenanceNote}</span>
         <span id="mvp50-lyrics-visual-header">播放页状态 · {mvp50PlayerVisual.title} · {mvp50PlayerVisual.subtitle} · {mvp50PlayerVisual.modeHint} · emptyLyricHint: {mvp50PlayerVisual.emptyLyricHint}</span>
         <span id="mvp59-lyrics-copy-polish">{mvp59LyricsBeta.title} · {mvp59LyricsBeta.focusLine}</span>
@@ -669,7 +669,7 @@ export default function LyricsPanel({
           /*         NEW PREMIUM CLASSIC PLAYBACK PAGE    */
           /* ========================================== */
           <>
-            <div id="mvp73-classic-player-detail-focus" className="sr-only">经典详情模式优先显示封面、标题、歌词和队列，不显示工程标签。</div>
+            <div id="mvp73-classic-player-detail-focus" hidden aria-hidden="true">经典详情模式优先显示封面、标题、歌词和队列，不显示工程标签。</div>
             {/* Left Side: Selected Album Cover or Simplified spinning Record */}
             <div className="w-full lg:col-span-5 flex flex-col items-center justify-center text-center space-y-8 relative h-full flex-shrink-0 animate-fade-in lg:pr-6">
               
@@ -933,7 +933,7 @@ export default function LyricsPanel({
                         <span className="text-[12px] font-bold text-zinc-300">{mvp59LyricsBeta.emptyTitle}</span>
                         <span className="max-w-sm text-[10px] leading-relaxed text-zinc-500">{mvp59LyricsBeta.emptyDescription}</span>
                         <span className="text-[9px] text-zinc-600">{mvp51PlayerImmersion.emptyLyricsDescription}</span>
-                        <span className="sr-only">{mvp50PlayerVisual.emptyLyricHint}</span>
+                        <span hidden aria-hidden="true">{mvp50PlayerVisual.emptyLyricHint}</span>
                       </div>
                     ) : (
                       bilingualData.map((lrc, idx) => {

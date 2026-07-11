@@ -1,0 +1,4 @@
+Yang-Kura MVP116 source package
+Version: 0.154.0-mvp116
+Includes: metadata search/filter integration, ASMR override restore, modification summary, backup import preview.
+Excludes: node_modules, dist, dist-electron, .git.

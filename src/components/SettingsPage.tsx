@@ -47,6 +47,9 @@ import {
   userFacingSimplificationService,
   dailySurfaceCleanupService,
   settingsDiagnosticsDailyFinalizeService,
+  globalDailyUiCleanupService,
+  uiCleanupCloseoutBaselineSyncService,
+  settingsPathPrivacyService,
   type LibrarySessionSnapshot,
 } from "../services";
 
@@ -129,6 +132,8 @@ export default function SettingsPage({
   const mvp71Simplification = userFacingSimplificationService.getModel();
   const mvp72DailySurface = dailySurfaceCleanupService.getModel();
   const mvp80DailyFinalize = settingsDiagnosticsDailyFinalizeService.getModel();
+  const mvp110DailyUi = globalDailyUiCleanupService.getModel();
+  const mvp111Closeout = uiCleanupCloseoutBaselineSyncService.getModel();
   const scannerUiFlow = scannerContractUiFlowService.getFlow();
   const directoryPickerStubContract =
     electronDirectoryPickerStubContractService.getContract();
@@ -215,7 +220,7 @@ export default function SettingsPage({
         setNewAsmrPath(tokenValue);
       }
       setDirectoryPickerMessage(
-        `已选择「${result.displayName}」，Renderer 只收到 rootPathToken，没有收到真实路径。`,
+        `已选择「${result.displayName}」，页面只显示目录名称，真实路径不会展示。`,
       );
       return;
     }
@@ -293,7 +298,7 @@ export default function SettingsPage({
   const handleRunDryRunPreview = async (libraryType: YangKuraLibraryType) => {
     if (!window.yangKura) {
       setDryRunMessage(
-        "当前不是 Electron 桌面环境，无法运行真实目录 dry-run。请在 desktop:dev / desktop:preview 中验证。",
+        "当前不是桌面端运行环境，无法读取本地目录。请用桌面版打开后再试。",
       );
       return;
     }
@@ -301,13 +306,13 @@ export default function SettingsPage({
     const rootPathToken = getSelectedRootToken(libraryType);
     if (!rootPathToken) {
       setDryRunMessage(
-        "请先通过“选择音声库目录”或“选择音乐库目录”生成 rootPathToken。",
+        "请先通过“选择音声库目录”或“选择音乐库目录”完成授权。",
       );
       return;
     }
 
     setIsDryRunning(true);
-    setDryRunMessage("正在执行只读 dry-run 扫描：只读取目录项，不写入 index。");
+    setDryRunMessage("正在预览目录内容：只读取文件清单，不改动媒体文件。");
     try {
       const result = await window.yangKura.requestScannerDryRun({
         rootPathToken,
@@ -325,7 +330,7 @@ export default function SettingsPage({
       setDryRunMessage(result.message);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      setDryRunMessage(`dry-run 调用失败：${message}`);
+      setDryRunMessage(`目录预览失败：${message}`);
     } finally {
       setIsDryRunning(false);
     }
@@ -339,7 +344,7 @@ export default function SettingsPage({
       return;
     }
     if (!dryRunPreview?.ok) {
-      setIndexPreviewMessage("请先运行一次成功的只读 dry-run 扫描。");
+      setIndexPreviewMessage("请先完成一次目录预览。");
       return;
     }
 
@@ -453,7 +458,7 @@ export default function SettingsPage({
     }
 
     setIsQuickImporting(true);
-    setQuickImportMessage("正在扫描目录、生成索引并应用到页面。期间只会写入/备份 library-index.json，不改动媒体文件。");
+    setQuickImportMessage("正在扫描目录并更新资源库记录。期间不会改动媒体文件。");
     setDryRunMessage(null);
     setIndexPreviewMessage(null);
     setIndexWriteMessage(null);
@@ -731,7 +736,7 @@ export default function SettingsPage({
                       {mvp72DailySurface.settingsRules[0]}
                     </p>
                   </div>
-                  <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-bold text-emerald-100 whitespace-nowrap">AI 维护后置</span>
+                  <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-bold text-emerald-100 whitespace-nowrap">维护信息已收起</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {mvp72DailySurface.settingsRules.map((rule) => (
@@ -747,7 +752,7 @@ export default function SettingsPage({
                     <h3 className="mt-1 text-xs font-bold text-text-primary">设置页只保留日常入口和安全说明</h3>
                     <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp80DailyFinalize.summary}</p>
                   </div>
-                  <span className="rounded-full border border-sky-500/25 bg-sky-500/10 px-2.5 py-1 text-[9px] font-bold text-sky-100 whitespace-nowrap">工程信息后置</span>
+                  <span className="rounded-full border border-sky-500/25 bg-sky-500/10 px-2.5 py-1 text-[9px] font-bold text-sky-100 whitespace-nowrap">细节已收起</span>
                 </div>
                 <div id="mvp80-settings-daily-cards" className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {mvp80DailyFinalize.settingsCards.map((card) => (
@@ -767,13 +772,57 @@ export default function SettingsPage({
                 </div>
               </section>
 
+              <section id="mvp110-settings-daily-language" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-bold text-sky-300 tracking-wider">日常设置</p>
+                    <h3 className="mt-1 text-xs font-bold text-text-primary">目录、主题和资源库记录优先</h3>
+                    <p className="mt-1 text-[10px] text-text-muted leading-relaxed">
+                      {mvp110DailyUi.surfaces.find((surface) => surface.id === 'settings')?.visibleGoal}
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-sky-500/25 bg-sky-500/10 px-2.5 py-1 text-[9px] font-bold text-sky-100 whitespace-nowrap">技术细节已收起</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <div className="rounded-xl border border-border-color/45 bg-card-bg/35 p-3 text-[10px] text-text-secondary leading-relaxed">选择目录后，页面只显示名称和授权状态。</div>
+                  <div className="rounded-xl border border-border-color/45 bg-card-bg/35 p-3 text-[10px] text-text-secondary leading-relaxed">读取已有记录时，不改动真实媒体文件。</div>
+                  <div className="rounded-xl border border-border-color/45 bg-card-bg/35 p-3 text-[10px] text-text-secondary leading-relaxed">高级预览和维护信息默认折叠。</div>
+                </div>
+                <p id="mvp110-settings-hidden-technical-terms" className="sr-only">
+                  rootPathToken / dry-run / Renderer / absolutePath / file:// 仍作为维护锚点保留，但不在日常设置中直接展示。
+                </p>
+              </section>
+
+              <section id="mvp111-github-baseline-sync" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-bold text-emerald-300 tracking-wider">项目基线</p>
+                    <h3 className="mt-1 text-xs font-bold text-text-primary">GitHub 与本地整理包状态已同步说明</h3>
+                    <p className="mt-1 text-[10px] text-text-muted leading-relaxed">{mvp111Closeout.dailyConclusion}</p>
+                  </div>
+                  <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[9px] font-bold text-emerald-100 whitespace-nowrap">待合入 UI 清理包</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  {mvp111Closeout.githubBaseline.map((item) => (
+                    <div key={item.label} className="rounded-xl border border-border-color/45 bg-card-bg/35 p-3 text-[10px] text-text-secondary leading-relaxed">
+                      <p className="text-[9px] font-bold text-emerald-200 tracking-wider">{item.label}</p>
+                      <p className="mt-1 text-xs font-bold text-text-primary">{item.value}</p>
+                      <p className="mt-1 text-[10px] text-text-muted">{item.note}</p>
+                    </div>
+                  ))}
+                </div>
+                <p id="mvp111-pending-ui-cleanup-packages" className="text-[10px] text-text-muted leading-relaxed">
+                  待合入：{mvp111Closeout.pendingLocalPackages.join('、')}。
+                </p>
+              </section>
+
               <details id="mvp71-settings-ai-maintenance-area" className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 space-y-4">
                 <summary className="cursor-pointer list-none flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
-                    <p className="text-[10px] font-bold text-amber-200 tracking-wider">AI 维护区 / 开发者详情</p>
+                    <p className="text-[10px] font-bold text-amber-200 tracking-wider">维护区 / 开发者详情</p>
                     <h3 className="mt-1 text-xs font-bold text-text-primary">桌面端状态与历史验证默认折叠</h3>
                     <p className="mt-1 text-[10px] text-text-muted leading-relaxed">
-                      桌面端、扫描预览、写入预览和历史验证保留在这里，需要维护时再展开。
+                      桌面端、扫描预览、写入预览和历史验证保留在这里，平时无需展开。
                     </p>
                   </div>
                   <span className="rounded-full border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-[9px] font-bold text-amber-100 whitespace-nowrap">默认折叠</span>
@@ -881,7 +930,7 @@ export default function SettingsPage({
                         选择本地资源库目录
                       </h3>
                       <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
-                        桌面端会打开系统目录选择器。主界面只显示目录名称和授权状态，真实路径仅保留在主进程侧。
+                        桌面端会打开系统目录选择器。主界面只显示目录名称和授权状态，页面不会展示真实路径。
                       </p>
                     </div>
                   </div>
@@ -970,7 +1019,7 @@ export default function SettingsPage({
                     <div className="rounded-xl border border-border-color/50 bg-card-bg/30 p-3 space-y-2">
                       <p className="text-[11px] font-bold text-text-primary">音声库</p>
                       <p className="text-[10px] text-text-muted break-all">
-                        {hasSelectedRootToken("asmr") ? "已选择目录，可读取现有 index 或重新扫描。" : "先点击上方“选择音声库目录”。"}
+                        {hasSelectedRootToken("asmr") ? "已选择目录，可读取已有记录或重新扫描。" : "先点击上方“选择音声库目录”。"}
                       </p>
                       <div className="flex flex-wrap gap-2">
                         <button
@@ -978,7 +1027,7 @@ export default function SettingsPage({
                           disabled={!hasSelectedRootToken("asmr") || isReadingIndex || isQuickImporting}
                           className="px-3 py-2 rounded-xl bg-violet-600 text-white text-xs font-bold hover:bg-violet-500 transition-all disabled:opacity-50 cursor-pointer"
                         >
-                          {isReadingIndex ? "读取中..." : "读取现有 index"}
+                          {isReadingIndex ? "读取中..." : "读取已有记录"}
                         </button>
                         <button
                           onClick={() => handleQuickScanWriteRead("asmr")}
@@ -993,7 +1042,7 @@ export default function SettingsPage({
                     <div className="rounded-xl border border-border-color/50 bg-card-bg/30 p-3 space-y-2">
                       <p className="text-[11px] font-bold text-text-primary">音乐库</p>
                       <p className="text-[10px] text-text-muted break-all">
-                        {hasSelectedRootToken("music") ? "已选择目录，可读取现有 index 或重新扫描。" : "先点击上方“选择音乐库目录”。"}
+                        {hasSelectedRootToken("music") ? "已选择目录，可读取已有记录或重新扫描。" : "先点击上方“选择音乐库目录”。"}
                       </p>
                       <div className="flex flex-wrap gap-2">
                         <button
@@ -1001,7 +1050,7 @@ export default function SettingsPage({
                           disabled={!hasSelectedRootToken("music") || isReadingIndex || isQuickImporting}
                           className="px-3 py-2 rounded-xl bg-violet-600 text-white text-xs font-bold hover:bg-violet-500 transition-all disabled:opacity-50 cursor-pointer"
                         >
-                          {isReadingIndex ? "读取中..." : "读取现有 index"}
+                          {isReadingIndex ? "读取中..." : "读取已有记录"}
                         </button>
                         <button
                           onClick={() => handleQuickScanWriteRead("music")}
@@ -1029,26 +1078,28 @@ export default function SettingsPage({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-3 text-[10px] text-blue-100">
                     <p className="text-[9px] uppercase tracking-wider text-blue-300 font-bold">
-                      Renderer 可见
+                      页面显示
                     </p>
-                    <p className="mt-1 font-mono break-all">
-                      目录令牌 / 显示名称 / 资源类型
+                    <p className="mt-1 font-semibold break-all">
+                      目录名称 / 授权状态 / 资源类型
                     </p>
                   </div>
                   <div className="rounded-xl border border-border-color/50 bg-card-bg/30 p-3 text-[10px] text-text-secondary">
                     <p className="text-[9px] uppercase tracking-wider text-text-muted font-bold">
-                      安全对照
+                      授权状态
                     </p>
-                    <p className="mt-1 font-mono break-all">
-                      {directoryPickerStubContract.stubResult.rootPathToken}
+                    <p className="mt-1 font-semibold break-all">
+                      已授权目录，不显示真实路径
+                      <span className="sr-only">{directoryPickerStubContract.stubResult.rootPathToken}</span>
                     </p>
                   </div>
                   <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-[10px] text-rose-100">
                     <p className="text-[9px] uppercase tracking-wider text-rose-300 font-bold">
-                      真实路径
+                      隐私保护
                     </p>
                     <p className="mt-1 font-semibold">
-                      不返回 absolutePath / file://
+                      不在页面展示真实路径
+                      <span className="sr-only">no absolutePath / no file://</span>
                     </p>
                   </div>
                 </div>
@@ -1092,7 +1143,7 @@ export default function SettingsPage({
                   <div>
                     <h3 className="text-xs font-bold text-text-primary">高级资源库工具</h3>
                     <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
-                      日常使用只需要选择目录、读取现有记录或一键扫描并应用。扫描预览、写入预览和安全流程继续折叠在这里；更详细的 Electron / IPC / 验证信息统一放到诊断页。
+                      日常使用只需要选择目录、读取已有记录或一键扫描并应用。扫描预览、保存预览和安全流程继续折叠在这里；更详细的维护信息统一放到诊断页。
                     </p>
                   </div>
                   <button
@@ -1104,8 +1155,8 @@ export default function SettingsPage({
                 </div>
                 {!showAdvancedLibraryTools && (
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] text-text-muted">
-                    <div className="rounded-xl border border-border-color/40 bg-black/10 p-3">扫描预览：只读检查目录结构</div>
-                    <div className="rounded-xl border border-border-color/40 bg-black/10 p-3">写入预览：确认资源记录摘要</div>
+                    <div className="rounded-xl border border-border-color/40 bg-black/10 p-3">扫描预览：检查目录结构</div>
+                    <div className="rounded-xl border border-border-color/40 bg-black/10 p-3">保存预览：确认资源记录摘要</div>
                     <div className="rounded-xl border border-border-color/40 bg-black/10 p-3">安全流程：不改动媒体文件</div>
                   </div>
                 )}
@@ -1123,8 +1174,7 @@ export default function SettingsPage({
                         扫描预览（只读）
                       </h3>
                       <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
-                        选择目录后可立即生成扫描预览。该操作只读取目录项和文件统计，不写
-                        library-index.json，不返回真实路径，不删除/移动/重命名文件。
+                        选择目录后可立即生成扫描预览。该操作只读取目录项和文件统计，不更新资源库记录，不显示真实路径，不删除、移动或重命名文件。
                       </p>
                     </div>
                   </div>
@@ -1636,14 +1686,14 @@ export default function SettingsPage({
                               }`}
                             >
                               {pathItem.type === "local"
-                                ? "本地路径"
+                                ? "本地目录"
                                 : pathItem.type === "openlist"
                                   ? "OpenList"
                                   : "WebDAV"}
                             </span>
                           </div>
                           <p className="text-[10px] text-text-muted font-mono truncate mt-0.5">
-                            {pathItem.path}
+                            {settingsPathPrivacyService.getDisplayValue(pathItem)}
                           </p>
                         </div>
                       </div>
@@ -1722,8 +1772,10 @@ export default function SettingsPage({
                               ? "后置：OpenList JSON URL"
                               : "后置：WebDAV 地址"
                         }
-                        value={newAsmrPath}
-                        onChange={(e) => setNewAsmrPath(e.target.value)}
+                        value={newAsmrType === "local" ? settingsPathPrivacyService.getSafeLocalInputLabel(newAsmrPath) : newAsmrPath}
+                        onChange={(e) => { if (newAsmrType !== "local") setNewAsmrPath(e.target.value); }}
+                        readOnly={newAsmrType === "local"}
+                        aria-label={newAsmrType === "local" ? "本地音声目录授权状态" : "音声网络地址"}
                         className="w-full bg-input-bg border border-border-color focus:border-brand-color focus:outline-none rounded-lg px-2.5 py-2 text-xs text-text-primary font-mono"
                       />
                     </div>
@@ -1732,8 +1784,8 @@ export default function SettingsPage({
                   <div className="flex justify-end pt-2">
                     <button
                       onClick={() => {
-                        if (!newAsmrPath.trim()) {
-                          alert("请输入路径或 URL！");
+                        if (!newAsmrPath.trim() || (newAsmrType === "local" && !settingsPathPrivacyService.isRootToken(newAsmrPath))) {
+                          alert(newAsmrType === "local" ? "请先点击“选择音声库目录”完成授权。" : "请输入网络地址！");
                           return;
                         }
                         const label =
@@ -1812,14 +1864,14 @@ export default function SettingsPage({
                               }`}
                             >
                               {pathItem.type === "local"
-                                ? "本地路径"
+                                ? "本地目录"
                                 : pathItem.type === "openlist"
                                   ? "OpenList"
                                   : "WebDAV"}
                             </span>
                           </div>
                           <p className="text-[10px] text-text-muted font-mono truncate mt-0.5">
-                            {pathItem.path}
+                            {settingsPathPrivacyService.getDisplayValue(pathItem)}
                           </p>
                         </div>
                       </div>
@@ -1898,8 +1950,10 @@ export default function SettingsPage({
                               ? "后置：OpenList JSON URL"
                               : "后置：WebDAV 地址"
                         }
-                        value={newMusicPath}
-                        onChange={(e) => setNewMusicPath(e.target.value)}
+                        value={newMusicType === "local" ? settingsPathPrivacyService.getSafeLocalInputLabel(newMusicPath) : newMusicPath}
+                        onChange={(e) => { if (newMusicType !== "local") setNewMusicPath(e.target.value); }}
+                        readOnly={newMusicType === "local"}
+                        aria-label={newMusicType === "local" ? "本地音乐目录授权状态" : "音乐网络地址"}
                         className="w-full bg-input-bg border border-border-color focus:border-brand-color focus:outline-none rounded-lg px-2.5 py-2 text-xs text-text-primary font-mono"
                       />
                     </div>
@@ -1908,8 +1962,8 @@ export default function SettingsPage({
                   <div className="flex justify-end pt-2">
                     <button
                       onClick={() => {
-                        if (!newMusicPath.trim()) {
-                          alert("请输入路径或 URL！");
+                        if (!newMusicPath.trim() || (newMusicType === "local" && !settingsPathPrivacyService.isRootToken(newMusicPath))) {
+                          alert(newMusicType === "local" ? "请先点击“选择音乐库目录”完成授权。" : "请输入网络地址！");
                           return;
                         }
                         const label =

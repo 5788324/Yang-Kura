@@ -366,21 +366,21 @@ export default function PlayerBar({
                     </span>
                   ))}
                 </div>
-                <div id="mvp49-player-status-strip" className="sr-only" title={playerSummary.completionModeDescription}>
+                <div id="mvp49-player-status-strip" hidden aria-hidden="true" title={playerSummary.completionModeDescription}>
                   {mvp49Player.statusBadges.slice(0, 3).map((badge) => (
                     <span key={`${badge.label}-${badge.tone}`}>{badge.label}</span>
                   ))}
                 </div>
-                <div id="mvp50-player-visual-strip" className="sr-only" title={mvp50PlayerVisual.contextLine}>
+                <div id="mvp50-player-visual-strip" hidden aria-hidden="true" title={mvp50PlayerVisual.contextLine}>
                   <span>{mvp50PlayerVisual.contextLine}</span>
                 </div>
-                <div id="mvp54-player-regression-strip" className="sr-only" title={mvp54PlayerRegression.compactLine}>
+                <div id="mvp54-player-regression-strip" hidden aria-hidden="true" title={mvp54PlayerRegression.compactLine}>
                   <span>{mvp54PlayerRegression.compactLine}</span>
                 </div>
-                <div id="mvp59-player-compact-strip" className="sr-only" title={mvp59PlayerBeta.compactLine}>
+                <div id="mvp59-player-compact-strip" hidden aria-hidden="true" title={mvp59PlayerBeta.compactLine}>
                   <span>{mvp59PlayerBeta.compactLine}</span>
                 </div>
-                <div id="mvp74-playerbar-maintenance-markers" className="sr-only">{mvp74PlayerBar.hiddenMaintenanceNote}</div>
+                <div id="mvp74-playerbar-maintenance-markers" hidden aria-hidden="true">{mvp74PlayerBar.hiddenMaintenanceNote}</div>
                 </>
               )}
             </div>
@@ -414,8 +414,8 @@ export default function PlayerBar({
             <div className="text-xs leading-relaxed">
               <p className="font-bold text-zinc-300">{mvp59PlayerBeta.emptyTitle}</p>
               <p id="mvp59-player-empty-hint" className="text-[10px] text-zinc-500">{mvp59PlayerBeta.emptyHint}</p>
-              <p id="mvp50-player-empty-hint" className="sr-only">播放器会显示播放进度、字幕状态和队列数量</p>
-              <p id="mvp54-player-empty-regression-hint" className="sr-only">{mvp54PlayerRegression.compactLine}</p>
+              <p id="mvp50-player-empty-hint" hidden aria-hidden="true">播放器会显示播放进度、字幕状态和队列数量</p>
+              <p id="mvp54-player-empty-regression-hint" hidden aria-hidden="true">{mvp54PlayerRegression.compactLine}</p>
             </div>
           </div>
         )}
@@ -510,7 +510,7 @@ export default function PlayerBar({
         onClick={(e) => e.stopPropagation()}
         className="w-1/3 flex items-center justify-end space-x-4 pl-4"
       >
-        <div id="mvp59-player-beta-chips" className="sr-only">
+        <div id="mvp59-player-beta-chips" hidden aria-hidden="true">
           {mvp59PlayerBeta.chips.map((chip) => (
             <span key={chip.id}>{chip.label}：{chip.value}</span>
           ))}
@@ -524,7 +524,7 @@ export default function PlayerBar({
           className="text-[10px] border border-zinc-800 bg-zinc-900/60 text-zinc-300 px-2.5 py-1 rounded-full font-bold flex-shrink-0 hover:border-sky-500/40 hover:text-sky-300 disabled:opacity-40 disabled:hover:border-zinc-800 disabled:hover:text-zinc-300 transition-colors"
           title={mvp49Player.completionHint}
         >
-          <span className="sr-only">播放策略</span><span className="sr-only">策略：</span>{mvp49Player.completionLabel}
+          <span hidden aria-hidden="true">播放策略</span><span hidden aria-hidden="true">策略：</span>{mvp49Player.completionLabel}
         </button>
 
         {/* 9. 收藏到歌单 [+] Folder Save */}
@@ -672,7 +672,7 @@ export default function PlayerBar({
         </button>
       </div>
 
-      <div id="mvp79-player-ui-bugfix" className="sr-only">{mvp79PlayerUi.hiddenMaintenanceNote}</div>
+      <div id="mvp79-player-ui-bugfix" hidden aria-hidden="true">{mvp79PlayerUi.hiddenMaintenanceNote}</div>
 
       {/* 10. Floating lyrics overlay */}
       {desktopLyricsActive && currentTrack && (
