@@ -18,10 +18,11 @@ const required = [
 const tokens = [
   ['00_NEW_CHAT_START_HERE.md', '0.167.0-mvp129'],
   ['00_NEW_CHAT_START_HERE.md', 'MVP130'],
-  ['NEW_CHAT_PROMPT.md', '55e33b3'],
   ['NEXT_CHAT_HANDOFF.md', 'Round 4 Windows 发布门禁：PASS'],
   ['RUN_ME_FIRST.md', 'npm run verify:stable'],
-  ['PROJECT_STATE.md', 'MVP129 稳定候选'],
+  ['PROJECT_STATE.md', '核心版本：0.167.0-mvp129'],
+  ['PROJECT_STATE.md', 'U02～U08 已合入'],
+  ['PROJECT_ROADMAP.md', '渐进式结构与质量优化'],
   ['PROJECT_ROADMAP.md', '下载器：冻结'],
   ['MVP130_EXPERIMENTAL_DO_NOT_MERGE.md', '824c914f844b1ac57391df8ebb5c1f30c8b40903145b3a66e6a13e95e5413efe'],
 ];
@@ -37,4 +38,4 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log('[verify-handoff] MVP129 stable handoff PASS');
+console.log('[verify-handoff] current GitHub baseline handoff PASS');
