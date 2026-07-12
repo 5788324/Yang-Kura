@@ -37,7 +37,7 @@ for (const marker of [
 
 for (const marker of [
   'export function useVinylMotion',
-  "prefers-reduced-motion: reduce",
+  'prefers-reduced-motion: reduce',
   'window.requestAnimationFrame(updatePhysics)',
   'window.cancelAnimationFrame',
   'motionQuery.removeEventListener',
@@ -45,15 +45,15 @@ for (const marker of [
   if (!motionHook.includes(marker)) failures.push(`missing motion hook behavior: ${marker}`);
 }
 
+const progressDocuments = `${projectState}\n${roadmap}`;
 for (const marker of [
+  '核心版本：0.167.0-mvp129',
   'U02～U08',
   'U09',
-  '渐进式结构优化',
+  'GitHub main',
   'MVP130',
 ]) {
-  if (!projectState.includes(marker) && !roadmap.includes(marker)) {
-    failures.push(`missing progress baseline marker: ${marker}`);
-  }
+  if (!progressDocuments.includes(marker)) failures.push(`missing stable progress fact: ${marker}`);
 }
 
 if (failures.length) {

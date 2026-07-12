@@ -36,6 +36,7 @@ import { playerUiBugfixService } from '../services/playerUiBugfixService';
 import CoverArtwork from './CoverArtwork';
 import { useFullPlayerDialog } from '../hooks/useFullPlayerDialog';
 import { useVinylMotion } from '../hooks/useVinylMotion';
+import { createBilingualTimeline, findActiveLyricIndex, parseLyrics } from '../player/lyricsTimeline';
 
 interface LyricsPanelProps {
   playerState: PlayerState;
@@ -261,72 +262,14 @@ export default function LyricsPanel({
 
   const lyricsContainerRef = useRef<HTMLDivElement>(null);
 
-  const parseLrcFractionalSeconds = (fraction: string | undefined): number => {
-    if (!fraction) return 0;
-    const parsed = Number.parseInt(fraction, 10);
-    if (!Number.isFinite(parsed)) return 0;
-    return parsed / Math.pow(10, fraction.length);
-  };
+  const parsedLyrics = useMemo(() => parseLyrics(currentTrack?.lyrics), [currentTrack?.lyrics]);
 
-  // Parse [mm:ss.xx] or [mm:ss] into seconds
-  const parseLrcLine = (line: string) => {
-    const timeReg = /\[(\d+):(\d+)(?:\.(\d+))?\]/;
-    const match = line.match(timeReg);
-    if (!match) return { time: -1, text: line };
-    const mins = parseInt(match[1]);
-    const secs = parseInt(match[2]);
-    const ms = parseLrcFractionalSeconds(match[3]);
-    const time = mins * 60 + secs + ms;
-    const text = line.replace(timeReg, '').trim();
-    return { time, text };
-  };
+  const bilingualData = useMemo(() => createBilingualTimeline(parsedLyrics), [parsedLyrics]);
 
-  // Memoized parsed lyrics lines
-  const parsedLyrics = useMemo(() => {
-    if (!currentTrack || !currentTrack.lyrics) return [];
-    return currentTrack.lyrics.map(line => parseLrcLine(line)).filter(item => item.time >= 0);
-  }, [currentTrack]);
-
-  // Support bilingual lyrics (e.g. "Japanese Original / Chinese Translation" or split by |)
-  const bilingualData = useMemo(() => {
-    return parsedLyrics.map((lrc) => {
-      let original = lrc.text;
-      let translation = '';
-      
-      // Common delimiters for translation/bilingual lyrics in ASMR works
-      const delimiters = [' // ', ' || ', ' / ', ' | ', ' /', '/ ', ' |', '| '];
-      for (const d of delimiters) {
-        if (lrc.text.includes(d)) {
-          const parts = lrc.text.split(d);
-          if (parts.length >= 2 && parts[0].trim() && parts[1].trim()) {
-            original = parts[0].trim();
-            translation = parts.slice(1).join(' / ').trim();
-            break;
-          }
-        }
-      }
-      
-      return {
-        time: lrc.time,
-        original,
-        translation,
-      };
-    });
-  }, [parsedLyrics]);
-
-  // Find the current active lyric line index
-  const activeLyricIndex = useMemo(() => {
-    if (parsedLyrics.length === 0) return -1;
-    let activeIdx = 0;
-    for (let i = 0; i < parsedLyrics.length; i++) {
-      if (progress >= parsedLyrics[i].time) {
-        activeIdx = i;
-      } else {
-        break;
-      }
-    }
-    return activeIdx;
-  }, [parsedLyrics, progress]);
+  const activeLyricIndex = useMemo(
+    () => findActiveLyricIndex(parsedLyrics, progress),
+    [parsedLyrics, progress],
+  );
 
   // Auto-scroll the active lyric line to center
   useEffect(() => {
