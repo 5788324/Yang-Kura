@@ -10,7 +10,6 @@ import {
   History, 
   Search,
   ChevronRight,
-  ShieldCheck,
   Cpu
 } from 'lucide-react';
 
@@ -34,7 +33,8 @@ export default function Sidebar({
   setAsmrDetailId,
   setPlaylistDetailId
 }: SidebarProps) {
-  
+  void currentTheme;
+
   const handleNavClick = (page: PageType) => {
     setCurrentPage(page);
     setAsmrDetailId(null);
@@ -55,7 +55,6 @@ export default function Sidebar({
     { id: 'diagnostics', label: '诊断工具', icon: Cpu },
   ];
 
-  // Helper for conditional active styles
   const activeClass = (id: PageType) => {
     const isActive = currentPage === id;
     if (isActive) {
@@ -67,11 +66,11 @@ export default function Sidebar({
   return (
     <aside 
       id="app-sidebar" 
+      aria-label="主导航"
       className="w-64 h-full flex flex-col border-r border-border-color bg-sidebar-bg/95 backdrop-blur-lg select-none"
     >
-      {/* Brand Logo */}
       <div className="p-6 flex items-center space-x-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20" aria-hidden="true">
           <Headphones className="w-5 h-5 animate-pulse" />
         </div>
         <div>
@@ -84,20 +83,23 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* Global Search Bar */}
       <div className="px-4 mb-4">
         <div className="relative group">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-text-secondary group-focus-within:text-brand-color transition-colors" />
+          <Search className="absolute left-3 top-2.5 w-4 h-4 text-text-secondary group-focus-within:text-brand-color transition-colors" aria-hidden="true" />
+          <label htmlFor="sidebar-search-input" className="sr-only">搜索媒体库</label>
           <input
             id="sidebar-search-input"
-            type="text"
+            type="search"
+            aria-label="搜索作品、歌曲、CV或社团"
             placeholder="搜索作品、歌曲、CV、社团..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs rounded-lg bg-input-bg border border-border-color focus:border-brand-color text-text-primary focus:outline-none transition-all placeholder:text-text-muted"
+            className="w-full pl-9 pr-14 py-2 text-xs rounded-lg bg-input-bg border border-border-color focus:border-brand-color text-text-primary focus:outline-none transition-all placeholder:text-text-muted"
           />
           {searchQuery && (
             <button
+              type="button"
+              aria-label="清除搜索内容"
               onClick={() => setSearchQuery('')}
               className="absolute right-3 top-2.5 text-xs text-text-secondary hover:text-text-primary"
             >
@@ -107,25 +109,27 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* Navigation Menu */}
-      <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto scrollbar-thin">
+      <nav aria-label="页面导航" className="flex-1 px-3 py-2 space-y-1 overflow-y-auto scrollbar-thin">
         <div className="px-3 mb-2 text-[10px] font-semibold text-text-muted tracking-wider uppercase">
           媒体与导入
         </div>
         {dailyNavItems.map((item) => {
           const Icon = item.icon;
+          const isCurrent = currentPage === item.id;
           return (
             <div key={item.id} className="space-y-1">
               <button
                 id={`nav-${item.id}`}
+                type="button"
+                aria-current={isCurrent ? 'page' : undefined}
                 onClick={() => handleNavClick(item.id as PageType)}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all text-left ${activeClass(item.id as PageType)}`}
               >
                 <div className="flex items-center space-x-3">
-                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                   <span>{item.label}</span>
                 </div>
-                {currentPage === item.id && <ChevronRight className="w-3 h-3" />}
+                {isCurrent && <ChevronRight className="w-3 h-3" aria-hidden="true" />}
               </button>
             </div>
           );
@@ -135,17 +139,26 @@ export default function Sidebar({
         </div>
         {maintenanceNavItems.map((item) => {
           const Icon = item.icon;
+          const isCurrent = currentPage === item.id;
           return (
             <div key={item.id} className="space-y-1">
-              <button id={`nav-${item.id}`} onClick={() => handleNavClick(item.id as PageType)} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all text-left ${activeClass(item.id as PageType)}`}>
-                <div className="flex items-center space-x-3"><Icon className="w-4 h-4 flex-shrink-0" /><span>{item.label}</span></div>
-                {currentPage === item.id && <ChevronRight className="w-3 h-3" />}
+              <button
+                id={`nav-${item.id}`}
+                type="button"
+                aria-current={isCurrent ? 'page' : undefined}
+                onClick={() => handleNavClick(item.id as PageType)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all text-left ${activeClass(item.id as PageType)}`}
+              >
+                <div className="flex items-center space-x-3">
+                  <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                  <span>{item.label}</span>
+                </div>
+                {isCurrent && <ChevronRight className="w-3 h-3" aria-hidden="true" />}
               </button>
             </div>
           );
         })}
       </nav>
-
     </aside>
   );
 }
