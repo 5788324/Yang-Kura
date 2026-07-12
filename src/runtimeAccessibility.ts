@@ -7,8 +7,14 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
+const FORM_CONTROL_SELECTOR = [
+  '[autofocus]',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+].join(',');
+
 type ActiveDialog = {
-  panel: HTMLElement;
   previousFocus: HTMLElement | null;
   keydownHandler: (event: KeyboardEvent) => void;
 };
@@ -76,11 +82,23 @@ const getCloseButton = (panel: HTMLElement) => {
     ?? null;
 };
 
+const isDialogOverlay = (overlay: HTMLElement) => {
+  const hasCenteredOverlayLayout = overlay.classList.contains('fixed')
+    && overlay.classList.contains('inset-0')
+    && overlay.classList.contains('items-center')
+    && overlay.classList.contains('justify-center');
+  const hasBackdrop = Array.from(overlay.classList).some((className) => className.startsWith('backdrop-blur'));
+  return overlay.dataset.dialogOverlay === 'true' || (hasCenteredOverlayLayout && hasBackdrop);
+};
+
 const findDialogPanels = (root: ParentNode) => {
-  const overlays = getElementAndDescendants<HTMLElement>(root, '.fixed.inset-0');
+  const overlays = getElementAndDescendants<HTMLElement>(root, '.fixed.inset-0').filter(isDialogOverlay);
   return overlays
     .map((overlay) => Array.from(overlay.children).find((child): child is HTMLElement => child instanceof HTMLElement) ?? null)
-    .filter((panel): panel is HTMLElement => Boolean(panel?.querySelector(FOCUSABLE_SELECTOR)));
+    .filter((panel): panel is HTMLElement => Boolean(
+      panel?.querySelector(FOCUSABLE_SELECTOR)
+      && panel.querySelector('h1, h2, h3'),
+    ));
 };
 
 const cleanupDetachedDialogs = () => {
@@ -142,12 +160,15 @@ const upgradeDialog = (panel: HTMLElement) => {
 
   if (!panel.hasAttribute('tabindex')) panel.tabIndex = -1;
   panel.addEventListener('keydown', keydownHandler);
-  activeDialogs.set(panel, { panel, previousFocus, keydownHandler });
+  activeDialogs.set(panel, { previousFocus, keydownHandler });
 
   window.requestAnimationFrame(() => {
     if (!document.contains(panel)) return;
-    const firstFocusable = getFocusableElements(panel)[0];
-    (firstFocusable ?? panel).focus({ preventScroll: true });
+    const preferredControl = panel.querySelector<HTMLElement>(FORM_CONTROL_SELECTOR);
+    const initialFocus = preferredControl && isVisible(preferredControl)
+      ? preferredControl
+      : getFocusableElements(panel)[0];
+    (initialFocus ?? panel).focus({ preventScroll: true });
   });
 };
 
