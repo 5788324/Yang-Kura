@@ -85,6 +85,37 @@ export default function LyricsPanel({
   // --- Refs for high-fidelity physics-based smooth animation (Vinyl Record & Stylus arm) ---
   const recordRef = useRef<HTMLDivElement>(null);
   const tonearmRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusFrame = window.requestAnimationFrame(() => {
+      closeButtonRef.current?.focus({ preventScroll: true });
+    });
+
+    const handleFullPlayerKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onCloseRef.current();
+      }
+    };
+
+    window.addEventListener('keydown', handleFullPlayerKeyDown);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      window.removeEventListener('keydown', handleFullPlayerKeyDown);
+      const previousFocus = previousFocusRef.current;
+      if (previousFocus && document.contains(previousFocus)) {
+        previousFocus.focus({ preventScroll: true });
+      }
+    };
+  }, []);
   
   const rotationAngleRef = useRef<number>(0);
   const currentSpeedRef = useRef<number>(0);
@@ -465,6 +496,10 @@ export default function LyricsPanel({
   return (
     <div 
       id="full-lyrics-panel" 
+      role="dialog"
+      aria-modal="true"
+      aria-label="全屏播放与歌词"
+      tabIndex={-1}
       className="fixed inset-0 z-[100] bg-zinc-950 text-white overflow-hidden flex flex-col animate-slide-up select-none"
     >
       {/* Bedtime Ambient Dim Screen Overlay */}
@@ -560,6 +595,7 @@ export default function LyricsPanel({
         {/* Left: Close Button and Window Controls */}
         <div className="flex items-center space-x-4">
           <button 
+            ref={closeButtonRef}
             id="lyrics-close-btn"
             onClick={onClose}
             className="p-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-all cursor-pointer flex items-center space-x-1.5 border border-white/5 active:scale-95"
