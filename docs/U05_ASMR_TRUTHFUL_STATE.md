@@ -14,6 +14,7 @@ That behavior made a real library look as though it already had playback history
 
 - missing playback-progress storage now starts as an empty object;
 - missing per-work subtitle-association storage now starts as an empty object;
+- the empty fallback is kept in React state and does not create a new storage record;
 - existing valid localStorage records continue to load unchanged;
 - manual completion, subtitle association, rating, status, and notes behavior remain unchanged.
 
