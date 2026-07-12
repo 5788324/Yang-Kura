@@ -4,6 +4,7 @@ import App from './App.tsx';
 import {installRuntimeAccessibility} from './runtimeAccessibility';
 import './index.css';
 import './accessibility.css';
+import './playerThemeBridge.css';
 
 installRuntimeAccessibility();
 
