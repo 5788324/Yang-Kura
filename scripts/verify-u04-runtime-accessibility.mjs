@@ -20,6 +20,9 @@ for (const marker of [
   "button.setAttribute('aria-label', title)",
   "button.setAttribute('aria-label', '关闭对话框')",
   'label.htmlFor = control.id',
+  "className.startsWith('backdrop-blur')",
+  "overlay.classList.contains('items-center')",
+  'FORM_CONTROL_SELECTOR',
   'new MutationObserver',
 ]) {
   if (!runtime.includes(marker)) failures.push(`runtimeAccessibility.ts missing marker: ${marker}`);
