@@ -10,6 +10,7 @@ The full-screen playback and lyrics surface visually replaces the application, b
 - opening the surface moves focus to the visible “返回” button;
 - Escape closes the full-screen surface;
 - closing returns focus to the element that opened it when that element still exists;
+- the latest `onClose` callback is used without reinstalling the global key listener;
 - event listeners and scheduled focus work are cleaned up on unmount.
 
 ## Boundaries
