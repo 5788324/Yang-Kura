@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "yang-kura-final-handoff-manifest-v1",
+  "version": "0.167.0-mvp129",
+  "git": {
+    "branch": "main",
+    "commit": "316d8127d6d423a1d9e6930b8b804a3bac11140e",
+    "originMain": "316d8127d6d423a1d9e6930b8b804a3bac11140e",
+    "round6": "PASS"
+  },
+  "mvp130": {
+    "status": "experimental-do-not-merge",
+    "sha256": "824c914f844b1ac57391df8ebb5c1f30c8b40903145b3a66e6a13e95e5413efe"
+  },
+  "currentStage": "real-daily-use-observation",
+  "promptPolicy": "full-prompts-in-AI_HANDOFF-short-forwarding-text-in-chat",
+  "addedHandoffFiles": [
+    "AI_HANDOFF/00_READ_THIS_FIRST.md",
+    "AI_HANDOFF/01_CURRENT_STABLE_BASELINE.md",
+    "AI_HANDOFF/02_NEXT_STAGE_PLAN.md",
+    "AI_HANDOFF/03_PROMPT_POLICY.md",
+    "AI_HANDOFF/04_GENERIC_CODEX_DEEPSEEK_TEMPLATE.md",
+    "AI_HANDOFF/05_ROUND7_DEEPSEEK_DOCS_INTEGRATION_PROMPT.md",
+    "AI_HANDOFF/ROUND6_FINAL_GIT_INTEGRATION_REPORT.md",
+    "docs/FINAL_GIT_STATUS_MVP129.md"
+  ],
+  "updatedEntryFiles": [
+    "00_NEW_CHAT_START_HERE.md",
+    "NEW_CHAT_PROMPT.md",
+    "NEW_CHAT_PROMPT_FULL.md",
+    "NEXT_CHAT_HANDOFF.md",
+    "PROJECT_STATE.md",
+    "RUN_ME_FIRST.md",
+    "docs/CURRENT_ROADMAP_MVP129.md",
+    "docs/NEXT_CHAT_HANDOFF.md",
+    "docs/PROJECT_STATE.md",
+    "docs/RUN_ME_FIRST.md",
+    "docs/STABLE_RELEASE_MVP129.md",
+    "README.md",
+    "PROJECT_ROADMAP.md"
+  ]
+}

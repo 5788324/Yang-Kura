@@ -1,7 +1,13 @@
 # PROJECT_STATE
 
-当前稳定候选：`0.167.0-mvp129`。GitHub main 仍为 `0.158.0-mvp120 / 55e33b3`。
+当前稳定主线：`0.167.0-mvp129`。
 
-Round 4 Windows 发布门禁已通过：当前稳定回归、严格 desktop smoke、portable、NSIS installer、启动、卸载和残留进程检查均 PASS。
+```text
+GitHub main / HEAD / origin/main：316d8127d6d423a1d9e6930b8b804a3bac11140e
+Round 6 最终 Git 合入：PASS
+MVP130：实验下载器，禁止合入
+```
 
-MVP130 下载器实验包不在当前源码中，禁止合入。当前阶段只做清理、复验、最终打包和 Git 合入。详细状态见根目录 `PROJECT_STATE.md`。
+Windows 稳定回归、portable、NSIS installer、启动、卸载和残留进程检查均 PASS。当前阶段为真实日常使用观察，不自动进入下载器或 SQLite。
+
+详细状态见根目录 `PROJECT_STATE.md` 与 `AI_HANDOFF/`。

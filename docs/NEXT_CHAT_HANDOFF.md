@@ -1,5 +1,5 @@
 # NEXT_CHAT_HANDOFF
 
-当前接手基线为 `0.167.0-mvp129`，Round 4 Windows 发布门禁 PASS。先读根目录 `00_NEW_CHAT_START_HERE.md` 和 `NEXT_CHAT_HANDOFF.md`。
+当前接手基线为 `0.167.0-mvp129`，GitHub main 为 `316d8127d6d423a1d9e6930b8b804a3bac11140e`，Round 6 Git 合入 PASS。
 
-MVP130 是实验下载器，禁止合入。当前发布门禁是 `npm run verify:stable`，历史 MVP01～MVP111 verifier 已归档。
+先读根目录 `AI_HANDOFF/00_READ_THIS_FIRST.md`。MVP130 是实验下载器，禁止合入。完整 Codex/DeepSeek 提示词统一放在 `AI_HANDOFF/`。

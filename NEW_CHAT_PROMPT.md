@@ -1,7 +1,9 @@
 # NEW_CHAT_PROMPT
 
-接手 Yang-Kura。当前稳定候选是 `0.167.0-mvp129`，GitHub `main` 仍为 `0.158.0-mvp120 / 55e33b3`。Round 4 Windows 发布门禁已 PASS，包括 stable 回归、portable、installer、启动、卸载和残留进程检查。
+接手 Yang-Kura。当前稳定主线是 `0.167.0-mvp129`，GitHub `main`、本地 `HEAD` 与 `origin/main` 在 Round 6 均为 `316d8127d6d423a1d9e6930b8b804a3bac11140e`，最终 Git 合入 PASS。
 
-MVP130 是独立下载器实验包，SHA-256 为 `824c914f844b1ac57391df8ebb5c1f30c8b40903145b3a66e6a13e95e5413efe`，禁止合入稳定主线。不要开发 MVP131。
+MVP130 是独立下载器实验包，禁止合入稳定主线；MVP131 未开始。先读 `AI_HANDOFF/00_READ_THIS_FIRST.md`。当前阶段是实际日常使用观察，只修明确问题；下一项大功能必须由用户重新选择。
 
-先读 `00_NEW_CHAT_START_HERE.md`、`PROJECT_STATE.md`、`PROJECT_ROADMAP.md`、`RUN_ME_FIRST.md` 和 `NEXT_CHAT_HANDOFF.md`。当前任务是稳定包复验和 Git 合入；完成后优先真实日常使用观察，只修明确问题。
+完整 Codex/DeepSeek 提示词放在源码包 `AI_HANDOFF/`，聊天中只给简短转发词。
+
+历史说明：GitHub 旧稳定基线 `55e33b3` 已在 Round 6 由 MVP129 提交 `316d8127d6d423a1d9e6930b8b804a3bac11140e` 替代。
