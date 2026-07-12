@@ -40,4 +40,4 @@ The decorative window dots are explicitly marked `aria-hidden` because they do n
 - the new components render the expected model fields;
 - no state/effect, storage, Electron or playback-command markers enter the presentational components.
 
-The normal Windows Pull Request gate must still pass dependency audit, all U verifiers, `verify:stable` and the production build before merge.
+The normal Windows Pull Request gate must still pass dependency audit, all U verifiers, `verify:stable` and the production build before merge. The temporary branch-only patch automation must remove itself before the final merge candidate is reviewed.
