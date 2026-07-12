@@ -21,12 +21,14 @@ U10 intentionally preserves the existing semantics:
 - lines without timestamps are ignored by `parseLyrics`;
 - one-, two- and three-digit fractions retain their decimal meaning;
 - common `/`, `|`, `//` and `||` bilingual delimiters remain supported;
+- translation text after the first delimiter is retained and rejoined;
 - when the timeline is non-empty and playback is before the first timestamp, the first line remains selected;
-- an empty timeline returns active index `-1`.
+- an empty timeline returns active index `-1`;
+- non-finite playback progress falls back to the existing first-line behavior.
 
 ## Executable verification
 
-`scripts/verify-u10-lyrics-timeline-domain.mjs` transpiles the TypeScript module in memory and executes assertions for timestamp parsing, filtering, bilingual splitting and active-line selection. It also checks that `LyricsPanel.tsx` delegates to the domain module.
+`scripts/verify-u10-lyrics-timeline-domain.mjs` transpiles the TypeScript module in memory and executes assertions for timestamp parsing, filtering, bilingual splitting and active-line selection. It also checks that `LyricsPanel.tsx` delegates to the domain module and no longer owns duplicate parsing loops.
 
 ## Boundaries
 
