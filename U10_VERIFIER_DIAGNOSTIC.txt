@@ -1,9 +1,0 @@
-verify-u02-minimal-ui-productization.mjs=0
-verify-u03-motion-accessibility.mjs=0
-verify-u04-runtime-accessibility.mjs=0
-verify-u05-asmr-truthful-state.mjs=0
-verify-u06-player-theme-bridge.mjs=0
-verify-u07-immersive-player-truthful-motion.mjs=0
-verify-u08-full-player-keyboard-shell.mjs=0
-verify-u09-player-hooks-progress-baseline.mjs=1
-verify-u10-lyrics-timeline-domain.mjs=0
