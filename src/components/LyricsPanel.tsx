@@ -109,50 +109,75 @@ export default function LyricsPanel({
   }, [currentTrack?.duration]);
 
   useEffect(() => {
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     let lastTime = performance.now();
-    
+
+    const setStaticVisuals = () => {
+      currentSpeedRef.current = 0;
+      currentArmAngleRef.current = -18;
+      if (recordRef.current) recordRef.current.style.transform = 'rotate(0deg)';
+      if (tonearmRef.current) tonearmRef.current.style.transform = 'rotate(-18deg)';
+    };
+
+    const cancelPhysicsAnimation = () => {
+      if (animationFrameIdRef.current !== null) {
+        cancelAnimationFrame(animationFrameIdRef.current);
+        animationFrameIdRef.current = null;
+      }
+    };
+
     const updatePhysics = (now: number) => {
-      const dt = Math.min((now - lastTime) / 16.666, 4); // limit frame jump
+      if (motionQuery.matches) {
+        setStaticVisuals();
+        animationFrameIdRef.current = null;
+        return;
+      }
+
+      const dt = Math.min((now - lastTime) / 16.666, 4);
       lastTime = now;
 
       const playing = isPlayingRef.current;
       const prog = Number.isFinite(progressRef.current) ? Math.max(0, progressRef.current) : 0;
       const dur = getSafeDuration(totalDurationRef.current);
-
-      // 1. Vinyl Record rotation speed physics (elegant acceleration / friction deceleration)
       const targetSpeed = playing ? 0.6 : 0;
-      const speedDamping = playing ? 0.04 : 0.012; // slow drift decelerate
-      
+      const speedDamping = playing ? 0.04 : 0.012;
+
       currentSpeedRef.current += (targetSpeed - currentSpeedRef.current) * speedDamping * dt;
       rotationAngleRef.current = (rotationAngleRef.current + currentSpeedRef.current * dt) % 360;
 
       if (recordRef.current) {
-        recordRef.current.style.transform = `rotate(${rotationAngleRef.current}deg)`;
+        recordRef.current.style.transform = 'rotate(' + rotationAngleRef.current + 'deg)';
       }
 
-      // 2. Tonearm rotation angle physics (air-damped tone-arm entry/return)
       const progressPercent = dur > 0 ? clamp((prog / dur) * 100, 0, 100) : 0;
-      // Resting angle: -18deg. Playing start angle: 8deg. Playing end angle: 22deg.
-      const targetArmAngle = playing 
-        ? 8 + (progressPercent / 100) * 14 
-        : -18;
-      
-      const armDamping = 0.03; // Smooth fluid slide
-      currentArmAngleRef.current += (targetArmAngle - currentArmAngleRef.current) * armDamping * dt;
+      const targetArmAngle = playing ? 8 + (progressPercent / 100) * 14 : -18;
+      currentArmAngleRef.current += (targetArmAngle - currentArmAngleRef.current) * 0.03 * dt;
 
       if (tonearmRef.current) {
-        tonearmRef.current.style.transform = `rotate(${currentArmAngleRef.current}deg)`;
+        tonearmRef.current.style.transform = 'rotate(' + currentArmAngleRef.current + 'deg)';
       }
 
       animationFrameIdRef.current = requestAnimationFrame(updatePhysics);
     };
 
-    animationFrameIdRef.current = requestAnimationFrame(updatePhysics);
+    const startPhysicsAnimation = () => {
+      if (animationFrameIdRef.current !== null || motionQuery.matches) return;
+      lastTime = performance.now();
+      animationFrameIdRef.current = requestAnimationFrame(updatePhysics);
+    };
+
+    const handleMotionPreferenceChange = () => {
+      cancelPhysicsAnimation();
+      if (motionQuery.matches) setStaticVisuals();
+      else startPhysicsAnimation();
+    };
+
+    motionQuery.addEventListener('change', handleMotionPreferenceChange);
+    handleMotionPreferenceChange();
 
     return () => {
-      if (animationFrameIdRef.current !== null) {
-        cancelAnimationFrame(animationFrameIdRef.current);
-      }
+      motionQuery.removeEventListener('change', handleMotionPreferenceChange);
+      cancelPhysicsAnimation();
     };
   }, []);
   
@@ -225,15 +250,7 @@ export default function LyricsPanel({
         setBookmarks([]);
       }
     } else {
-      // Generate standard immersive demo bookmarks
-      const totalSec = currentTrack.duration || 600;
-      const demoBookmarks = [
-        { id: 'b1', time: Math.floor(totalSec * 0.05), note: '👂 左右声道定位测试 / 轻快低语' },
-        { id: 'b2', time: Math.floor(totalSec * 0.35), note: '💆 主编耳搔掏耳：极度酥麻高能段' },
-        { id: 'b3', time: Math.floor(totalSec * 0.72), note: '😴 催眠向环境音：睡眠呼吸配合' }
-      ].filter(b => b.time < totalSec);
-      setBookmarks(demoBookmarks);
-      localStorage.setItem(key, JSON.stringify(demoBookmarks));
+      setBookmarks([]);
     }
   }, [currentTrack?.id]);
 
