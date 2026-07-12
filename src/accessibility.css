@@ -1,0 +1,34 @@
+/* U03: global motion and focus accessibility safeguards. */
+
+:focus-visible {
+  outline: 2px solid var(--brand-color, #818cf8);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-pulse,
+  .animate-spin,
+  .animate-spin-slow,
+  .animate-bounce,
+  .animate-bounce-subtle,
+  .animate-sound-wave-1,
+  .animate-sound-wave-2,
+  .animate-sound-wave-3,
+  .animate-sound-wave-4 {
+    animation: none !important;
+    transform: none !important;
+  }
+}
