@@ -1,0 +1,62 @@
+/*
+ * U06 scopes legacy zinc-based player surfaces to the active theme tokens.
+ * Playback behavior and component structure remain unchanged.
+ */
+#app-player-bar {
+  background-color: var(--player-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+#app-player-bar [class~="bg-zinc-950"],
+#app-player-bar [class~="bg-zinc-950/95"] {
+  background-color: var(--player-bg) !important;
+}
+
+#app-player-bar [class~="bg-zinc-900"],
+#app-player-bar [class~="bg-zinc-900/40"],
+#app-player-bar [class~="bg-zinc-900/60"] {
+  background-color: var(--input-bg) !important;
+}
+
+#app-player-bar [class~="bg-zinc-800"] {
+  background-color: var(--hover-bg) !important;
+}
+
+#app-player-bar [class~="border-zinc-700"],
+#app-player-bar [class~="border-zinc-800"],
+#app-player-bar [class~="border-zinc-800/60"],
+#app-player-bar [class~="border-zinc-800/80"],
+#app-player-bar [class~="border-zinc-900"] {
+  border-color: var(--border-color) !important;
+}
+
+#app-player-bar [class~="text-zinc-100"],
+#app-player-bar [class~="text-zinc-200"] {
+  color: var(--text-primary) !important;
+}
+
+#app-player-bar [class~="text-zinc-300"],
+#app-player-bar [class~="text-zinc-400"] {
+  color: var(--text-secondary) !important;
+}
+
+#app-player-bar [class~="text-zinc-500"],
+#app-player-bar [class~="text-zinc-600"] {
+  color: var(--text-muted) !important;
+}
+
+#app-player-bar [class~="hover:bg-zinc-800"]:hover,
+#app-player-bar [class~="hover:bg-zinc-900"]:hover {
+  background-color: var(--hover-bg) !important;
+}
+
+#app-player-bar [class~="hover:text-white"]:hover,
+#app-player-bar [class~="hover:text-zinc-200"]:hover,
+#app-player-bar [class~="hover:text-zinc-300"]:hover {
+  color: var(--text-primary) !important;
+}
+
+#app-player-bar input[type="range"] {
+  accent-color: var(--brand-color);
+}
