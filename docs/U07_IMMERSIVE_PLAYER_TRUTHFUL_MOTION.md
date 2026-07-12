@@ -14,7 +14,8 @@ The full-screen lyrics/player surface had two product issues:
 - manual bookmark creation and deletion remain unchanged;
 - the vinyl physics loop observes `prefers-reduced-motion`;
 - reduced-motion mode cancels the animation frame and restores a static record/tonearm position;
-- changing the system preference while the panel is open starts or stops the animation safely.
+- changing the system preference while the panel is open starts or stops the animation safely;
+- event listeners and any active animation frame are removed when the panel unmounts.
 
 ## Boundaries
 
