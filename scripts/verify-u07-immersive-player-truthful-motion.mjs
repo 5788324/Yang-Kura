@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 
 const lyrics = fs.readFileSync('src/components/LyricsPanel.tsx', 'utf8');
+const motionHook = fs.readFileSync('src/hooks/useVinylMotion.ts', 'utf8');
 const failures = [];
 
 for (const marker of [
@@ -9,10 +10,16 @@ for (const marker of [
   "motionQuery.removeEventListener('change', handleMotionPreferenceChange)",
   "recordRef.current.style.transform = 'rotate(0deg)'",
   "tonearmRef.current.style.transform = 'rotate(-18deg)'",
+  'window.cancelAnimationFrame',
+]) {
+  if (!motionHook.includes(marker)) failures.push(`missing U07 motion marker: ${marker}`);
+}
+
+for (const marker of [
   'setBookmarks([]);',
   'setBookmarks(JSON.parse(stored))',
 ]) {
-  if (!lyrics.includes(marker)) failures.push(`missing U07 marker: ${marker}`);
+  if (!lyrics.includes(marker)) failures.push(`missing U07 bookmark marker: ${marker}`);
 }
 
 for (const forbidden of [
