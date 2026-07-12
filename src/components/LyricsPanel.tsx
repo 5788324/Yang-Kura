@@ -34,6 +34,8 @@ import { playerDailyVisualFocusService } from '../services/playerDailyVisualFocu
 import { playerPanelLayoutReviewService } from '../services/playerPanelLayoutReviewService';
 import { playerUiBugfixService } from '../services/playerUiBugfixService';
 import CoverArtwork from './CoverArtwork';
+import { useFullPlayerDialog } from '../hooks/useFullPlayerDialog';
+import { useVinylMotion } from '../hooks/useVinylMotion';
 
 interface LyricsPanelProps {
   playerState: PlayerState;
@@ -85,132 +87,15 @@ export default function LyricsPanel({
   // --- Refs for high-fidelity physics-based smooth animation (Vinyl Record & Stylus arm) ---
   const recordRef = useRef<HTMLDivElement>(null);
   const tonearmRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
-  const onCloseRef = useRef(onClose);
+  const closeButtonRef = useFullPlayerDialog(onClose);
 
-  useEffect(() => {
-    onCloseRef.current = onClose;
-  }, [onClose]);
-
-  useEffect(() => {
-    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const focusFrame = window.requestAnimationFrame(() => {
-      closeButtonRef.current?.focus({ preventScroll: true });
-    });
-
-    const handleFullPlayerKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        onCloseRef.current();
-      }
-    };
-
-    window.addEventListener('keydown', handleFullPlayerKeyDown);
-    return () => {
-      window.cancelAnimationFrame(focusFrame);
-      window.removeEventListener('keydown', handleFullPlayerKeyDown);
-      const previousFocus = previousFocusRef.current;
-      if (previousFocus && document.contains(previousFocus)) {
-        previousFocus.focus({ preventScroll: true });
-      }
-    };
-  }, []);
-  
-  const rotationAngleRef = useRef<number>(0);
-  const currentSpeedRef = useRef<number>(0);
-  const currentArmAngleRef = useRef<number>(-18);
-  const animationFrameIdRef = useRef<number | null>(null);
-
-  const isPlayingRef = useRef<boolean>(isPlaying);
-  const progressRef = useRef<number>(progress);
-  const totalDurationRef = useRef<number>(currentTrack?.duration || 0);
-
-  // Synchronize playing states instantly to refs to avoid react state triggers interrupting frame rendering loops
-  useEffect(() => {
-    isPlayingRef.current = isPlaying;
-  }, [isPlaying]);
-
-  useEffect(() => {
-    progressRef.current = progress;
-  }, [progress]);
-
-  useEffect(() => {
-    totalDurationRef.current = currentTrack?.duration || 0;
-  }, [currentTrack?.duration]);
-
-  useEffect(() => {
-    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let lastTime = performance.now();
-
-    const setStaticVisuals = () => {
-      currentSpeedRef.current = 0;
-      currentArmAngleRef.current = -18;
-      if (recordRef.current) recordRef.current.style.transform = 'rotate(0deg)';
-      if (tonearmRef.current) tonearmRef.current.style.transform = 'rotate(-18deg)';
-    };
-
-    const cancelPhysicsAnimation = () => {
-      if (animationFrameIdRef.current !== null) {
-        cancelAnimationFrame(animationFrameIdRef.current);
-        animationFrameIdRef.current = null;
-      }
-    };
-
-    const updatePhysics = (now: number) => {
-      if (motionQuery.matches) {
-        setStaticVisuals();
-        animationFrameIdRef.current = null;
-        return;
-      }
-
-      const dt = Math.min((now - lastTime) / 16.666, 4);
-      lastTime = now;
-
-      const playing = isPlayingRef.current;
-      const prog = Number.isFinite(progressRef.current) ? Math.max(0, progressRef.current) : 0;
-      const dur = getSafeDuration(totalDurationRef.current);
-      const targetSpeed = playing ? 0.6 : 0;
-      const speedDamping = playing ? 0.04 : 0.012;
-
-      currentSpeedRef.current += (targetSpeed - currentSpeedRef.current) * speedDamping * dt;
-      rotationAngleRef.current = (rotationAngleRef.current + currentSpeedRef.current * dt) % 360;
-
-      if (recordRef.current) {
-        recordRef.current.style.transform = 'rotate(' + rotationAngleRef.current + 'deg)';
-      }
-
-      const progressPercent = dur > 0 ? clamp((prog / dur) * 100, 0, 100) : 0;
-      const targetArmAngle = playing ? 8 + (progressPercent / 100) * 14 : -18;
-      currentArmAngleRef.current += (targetArmAngle - currentArmAngleRef.current) * 0.03 * dt;
-
-      if (tonearmRef.current) {
-        tonearmRef.current.style.transform = 'rotate(' + currentArmAngleRef.current + 'deg)';
-      }
-
-      animationFrameIdRef.current = requestAnimationFrame(updatePhysics);
-    };
-
-    const startPhysicsAnimation = () => {
-      if (animationFrameIdRef.current !== null || motionQuery.matches) return;
-      lastTime = performance.now();
-      animationFrameIdRef.current = requestAnimationFrame(updatePhysics);
-    };
-
-    const handleMotionPreferenceChange = () => {
-      cancelPhysicsAnimation();
-      if (motionQuery.matches) setStaticVisuals();
-      else startPhysicsAnimation();
-    };
-
-    motionQuery.addEventListener('change', handleMotionPreferenceChange);
-    handleMotionPreferenceChange();
-
-    return () => {
-      motionQuery.removeEventListener('change', handleMotionPreferenceChange);
-      cancelPhysicsAnimation();
-    };
-  }, []);
+  useVinylMotion({
+    recordRef,
+    tonearmRef,
+    isPlaying,
+    progress,
+    duration: currentTrack?.duration,
+  });
   
   // --- Sleep Timer (睡眠定时) States & Logic ---
   const [sleepTimerMinutes, setSleepTimerMinutes] = useState<number | null>(null);
