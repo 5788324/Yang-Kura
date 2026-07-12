@@ -1,0 +1,48 @@
+name: Apply U10 Lyrics Timeline Extraction
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out U10 branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/u10-lyrics-timeline-domain
+          fetch-depth: 0
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Apply focused LyricsPanel patch
+        run: node scripts/apply-u10-lyrics-timeline-domain.mjs
+
+      - name: Remove temporary patch automation
+        shell: bash
+        run: |
+          rm scripts/apply-u10-lyrics-timeline-domain.mjs
+          rm .github/workflows/u10-apply-lyrics-timeline.yml
+
+      - name: Commit extracted lyrics domain
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor: extract lyrics timeline domain"
+          git push origin HEAD:codex/u10-lyrics-timeline-domain
