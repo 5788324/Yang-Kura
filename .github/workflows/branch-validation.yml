@@ -36,15 +36,44 @@ jobs:
         run: npm audit --audit-level=high
 
       - name: Run focused UI verifiers
+        id: focused-verifiers
         shell: pwsh
         run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          $results = [System.Collections.Generic.List[string]]::new()
+          $results.Add("verifier`tstatus`texit_code")
+          $failed = $false
+
           Get-ChildItem -Path scripts -Filter 'verify-u*.mjs' |
             Sort-Object Name |
             ForEach-Object {
               Write-Host "Running $($_.Name)"
               node $_.FullName
-              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+              $exitCode = $LASTEXITCODE
+              $status = if ($exitCode -eq 0) { 'PASS' } else { 'FAIL' }
+              $results.Add("$($_.Name)`t$status`t$exitCode")
+              if ($exitCode -ne 0) { $failed = $true }
             }
+
+          $reportPath = 'artifacts/focused-verifier-results.tsv'
+          $results | Set-Content -Path $reportPath -Encoding utf8
+          $results | ForEach-Object { Write-Host $_ }
+
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Focused verifier results'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '```text'
+          $results | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '```'
+
+          if ($failed) { exit 1 }
+
+      - name: Upload focused verifier report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: focused-verifier-results
+          path: artifacts/focused-verifier-results.tsv
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Run stable regression
         shell: pwsh
