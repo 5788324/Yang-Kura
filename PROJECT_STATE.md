@@ -6,8 +6,8 @@
 核心版本：0.167.0-mvp129
 代码基线：GitHub main
 产品化增量：U02～U08 已合入
-结构质量增量：U09 已合入
-当前任务：U10 歌词时间线纯逻辑抽离与行为测试
+结构质量增量：U09～U10 已合入
+当前任务：U11 高危依赖审计自动门禁
 MVP130：独立实验下载器，继续冻结，禁止合入
 ```
 
@@ -47,11 +47,18 @@ MVP130：独立实验下载器，继续冻结，禁止合入
 - 修正 U07/U08 verifier 对实现文件位置的耦合；
 - 修正项目文档和 handoff verifier 的旧 Round 6 / 固定 SHA 基线。
 
-### U10（当前）
+### U10（已完成）
 
 - 把 LRC 时间戳解析、双语拆分和当前歌词行计算移入纯函数模块；
 - 用可执行断言验证实际输入输出，不再只检查源码字符串；
+- 修正 U09 verifier 对路线文档固定措辞的耦合；
 - 保持字幕加载、自动滚动、播放进度和 UI 行为不变。
+
+### U11（当前）
+
+- 在 Windows Pull Request 门禁中增加 `npm audit --audit-level=high`；
+- high / critical 依赖风险将直接阻止合并；
+- 既有 Electron moderate 提示仍按非阻塞风险记录，不执行自动修复。
 
 ## 当前阶段
 
@@ -73,10 +80,13 @@ Pull Request 自动门禁当前覆盖：
 
 ```text
 npm ci --ignore-scripts --no-audit --no-fund
+npm audit --audit-level=high
 全部 scripts/verify-u*.mjs
 npm run verify:stable
 npm run build
 ```
+
+`verify:stable` 内含 TypeScript lint、Electron 编译、MVP112～129 稳定链、mpv 运行时测试、导入器 smoke、50,000 曲目基准和索引维护测试。
 
 核心 MVP129 历史基线还曾通过 Electron strict smoke、portable、NSIS、mpv fixture 和依赖审计；U02 之后需要在最终发布前重新执行完整桌面发布链。
 
