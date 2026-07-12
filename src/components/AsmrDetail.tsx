@@ -85,16 +85,7 @@ export default function AsmrDetail({
         setTrackProgress({});
       }
     } else {
-      // Seed initial mock completion for first tracks for immersive realistic feel
-      const seed: Record<string, { percent: number; completed: boolean }> = {};
-      if (rjWork.tracks && rjWork.tracks.length > 0) {
-        seed[rjWork.tracks[0].id] = { percent: 100, completed: true };
-        if (rjWork.tracks.length > 1) {
-          seed[rjWork.tracks[1].id] = { percent: 62, completed: false };
-        }
-      }
-      setTrackProgress(seed);
-      localStorage.setItem(key, JSON.stringify(seed));
+      setTrackProgress({});
     }
   }, [rjWork.id]);
 
@@ -151,15 +142,7 @@ export default function AsmrDetail({
         setTrackSubtitles(JSON.parse(storedSubs));
       } catch (e) {}
     } else {
-      const seed: Record<string, 'none' | 'ja' | 'zh' | 'bilingual'> = {};
-      rjWork.tracks.forEach((t, idx) => {
-        if (idx === 0) seed[t.id] = 'bilingual';
-        else if (idx === 1) seed[t.id] = 'zh';
-        else if (idx === 2) seed[t.id] = 'ja';
-        else seed[t.id] = 'none';
-      });
-      setTrackSubtitles(seed);
-      localStorage.setItem(subKey, JSON.stringify(seed));
+      setTrackSubtitles({});
     }
 
     // 4. Rating, Status, and Notes
