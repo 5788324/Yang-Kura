@@ -14,8 +14,6 @@ import { homePlayerBetaPolishService } from '../services/homePlayerBetaPolishSer
 import { userFacingSimplificationService } from '../services/userFacingSimplificationService';
 import { dailySurfaceCleanupService } from '../services/dailySurfaceCleanupService';
 import { playerBarDailyCleanupService } from '../services/playerBarDailyCleanupService';
-import { globalDailyUiCleanupService } from '../services/globalDailyUiCleanupService';
-import { uiCleanupCloseoutBaselineSyncService } from '../services/uiCleanupCloseoutBaselineSyncService';
 
 interface DashboardProps {
   recentTracks: AudioTrack[];
@@ -128,9 +126,8 @@ export default function Dashboard({
   const mvp71Simplification = userFacingSimplificationService.getModel();
   const mvp72DailySurface = dailySurfaceCleanupService.getModel();
   const mvp74HomeCleanup = playerBarDailyCleanupService.getHomeModel();
-  const mvp110DailyUi = globalDailyUiCleanupService.getModel();
-  const mvp111Closeout = uiCleanupCloseoutBaselineSyncService.getModel();
   const mvp71MainEntryCards = mvp71Simplification.mainEntryCards;
+  const isCleanLibrary = !hasRealLibrary && rjWorks.length === 0 && musicAlbums.length === 0 && recentTracks.length === 0 && playlists.length === 0;
   const handleMvp71EntryClick = (entryId: string) => {
     if (entryId === 'continue-listening' && continueTrack) onPlayTrack(continueTrack);
     if (entryId === 'continue-listening' && !continueTrack) setCurrentPage('asmr-lib');
@@ -235,6 +232,16 @@ export default function Dashboard({
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {isCleanLibrary && (
+        <section id="u02-home-empty-state" className="rounded-3xl border border-dashed border-brand-color/40 bg-card-bg/45 p-6 md:p-8 text-center space-y-4">
+          <div className="mx-auto w-14 h-14 rounded-2xl bg-brand-color/15 text-brand-color flex items-center justify-center"><Headphones className="w-7 h-7" /></div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-extrabold text-text-primary">开始建立你的本地媒体库</h2>
+            <p className="mx-auto max-w-2xl text-sm text-text-muted leading-relaxed">当前没有已加载的音声、音乐、收藏、最近播放或歌单。前往设置选择一个本地资源库，然后读取已有记录或扫描生成索引。</p>
+          </div>
+          <button id="u02-home-empty-state-action" onClick={() => setCurrentPage('settings')} className="px-5 py-2.5 rounded-xl bg-brand-color hover:bg-brand-color-hover text-white text-sm font-semibold transition-colors">选择资源库</button>
+        </section>
+      )}
       <section id="mvp45-home-continue-listening" className="relative overflow-hidden rounded-3xl border border-border-color bg-gradient-to-br from-indigo-950/75 via-purple-950/35 to-card-bg p-5 md:p-7 shadow-xl">
         <div className="absolute -right-16 -top-16 w-72 h-72 bg-brand-color/10 rounded-full blur-3xl" />
         <div className="absolute right-28 -bottom-24 w-60 h-60 bg-pink-500/10 rounded-full blur-3xl" />
@@ -404,48 +411,6 @@ export default function Dashboard({
         </div>
       </section>
 
-      <section id="mvp110-dashboard-daily-surface" className="rounded-3xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-bold text-sky-300 tracking-wider">日常首页</p>
-            <h3 className="mt-1 text-base font-extrabold text-text-primary">{mvp110DailyUi.title}</h3>
-            <p className="mt-1 text-xs text-text-muted leading-relaxed max-w-3xl">{mvp110DailyUi.summary}</p>
-          </div>
-          <span className="rounded-full border border-sky-500/25 bg-sky-500/10 px-3 py-1 text-[10px] font-bold text-sky-100 whitespace-nowrap">媒体入口优先</span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-          {mvp110DailyUi.visibleCards.map((card) => (
-            <div key={card.id} className={`rounded-2xl border p-3 text-xs leading-relaxed ${globalDailyUiCleanupService.getToneClassName(card.tone)}`}>
-              <p className="font-bold text-text-primary mb-1">{card.title}</p>
-              <p className="opacity-80">{card.description}</p>
-            </div>
-          ))}
-        </div>
-        <p id="mvp110-hidden-engineering-terms" hidden aria-hidden="true">
-          {mvp110DailyUi.termsMovedBehindMaintenance.join(' / ')} 已从日常首页后置到诊断页或维护区。
-        </p>
-      </section>
-
-
-      <section id="mvp111-ui-cleanup-closeout" className="rounded-3xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-bold text-emerald-300 tracking-wider">界面收口</p>
-            <h3 className="mt-1 text-base font-extrabold text-text-primary">{mvp111Closeout.title}</h3>
-            <p className="mt-1 text-xs text-text-muted leading-relaxed max-w-3xl">{mvp111Closeout.summary}</p>
-          </div>
-          <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-[10px] font-bold text-emerald-100 whitespace-nowrap">MVP111 收口包</span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-          {mvp111Closeout.closeoutCards.map((card) => (
-            <div key={card.id} className={`rounded-2xl border p-3 text-xs leading-relaxed ${uiCleanupCloseoutBaselineSyncService.getToneClassName(card.tone)}`}>
-              <p className="font-bold text-text-primary mb-1">{card.title}</p>
-              <p className="opacity-80">{card.description}</p>
-            </div>
-          ))}
-        </div>
-        <p className="text-xs text-text-muted leading-relaxed">{mvp111Closeout.dailyConclusion}</p>
-      </section>
       <section id="mvp71-home-user-facing-simplification" className="rounded-3xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
           <div>
