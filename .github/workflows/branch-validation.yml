@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
 
+      - name: Audit high and critical dependency risk
+        run: npm audit --audit-level=high
+
       - name: Run focused UI verifiers
         shell: pwsh
         run: |
