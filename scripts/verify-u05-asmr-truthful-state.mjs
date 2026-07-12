@@ -4,7 +4,8 @@ const detail = fs.readFileSync('src/components/AsmrDetail.tsx', 'utf8');
 const failures = [];
 
 for (const marker of [
-  "localStorage.getItem('asmr_tracks_progress')",
+  "const key = 'asmr_tracks_progress'",
+  'localStorage.getItem(key)',
   'setTrackProgress({});',
   'setTrackSubtitles({});',
   'setTrackProgress(JSON.parse(stored))',
