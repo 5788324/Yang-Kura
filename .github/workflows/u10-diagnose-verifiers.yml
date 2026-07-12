@@ -1,0 +1,55 @@
+name: Diagnose U10 Focused Verifiers
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - synchronize
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out U10 branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/u10-lyrics-timeline-domain
+          fetch-depth: 0
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Run each focused verifier and record result
+        shell: pwsh
+        run: |
+          $results = @()
+          Get-ChildItem -Path scripts -Filter 'verify-u*.mjs' |
+            Sort-Object Name |
+            ForEach-Object {
+              node $_.FullName
+              $code = $LASTEXITCODE
+              $results += "$($_.Name)=$code"
+            }
+          $results | Set-Content -Path U10_VERIFIER_DIAGNOSTIC.txt -Encoding utf8
+
+      - name: Remove diagnostic workflow and commit report
+        shell: bash
+        run: |
+          rm .github/workflows/u10-diagnose-verifiers.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: capture U10 verifier diagnostic"
+          git push origin HEAD:codex/u10-lyrics-timeline-domain
