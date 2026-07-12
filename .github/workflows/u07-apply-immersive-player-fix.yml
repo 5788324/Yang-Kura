@@ -1,0 +1,51 @@
+name: Apply U07 Immersive Player Fix
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out U07 branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/u07-immersive-player-truthful-motion
+          fetch-depth: 0
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Apply focused source patch
+        run: node scripts/apply-u07-immersive-player-truthful-motion.mjs
+
+      - name: Verify immersive player fixes
+        run: node scripts/verify-u07-immersive-player-truthful-motion.mjs
+
+      - name: Remove temporary patch automation
+        shell: bash
+        run: |
+          rm scripts/apply-u07-immersive-player-truthful-motion.mjs
+          rm .github/workflows/u07-apply-immersive-player-fix.yml
+
+      - name: Commit patched source
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: remove demo bookmarks and respect reduced motion"
+          git push origin HEAD:codex/u07-immersive-player-truthful-motion
