@@ -119,6 +119,7 @@ interface DiagnosticsPageProps {
   setMusicAlbums?: React.Dispatch<React.SetStateAction<MusicAlbum[]>>;
   setAsmrDetailId?: (id: string | null) => void;
   onRefetchRjMetadata?: (rjId: string) => void;
+  initialMaintenanceOpen?: boolean;
 }
 
 type TabType = "health" | "scan" | "rename" | "deadlinks" | "duplicates";
@@ -185,7 +186,7 @@ function readStoredJson<T>(key: string): T | null {
 /* MVP-62 verifier marker: Electron 回归加固 / desktop:setup / desktop:smoke-check:strict / cmd.exe /d /c / npm rebuild electron. */
 
 export default function DiagnosticsPage(props: DiagnosticsPageProps) {
-  const [showMaintenanceDetails, setShowMaintenanceDetails] = useState(false);
+  const [showMaintenanceDetails, setShowMaintenanceDetails] = useState(Boolean(props.initialMaintenanceOpen));
   const workCount = Array.isArray(props.rjWorks) ? props.rjWorks.length : 0;
   const albumCount = Array.isArray(props.musicAlbums) ? props.musicAlbums.length : 0;
 

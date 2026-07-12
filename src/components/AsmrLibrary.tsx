@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useDeferredValue } from 'react';
 import { 
   Headphones, 
   Search, 
@@ -33,6 +33,7 @@ import { libraryVisualUnityService } from '../services/libraryVisualUnityService
 import { libraryCardLayoutPolishService } from '../services/libraryCardLayoutPolishService';
 import { QUICK_CIRCLES, QUICK_TAGS, QUICK_VAS } from '../quickFiltersData';
 import CoverArtwork from './CoverArtwork';
+import { LARGE_LIBRARY_RENDER_LIMITS, libraryPerformanceService } from '../services/libraryPerformanceService';
 
 interface AsmrLibraryProps {
   rjWorks: RJWork[];
@@ -66,6 +67,9 @@ export default function AsmrLibrary({
   const [playbackFilter, setPlaybackFilter] = useState<WorkPlaybackFilter>('all');
   const [sourceFilter, setSourceFilter] = useState<WorkSourceFilter>('all');
   const [personalStatusFilter, setPersonalStatusFilter] = useState<'all' | 'unheard' | 'listening' | 'completed' | 'abandoned'>('all');
+  const [renderLimit, setRenderLimit] = useState(LARGE_LIBRARY_RENDER_LIMITS.asmrInitial);
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+  const deferredLocalQuery = useDeferredValue(localQuery);
 
   // Quick filters modal states (Requirement 3)
   const [quickFilterType, setQuickFilterType] = useState<'none' | 'circle' | 'cv' | 'tag'>('none');
@@ -161,6 +165,8 @@ export default function AsmrLibrary({
     return Array.from(tagsSet);
   }, [rjWorks]);
 
+  const asmrSearchIndex = useMemo(() => libraryPerformanceService.buildAsmrSearchIndex(rjWorks), [rjWorks]);
+
   const resetBrowseFilters = () => {
     setStatusFilter('all');
     setSelectedTag(null);
@@ -177,7 +183,7 @@ export default function AsmrLibrary({
     let list = [...rjWorks];
 
     // Filter by global OR local query
-    const rawQ = (localQuery || searchQuery || '').trim().toLowerCase();
+    const rawQ = libraryPerformanceService.normalizeQuery(deferredLocalQuery || deferredSearchQuery || '');
     if (rawQ.length > 0) {
       list = list.filter(item => {
         switch (searchField) {
@@ -195,22 +201,7 @@ export default function AsmrLibrary({
             // Search inside track filepaths
             return item.tracks?.some(t => t.fileTreePath?.toLowerCase().includes(rawQ));
           default: // 'all' (模糊)
-            return (
-              item.title.toLowerCase().includes(rawQ) ||
-              item.id.toLowerCase().includes(rawQ) ||
-              item.circle.toLowerCase().includes(rawQ) ||
-              item.cvs.some(cv => cv.toLowerCase().includes(rawQ)) ||
-              item.tags.some(t => t.toLowerCase().includes(rawQ)) ||
-              item.description?.toLowerCase().includes(rawQ) ||
-              item.personalNotes?.toLowerCase().includes(rawQ) ||
-              item.personalStatus?.toLowerCase().includes(rawQ) ||
-              item.tracks?.some(t =>
-                t.title.toLowerCase().includes(rawQ) ||
-                t.artist.toLowerCase().includes(rawQ) ||
-                t.album.toLowerCase().includes(rawQ) ||
-                t.fileTreePath?.toLowerCase().includes(rawQ)
-              )
-            );
+            return asmrSearchIndex.get(item.id)?.includes(rawQ) ?? false;
         }
       });
     }
@@ -271,7 +262,21 @@ export default function AsmrLibrary({
     });
 
     return list;
-  }, [rjWorks, searchQuery, localQuery, searchField, statusFilter, selectedTag, sortBy, sourceFilter, subtitleFilter, playbackFilter, personalStatusFilter]);
+  }, [rjWorks, deferredSearchQuery, deferredLocalQuery, searchField, statusFilter, selectedTag, sortBy, sourceFilter, subtitleFilter, playbackFilter, personalStatusFilter, asmrSearchIndex]);
+
+  useEffect(() => {
+    setRenderLimit(LARGE_LIBRARY_RENDER_LIMITS.asmrInitial);
+  }, [deferredSearchQuery, deferredLocalQuery, searchField, statusFilter, selectedTag, sortBy, sourceFilter, subtitleFilter, playbackFilter, personalStatusFilter, viewMode]);
+
+  const visibleWorks = useMemo(
+    () => libraryPerformanceService.sliceRenderWindow(filteredAndSortedWorks, renderLimit),
+    [filteredAndSortedWorks, renderLimit],
+  );
+  const renderWindow = useMemo(
+    () => libraryPerformanceService.getRenderWindowModel(filteredAndSortedWorks.length, visibleWorks.length, LARGE_LIBRARY_RENDER_LIMITS.asmrStep, '音声作品'),
+    [filteredAndSortedWorks.length, visibleWorks.length],
+  );
+  const isSearchPending = deferredSearchQuery !== searchQuery || deferredLocalQuery !== localQuery;
 
   const browseSurface = useMemo(() => libraryBrowseSurfaceService.getAsmrSurfaceModel({
     works: rjWorks,
@@ -605,6 +610,15 @@ export default function AsmrLibrary({
         </div>
       </div>
 
+      <div id="mvp126-asmr-render-window" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-xl border border-cyan-500/15 bg-cyan-500/5 px-3 py-2 text-[10px] text-text-muted">
+        <span>{isSearchPending ? '正在更新搜索结果…' : renderWindow.summary}</span>
+        {renderWindow.hasMore && (
+          <button type="button" onClick={() => setRenderLimit((value) => value + LARGE_LIBRARY_RENDER_LIMITS.asmrStep)} className="self-start sm:self-auto rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 font-bold text-cyan-200">
+            再显示 {renderWindow.nextCount} 项
+          </button>
+        )}
+      </div>
+
       {/* RJ Render Area */}
       {filteredAndSortedWorks.length === 0 ? (
         <div className="py-16 text-center bg-card-bg/20 rounded-2xl border border-dashed border-border-color flex flex-col items-center justify-center px-6">
@@ -640,7 +654,7 @@ export default function AsmrLibrary({
               </tr>
             </thead>
             <tbody className="divide-y divide-border-color/20">
-              {filteredAndSortedWorks.map(rj => {
+              {visibleWorks.map(rj => {
                 const subtitleSummary = libraryBrowseService.getWorkSubtitleSummary(rj);
                 const playbackSummary = libraryBrowseService.getWorkPlaybackSummary(rj);
                 const hasSubtitle = subtitleSummary.hasSubtitle;
@@ -726,7 +740,7 @@ export default function AsmrLibrary({
         /* GRID CARD WALL VIEW (Requirement 4) */
         <div id="mvp76-asmr-card-layout-unity" className={mvp76CardLayout.gridClassName} aria-label={mvp76CardLayout.ariaLabel}>
           <span hidden aria-hidden="true">mvp76-card-layout-unity：音声库卡片统一使用安全列宽、固定封面比例、长标题截断和状态换行布局。</span>
-          {filteredAndSortedWorks.map(rj => {
+          {visibleWorks.map(rj => {
             const subtitleSummary = libraryBrowseService.getWorkSubtitleSummary(rj);
             const playbackSummary = libraryBrowseService.getWorkPlaybackSummary(rj);
             const hasSubtitle = subtitleSummary.hasSubtitle;

@@ -46,11 +46,81 @@ type ReadLibraryIndexRequest = {
   mode: 'read-current-index';
 };
 
+type LibraryIndexHealthCheckRequest = { rootPathToken: string; mode: 'read-only-health-check'; maxEntries?: number };
+type LibraryIndexRemovalPreviewRequest = { rootPathToken: string; mode: 'remove-missing-preview'; issueIds?: string[] };
+type LibraryIndexRemovalWriteRequest = { rootPathToken: string; mode: 'confirmed-index-removal-write'; sourceIndexSha256: string; previewGeneratedAt: string; userConfirmed: boolean; confirmationText: string; createBackup: boolean };
+type RevealMissingEntryParentRequest = { rootPathToken: string; relativePath: string; entryId: string; mode: 'reveal-nearest-existing-parent' };
+type LibraryIndexBackupListRequest = { rootPathToken: string; mode: 'list-index-backups'; maxEntries?: number };
+type LibraryIndexBackupRestoreRequest = { rootPathToken: string; mode: 'restore-index-backup'; backupRelativePath: string; backupSha256: string; confirmationText: string; createCurrentBackup: boolean };
+type LibraryIndexBackupRetentionPreviewRequest = { rootPathToken: string; mode: 'preview-backup-retention'; maxAgeDays?: number; keepNewest?: number };
+type LibraryIndexMaintenanceHistoryRequest = { rootPathToken: string; mode: 'read-index-maintenance-history'; maxEntries?: number };
+
 type ResolveTrackMediaUrlRequest = {
   rootPathToken: string;
   relativePath: string;
   trackId: string;
   expectedKind: 'audio';
+};
+
+type MpvPlaybackStartRequest = {
+  rootPathToken: string;
+  relativePath: string;
+  trackId: string;
+  mode: 'mpv-playback-start';
+  startSeconds?: number;
+  volume?: number;
+  muted?: boolean;
+};
+
+type MpvPlaybackCommandRequest =
+  | { mode: 'mpv-playback-command'; command: 'pause' | 'resume' | 'stop' }
+  | { mode: 'mpv-playback-command'; command: 'seek'; seconds: number }
+  | { mode: 'mpv-playback-command'; command: 'set-volume'; volume: number }
+  | { mode: 'mpv-playback-command'; command: 'set-muted'; muted: boolean };
+
+type MpvPlaybackEvent = {
+  type: 'ready' | 'time' | 'duration' | 'pause-state' | 'ended' | 'error' | 'fallback-requested';
+  trackId: string;
+  at: string;
+  backend?: 'mpv';
+  positionSeconds?: number;
+  durationSeconds?: number;
+  paused?: boolean;
+  reason?: string;
+  message?: string;
+  resumeSeconds?: number;
+};
+
+
+type MpvInstallationStatus = {
+  status: 'mvp123-mpv-installation-status';
+  available: boolean;
+  source: 'environment' | 'user-selected' | 'system-path' | 'none';
+  executableLabel: string;
+  versionLabel: string | null;
+  configured: boolean;
+  canSelectExecutable: true;
+  canClearUserSelection: boolean;
+  checkedAt: string;
+  message: string;
+  running: boolean;
+  connected: boolean;
+  activeTrackId: string | null;
+  seekStrategy: 'coalesced-absolute-exact';
+  pendingSeek: boolean;
+  lastKnownPositionSeconds: number;
+  lastKnownDurationSeconds: number;
+  lastErrorMessage: string | null;
+  lastExitReason: string | null;
+  shutdownState: 'idle' | 'graceful' | 'forced';
+  processStartedAt: string | null;
+  absolutePathReturned: false;
+  fileUrlReturned: false;
+};
+
+type MpvExecutableActionResult = MpvInstallationStatus & {
+  ok: boolean;
+  actionStatus: 'mvp123-mpv-selection-cancelled' | 'mvp123-mpv-executable-selected' | 'mvp123-mpv-executable-invalid' | 'mvp123-mpv-executable-cleared';
 };
 
 type ReadTrackLyricsRequest = {
@@ -202,6 +272,8 @@ const shellStatus = {
   canGenerateIndexWritePreview: true,
   canReadLibraryIndex: true,
   canResolveMediaTrackUrl: true,
+  canUseMpvPlayback: true,
+  canConfigureMpvExecutable: true,
   canReadTrackLyrics: true,
   canOpenExternalFile: true,
   canOpenInFileManager: true,
@@ -214,6 +286,14 @@ const shellStatus = {
   canPreviewLibraryIndexPatch: true,
   canCheckLibraryIndexPatchWriteReadiness: true,
   canWriteLibraryIndexPatch: true,
+  canCheckLibraryIndexHealth: true,
+  canPreviewMissingIndexRemoval: true,
+  canWriteControlledIndexRemoval: true,
+  canListIndexBackups: true,
+  canRestoreIndexBackup: true,
+  canPreviewBackupRetention: true,
+  canReadIndexMaintenanceHistory: true,
+  canRevealNearestExistingParent: true,
   canRefreshLibraryIndexAfterPatch: true,
   canExecuteMoveOnly: true,
   registersMediaProtocol: true,
@@ -241,8 +321,70 @@ const yangKuraApi = {
     return ipcRenderer.invoke('yang-kura:index:read-current-request', request);
   },
 
+  async requestLibraryIndexHealthCheck(request: LibraryIndexHealthCheckRequest) {
+    return ipcRenderer.invoke('yang-kura:index:health-check-request', request);
+  },
+
+  async requestLibraryIndexRemovalPreview(request: LibraryIndexRemovalPreviewRequest) {
+    return ipcRenderer.invoke('yang-kura:index:removal-preview-request', request);
+  },
+
+  async requestLibraryIndexRemovalWrite(request: LibraryIndexRemovalWriteRequest) {
+    return ipcRenderer.invoke('yang-kura:index:removal-write-confirmed-request', request);
+  },
+
+  async requestLibraryIndexBackupList(request: LibraryIndexBackupListRequest) {
+    return ipcRenderer.invoke('yang-kura:index:backup-list-request', request);
+  },
+
+  async requestLibraryIndexBackupRestore(request: LibraryIndexBackupRestoreRequest) {
+    return ipcRenderer.invoke('yang-kura:index:backup-restore-request', request);
+  },
+
+  async requestLibraryIndexBackupRetentionPreview(request: LibraryIndexBackupRetentionPreviewRequest) {
+    return ipcRenderer.invoke('yang-kura:index:backup-retention-preview-request', request);
+  },
+
+  async requestLibraryIndexMaintenanceHistory(request: LibraryIndexMaintenanceHistoryRequest) {
+    return ipcRenderer.invoke('yang-kura:index:maintenance-history-request', request);
+  },
+
+  async requestRevealMissingEntryParent(request: RevealMissingEntryParentRequest) {
+    return ipcRenderer.invoke('yang-kura:index:reveal-nearest-parent-request', request);
+  },
+
   async requestResolveTrackMediaUrl(request: ResolveTrackMediaUrlRequest) {
     return ipcRenderer.invoke('yang-kura:media:resolve-track-url', request);
+  },
+
+  async requestMpvPlaybackStart(request: MpvPlaybackStartRequest) {
+    return ipcRenderer.invoke('yang-kura:player:mpv:start', request);
+  },
+
+  async requestMpvPlaybackCommand(request: MpvPlaybackCommandRequest) {
+    return ipcRenderer.invoke('yang-kura:player:mpv:command', request);
+  },
+
+  async getMpvPlaybackStatus() {
+    return ipcRenderer.invoke('yang-kura:player:mpv:status');
+  },
+
+  async getMpvInstallationStatus(): Promise<MpvInstallationStatus> {
+    return ipcRenderer.invoke('yang-kura:player:mpv:installation-status');
+  },
+
+  async selectMpvExecutable(): Promise<MpvExecutableActionResult> {
+    return ipcRenderer.invoke('yang-kura:player:mpv:select-executable');
+  },
+
+  async clearMpvExecutable(): Promise<MpvExecutableActionResult> {
+    return ipcRenderer.invoke('yang-kura:player:mpv:clear-executable');
+  },
+
+  onMpvPlaybackEvent(listener: (event: MpvPlaybackEvent) => void) {
+    const handler = (_event: Electron.IpcRendererEvent, payload: MpvPlaybackEvent) => listener(payload);
+    ipcRenderer.on('yang-kura:player:mpv:event', handler);
+    return () => ipcRenderer.removeListener('yang-kura:player:mpv:event', handler);
   },
 
   async requestReadTrackLyrics(request: ReadTrackLyricsRequest) {

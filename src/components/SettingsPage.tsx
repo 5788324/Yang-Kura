@@ -22,6 +22,11 @@ import {
   Globe,
   HardDrive,
   Cloud,
+  AudioLines,
+  RefreshCw,
+  CircleCheck,
+  CircleX,
+  FileCog,
 } from "lucide-react";
 import { ThemeType, LibrarySettings, LibraryPath } from "../types";
 import {
@@ -50,6 +55,9 @@ import {
   globalDailyUiCleanupService,
   uiCleanupCloseoutBaselineSyncService,
   settingsPathPrivacyService,
+  mpvPlaybackPreferenceService,
+  playerAcceptanceService,
+  type MpvPlaybackPreference,
   type LibrarySessionSnapshot,
 } from "../services";
 
@@ -62,7 +70,7 @@ export default function SettingsPage({
   settings,
   updateSettings,
 }: SettingsPageProps) {
-  const [activeTab, setActiveTab] = useState<"theme" | "paths" | "about">(
+  const [activeTab, setActiveTab] = useState<"theme" | "player" | "paths" | "about">(
     "theme",
   );
 
@@ -154,6 +162,29 @@ export default function SettingsPage({
     useState<YangKuraWriteLibraryIndexResult | null>(null);
   const [indexReadResult, setIndexReadResult] =
     useState<YangKuraReadLibraryIndexResult | null>(null);
+  const [indexHealthResult, setIndexHealthResult] =
+    useState<YangKuraLibraryIndexHealthCheckResult | null>(null);
+  const [indexRemovalPreview, setIndexRemovalPreview] =
+    useState<YangKuraLibraryIndexRemovalPreviewResult | null>(null);
+  const [indexRemovalWriteResult, setIndexRemovalWriteResult] =
+    useState<YangKuraLibraryIndexRemovalWriteResult | null>(null);
+  const [indexRemovalConfirmation, setIndexRemovalConfirmation] = useState('');
+  const [indexHealthMessage, setIndexHealthMessage] = useState<string | null>(null);
+  const [isCheckingIndexHealth, setIsCheckingIndexHealth] = useState(false);
+  const [isGeneratingRemovalPreview, setIsGeneratingRemovalPreview] = useState(false);
+  const [isWritingIndexRemoval, setIsWritingIndexRemoval] = useState(false);
+  const [revealingIssueId, setRevealingIssueId] = useState<string | null>(null);
+  const [indexBackupListResult, setIndexBackupListResult] = useState<YangKuraLibraryIndexBackupListResult | null>(null);
+  const [indexBackupRestoreResult, setIndexBackupRestoreResult] = useState<YangKuraLibraryIndexBackupRestoreResult | null>(null);
+  const [indexBackupRetentionPreview, setIndexBackupRetentionPreview] = useState<YangKuraLibraryIndexBackupRetentionPreviewResult | null>(null);
+  const [indexMaintenanceHistory, setIndexMaintenanceHistory] = useState<YangKuraLibraryIndexMaintenanceHistoryResult | null>(null);
+  const [selectedIndexBackup, setSelectedIndexBackup] = useState<string | null>(null);
+  const [indexBackupRestoreConfirmation, setIndexBackupRestoreConfirmation] = useState('');
+  const [indexBackupMaxAgeDays, setIndexBackupMaxAgeDays] = useState(90);
+  const [isLoadingIndexBackups, setIsLoadingIndexBackups] = useState(false);
+  const [isRestoringIndexBackup, setIsRestoringIndexBackup] = useState(false);
+  const [isPreviewingBackupRetention, setIsPreviewingBackupRetention] = useState(false);
+  const [isLoadingMaintenanceHistory, setIsLoadingMaintenanceHistory] = useState(false);
   const [isGeneratingIndexPreview, setIsGeneratingIndexPreview] =
     useState(false);
   const [isWritingIndex, setIsWritingIndex] = useState(false);
@@ -170,6 +201,13 @@ export default function SettingsPage({
     electronRuntimeProbeService.getInitialProbe(),
   );
   const [showAdvancedLibraryTools, setShowAdvancedLibraryTools] = useState(false);
+  const [mpvStatus, setMpvStatus] = useState<YangKuraMpvInstallationStatus | null>(null);
+  const [mpvStatusMessage, setMpvStatusMessage] = useState<string | null>(null);
+  const [isCheckingMpv, setIsCheckingMpv] = useState(false);
+  const [isSelectingMpv, setIsSelectingMpv] = useState(false);
+  const [mpvPreference, setMpvPreference] = useState<MpvPlaybackPreference>(() =>
+    mpvPlaybackPreferenceService.getPreference(),
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -180,6 +218,32 @@ export default function SettingsPage({
       isMounted = false;
     };
   }, []);
+
+
+  useEffect(() => {
+    if (activeTab !== 'player') return;
+    let isMounted = true;
+    if (!window.yangKura?.getMpvInstallationStatus) {
+      setMpvStatusMessage('当前不是 Electron 桌面环境，无法检测 mpv。现有 HTMLAudio 播放不受影响。');
+      return;
+    }
+    setIsCheckingMpv(true);
+    window.yangKura.getMpvInstallationStatus()
+      .then((result) => {
+        if (!isMounted) return;
+        setMpvStatus(result);
+        setMpvStatusMessage(result.message);
+      })
+      .catch((error) => {
+        if (isMounted) setMpvStatusMessage(`mpv 检测失败：${error instanceof Error ? error.message : String(error)}`);
+      })
+      .finally(() => {
+        if (isMounted) setIsCheckingMpv(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTab]);
 
   useEffect(() => {
     const refreshLibrarySession = () => {
@@ -439,6 +503,235 @@ export default function SettingsPage({
     }
   };
 
+  const handleCheckLibraryIndexHealth = async (libraryType: YangKuraLibraryType) => {
+    if (!window.yangKura?.requestLibraryIndexHealthCheck) {
+      setIndexHealthMessage("当前不是支持失效索引检查的桌面环境。");
+      return;
+    }
+    const rootPathToken = getSelectedRootToken(libraryType);
+    if (!rootPathToken) {
+      setIndexHealthMessage(libraryType === "asmr" ? "请先选择音声库目录。" : "请先选择音乐库目录。");
+      return;
+    }
+    setIsCheckingIndexHealth(true);
+    setIndexRemovalPreview(null);
+    setIndexRemovalWriteResult(null);
+    setIndexRemovalConfirmation('');
+    setIndexHealthMessage("正在只读检查资源库记录与本地文件是否一致，不会修改 index 或媒体文件。");
+    try {
+      const result = await window.yangKura.requestLibraryIndexHealthCheck({
+        rootPathToken,
+        mode: "read-only-health-check",
+        maxEntries: 20000,
+      });
+      setIndexHealthResult(result);
+      setIndexHealthMessage(result.message);
+    } catch (error) {
+      setIndexHealthMessage(`失效索引检查失败：${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsCheckingIndexHealth(false);
+    }
+  };
+
+  const handleGenerateIndexRemovalPreview = async () => {
+    if (!window.yangKura?.requestLibraryIndexRemovalPreview || !indexHealthResult?.ok) {
+      setIndexHealthMessage("请先完成一次失效索引检查。");
+      return;
+    }
+    setIsGeneratingRemovalPreview(true);
+    try {
+      const result = await window.yangKura.requestLibraryIndexRemovalPreview({
+        rootPathToken: indexHealthResult.rootPathToken,
+        mode: "remove-missing-preview",
+        issueIds: indexHealthResult.issues.filter((item) => item.canRemoveFromIndex).map((item) => item.id),
+      });
+      setIndexRemovalPreview(result);
+      setIndexHealthMessage(result.message);
+    } catch (error) {
+      setIndexHealthMessage(`移除预览生成失败：${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsGeneratingRemovalPreview(false);
+    }
+  };
+
+  const handleWriteIndexRemoval = async () => {
+    if (!window.yangKura?.requestLibraryIndexRemovalWrite || !indexRemovalPreview?.ok || !indexRemovalPreview.preview || !indexRemovalPreview.sourceIndexSha256) {
+      setIndexHealthMessage("请先生成有效的索引移除预览。");
+      return;
+    }
+    if (indexRemovalConfirmation !== "CONFIRM_REMOVE_MISSING_INDEX_RECORDS") {
+      setIndexHealthMessage("确认文本不匹配，未写入索引。");
+      return;
+    }
+    setIsWritingIndexRemoval(true);
+    setIndexHealthMessage("正在复核源索引 SHA-256、创建备份并写入清理结果；不会删除真实媒体文件。");
+    try {
+      const result = await window.yangKura.requestLibraryIndexRemovalWrite({
+        rootPathToken: indexRemovalPreview.rootPathToken!,
+        mode: "confirmed-index-removal-write",
+        sourceIndexSha256: indexRemovalPreview.sourceIndexSha256,
+        previewGeneratedAt: indexRemovalPreview.preview.generatedAt,
+        userConfirmed: true,
+        confirmationText: indexRemovalConfirmation,
+        createBackup: true,
+      });
+      setIndexRemovalWriteResult(result);
+      setIndexHealthMessage(result.message);
+      if (result.ok && result.writePerformed) {
+        const readResult = await window.yangKura.requestReadLibraryIndex({
+          rootPathToken: indexRemovalPreview.rootPathToken!,
+          mode: "read-current-index",
+        });
+        setIndexReadResult(readResult);
+        persistIndexReadResult(readResult);
+        setIndexHealthResult(null);
+        setIndexRemovalPreview(null);
+        setIndexRemovalConfirmation("");
+      }
+    } catch (error) {
+      setIndexHealthMessage(`索引清理写入失败：${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsWritingIndexRemoval(false);
+    }
+  };
+
+  const loadIndexBackupsByToken = async (rootPathToken: string) => {
+    if (!window.yangKura?.requestLibraryIndexBackupList) return;
+    const result = await window.yangKura.requestLibraryIndexBackupList({
+      rootPathToken,
+      mode: "list-index-backups",
+      maxEntries: 100,
+    });
+    setIndexBackupListResult(result);
+    setSelectedIndexBackup((current) => {
+      if (current && result.backups?.some((item) => item.relativePath === current && item.valid)) return current;
+      return result.backups?.find((item) => item.valid)?.relativePath ?? null;
+    });
+    setIndexHealthMessage(result.message);
+  };
+
+  const loadIndexMaintenanceHistoryByToken = async (rootPathToken: string) => {
+    if (!window.yangKura?.requestLibraryIndexMaintenanceHistory) return;
+    const result = await window.yangKura.requestLibraryIndexMaintenanceHistory({
+      rootPathToken,
+      mode: "read-index-maintenance-history",
+      maxEntries: 30,
+    });
+    setIndexMaintenanceHistory(result);
+  };
+
+  const handleLoadIndexMaintenance = async (libraryType: YangKuraLibraryType) => {
+    const rootPathToken = getSelectedRootToken(libraryType);
+    if (!rootPathToken) {
+      setIndexHealthMessage(libraryType === "asmr" ? "请先选择音声库目录。" : "请先选择音乐库目录。");
+      return;
+    }
+    setIsLoadingIndexBackups(true);
+    setIsLoadingMaintenanceHistory(true);
+    setIndexBackupRestoreResult(null);
+    setIndexBackupRetentionPreview(null);
+    setIndexBackupRestoreConfirmation("");
+    try {
+      await Promise.all([loadIndexBackupsByToken(rootPathToken), loadIndexMaintenanceHistoryByToken(rootPathToken)]);
+    } catch (error) {
+      setIndexHealthMessage(`索引维护信息读取失败：${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsLoadingIndexBackups(false);
+      setIsLoadingMaintenanceHistory(false);
+    }
+  };
+
+  const handlePreviewBackupRetention = async () => {
+    const rootPathToken = indexBackupListResult?.ok ? indexBackupListResult.rootPathToken : undefined;
+    if (!rootPathToken || !window.yangKura?.requestLibraryIndexBackupRetentionPreview) {
+      setIndexHealthMessage("请先读取一个资源库的备份列表。");
+      return;
+    }
+    setIsPreviewingBackupRetention(true);
+    try {
+      const result = await window.yangKura.requestLibraryIndexBackupRetentionPreview({
+        rootPathToken,
+        mode: "preview-backup-retention",
+        maxAgeDays: indexBackupMaxAgeDays,
+        keepNewest: 5,
+      });
+      setIndexBackupRetentionPreview(result);
+      setIndexHealthMessage(result.message);
+    } catch (error) {
+      setIndexHealthMessage(`过期备份预览失败：${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsPreviewingBackupRetention(false);
+    }
+  };
+
+  const handleRestoreIndexBackup = async () => {
+    if (!indexBackupListResult?.ok || !indexBackupListResult.rootPathToken || !selectedIndexBackup || !window.yangKura?.requestLibraryIndexBackupRestore) {
+      setIndexHealthMessage("请先读取并选择一个可用的 index 备份。");
+      return;
+    }
+    const backup = indexBackupListResult.backups?.find((item) => item.relativePath === selectedIndexBackup && item.valid);
+    if (!backup?.sha256) {
+      setIndexHealthMessage("所选备份未通过校验，不能恢复。");
+      return;
+    }
+    if (indexBackupRestoreConfirmation !== "CONFIRM_RESTORE_LIBRARY_INDEX_BACKUP") {
+      setIndexHealthMessage("恢复确认文本不匹配，未写入索引。");
+      return;
+    }
+    setIsRestoringIndexBackup(true);
+    setIndexHealthMessage("正在备份当前 index、复核备份 SHA-256 并恢复；不会修改任何媒体文件。");
+    try {
+      const result = await window.yangKura.requestLibraryIndexBackupRestore({
+        rootPathToken: indexBackupListResult.rootPathToken,
+        mode: "restore-index-backup",
+        backupRelativePath: backup.relativePath,
+        backupSha256: backup.sha256,
+        confirmationText: indexBackupRestoreConfirmation,
+        createCurrentBackup: true,
+      });
+      setIndexBackupRestoreResult(result);
+      setIndexHealthMessage(result.message);
+      if (result.ok && result.writePerformed) {
+        const readResult = await window.yangKura.requestReadLibraryIndex({
+          rootPathToken: indexBackupListResult.rootPathToken,
+          mode: "read-current-index",
+        });
+        setIndexReadResult(readResult);
+        persistIndexReadResult(readResult);
+        setIndexHealthResult(null);
+        setIndexRemovalPreview(null);
+        setIndexRemovalWriteResult(null);
+        setIndexBackupRestoreConfirmation("");
+        await Promise.all([
+          loadIndexBackupsByToken(indexBackupListResult.rootPathToken),
+          loadIndexMaintenanceHistoryByToken(indexBackupListResult.rootPathToken),
+        ]);
+      }
+    } catch (error) {
+      setIndexHealthMessage(`备份恢复失败：${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsRestoringIndexBackup(false);
+    }
+  };
+
+  const handleRevealMissingEntryParent = async (issue: YangKuraLibraryIndexHealthIssue) => {
+    if (!window.yangKura?.requestRevealMissingEntryParent || !indexHealthResult?.ok || !issue.relativePath) return;
+    setRevealingIssueId(issue.id);
+    try {
+      const result = await window.yangKura.requestRevealMissingEntryParent({
+        rootPathToken: indexHealthResult.rootPathToken,
+        relativePath: issue.relativePath,
+        entryId: issue.id,
+        mode: "reveal-nearest-existing-parent",
+      });
+      setIndexHealthMessage(result.message);
+    } catch (error) {
+      setIndexHealthMessage(`重新定位失败：${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setRevealingIssueId(null);
+    }
+  };
+
   const handleQuickScanWriteRead = async (libraryType: YangKuraLibraryType) => {
     if (!window.yangKura) {
       setQuickImportMessage(
@@ -528,12 +821,87 @@ export default function SettingsPage({
     }
   };
 
+  const handleRefreshMpvStatus = async () => {
+    if (!window.yangKura?.getMpvInstallationStatus) {
+      setMpvStatusMessage('当前不是 Electron 桌面环境，无法检测 mpv。');
+      return;
+    }
+    setIsCheckingMpv(true);
+    try {
+      const result = await window.yangKura.getMpvInstallationStatus();
+      setMpvStatus(result);
+      setMpvStatusMessage(result.message);
+    } catch (error) {
+      setMpvStatusMessage(`mpv 检测失败：${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsCheckingMpv(false);
+    }
+  };
+
+  const handleSelectMpvExecutable = async () => {
+    if (!window.yangKura?.selectMpvExecutable) {
+      setMpvStatusMessage('当前不是 Electron 桌面环境，无法选择 mpv.exe。');
+      return;
+    }
+    setIsSelectingMpv(true);
+    try {
+      const result = await window.yangKura.selectMpvExecutable();
+      setMpvStatus(result);
+      setMpvStatusMessage(result.message);
+    } catch (error) {
+      setMpvStatusMessage(`mpv 设置失败：${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsSelectingMpv(false);
+    }
+  };
+
+  const handleClearMpvExecutable = async () => {
+    if (!window.yangKura?.clearMpvExecutable) {
+      setMpvStatusMessage('当前不是 Electron 桌面环境，无法清除 mpv 设置。');
+      return;
+    }
+    setIsSelectingMpv(true);
+    try {
+      const result = await window.yangKura.clearMpvExecutable();
+      setMpvStatus(result);
+      setMpvStatusMessage(result.message);
+    } catch (error) {
+      setMpvStatusMessage(`清除 mpv 设置失败：${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsSelectingMpv(false);
+    }
+  };
+
+
+  const handleMpvPreferenceChange = (preference: MpvPlaybackPreference) => {
+    const next = mpvPlaybackPreferenceService.setPreference(preference);
+    setMpvPreference(next);
+    setMpvStatusMessage(
+      next === 'html-audio-only'
+        ? '已切换为仅使用 HTMLAudio；不会尝试启动 mpv。'
+        : '已切换为优先使用 mpv；启动或运行失败时仍会自动回退 HTMLAudio。',
+    );
+  };
+
+  const getMpvSourceLabel = (source: YangKuraMpvInstallationStatus['source']): string => {
+    if (source === 'user-selected') return '手动选择';
+    if (source === 'environment') return '环境变量';
+    if (source === 'system-path') return '系统 PATH';
+    return '未检测到';
+  };
+
   const subTabs = [
     {
       id: "theme",
       label: "个性主题",
       icon: Palette,
       desc: "界面配色与环境光效",
+    },
+    {
+      id: "player",
+      label: "播放后端",
+      icon: AudioLines,
+      desc: "mpv 检测与 HTMLAudio 回退",
     },
     {
       id: "paths",
@@ -653,7 +1021,186 @@ export default function SettingsPage({
             </div>
           )}
 
-          {/* TAB 2: 资源库目录 */}
+          {/* TAB 2: 播放后端 */}
+          {activeTab === "player" && (
+            <div className="space-y-5 animate-fade-in">
+              <section id="mvp123-mpv-settings-status" className="rounded-2xl border border-brand-color/20 bg-card-bg/40 p-5 space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <AudioLines className="w-4.5 h-4.5 text-brand-color" />
+                      <h3 className="text-xs font-bold text-text-primary">本地音频播放后端</h3>
+                    </div>
+                    <p className="mt-2 text-[10px] leading-relaxed text-text-muted">
+                      检测到 mpv 时优先使用 mpv；未安装或启动失败时自动使用现有 HTMLAudio。选择的真实路径只保存在 Electron main，不会显示在页面中。
+                    </p>
+                  </div>
+                  <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold ${
+                    mpvStatus?.available
+                      ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-200'
+                      : 'border-amber-500/25 bg-amber-500/10 text-amber-200'
+                  }`}>
+                    {mpvStatus?.available ? <CircleCheck className="h-3.5 w-3.5" /> : <CircleX className="h-3.5 w-3.5" />}
+                    {mpvStatus?.available ? 'mpv 可用' : 'HTMLAudio 回退'}
+                  </span>
+                </div>
+
+                <div id="mvp124-mpv-backend-preference" className="rounded-xl border border-border-color/60 bg-card-bg/30 p-3.5 space-y-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div>
+                      <p className="text-[10px] font-bold text-text-primary">播放后端偏好</p>
+                      <p className="mt-1 text-[9px] leading-relaxed text-text-muted">
+                        默认优先 mpv，并在启动或运行中断时回退 HTMLAudio；也可以完全跳过 mpv。
+                      </p>
+                    </div>
+                    <select
+                      value={mpvPreference}
+                      onChange={(event) => handleMpvPreferenceChange(event.target.value as MpvPlaybackPreference)}
+                      aria-label="选择本地音频播放后端偏好"
+                      className="min-w-44 rounded-lg border border-border-color bg-card-bg px-3 py-2 text-[10px] font-bold text-text-primary outline-none focus:border-brand-color/60"
+                    >
+                      <option value="prefer-mpv">优先 mpv，失败自动回退</option>
+                      <option value="html-audio-only">仅使用 HTMLAudio</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+                    <p className="text-[9px] text-text-muted">检测来源</p>
+                    <p className="mt-1 text-xs font-bold text-text-primary">{mpvStatus ? getMpvSourceLabel(mpvStatus.source) : '尚未检测'}</p>
+                  </div>
+                  <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+                    <p className="text-[9px] text-text-muted">可执行文件</p>
+                    <p className="mt-1 text-xs font-bold text-text-primary truncate">{mpvStatus?.executableLabel ?? 'mpv.exe'}</p>
+                  </div>
+                  <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+                    <p className="text-[9px] text-text-muted">版本</p>
+                    <p className="mt-1 text-xs font-bold text-text-primary truncate">{mpvStatus?.versionLabel ?? '未读取'}</p>
+                  </div>
+                  <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+                    <p className="text-[9px] text-text-muted">当前运行</p>
+                    <p className="mt-1 text-xs font-bold text-text-primary">{mpvStatus?.connected ? '已连接' : mpvStatus?.running ? '正在启动' : '未运行'}</p>
+                  </div>
+                </div>
+
+                {mpvStatusMessage && (
+                  <div className={`rounded-xl border px-3.5 py-3 text-[10px] leading-relaxed ${
+                    mpvStatus?.available
+                      ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-100'
+                      : 'border-amber-500/20 bg-amber-500/5 text-amber-100'
+                  }`}>
+                    {mpvStatusMessage}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={handleRefreshMpvStatus}
+                    disabled={isCheckingMpv || isSelectingMpv}
+                    aria-label="重新检测 mpv"
+                    className="inline-flex items-center gap-2 rounded-lg border border-border-color bg-card-bg/50 px-3 py-2 text-[10px] font-bold text-text-primary hover:border-brand-color/40 disabled:opacity-50"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${isCheckingMpv ? 'animate-spin' : ''}`} />
+                    {isCheckingMpv ? '正在检测' : '重新检测'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSelectMpvExecutable}
+                    disabled={isSelectingMpv}
+                    aria-label="选择 mpv 可执行文件"
+                    className="inline-flex items-center gap-2 rounded-lg bg-brand-color px-3 py-2 text-[10px] font-bold text-white hover:opacity-90 disabled:opacity-50"
+                  >
+                    <FileCog className="h-3.5 w-3.5" />
+                    {isSelectingMpv ? '处理中' : '选择 mpv.exe'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearMpvExecutable}
+                    disabled={isSelectingMpv || !mpvStatus?.canClearUserSelection}
+                    aria-label="清除手动选择的 mpv"
+                    className="inline-flex items-center gap-2 rounded-lg border border-red-500/25 bg-red-500/5 px-3 py-2 text-[10px] font-bold text-red-200 hover:bg-red-500/10 disabled:opacity-40"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    清除手动设置
+                  </button>
+                </div>
+              </section>
+
+              <section id="mvp124-mpv-stability-diagnostics" className="rounded-2xl border border-border-color bg-card-bg/30 p-5 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Info className="h-4 w-4 text-violet-300" />
+                  <h3 className="text-xs font-bold text-text-primary">播放稳定性状态</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+                    <p className="text-[9px] text-text-muted">长音频跳转</p>
+                    <p className="mt-1 text-[10px] font-bold text-text-primary">合并请求 · 精确绝对位置</p>
+                  </div>
+                  <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+                    <p className="text-[9px] text-text-muted">待处理跳转</p>
+                    <p className="mt-1 text-[10px] font-bold text-text-primary">{mpvStatus?.pendingSeek ? '正在处理' : '无'}</p>
+                  </div>
+                  <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+                    <p className="text-[9px] text-text-muted">最近播放位置</p>
+                    <p className="mt-1 text-[10px] font-bold text-text-primary">{Math.round(mpvStatus?.lastKnownPositionSeconds ?? 0)} 秒</p>
+                  </div>
+                  <div className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+                    <p className="text-[9px] text-text-muted">退出回收</p>
+                    <p className="mt-1 text-[10px] font-bold text-text-primary">{mpvStatus?.shutdownState === 'forced' ? '曾强制结束' : '正常回收策略'}</p>
+                  </div>
+                </div>
+                {(mpvStatus?.lastErrorMessage || mpvStatus?.lastExitReason) && (
+                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3.5 py-3 text-[10px] leading-relaxed text-amber-100">
+                    {mpvStatus.lastErrorMessage ?? `最近退出：${mpvStatus.lastExitReason}`}
+                  </div>
+                )}
+              </section>
+
+              <section id="mvp125-player-acceptance-checklist" className="rounded-2xl border border-border-color bg-card-bg/30 p-5 space-y-4">
+                <div className="flex items-center gap-2">
+                  <HardDrive className="h-4 w-4 text-cyan-300" />
+                  <h3 className="text-xs font-bold text-text-primary">Windows 播放链路快检</h3>
+                </div>
+                <p className="text-[10px] leading-relaxed text-text-muted">
+                  一条命令覆盖真实 mpv 进度事件、暂停/跳转、可选队列切歌和退出残留检查。只读取你明确指定的小样本，不扫描资源库。
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {playerAcceptanceService.checks.map((item) => (
+                    <div key={item.id} className="rounded-xl border border-border-color/50 bg-card-bg/35 p-3">
+                      <p className="text-[10px] font-bold text-text-primary">{item.title}</p>
+                      <p className="mt-1 text-[9px] leading-relaxed text-text-muted">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+                <code className="block rounded-lg border border-border-color/60 bg-black/20 px-3 py-2 text-[10px] text-cyan-200">
+                  {playerAcceptanceService.command}
+                </code>
+                <p className="text-[9px] leading-relaxed text-text-muted">
+                  必填 YANG_KURA_MPV_TEST_AUDIO；可选 YANG_KURA_MPV_TEST_AUDIO_2 验证队列切歌，YANG_KURA_MPV_TEST_RESUME_SECONDS 验证进度恢复。输出只显示文件名。
+                </p>
+              </section>
+
+              <section id="mvp123-mpv-windows-sample-check" className="rounded-2xl border border-border-color bg-card-bg/30 p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <HardDrive className="h-4 w-4 text-cyan-300" />
+                  <h3 className="text-xs font-bold text-text-primary">Windows 小样本验证工具</h3>
+                </div>
+                <p className="text-[10px] leading-relaxed text-text-muted">
+                  源码包提供只读验证命令，可检查 mpv 版本，并可选用一条小音频做 0.5 秒无声解码测试。它不会修改媒体文件。
+                </p>
+                <code className="block rounded-lg border border-border-color/60 bg-black/20 px-3 py-2 text-[10px] text-cyan-200">
+                  npm run test:mpv:windows
+                </code>
+                <p className="text-[9px] text-text-muted">
+                  可选设置 YANG_KURA_MPV_PATH 和 YANG_KURA_MPV_TEST_AUDIO；命令输出只显示文件名，不打印真实绝对路径。
+                </p>
+              </section>
+            </div>
+          )}
+
+          {/* TAB 3: 资源库目录 */}
           {activeTab === "paths" && (
             <div className="space-y-5 animate-fade-in">
               <section id="mvp44-settings-daily-flow" className="rounded-2xl border border-brand-color/20 bg-brand-color/5 p-5 space-y-4">
@@ -1073,6 +1620,331 @@ export default function SettingsPage({
                       {indexReadMessage}
                     </p>
                   )}
+                </div>
+
+                <div id="mvp127-library-index-health-management" className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
+                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <ShieldAlert size={15} className="text-amber-300" />
+                        <h3 className="text-xs font-bold text-text-primary">缺失文件与失效记录</h3>
+                      </div>
+                      <p className="text-[10px] text-text-muted mt-1 leading-relaxed">
+                        只读核对 library-index.json 中的音轨、封面和字幕是否仍存在。检查、重新定位和移除预览都不会删除、移动或重命名媒体文件。
+                      </p>
+                    </div>
+                    <span className="text-[9px] px-2 py-1 rounded-full bg-amber-500/10 text-amber-200 border border-amber-500/20 font-bold whitespace-nowrap">
+                      只读检查
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => handleCheckLibraryIndexHealth("asmr")}
+                      disabled={!hasSelectedRootToken("asmr") || isCheckingIndexHealth}
+                      className="px-3 py-2 rounded-xl bg-amber-600 text-white text-xs font-bold hover:bg-amber-500 transition-all disabled:opacity-50 cursor-pointer"
+                    >
+                      {isCheckingIndexHealth ? "检查中..." : "检查音声库记录"}
+                    </button>
+                    <button
+                      onClick={() => handleCheckLibraryIndexHealth("music")}
+                      disabled={!hasSelectedRootToken("music") || isCheckingIndexHealth}
+                      className="px-3 py-2 rounded-xl bg-amber-600 text-white text-xs font-bold hover:bg-amber-500 transition-all disabled:opacity-50 cursor-pointer"
+                    >
+                      {isCheckingIndexHealth ? "检查中..." : "检查音乐库记录"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        const type = indexHealthResult?.ok
+                          ? indexHealthResult.libraryType
+                          : hasSelectedRootToken("asmr")
+                            ? "asmr"
+                            : "music";
+                        void handleRunDryRunPreview(type);
+                      }}
+                      disabled={isDryRunning || (!hasSelectedRootToken("asmr") && !hasSelectedRootToken("music"))}
+                      className="px-3 py-2 rounded-xl border border-border-color bg-card-bg/60 text-text-primary text-xs font-bold hover:bg-card-bg transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                    >
+                      <RefreshCw size={13} className={isDryRunning ? "animate-spin" : ""} />
+                      只读重新扫描
+                    </button>
+                    <button
+                      onClick={handleGenerateIndexRemovalPreview}
+                      disabled={!indexHealthResult?.ok || !indexHealthResult.summary.canGenerateRemovalPreview || isGeneratingRemovalPreview}
+                      className="px-3 py-2 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-100 text-xs font-bold hover:bg-rose-500/20 transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Trash2 size={13} />
+                      {isGeneratingRemovalPreview ? "生成中..." : "生成从索引移除预览"}
+                    </button>
+                  </div>
+
+                  {indexHealthMessage && (
+                    <p className="rounded-xl border border-amber-500/20 bg-black/10 p-3 text-[10px] text-amber-100 leading-relaxed">
+                      {indexHealthMessage}
+                    </p>
+                  )}
+
+                  {indexHealthResult?.ok && (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                        {[
+                          ["已检查", indexHealthResult.summary.checkedReferenceCount],
+                          ["正常", indexHealthResult.summary.healthyCount],
+                          ["缺失", indexHealthResult.summary.missingCount],
+                          ["无法读取", indexHealthResult.summary.unreadableCount],
+                          ["索引异常", indexHealthResult.summary.invalidPathCount + indexHealthResult.summary.invalidReferenceCount + indexHealthResult.summary.wrongTypeCount],
+                        ].map(([label, value]) => (
+                          <div key={String(label)} className="rounded-xl border border-border-color/50 bg-card-bg/30 p-2">
+                            <p className="text-[9px] text-text-muted">{label}</p>
+                            <p className="mt-0.5 text-base font-mono font-bold text-text-primary">{value}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      {indexHealthResult.issues.length > 0 && (
+                        <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
+                          {indexHealthResult.issues.slice(0, 100).map((issue) => (
+                            <div key={issue.id} className="rounded-xl border border-border-color/50 bg-card-bg/30 p-3 flex flex-col md:flex-row md:items-center justify-between gap-2">
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-200 font-bold">
+                                    {issue.kind === "track" ? "音轨" : issue.kind === "cover" ? "封面" : issue.kind === "subtitle" ? "字幕" : "集合引用"}
+                                  </span>
+                                  <span className="text-[10px] font-bold text-text-primary">{issue.message}</span>
+                                </div>
+                                <p className="mt-1 text-[10px] text-text-muted truncate" title={issue.relativePath || issue.entityId}>
+                                  {issue.relativePath || `记录：${issue.entityId}`}
+                                </p>
+                              </div>
+                              {issue.canRevealParent && issue.relativePath && (
+                                <button
+                                  onClick={() => handleRevealMissingEntryParent(issue)}
+                                  disabled={revealingIssueId === issue.id}
+                                  className="px-3 py-1.5 rounded-lg border border-border-color bg-black/10 text-[10px] font-bold text-text-primary hover:bg-card-bg disabled:opacity-50 cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
+                                >
+                                  <FolderOpen size={12} />
+                                  {revealingIssueId === issue.id ? "打开中..." : "打开最近存在目录"}
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                          {indexHealthResult.issues.length > 100 && (
+                            <p className="text-[10px] text-text-muted">这里只显示前 100 条，完整数量见上方统计。</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {indexRemovalPreview?.ok && indexRemovalPreview.preview && (
+                    <div id="mvp127-index-removal-preview" className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-3 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <h4 className="text-[11px] font-bold text-rose-100">从索引移除预览</h4>
+                          <p className="text-[10px] text-rose-100/80 mt-1">
+                            当前仅生成计划，没有写入 library-index.json，也不会删除真实文件。
+                          </p>
+                        </div>
+                        <span className="text-[9px] px-2 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-200 font-bold">预览</span>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                        <div className="rounded-lg bg-black/10 border border-border-color/40 p-2"><p className="text-[9px] text-text-muted">音轨记录</p><p className="text-sm font-bold text-text-primary">{indexRemovalPreview.preview.summary.trackRemovalCount}</p></div>
+                        <div className="rounded-lg bg-black/10 border border-border-color/40 p-2"><p className="text-[9px] text-text-muted">封面引用</p><p className="text-sm font-bold text-text-primary">{indexRemovalPreview.preview.summary.coverDetachCount}</p></div>
+                        <div className="rounded-lg bg-black/10 border border-border-color/40 p-2"><p className="text-[9px] text-text-muted">字幕引用</p><p className="text-sm font-bold text-text-primary">{indexRemovalPreview.preview.summary.subtitleDetachCount}</p></div>
+                        <div className="rounded-lg bg-black/10 border border-border-color/40 p-2"><p className="text-[9px] text-text-muted">受影响集合</p><p className="text-sm font-bold text-text-primary">{indexRemovalPreview.preview.summary.affectedCollectionCount}</p></div>
+                        <div className="rounded-lg bg-black/10 border border-border-color/40 p-2"><p className="text-[9px] text-text-muted">可能变空</p><p className="text-sm font-bold text-text-primary">{indexRemovalPreview.preview.summary.emptyCollectionCount}</p></div>
+                      </div>
+                      <div id="mvp128-controlled-index-cleanup" className="rounded-xl border border-rose-400/25 bg-black/10 p-3 space-y-2">
+                        <div>
+                          <p className="text-[10px] font-bold text-rose-100">受控写入确认</p>
+                          <p className="mt-1 text-[10px] text-text-muted leading-relaxed">
+                            写入前会再次核对源 index 的 SHA-256，并在同目录创建备份。只移除索引记录，不删除、移动或重命名媒体文件。
+                          </p>
+                        </div>
+                        <input
+                          value={indexRemovalConfirmation}
+                          onChange={(event) => setIndexRemovalConfirmation(event.target.value)}
+                          placeholder="输入 CONFIRM_REMOVE_MISSING_INDEX_RECORDS"
+                          aria-label="索引清理确认文本"
+                          className="w-full rounded-lg border border-border-color bg-black/20 px-3 py-2 text-[10px] text-text-primary outline-none focus:border-rose-400/60"
+                        />
+                        <button
+                          onClick={handleWriteIndexRemoval}
+                          disabled={isWritingIndexRemoval || indexRemovalConfirmation !== "CONFIRM_REMOVE_MISSING_INDEX_RECORDS"}
+                          className="px-3 py-2 rounded-lg bg-rose-600 text-white text-[10px] font-bold hover:bg-rose-500 disabled:opacity-50 cursor-pointer"
+                        >
+                          {isWritingIndexRemoval ? "备份并写入中..." : "创建备份并写入索引清理"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {indexRemovalWriteResult?.ok && indexRemovalWriteResult.writePerformed && (
+                    <div id="mvp128-index-cleanup-result" className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-3 space-y-2">
+                      <div className="flex items-center gap-2 text-emerald-100">
+                        <CircleCheck size={14} />
+                        <p className="text-[11px] font-bold">索引清理已完成</p>
+                      </div>
+                      <p className="text-[10px] text-emerald-100/80">{indexRemovalWriteResult.message}</p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[9px]">
+                        <div className="rounded-lg bg-black/10 p-2">移除音轨：{indexRemovalWriteResult.summary?.removedTrackCount ?? 0}</div>
+                        <div className="rounded-lg bg-black/10 p-2">解除封面：{indexRemovalWriteResult.summary?.detachedCoverCount ?? 0}</div>
+                        <div className="rounded-lg bg-black/10 p-2">解除字幕：{indexRemovalWriteResult.summary?.detachedSubtitleCount ?? 0}</div>
+                        <div className="rounded-lg bg-black/10 p-2">备份：{indexRemovalWriteResult.backupRelativePath || "已创建"}</div>
+                      </div>
+                    </div>
+                  )}
+
+
+                  <div id="mvp129-index-maintenance-closeout" className="rounded-xl border border-sky-500/20 bg-sky-500/5 p-3 space-y-3">
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
+                      <div>
+                        <h4 className="text-[11px] font-bold text-sky-100">索引备份与维护历史</h4>
+                        <p className="mt-1 text-[10px] text-text-muted leading-relaxed">
+                          读取同目录 index 备份、手动恢复、查看维护历史，并预览过期备份。恢复前会再次备份当前 index；本轮不会删除备份或媒体文件。
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => handleLoadIndexMaintenance("asmr")}
+                          disabled={isLoadingIndexBackups || isLoadingMaintenanceHistory}
+                          className="px-3 py-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 text-[10px] font-bold text-sky-100 hover:bg-sky-500/20 disabled:opacity-50 cursor-pointer"
+                        >
+                          音声库备份
+                        </button>
+                        <button
+                          onClick={() => handleLoadIndexMaintenance("music")}
+                          disabled={isLoadingIndexBackups || isLoadingMaintenanceHistory}
+                          className="px-3 py-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 text-[10px] font-bold text-sky-100 hover:bg-sky-500/20 disabled:opacity-50 cursor-pointer"
+                        >
+                          音乐库备份
+                        </button>
+                      </div>
+                    </div>
+
+                    {indexBackupListResult?.ok && (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[9px]">
+                          <div className="rounded-lg bg-black/10 p-2">备份总数：{indexBackupListResult.summary?.totalCount ?? 0}</div>
+                          <div className="rounded-lg bg-black/10 p-2">可恢复：{indexBackupListResult.summary?.validCount ?? 0}</div>
+                          <div className="rounded-lg bg-black/10 p-2">异常：{indexBackupListResult.summary?.invalidCount ?? 0}</div>
+                          <div className="rounded-lg bg-black/10 p-2">总大小：{Math.round((indexBackupListResult.summary?.totalBytes ?? 0) / 1024)} KB</div>
+                        </div>
+
+                        <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
+                          {(indexBackupListResult.backups ?? []).slice(0, 50).map((backup) => (
+                            <label
+                              key={backup.relativePath}
+                              className={`flex items-start gap-2 rounded-lg border p-2 ${backup.valid ? "border-border-color/50 bg-black/10 cursor-pointer" : "border-rose-500/20 bg-rose-500/5 opacity-75"}`}
+                            >
+                              <input
+                                type="radio"
+                                name="index-backup-restore"
+                                checked={selectedIndexBackup === backup.relativePath}
+                                disabled={!backup.valid}
+                                onChange={() => setSelectedIndexBackup(backup.relativePath)}
+                                className="mt-0.5"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-[10px] font-bold text-text-primary truncate">{backup.fileName}</span>
+                                  <span className={`text-[8px] px-1.5 py-0.5 rounded-full border ${backup.valid ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-200" : "border-rose-500/20 bg-rose-500/10 text-rose-200"}`}>
+                                    {backup.valid ? "可恢复" : "不可恢复"}
+                                  </span>
+                                </div>
+                                <p className="mt-1 text-[9px] text-text-muted">
+                                  {backup.modifiedAt ? new Date(backup.modifiedAt).toLocaleString() : "时间未知"} · {Math.round(backup.sizeBytes / 1024)} KB · {backup.message}
+                                </p>
+                              </div>
+                            </label>
+                          ))}
+                          {(indexBackupListResult.backups?.length ?? 0) === 0 && (
+                            <p className="text-[10px] text-text-muted">当前目录没有 index 备份。</p>
+                          )}
+                        </div>
+
+                        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 space-y-2">
+                          <p className="text-[10px] font-bold text-amber-100">手动恢复所选备份</p>
+                          <p className="text-[9px] text-text-muted">恢复前会创建 library-index.backup.before-mvp129-restore-*.json，并核对所选备份 SHA-256。</p>
+                          <input
+                            value={indexBackupRestoreConfirmation}
+                            onChange={(event) => setIndexBackupRestoreConfirmation(event.target.value)}
+                            placeholder="输入 CONFIRM_RESTORE_LIBRARY_INDEX_BACKUP"
+                            aria-label="索引备份恢复确认文本"
+                            className="w-full rounded-lg border border-border-color bg-black/20 px-3 py-2 text-[10px] text-text-primary outline-none focus:border-amber-400/60"
+                          />
+                          <button
+                            onClick={handleRestoreIndexBackup}
+                            disabled={isRestoringIndexBackup || !selectedIndexBackup || indexBackupRestoreConfirmation !== "CONFIRM_RESTORE_LIBRARY_INDEX_BACKUP"}
+                            className="px-3 py-2 rounded-lg bg-amber-600 text-white text-[10px] font-bold hover:bg-amber-500 disabled:opacity-50 cursor-pointer"
+                          >
+                            {isRestoringIndexBackup ? "备份并恢复中..." : "备份当前 index 并恢复所选版本"}
+                          </button>
+                        </div>
+
+                        <div className="rounded-lg border border-border-color/50 bg-black/10 p-3 space-y-2">
+                          <div className="flex flex-col sm:flex-row sm:items-end gap-2">
+                            <label className="text-[9px] text-text-muted">
+                              过期天数
+                              <input
+                                type="number"
+                                min={1}
+                                max={3650}
+                                value={indexBackupMaxAgeDays}
+                                onChange={(event) => setIndexBackupMaxAgeDays(Math.max(1, Number(event.target.value) || 90))}
+                                className="mt-1 w-28 block rounded-lg border border-border-color bg-black/20 px-2 py-1.5 text-[10px] text-text-primary"
+                              />
+                            </label>
+                            <button
+                              onClick={handlePreviewBackupRetention}
+                              disabled={isPreviewingBackupRetention}
+                              className="px-3 py-1.5 rounded-lg border border-border-color bg-card-bg text-[10px] font-bold text-text-primary hover:bg-black/10 disabled:opacity-50 cursor-pointer"
+                            >
+                              {isPreviewingBackupRetention ? "生成中..." : "预览过期备份（保留最新 5 个）"}
+                            </button>
+                          </div>
+                          {indexBackupRetentionPreview?.ok && indexBackupRetentionPreview.preview && (
+                            <div id="mvp129-backup-retention-preview" className="text-[9px] text-text-muted space-y-1">
+                              <p>候选：{indexBackupRetentionPreview.preview.candidateCount} 个，约 {Math.round(indexBackupRetentionPreview.preview.candidateBytes / 1024)} KB；保留：{indexBackupRetentionPreview.preview.retainedCount} 个。</p>
+                              <p className="text-amber-200">纯预览：deletePerformed=false，本轮没有删除入口。</p>
+                              {indexBackupRetentionPreview.preview.candidates.slice(0, 10).map((item) => (
+                                <p key={item.relativePath} className="truncate">· {item.fileName} · {item.modifiedAt ? new Date(item.modifiedAt).toLocaleDateString() : "时间未知"}</p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {indexBackupRestoreResult && (
+                      <div id="mvp129-index-backup-restore-result" className={`rounded-lg border p-3 text-[10px] ${indexBackupRestoreResult.ok ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-100" : "border-rose-500/20 bg-rose-500/10 text-rose-100"}`}>
+                        <p className="font-bold">{indexBackupRestoreResult.ok ? "备份恢复完成" : "备份恢复失败"}</p>
+                        <p className="mt-1">{indexBackupRestoreResult.message}</p>
+                        {indexBackupRestoreResult.currentBackupRelativePath && <p className="mt-1">恢复前备份：{indexBackupRestoreResult.currentBackupRelativePath}</p>}
+                      </div>
+                    )}
+
+                    {indexMaintenanceHistory?.ok && (
+                      <div id="mvp129-index-maintenance-history" className="rounded-lg border border-border-color/50 bg-black/10 p-3 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-[10px] font-bold text-text-primary">最近维护历史</p>
+                          <span className="text-[9px] text-text-muted">成功 {indexMaintenanceHistory.summary?.successCount ?? 0} · 失败 {indexMaintenanceHistory.summary?.failedCount ?? 0}</span>
+                        </div>
+                        <div className="max-h-44 overflow-y-auto space-y-1.5">
+                          {(indexMaintenanceHistory.entries ?? []).map((entry) => (
+                            <div key={entry.id} className="rounded-lg bg-card-bg/30 border border-border-color/40 p-2 text-[9px]">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-bold text-text-primary">{entry.action === "controlled-cleanup" ? "失效索引清理" : "备份恢复"}</span>
+                                <span className={entry.status === "complete" ? "text-emerald-300" : "text-rose-300"}>{entry.status === "complete" ? "完成" : "失败"}</span>
+                              </div>
+                              <p className="mt-1 text-text-muted">{new Date(entry.occurredAt).toLocaleString()} · {entry.message}</p>
+                            </div>
+                          ))}
+                          {(indexMaintenanceHistory.entries?.length ?? 0) === 0 && <p className="text-[9px] text-text-muted">暂无维护历史。</p>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useDeferredValue } from "react";
 import {
   Music,
   Disc,
@@ -26,6 +26,7 @@ import { libraryBrowseSurfaceService, type LibraryBrowseTone } from "../services
 import { libraryBetaRegressionPolishService } from "../services/libraryBetaRegressionPolishService";
 import { libraryVisualUnityService } from "../services/libraryVisualUnityService";
 import { libraryCardLayoutPolishService } from "../services/libraryCardLayoutPolishService";
+import { LARGE_LIBRARY_RENDER_LIMITS, libraryPerformanceService } from "../services/libraryPerformanceService";
 
 interface MusicLibraryProps {
   albums: MusicAlbum[];
@@ -67,6 +68,8 @@ export default function MusicLibrary({
   const [externalOpenMessage, setExternalOpenMessage] = useState<string | null>(
     null,
   );
+  const [renderLimit, setRenderLimit] = useState(LARGE_LIBRARY_RENDER_LIMITS.musicTracksInitial);
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const showExternalOpenMessage = (message: string) => {
     setExternalOpenMessage(message);
@@ -157,21 +160,12 @@ export default function MusicLibrary({
     return albums.flatMap((album) => album.tracks);
   }, [albums]);
 
-  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const musicSearchIndex = useMemo(() => libraryPerformanceService.buildMusicSearchIndex(albums), [albums]);
+  const normalizedSearchQuery = libraryPerformanceService.normalizeQuery(deferredSearchQuery);
   const filteredAlbums = useMemo(() => {
     if (!normalizedSearchQuery) return albums;
-    return albums.filter((album) =>
-      album.title.toLowerCase().includes(normalizedSearchQuery) ||
-      album.artist.toLowerCase().includes(normalizedSearchQuery) ||
-      album.genre.toLowerCase().includes(normalizedSearchQuery) ||
-      album.releaseYear.toLowerCase().includes(normalizedSearchQuery) ||
-      album.tracks.some((track) =>
-        track.title.toLowerCase().includes(normalizedSearchQuery) ||
-        track.artist.toLowerCase().includes(normalizedSearchQuery) ||
-        track.album.toLowerCase().includes(normalizedSearchQuery)
-      )
-    );
-  }, [albums, normalizedSearchQuery]);
+    return albums.filter((album) => musicSearchIndex.albumTextById.get(album.id)?.includes(normalizedSearchQuery));
+  }, [albums, normalizedSearchQuery, musicSearchIndex]);
 
   // Format single track duration (mm:ss)
   const formatDuration = (seconds: number | undefined) => {
@@ -182,11 +176,15 @@ export default function MusicLibrary({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Get list of unique artists
-  const artistsList = useMemo(() => {
-    const list = new Set<string>();
-    filteredAlbums.forEach((album) => list.add(album.artist));
-    return Array.from(list);
+  // Aggregate artists once. The old render path repeatedly flattened every album for every artist.
+  const artistGroups = useMemo(() => {
+    const groups = new Map<string, { name: string; count: number; coverUrl?: string }>();
+    filteredAlbums.forEach((album) => {
+      const current = groups.get(album.artist);
+      if (current) current.count += album.tracks.length;
+      else groups.set(album.artist, { name: album.artist, count: album.tracks.length, coverUrl: album.coverUrl });
+    });
+    return Array.from(groups.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [filteredAlbums]);
 
   const musicSummary = useMemo(
@@ -227,15 +225,7 @@ export default function MusicLibrary({
 
     // Filter by global search query
     if (normalizedSearchQuery) {
-      const albumByTrackId = new Map(albums.flatMap((album) => album.tracks.map((track) => [track.id, album] as const)));
-      list = list.filter((track) => {
-        const album = albumByTrackId.get(track.id);
-        return track.title.toLowerCase().includes(normalizedSearchQuery) ||
-          track.artist.toLowerCase().includes(normalizedSearchQuery) ||
-          track.album.toLowerCase().includes(normalizedSearchQuery) ||
-          album?.genre.toLowerCase().includes(normalizedSearchQuery) ||
-          album?.releaseYear.toLowerCase().includes(normalizedSearchQuery);
-      });
+      list = list.filter((track) => musicSearchIndex.trackTextById.get(track.id)?.includes(normalizedSearchQuery));
     }
 
     // Filter by selected album using stable track IDs, even when display metadata was overridden.
@@ -279,7 +269,44 @@ export default function MusicLibrary({
     selectedFolder,
     albums,
     sortBy,
+    musicSearchIndex,
   ]);
+
+  useEffect(() => {
+    const initial = activeSubView === 'tracks'
+      ? LARGE_LIBRARY_RENDER_LIMITS.musicTracksInitial
+      : activeSubView === 'albums'
+        ? LARGE_LIBRARY_RENDER_LIMITS.musicAlbumsInitial
+        : LARGE_LIBRARY_RENDER_LIMITS.musicGroupsInitial;
+    setRenderLimit(initial);
+  }, [activeSubView, deferredSearchQuery, selectedAlbumId, selectedArtist, selectedFolder, sortBy]);
+
+  const visibleTracks = useMemo(() => libraryPerformanceService.sliceRenderWindow(filteredTracks, renderLimit), [filteredTracks, renderLimit]);
+  const visibleAlbums = useMemo(() => libraryPerformanceService.sliceRenderWindow(filteredAlbums, renderLimit), [filteredAlbums, renderLimit]);
+  const visibleArtistGroups = useMemo(() => libraryPerformanceService.sliceRenderWindow(artistGroups, renderLimit), [artistGroups, renderLimit]);
+  const visibleFolderGroups = useMemo(() => libraryPerformanceService.sliceRenderWindow(folderGroups, renderLimit), [folderGroups, renderLimit]);
+  const currentTotalCount = activeSubView === 'tracks' || selectedAlbumId || selectedArtist || selectedFolder
+    ? filteredTracks.length
+    : activeSubView === 'albums'
+      ? filteredAlbums.length
+      : activeSubView === 'artists'
+        ? artistGroups.length
+        : folderGroups.length;
+  const currentVisibleCount = activeSubView === 'tracks' || selectedAlbumId || selectedArtist || selectedFolder
+    ? visibleTracks.length
+    : activeSubView === 'albums'
+      ? visibleAlbums.length
+      : activeSubView === 'artists'
+        ? visibleArtistGroups.length
+        : visibleFolderGroups.length;
+  const currentStep = activeSubView === 'tracks' || selectedAlbumId || selectedArtist || selectedFolder
+    ? LARGE_LIBRARY_RENDER_LIMITS.musicTracksStep
+    : activeSubView === 'albums'
+      ? LARGE_LIBRARY_RENDER_LIMITS.musicAlbumsStep
+      : LARGE_LIBRARY_RENDER_LIMITS.musicGroupsStep;
+  const currentNoun = activeSubView === 'tracks' || selectedAlbumId || selectedArtist || selectedFolder ? '曲目' : activeSubView === 'albums' ? '专辑' : activeSubView === 'artists' ? '艺术家' : '文件夹';
+  const renderWindow = useMemo(() => libraryPerformanceService.getRenderWindowModel(currentTotalCount, currentVisibleCount, currentStep, currentNoun), [currentTotalCount, currentVisibleCount, currentStep, currentNoun]);
+  const isSearchPending = deferredSearchQuery !== searchQuery;
 
   const selectedAlbumTitle = selectedAlbumId
     ? albums.find((album) => album.id === selectedAlbumId)?.title ?? null
@@ -528,6 +555,15 @@ export default function MusicLibrary({
         </div>
       )}
 
+      <div id="mvp126-music-render-window" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-xl border border-cyan-500/15 bg-cyan-500/5 px-3 py-2 text-[10px] text-text-muted">
+        <span>{isSearchPending ? '正在更新搜索结果…' : renderWindow.summary}</span>
+        {renderWindow.hasMore && (
+          <button type="button" onClick={() => setRenderLimit((value) => value + currentStep)} className="self-start sm:self-auto rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 font-bold text-cyan-200">
+            再显示 {renderWindow.nextCount} 项
+          </button>
+        )}
+      </div>
+
       {/* Main SubView Content */}
       {activeSubView === "tracks" ||
       selectedAlbumId ||
@@ -575,7 +611,7 @@ export default function MusicLibrary({
           ) : (
             <div id="mvp76-music-track-layout-unity" className="bg-card-bg/40 border border-border-color/60 rounded-xl overflow-hidden divide-y divide-border-color/40" aria-label={mvp76CardLayout.trackListAriaLabel}>
               <span hidden aria-hidden="true">mvp76-card-layout-unity：音乐歌曲行在窄屏会换行，封面、标题、状态与操作按钮不挤压。</span>
-              {filteredTracks.map((track, idx) => {
+              {visibleTracks.map((track, idx) => {
                 const isFav = favorites.includes(track.id);
                 return (
                   <div
@@ -698,7 +734,7 @@ export default function MusicLibrary({
           renderEmptyState(collectionDetailExperienceService.getMusicEmptyState({ view: 'albums', hasFilters: false, searchQuery }))
         ) : (
         <div id="mvp76-music-card-layout-unity" className={mvp76CardLayout.albumGridClassName} aria-label={mvp76CardLayout.albumGridAriaLabel}>
-          {filteredAlbums.map((album) => (
+          {visibleAlbums.map((album) => (
             <div
               key={album.id}
               onClick={() => setSelectedAlbumId(album.id)}
@@ -745,15 +781,14 @@ export default function MusicLibrary({
         )
       ) : activeSubView === "artists" ? (
         /* SubView: Artists View */
-        artistsList.length === 0 ? (
+        artistGroups.length === 0 ? (
           renderEmptyState(collectionDetailExperienceService.getMusicEmptyState({ view: 'artists', hasFilters: false, searchQuery }))
         ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {artistsList.map((artist) => {
-            const count = filteredAlbums.flatMap((album) => album.tracks).filter((t) => t.artist === artist).length;
-            const artistCover = filteredAlbums.find(
-              (a) => a.artist === artist,
-            )?.coverUrl;
+          {visibleArtistGroups.map((artistGroup) => {
+            const artist = artistGroup.name;
+            const count = artistGroup.count;
+            const artistCover = artistGroup.coverUrl;
             return (
               <div
                 key={artist}
@@ -789,7 +824,7 @@ export default function MusicLibrary({
           renderEmptyState(collectionDetailExperienceService.getMusicEmptyState({ view: 'folders', hasFilters: false, searchQuery }))
         ) : (
         <div className="space-y-3">
-          {folderGroups.map((f) => (
+          {visibleFolderGroups.map((f) => (
             <div
               key={f.name}
               onClick={() => setSelectedFolder(f.name)}

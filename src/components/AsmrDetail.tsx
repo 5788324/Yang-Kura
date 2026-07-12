@@ -31,8 +31,9 @@ import { collectionDetailExperienceService, type CollectionDetailStatusChip } fr
 import { asmrDetailSurfaceService, type AsmrDetailSurfaceChip } from '../services/asmrDetailSurfaceService';
 import { asmrDetailSideRailService, type AsmrDetailSideRailChip } from '../services/asmrDetailSideRailService';
 import { metadataOverrideService } from '../services/metadataOverrideService';
+import type { AsmrMetadataSaveContext } from '../services/metadataOverrideService';
 import AsmrMetadataProviderPreview from './AsmrMetadataProviderPreview';
-import type { AsmrMetadataProviderCandidateV1 } from '../services/asmrMetadataProviderPreviewService';
+import type { AsmrMetadataProviderCandidateV1, AsmrMetadataProviderField } from '../services/asmrMetadataProviderPreviewService';
 
 interface AsmrDetailProps {
   rjWork: RJWork;
@@ -42,7 +43,7 @@ interface AsmrDetailProps {
   favorites: string[];
   toggleFavorite: (trackId: string) => void;
   onExplore?: (query: string) => void;
-  onUpdateRjWork?: (updated: RJWork) => void;
+  onUpdateRjWork?: (updated: RJWork, source?: AsmrMetadataSaveContext) => void;
   onClearRjWorkOverride?: (workId: string) => void;
 }
 
@@ -69,6 +70,7 @@ export default function AsmrDetail({
   const [editTags, setEditTags] = useState<string[]>([...rjWork.tags]);
   const [newTagInput, setNewTagInput] = useState('');
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+  const [pendingMetadataSource, setPendingMetadataSource] = useState<AsmrMetadataSaveContext | null>(null);
 
   // --- ASMR Track Progress Persistence & Playback State ---
   const [trackProgress, setTrackProgress] = useState<Record<string, { percent: number; completed: boolean }>>({});
@@ -424,6 +426,15 @@ export default function AsmrDetail({
                     本地修改 {metadataOverrideService.getAsmrOverrideFieldCount(rjWork.id)} 项
                   </span>
                 )}
+                {metadataOverrideService.getAsmrOverrideSourceLabel(rjWork.id) && (
+                  <span
+                    data-testid="mvp121-saved-metadata-source"
+                    className="bg-violet-500/10 border border-violet-500/20 text-violet-300 text-[10px] px-2.5 py-0.5 rounded-full font-bold"
+                    title={metadataOverrideService.getAsmrOverrideProvenance(rjWork.id)?.savedAt}
+                  >
+                    来源：{metadataOverrideService.getAsmrOverrideSourceLabel(rjWork.id)}
+                  </span>
+                )}
               </div>
               <h2 className="text-xl md:text-2xl font-bold text-text-primary leading-snug tracking-tight">
                 {rjWork.title}
@@ -524,6 +535,7 @@ export default function AsmrDetail({
                     setEditReleaseDate(rjWork.releaseDate);
                     setEditDescription(rjWork.description || '');
                     setEditTags([...rjWork.tags]);
+                    setPendingMetadataSource(null);
                     setIsEditModalOpen(true);
                   }}
                   className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-indigo-400 border border-indigo-500/20 text-xs font-semibold hover:scale-105 active:scale-95 transition-all cursor-pointer"
@@ -1081,7 +1093,7 @@ export default function AsmrDetail({
 
       {/* Manual Metadata & Tag Editor Modal */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in" onClick={() => setIsEditModalOpen(false)}>
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in" onClick={() => { setPendingMetadataSource(null); setIsEditModalOpen(false); }}>
           <div className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[85vh] animate-scale-up" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between bg-black/25">
@@ -1090,7 +1102,7 @@ export default function AsmrDetail({
                 <span>编辑本地元数据 & 标签修改 ({rjWork.id})</span>
               </h3>
               <button 
-                onClick={() => setIsEditModalOpen(false)}
+                onClick={() => { setPendingMetadataSource(null); setIsEditModalOpen(false); }}
                 className="text-text-muted hover:text-text-primary transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -1214,20 +1226,28 @@ export default function AsmrDetail({
 
               <AsmrMetadataProviderPreview
                 work={rjWork}
-                onApplyToDraft={(candidate: AsmrMetadataProviderCandidateV1) => {
+                onApplyToDraft={(candidate: AsmrMetadataProviderCandidateV1, selectedFields: AsmrMetadataProviderField[]) => {
                   if (candidate.title !== undefined) setEditTitle(candidate.title);
                   if (candidate.circle !== undefined) setEditCircle(candidate.circle);
                   if (candidate.cvs !== undefined) setEditCvsStr(candidate.cvs.join(', '));
                   if (candidate.releaseDate !== undefined) setEditReleaseDate(candidate.releaseDate);
                   if (candidate.description !== undefined) setEditDescription(candidate.description);
                   if (candidate.tags !== undefined) setEditTags(candidate.tags);
-                  showFeedback('外部信息已填入编辑表单，点击“保存修改”后才会写入本地覆盖层。');
+                  setPendingMetadataSource({
+                    kind: 'provider',
+                    provider: candidate.provider,
+                    sourceLabel: candidate.sourceLabel,
+                    sourceUrl: candidate.sourceUrl,
+                    fetchedAt: candidate.fetchedAt,
+                    appliedFields: selectedFields,
+                  });
+                  showFeedback(`已填入 ${selectedFields.length} 项外部候选值，点击“保存修改”后才会写入本地覆盖层。`);
                 }}
               />
             </div>
 
             <div className="px-5 pb-3 text-[11px] leading-5 text-text-muted">
-              修改会保存到独立的本地元数据覆盖层。重新扫描资源库时会继续应用，不修改音频文件标签，也不联网。
+              修改会保存到独立的本地元数据覆盖层。重新扫描资源库时会继续应用，不修改音频文件标签。{pendingMetadataSource?.kind === 'provider' ? ` 本次保存将记录来源：${pendingMetadataSource.sourceLabel ?? pendingMetadataSource.provider ?? '外部候选信息'}。` : ''}
             </div>
 
             {/* Actions */}
@@ -1248,7 +1268,7 @@ export default function AsmrDetail({
               </div>
               <div className="flex items-center space-x-2">
               <button
-                onClick={() => setIsEditModalOpen(false)}
+                onClick={() => { setPendingMetadataSource(null); setIsEditModalOpen(false); }}
                 className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-text-secondary hover:text-text-primary text-xs font-semibold transition-colors cursor-pointer border border-white/5"
               >
                 取消
@@ -1264,8 +1284,9 @@ export default function AsmrDetail({
                       releaseDate: editReleaseDate,
                       description: editDescription,
                       tags: editTags
-                    });
+                    }, pendingMetadataSource ?? { kind: 'manual' });
                   }
+                  setPendingMetadataSource(null);
                   setIsEditModalOpen(false);
                   showFeedback('本地元数据修改已保存，重新扫描后仍会保留。');
                 }}

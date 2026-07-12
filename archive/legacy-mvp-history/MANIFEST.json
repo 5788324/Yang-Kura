@@ -1,0 +1,2393 @@
+{
+  "schemaVersion": "yang-kura-legacy-archive-manifest-v1",
+  "generatedFor": "0.167.0-mvp129",
+  "fileCount": 477,
+  "totalBytes": 1045613,
+  "files": [
+    {
+      "path": "archive/legacy-mvp-history/README.md",
+      "sizeBytes": 616,
+      "sha256": "ecdd71ac4ce3e8928dd0b6532141999ef17c1cbf82e79e5032744fd0d308ee0d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ASMR_DETAIL_SIDE_RAIL_MVP57.md",
+      "sizeBytes": 957,
+      "sha256": "0488b84918792e5e540745ed90ca6599c4a5979c8f0205a9890f4e06f68a0573"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ASMR_DETAIL_SURFACE_MVP56.md",
+      "sizeBytes": 1752,
+      "sha256": "8cfe524eb88f77fa9c9ee207e17511b8755321c20f8fe4de094ca31c7a05bf9d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/BETA_0_1_CLOSEOUT_MVP48.md",
+      "sizeBytes": 2139,
+      "sha256": "95f942f9bd67d2b566f5c7081ce5e78a53a69b7c9efe1ad63ded0212cbbb0261"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/BETA_CANDIDATE_CLOSEOUT_MVP60.md",
+      "sizeBytes": 1758,
+      "sha256": "537a2d2d3b288a71a74f817f3e8a040d31903de3b0490edc777c6e7320689b31"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/BETA_CLOSEOUT_PUSH_PREP_MVP83.md",
+      "sizeBytes": 870,
+      "sha256": "2cc52dcfcf7a8613c013e3ab18939df9cd4149603daa2a86e62b8397088d5501"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/BETA_FINAL_HANDOFF_MVP70.md",
+      "sizeBytes": 1667,
+      "sha256": "5479e71a2d1cb4e658b2844c0e988f8ad5a93b7827e75df30f2ce504798a4d84"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/BETA_GUI_REGRESSION_MVP66.md",
+      "sizeBytes": 1974,
+      "sha256": "c5efcde7ae800f9cddaa91431de3a1b190b94656b9e409743f6a01c0f056370f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/BETA_RC_CLOSEOUT_MVP67.md",
+      "sizeBytes": 910,
+      "sha256": "3b084d9f74586924eb1b5884e0f2b2626d9b9e1ab5e2f8f75b748f3ba9264f38"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/BETA_RC_USER_GUIDE_MVP68.md",
+      "sizeBytes": 1561,
+      "sha256": "31f9d67ca362e04269a46b16ab2db5f418170a9ba830de30dc5cff7e4baa4f2f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/BETA_REGRESSION_CHECKLIST_MVP54.md",
+      "sizeBytes": 1619,
+      "sha256": "2ef8c0fa2c94690b1157c8253926f618ae3fbc2c7c73a7d6487b6b2679214226"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/BETA_RELEASE_CANDIDATE_MVP69.md",
+      "sizeBytes": 1887,
+      "sha256": "ef85031bb877cc5fe93a19d3ddd13dd73b6b7355fa0f3addf6bcdaa126a90a51"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CODEX_COPY_ONLY_EXECUTOR_VALIDATION_MVP95.md",
+      "sizeBytes": 1994,
+      "sha256": "0f0a77696a435af5e3eecf69bff3bd8de61b4931c1ffcfa17603c8f43d6bacb3"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CODEX_COPY_ONLY_GATE_MVP93.md",
+      "sizeBytes": 1622,
+      "sha256": "7686eaf4d2362973d11a95106e56b4049897af02b35d25fb89cfff1a46e8cb11"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CODEX_COPY_ONLY_VALIDATION_MVP92.md",
+      "sizeBytes": 1144,
+      "sha256": "2b8aacbf880f10e6b3efefacf8ebf3ba7834b7a0e4381b4c788fc99de7a75350"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CODEX_OPERATION_LOG_VALIDATION_MVP96.md",
+      "sizeBytes": 944,
+      "sha256": "2136585c2730ed2344392052ddf8ee0eae20acd1ee54a0c378a6b6771a14eacf"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CODEX_POST_COPY_REFRESH_VALIDATION_MVP97.md",
+      "sizeBytes": 1478,
+      "sha256": "e3bd20010802d9fa6e5519a610bc73899a94b0f7cdd31a1bd6327fd73d26cdc5"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CODEX_PUSH_READY_MVP85.md",
+      "sizeBytes": 1269,
+      "sha256": "6041f53e3b008edac781d7b11cf65b1106665c2d84338743df4cf6b165f3b072"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/COLLECTION_EMPTY_STATES_MVP43.md",
+      "sizeBytes": 1252,
+      "sha256": "0f99f1473fecd2756205a206a8714d386b9b8d28619c52debb6cc605bd5a3b9d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/COMPONENT_HEALTH_REVIEW_MVP55.md",
+      "sizeBytes": 1878,
+      "sha256": "50a7a2bac52f2240e03f57ea3206ac3397d160e42f3e9300c190c450b6669f75"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/COPY_EXECUTION_READINESS_MVP91.md",
+      "sizeBytes": 1492,
+      "sha256": "c633a736e3e6afc7169d49ae14633f5cff267727a39b15b11ffe0cdae7be12ef"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/COPY_ONLY_EXECUTOR_MVP95.md",
+      "sizeBytes": 1797,
+      "sha256": "5fc3ce88286d22291357a4ed25fabed2d6306b4ff45c4d0b794e3eac7218a261"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/COPY_ONLY_IMPORT_CLOSEOUT_MVP102.md",
+      "sizeBytes": 2638,
+      "sha256": "ab538b312a76b397cb8eefdaa7451fdc1790b6c850a4b0d6753ec032c59e4762"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/COPY_ONLY_MAIN_SIDE_STUB_MVP93.md",
+      "sizeBytes": 1471,
+      "sha256": "a90c08b56244b00a938c5226d0c2cb3924e06795e081e58fd2d5ccb8d77b717f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/COPY_ONLY_OPERATION_LOG_MVP96.md",
+      "sizeBytes": 1560,
+      "sha256": "60acf65a8a03deeebe260f9fcbdf333914571744f545c5281c1b6ff0166b7635"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/COPY_ONLY_PREFLIGHT_REAL_CHECK_MVP94.md",
+      "sizeBytes": 1497,
+      "sha256": "9a992fb4d9213703d1f0e19989a7596661acba30ce598896dc8c8d789b4a478d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/COPY_SAMPLE_READINESS_MVP92.md",
+      "sizeBytes": 1368,
+      "sha256": "b2d63363fd93feea91c0fe94cf971fd62dc1ff391dc8a4f7f7b25d8b0edc58c5"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP100.md",
+      "sizeBytes": 1165,
+      "sha256": "52a2efc447e75f1639084776ecdaa04ea8b01b278eb53b8e479d2409a39230f2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP101.md",
+      "sizeBytes": 1630,
+      "sha256": "7637ade2904bda93f49c02a6ba866d1d4106c30d92a26fb33dd86b39099784bf"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP102.md",
+      "sizeBytes": 1298,
+      "sha256": "8e63525f419c60abdb7f8b7be41dc158d1042a59dd6b6fc1d5e978451e5dbb85"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP103.md",
+      "sizeBytes": 1241,
+      "sha256": "f50784d939a1ac1da0ecebf2b1202f070b83e416154d4d10e7034e72f229d118"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP104.md",
+      "sizeBytes": 1689,
+      "sha256": "cd610b15a84162c81ebfa250256ee494261ce93e0cc87819738e79a9968652c2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP105.md",
+      "sizeBytes": 949,
+      "sha256": "170fa6d484b5c44af7641a6ed2799e27c1cfccb18fa47e3f89d94b9230f0c189"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP106.md",
+      "sizeBytes": 1241,
+      "sha256": "64612c236c761487a64dc59dc1e584a1c5c1db18b175a441e5f306b8810eb4c7"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP107.md",
+      "sizeBytes": 1278,
+      "sha256": "da4f657aaeb8da221d7507ebaeebb5681d970ed07980cc11b60d1d989dda8087"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP108.md",
+      "sizeBytes": 1867,
+      "sha256": "7060c86da176f9e0070ff6373fa8d8949b06add0a526098e972fc19c40ab8229"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP109.md",
+      "sizeBytes": 803,
+      "sha256": "dc1d29212cbe70337eddfeb7ad0e29e4171fe72b6f7e083253e6eaa8064ad03c"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP110.md",
+      "sizeBytes": 1421,
+      "sha256": "85c6dc48b7ccfb45bd67ccd52c1be90505bf720ed2d3cbbe3c0b5f76d36d2f3c"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP111.md",
+      "sizeBytes": 1246,
+      "sha256": "b44846856eafc5dd12aff0a6b065e70ab2488c664174508fa23ddcbb24825344"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP20.md",
+      "sizeBytes": 2500,
+      "sha256": "2389347f613f2ed662220087a268ce34ce09753b4fd47cec8f51c9f6159f3754"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP22.md",
+      "sizeBytes": 1920,
+      "sha256": "a41f8850de1813b087f9e68a8fb5b7f606905fe5eeb98e0d5c86c5285baee2f8"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP23.md",
+      "sizeBytes": 1481,
+      "sha256": "7465494f6d7a980fa09091e55d0309f3ccd40ead0885b56baee0ddec3ad9858f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP24.md",
+      "sizeBytes": 1509,
+      "sha256": "c7f27370f46d280e240f6aedfc2ab989388c7de61c2b3efda9d998458f3befa7"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP25.md",
+      "sizeBytes": 666,
+      "sha256": "874d6bb00b55cb237594cd6240c070789a55d0837d663da22cafcbf490267a8d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP26.md",
+      "sizeBytes": 600,
+      "sha256": "f776372d526d11af80f60b61245f9baa97290a043fa1528b736db24c9d050783"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP27.md",
+      "sizeBytes": 862,
+      "sha256": "44cef5a58d5870ba4df8551d596a4e579ae22e41bb94054db40e82c9d35bc965"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP28.md",
+      "sizeBytes": 1671,
+      "sha256": "3c75f3860f5697d59d563409d8628ce7da402489835ef02cedaf731867153e2d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP29.md",
+      "sizeBytes": 773,
+      "sha256": "b19d885d6b8875aeba6c6695d55073908b319ccb6630a2e55c139b24e21b92b9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP30.md",
+      "sizeBytes": 1691,
+      "sha256": "811aff3a601f71e8593f15497b60ae1d9a4f073cc5e4c69c70d4c6d6ac915ee5"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP31.md",
+      "sizeBytes": 913,
+      "sha256": "7cde223e9ac04d2598bcc89faaa48cda5c7a0a02ab74240752bcd2d64c997acb"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP32.md",
+      "sizeBytes": 1023,
+      "sha256": "843dd1820ab64c221c15e7ef3fe597d60c8f23f0ed29bdd459e8a21a58e7d6a3"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP33.md",
+      "sizeBytes": 1596,
+      "sha256": "e137afd6211743ea09a5b6444d05fbfcf0ee13f76ac152329500a84c5fdcc376"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP34.md",
+      "sizeBytes": 1743,
+      "sha256": "be3ff0cbbdd1245df93ebe54861afa595b1f2c1d430a76c2054d4405e8e9ca0c"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP35.md",
+      "sizeBytes": 898,
+      "sha256": "b5ae62b1f411844c8a7da8e5d6efda5411ccc0bb046ca4ce3efabda8900e8885"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP36.md",
+      "sizeBytes": 1008,
+      "sha256": "05ea3c163b45b2c0d7d8e32f9bf182749a766887a31793bbda8baff1c692c783"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP37.md",
+      "sizeBytes": 1043,
+      "sha256": "f5e0f7105ff29381fd18b4275cb4300c32aa3779c606fe9cceac47bdb16a7cf5"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP38.md",
+      "sizeBytes": 1622,
+      "sha256": "6d4e65e95d376705b6dacba4bb008d9adcb7cae46bcb4cf5a2ecf846c8ccdf99"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP39.md",
+      "sizeBytes": 1395,
+      "sha256": "f6539ec3afab6ce0dd7ae6eb7536d1623a4d143b95f10a92ff53fedea72e2aa3"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP40.md",
+      "sizeBytes": 1119,
+      "sha256": "ae7b41dbf02f7743f7b5ef272c19612571c291d2dfc25640d9302fd5ab4557b7"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP41.md",
+      "sizeBytes": 1483,
+      "sha256": "0b7c6f5abd4d9e28624f11b4acf5d7a93771621338e5f650aea158c542fcde18"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP42.md",
+      "sizeBytes": 1136,
+      "sha256": "fcfc6bbdec4c60c2e995424ef75e87257281c7bd214db1e86f7d0b4e25977765"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP43.md",
+      "sizeBytes": 1225,
+      "sha256": "150c04816d0daac18a480763c09d2b8bed81f653a28f2e56e7df9e85e99c0962"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP44.md",
+      "sizeBytes": 971,
+      "sha256": "93546b214396a9e91d2987261f6f63cb4a66938b48b02c3e85dab451feab8961"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP45.md",
+      "sizeBytes": 998,
+      "sha256": "87c910a44ae26ad200907e85c00eaf6b0fbc57d0ef32aede30c2468a461542e7"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP46.md",
+      "sizeBytes": 984,
+      "sha256": "5f5140ee6f0120c71acdca66a92461d08eb07ad067d04b78b1d963a87b293b14"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP47.md",
+      "sizeBytes": 1059,
+      "sha256": "12eea8902767718879821ed6eaedca0524cb7987c9713dfc92564e0120633ac0"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP48.md",
+      "sizeBytes": 1292,
+      "sha256": "1fc74836eee7ea706c737bbd2bb4ef5191b6d3311e0fd2ab5dfea89319c2b5ba"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP49.md",
+      "sizeBytes": 1256,
+      "sha256": "a69a967dd464057c7721f4337938fa6ac0f9a707efa920df1077cffd57c9099b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP50.md",
+      "sizeBytes": 821,
+      "sha256": "887f8805cba1a383846dc1c7405a2b647c56878a34c5c97d53fa05481127d112"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP51.md",
+      "sizeBytes": 1122,
+      "sha256": "0b960310bcec783e3d2457165e8db619c9172486491a864674f134fe2a4e0458"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP52.md",
+      "sizeBytes": 1190,
+      "sha256": "1ff44588a11bccf21b0bd0e76712a0f4f46aedbb1828b91204c6566957f1aac3"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP53.md",
+      "sizeBytes": 764,
+      "sha256": "90407fe2567ac1b08566a95b723fb8682f59348b9a4c12db17f7036043b35262"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP54.md",
+      "sizeBytes": 1120,
+      "sha256": "cad00dfec48bc2377cda05d78b5df21f3bc7ac0c8a755f7ddaedf0b0ddf713bb"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP55.md",
+      "sizeBytes": 1322,
+      "sha256": "68b7a258d935fd6b94a03d50b3b49c9ad301f45a464bd95713a98a50e5438ed2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP56.md",
+      "sizeBytes": 1376,
+      "sha256": "e8490fc4b1fd1c972c20484ea7985c84e7acd48ee77e03336b41cac578a01c12"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP57.md",
+      "sizeBytes": 1004,
+      "sha256": "65e481d70c5ae021b9338d8b0341f86a5ab38fffeccb6ca90d89ede08dfa0e66"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP58.md",
+      "sizeBytes": 824,
+      "sha256": "e3b91197eb09f0bf85bdbcdfd5070b95f7dcc85e7959863d2b84b1b8896062ec"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP59.md",
+      "sizeBytes": 728,
+      "sha256": "f2e3c5c405a5bee2ac0b0f363a29b31530632a09ac8b0e3c58391c6d7ca5473f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP60.md",
+      "sizeBytes": 1656,
+      "sha256": "432da9735b3fa9c71ddb987f5791eedbcbe23a8801c44abff0b7c50186e9ef71"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP61.md",
+      "sizeBytes": 1553,
+      "sha256": "b23b51056731fde41547abb63d682c8549b338043207cfcb0521345440d98b30"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP62.md",
+      "sizeBytes": 906,
+      "sha256": "53874947c02ee26abf9f5f5145462f383ef27dd20bc91d0d6f40267959879dc2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP63.md",
+      "sizeBytes": 729,
+      "sha256": "278e281baa6ddf57babe784080b31083df3edcfc002e85eba1236957e183d764"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP64.md",
+      "sizeBytes": 700,
+      "sha256": "68a97cd2c30d408126d4bba39fff27c74c000571bf550d221c9d4b39e5909186"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP65.md",
+      "sizeBytes": 603,
+      "sha256": "14e8c788f0a8af61be43c80f244cfad9262d6e7b274dd13e25fcd489bbdf139b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP66.md",
+      "sizeBytes": 1072,
+      "sha256": "2b5212648e0a7d23f5741a63c822b2e95c9eeb37258932f4faeb65b37ad82224"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP67.md",
+      "sizeBytes": 810,
+      "sha256": "33528148462792cb2c9227a4e8dc87a22f4ba1a01a6803354b788cb6745d5b88"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP68.md",
+      "sizeBytes": 668,
+      "sha256": "a828a015ca5a28cdaa13ac7139bb10e4230eaf398a5cfda10fcbdcec5e96b954"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP69.md",
+      "sizeBytes": 896,
+      "sha256": "e68ea017ad82f56514ed102c4f5fc7434681ac525c0b0cbfaacf4bd5c07f980d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP70.md",
+      "sizeBytes": 405,
+      "sha256": "cc51b8ac5dd91dfbe5ac2d60efb23402012737854383047d9b769c3716e3673e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP72.md",
+      "sizeBytes": 1480,
+      "sha256": "cfa68b1bd1413496c26a12cf01da3106d1e29893a2dc6c878aacc24c717fe77d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP73.md",
+      "sizeBytes": 1382,
+      "sha256": "d44c46a61060f115a6f452fb638fe6eb7c509e48feeb66edea4319337ede1038"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP74.md",
+      "sizeBytes": 1836,
+      "sha256": "9306551ce07318e9fdcdab5ae4b9ff7016472b3b57ac13daf58175c0ee9cbcb1"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP75.md",
+      "sizeBytes": 934,
+      "sha256": "ce2f494b1fe508d552e17d0f8bd5449173eeac9554822776679ac398882a1f2c"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP76.md",
+      "sizeBytes": 1599,
+      "sha256": "55014f18cc48f1827f47d3f0e832b2f15050c3da87f7d0060789b5823315e8af"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP77.md",
+      "sizeBytes": 1738,
+      "sha256": "9f76ac6835253642c414dcf4da77074c6f0080babc280ae45fea6a54bddc8330"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP78.md",
+      "sizeBytes": 950,
+      "sha256": "3edb45e50c0f6c4d2a14c94e259dcb43e0a22a2109b6df88610cd0bf1e828382"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP79.md",
+      "sizeBytes": 1237,
+      "sha256": "0804854417cd11d3e8e5266e9bde7f04217bc49692cf49ec534eca9d67b5e0e0"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP80.md",
+      "sizeBytes": 1049,
+      "sha256": "59481b7bd1356887bd1031f251d83570a4934f4157db476241449bb27c820706"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP81.md",
+      "sizeBytes": 1326,
+      "sha256": "d6c9417cd17aebae33b024324616276d9b54d57d18c952d36ef9d46bc0ec53fc"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP82.md",
+      "sizeBytes": 965,
+      "sha256": "b1527aea207d1f7cb419df1e3a2cace4269e40b1878e0e7b6ca1d979f6eeaa96"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP83.md",
+      "sizeBytes": 867,
+      "sha256": "7cdbd1dc8955e08ba081dd7c7d4345d3f73cecca04b1de33eaa350bee2634046"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP84.md",
+      "sizeBytes": 1149,
+      "sha256": "5c1f8e4dbc800e9de9da5bb7d8a0965a3219e3f921618618cbfebbfe51d1c9cb"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP85.md",
+      "sizeBytes": 1118,
+      "sha256": "dde3b1bd6898a68d8233b2b462cae5c0a4897a071d8256be0c5b8c9c50693093"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP86.md",
+      "sizeBytes": 936,
+      "sha256": "e6d7f3f91c979873ae53e61d5d20c2ac22dd0d72306ea13f27e66f860351b6b4"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP87.md",
+      "sizeBytes": 739,
+      "sha256": "aedff57fa7d7ca1ba10ca629f09ccc9f350d8e90f9ca1d9eedfeb0680128916b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP88.md",
+      "sizeBytes": 931,
+      "sha256": "8e28050dfe9d39b20355ebd88c4f8d1c9ef50e6ef7b22cec06b277c0e494ba6b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP89.md",
+      "sizeBytes": 983,
+      "sha256": "18bb01dd549e83748b9aeef571f046a21ffecb4a3386a36ad24c769261896ee1"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP90.md",
+      "sizeBytes": 823,
+      "sha256": "0bc36bc85a6b3dc48ac866eea30ea6ab0fe003a99ed032f4459d033311639b4b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP91.md",
+      "sizeBytes": 720,
+      "sha256": "1bfbdef4992bd8ec3693be3d12c9f33a68795370e789f87195e8e189c24cd8e1"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP92.md",
+      "sizeBytes": 658,
+      "sha256": "b6d00d51c33f701ada2255b900be66e327f52261b9393a49cad6951b7dce3229"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP93.md",
+      "sizeBytes": 1117,
+      "sha256": "eac00dd66a75f210b90d200fadc2408e09dd03f8235fb785c45fe2a985b843c8"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP94.md",
+      "sizeBytes": 875,
+      "sha256": "eeedf9abf8a34fb18b18f8cce520506fbf7db514c852cca30b537ff337bf781e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP95.md",
+      "sizeBytes": 967,
+      "sha256": "d012878c3b07f414db06683d770842290dbffdc8c182dbd350340d3dcf7bbd7e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP96.md",
+      "sizeBytes": 534,
+      "sha256": "9c0c27c98bc4d83d98e0acf5257185dddba39c6e1783ab0787ec82935dbfdc55"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP97.md",
+      "sizeBytes": 736,
+      "sha256": "e7646897bbf07719b44cc15ed9a6c8e94725bfb8b34b8607d3018bcea67bdfc8"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP98.md",
+      "sizeBytes": 2306,
+      "sha256": "15eba5af391ce29cd8ee2dc380bb7e5ff6e1c5524044a361a09291fbdd3619bc"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/CURRENT_ROADMAP_MVP99.md",
+      "sizeBytes": 1804,
+      "sha256": "36067aae9ac32d184b1ee10b9771d41f8254c7d3b1af8142460e8e8ef8b6cbef"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/DAILY_LISTENING_SURFACE_MVP42.md",
+      "sizeBytes": 1078,
+      "sha256": "14db43ba45f2fdefa61e5625465633da5752800294e5e8727df2889a02db16e9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/DEEPSEEK_REVIEW_PROMPT_MVP77.md",
+      "sizeBytes": 1706,
+      "sha256": "6f569509f4cfcde43c548df78678ebbfefb32135bfbd33ab602759fa888b2a17"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/DEEPSEEK_REVIEW_RESULT_MVP77.md",
+      "sizeBytes": 1087,
+      "sha256": "7b2c3d59ca9ae215028dfefe7e4094674964af787da2a82e395cc387a6582efc"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/DEEPSEEK_REVIEW_RESULT_MVP81.md",
+      "sizeBytes": 1163,
+      "sha256": "2388d2a1aecf9df324fdfbf3f8acc4869540af4170c22b679c514bcd0e1b3e1c"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/DIAGNOSTICS_BLACK_VIEW_FIX_MVP64.md",
+      "sizeBytes": 1786,
+      "sha256": "bc6925b74aedfdf748858debe583eae7e290b4df9c64a9f4c6ff34caf9c516e0"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/DIAGNOSTICS_HISTORY_FOLD_MVP75.md",
+      "sizeBytes": 1607,
+      "sha256": "92a98d5f7b957bc6cc0e8229bc770fb1fd154b0dd072989b35161d0256b30e96"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/DIAGNOSTICS_MAP_GUARD_MVP65.md",
+      "sizeBytes": 1366,
+      "sha256": "e6db24204f5db77bf019f6ca54979da97c1972972e152462c70106d86ab2879f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/DRY_RUN_IPC_STUB_CONTRACT_MVP11.md",
+      "sizeBytes": 2453,
+      "sha256": "810bde276b8ebbecc8d86845e9137ef5427ccc4422713bf51ad4f64579dcb37b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/DRY_RUN_STUB_RESPONSE_PREVIEW_UI_MVP12.md",
+      "sizeBytes": 1545,
+      "sha256": "1a82076244f90d10520c49af69479dfc3a1c8c1e6feb6317d097ba8ca6c74dff"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_BINARY_PATH_FIX_MVP63.md",
+      "sizeBytes": 1801,
+      "sha256": "272702f37d36b8a93f3da7cf332f221242c6ec34b49a2a5523cbfb122bb115a9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_DIRECTORY_DIALOG_MVP19.md",
+      "sizeBytes": 3159,
+      "sha256": "948ba99ba2892a43e0d4f15178845fe39a31aec8a39fccdaecf2c23b8d04b4e7"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_DIRECTORY_PICKER_STUB_MVP18.md",
+      "sizeBytes": 1949,
+      "sha256": "4f3f2048c9704e693869e31dc34441148da02561af98688392ada6b6803d1d90"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_DRY_RUN_REPORT_AND_INDEX_PREVIEW_MVP21_22.md",
+      "sizeBytes": 2288,
+      "sha256": "f820d4e3e0fab9fb9b8c5382921e37af63f6fce10d276314ddbe524e814fac82"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_DRY_RUN_SCANNER_MVP20.md",
+      "sizeBytes": 1930,
+      "sha256": "c21897174f6d30820900381adbd5906e33f42faba19f3e5b831bbd8bbef4463d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_EXTERNAL_OPEN_MVP27.md",
+      "sizeBytes": 1029,
+      "sha256": "4c12173ef49f6d847c373c25175a29bdd73ecab1058dc71c60b0e094ae2279dd"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_FILE_ACCESS_BOUNDARY_MVP13.md",
+      "sizeBytes": 3576,
+      "sha256": "11fc89fe528e358de881e52e089af58d2a82a662da5088cd8ce4c5ea3d8215f2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_HTML_AUDIO_PLAYBACK_MVP25.md",
+      "sizeBytes": 1877,
+      "sha256": "3009bf37863d7229b84be2789bf46a9c5f908f2134dbbd5d4f4b0fe32591656f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_LIBRARY_INDEX_READ_MVP24.md",
+      "sizeBytes": 2295,
+      "sha256": "9c88179d83bf7f442ada669391937e197a0d9817021b1192259037e7ee74fec0"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_LIBRARY_INDEX_WRITE_MVP23.md",
+      "sizeBytes": 1364,
+      "sha256": "0bcdaef38d48c1d0763235c7e56f6415015bc47bfff0def5572a2483c420dc5b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_REGRESSION_HARDENING_MVP62.md",
+      "sizeBytes": 3061,
+      "sha256": "bf1f1d6af2501b833238ba4be1492b66bedb364de72f92132ed21aa2218ef428"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_RUNTIME_PROBE_MVP16.md",
+      "sizeBytes": 1918,
+      "sha256": "b5cbf261b7c9e05afa6cfc8993df047bdd5c727b13c295a6b114bb1ae82135d8"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_SHELL_LAUNCH_MVP15.md",
+      "sizeBytes": 2225,
+      "sha256": "2f89ef26ec518fc4679cf692df3ac4d10d4a41816070b7935a7bf54fce513443"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_SHELL_SKELETON_MVP14.md",
+      "sizeBytes": 1680,
+      "sha256": "1149e4b079c7eae1eaa21332177c2aa45e56e82650d268572f0178c9d84ee114"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_SHELL_SMOKE_CHECK_MVP17.md",
+      "sizeBytes": 1221,
+      "sha256": "32f08c2be8096e3939621b4b7e6c0f4b01d393353fdf4db2a33c472931b83f3b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_TRACK_LYRICS_READ_MVP26.md",
+      "sizeBytes": 1090,
+      "sha256": "dde1ed5d203257511ed11495d5e4453248d878ff89ff06ca705e12625f3089f9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_WINDOWS_PACKAGING_MVP29.md",
+      "sizeBytes": 1508,
+      "sha256": "95c13de95bb75739f56430a227b319d248e9cd98e25435c69dd8fd0fbad9bbf1"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/ELECTRON_WINDOWS_VALIDATION_MVP28.md",
+      "sizeBytes": 4820,
+      "sha256": "44400312490eed574064796c0f86b2396310ece228e58087283ad56c5e8d7cd5"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/FIXTURE_CASES_MVP05.md",
+      "sizeBytes": 1845,
+      "sha256": "46ba658378e9bcc8ed562ac73bab5d52af01b4a2b318499cf2339ea27279d545"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/FIXTURE_REPORT_UI.md",
+      "sizeBytes": 1711,
+      "sha256": "30227635c1a5ef137b4fd849c6c79840ee4e6f0da481a327649017252a736f24"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/FIXTURE_SCANNER_PLAN.md",
+      "sizeBytes": 3613,
+      "sha256": "d9ff75743d6e4795ea608b9a1c128a0678194abc268a2550291de704acf35783"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/FIXTURE_SCANNER_REPORT.md",
+      "sizeBytes": 2091,
+      "sha256": "8f9975a82917d2de75943f5cf08ed708a95db379e1381aea50d787bed41efb9e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/FIXTURE_SCANNER_TEST_MATRIX_MVP06.md",
+      "sizeBytes": 2265,
+      "sha256": "e3c99033be8769950cd08cbddca115bcd77abead06885ff1035b2140389de847"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/GITHUB_PUSH_PREP_MVP83.md",
+      "sizeBytes": 917,
+      "sha256": "b9b80e935d6b415832095cf021fb9ed7ed80a6ee0a91427a3381e515d266970b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/GIT_PUSH_ATTEMPT_MVP84.md",
+      "sizeBytes": 1008,
+      "sha256": "4cf163c66641de250d632a812f247ae769a0f67b3d15b6ae4990f2356a3d55d2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/GLOBAL_DAILY_UI_CLEANUP_MVP110.md",
+      "sizeBytes": 1327,
+      "sha256": "7466d8a101de37ddba7dfc9e0abcd484394ab3745dd89ab6915930d6d1a17db8"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/HOME_PLAYER_BETA_POLISH_MVP59.md",
+      "sizeBytes": 1707,
+      "sha256": "6b9401e0fa4a8d2f81ae563ed8e61efa3eb3544a5f821262e7c8fdcfe24526cb"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/HOME_RECENT_LISTENING_MVP45.md",
+      "sizeBytes": 1895,
+      "sha256": "9f76e74e958c9071ad121bd7407cc54aa4b534e277f3548534201348e786637b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/IMPORTER_DAILY_UI_CLEANUP_MVP107.md",
+      "sizeBytes": 1410,
+      "sha256": "93934f7eaf4983d239e1c95a5636c3ace64d896ae80d833d6770af2d47fe4270"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/IMPORTER_FINAL_REGRESSION_CHECKLIST_MVP108.md",
+      "sizeBytes": 2304,
+      "sha256": "9ba6e3994e416a6810e890f9f8b3375bb877b99b85f0e105a089f2670df42e34"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/IMPORTER_SMOKE_TEST_MVP108.md",
+      "sizeBytes": 858,
+      "sha256": "a0f5f8e54ca6de4510b245942824a4a3c32a41460ccb34fd229a20003904c9b7"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/IMPORTER_UI_SHELL_MVP86.md",
+      "sizeBytes": 1355,
+      "sha256": "bf966608c8db83fe5d3a69d1582480739c88d5d84861ee1ba0baa4be814a597a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/IMPORT_CONFLICT_DETECTION_MVP89.md",
+      "sizeBytes": 1973,
+      "sha256": "4a282913ecbb6a640a17587dfe6a31bb0e064b15614ceabaf6d2511bbe175441"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/IMPORT_DOWNLOAD_ECOSYSTEM_STRATEGY_MVP84.md",
+      "sizeBytes": 2348,
+      "sha256": "5eb9c717dc5a68bbcb0b607f94c6ad0e5a5099bd02639feeda4d82872bd44f13"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/IMPORT_DOWNLOAD_MODEL_CONTRACT_MVP85.md",
+      "sizeBytes": 2736,
+      "sha256": "55398bbb8e00304396dca7d05e5e113a5d725438446f2105694d86d9dbd99254"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/LIBRARY_BROWSE_CLEANUP_MVP46.md",
+      "sizeBytes": 2176,
+      "sha256": "f95c1463ce360a5e5b7b6f7745ebe3eafb88969c47912d6f32a0e89eb5147ddd"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/LIBRARY_BROWSE_FILTERS_MVP33.md",
+      "sizeBytes": 1384,
+      "sha256": "adb917259b1f8dc98ee2eac5de833687cdb68f7ea59d51fa52161bc93e33f09d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/LIBRARY_CARD_LAYOUT_UNITY_MVP76.md",
+      "sizeBytes": 1854,
+      "sha256": "54feeaff8acc67a5a94d09e8699fed19c63da71050e2667a933dad58df248a9a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/LIBRARY_INDEX_PATCH_PREVIEW_MVP98.md",
+      "sizeBytes": 2239,
+      "sha256": "32c3a38c1112e23761143acbb015aa482bd940e11e494eac0028147f2e244360"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/LIBRARY_INDEX_PATCH_UI_REFRESH_MVP101.md",
+      "sizeBytes": 1787,
+      "sha256": "4958b137433b5edb874aeadff1443e617859187cd3e31a1bfc9ec0c08ea621d2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/LIBRARY_INDEX_PATCH_WRITE_MVP100.md",
+      "sizeBytes": 1859,
+      "sha256": "eb0526a555b0bda8123ca40924c24bced1fec5f6fafbe0f2f700b1a9cf03009c"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/LIBRARY_INDEX_PATCH_WRITE_READINESS_MVP99.md",
+      "sizeBytes": 1937,
+      "sha256": "b5f7e4d73731772b6028a4bab5b90c70dba7a7e857f5d6e385d0fb0e2574ae23"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/LIBRARY_REGRESSION_POLISH_MVP52.md",
+      "sizeBytes": 1701,
+      "sha256": "6924eaf1d68758f9779a736bbf552773862ccf7ea67110250d3ac8dc2b430f38"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/LIBRARY_SESSION_MVP32.md",
+      "sizeBytes": 1019,
+      "sha256": "d6a85fed979e180a00243c3551b69325f153e21ddf09bd7b84bf9943a55af4dd"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/LIBRARY_VISUAL_UNITY_MVP53.md",
+      "sizeBytes": 938,
+      "sha256": "46853ee8a4fa83208d3678d5edf2fa7eafbcba65ab0d1555a25658db90d25230"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/LISTENING_EXPERIENCE_POLISH_MVP49.md",
+      "sizeBytes": 1740,
+      "sha256": "f04a748185aa415dfcda42a3958621c82bac5cb5e9e094f1b5ada44e724bd4f7"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/LOCAL_COVER_ARTWORK_MVP37.md",
+      "sizeBytes": 1522,
+      "sha256": "781723ce588320b4450568f0ecf5951e8d0a833ac4fd777947ef2a435070ccc2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/LOCAL_JSON_INDEX_PLAN.md",
+      "sizeBytes": 5094,
+      "sha256": "f775671efbf40e7c876c60493c862d9009051ef0256b0f7ac52f468065f63b4c"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/LOCAL_REGRESSION_FIX_MVP61.md",
+      "sizeBytes": 2456,
+      "sha256": "36db7b39010963307633878ec6140c399c764d94a88389816c9be0f8ac8ce2d8"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/MEDIA_LIBRARY_EXPERIENCE_MVP39.md",
+      "sizeBytes": 1347,
+      "sha256": "1859249492a5c9d535075f133e3dc47117f54f6845a4b66935d4686c82349604"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/MEDIA_SURFACE_CONSISTENCY_MVP40.md",
+      "sizeBytes": 1302,
+      "sha256": "e7c692f2b7e85620fb571dd0eb65b38ff3ebcf105cf687aab2b20d6c29f1069f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/MOVE_ONLY_CLOSEOUT_MVP106.md",
+      "sizeBytes": 1273,
+      "sha256": "0114bdb199bf123e6c445cbc6c971880a43759f35ff0b6dc6fac2dfe4f75d142"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/MOVE_ONLY_EXECUTION_READINESS_MVP104.md",
+      "sizeBytes": 1463,
+      "sha256": "c4a796ca772025a8b3de86413b96ab2162aa485615a3c5a3b61d70d4fdc4e3a8"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/MOVE_ONLY_STRATEGY_MVP103.md",
+      "sizeBytes": 1424,
+      "sha256": "e91a9837edc0952a870457581b4b9036bfcdd2b9a7dc9cc51db6e44beba90d1b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/MUSIC_IMPORT_READONLY_DETECTION_MVP88.md",
+      "sizeBytes": 2490,
+      "sha256": "f0b0dcfd61d7c9656d25a5138a359ae000acff8f6a847719b4fa40bc49e41440"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/OFFLINE_DEMO_COVER_CLEANUP_MVP81.md",
+      "sizeBytes": 1640,
+      "sha256": "f5bb1fb9fbb08aa33783750fdc46f387417a9ab66182fbd5613e34c7ec3ed6d6"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PACKAGED_APP_USER_GUIDE_MVP30.md",
+      "sizeBytes": 1954,
+      "sha256": "85ead74d8d7a3f0dac16d630413e5697a8b5fb6055d0335d4747aaaab2487b68"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PACKAGED_REGRESSION_MVP47.md",
+      "sizeBytes": 1585,
+      "sha256": "44be12be8816d30a1eed33fab96089138a50a9ceb833858070588effbfb4fe32"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PACKAGED_REGRESSION_REVIEW_MVP77.md",
+      "sizeBytes": 1619,
+      "sha256": "d28be151087f0e6da422c4069b26d05b6923bf9d9607367f0b046b036931547e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PARSER_DRIVEN_FIXTURE_SCANNER_MVP09.md",
+      "sizeBytes": 1996,
+      "sha256": "7a488cb2056558d7c2b2408a4ba74fbb51a52e50bfd9e43910cc2d7041219541"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PLANNED_DRY_RUN_SCANNER_RESULT_CONTRACT_MVP10.md",
+      "sizeBytes": 3188,
+      "sha256": "9141a789cdece33f6544c302dcfc5d0807cc93734d1e149e1b1a8654b0f06182"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PLAYBACK_HISTORY_MVP31.md",
+      "sizeBytes": 912,
+      "sha256": "60585eaeb767526aca839e623a6bd7a67d0dd696b1fdc134443e46dabc2b17db"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PLAYERBAR_HOME_CLEANUP_MVP74.md",
+      "sizeBytes": 1728,
+      "sha256": "1908d9b6088d1d3f34dfd91b690c9cd7f4d41bfea35623dd6a388fbac2325883"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PLAYER_DAILY_VISUAL_FOCUS_MVP73.md",
+      "sizeBytes": 1328,
+      "sha256": "d20941367d659e4c996504a7df868478844b9b089b0974d81739aff7b9f4e7c3"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PLAYER_EXPERIENCE_MVP34.md",
+      "sizeBytes": 2060,
+      "sha256": "bb14d98d1d0293e1b7661de7c2293666361dfec743ce21fb988945dd817fb6f3"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PLAYER_IMMERSION_POLISH_MVP51.md",
+      "sizeBytes": 1060,
+      "sha256": "84806758c1b9addaaf84940823519116d28ef3c02dc8785ad9fea3ef2e226c97"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PLAYER_PANEL_LAYOUT_REVIEW_MVP78.md",
+      "sizeBytes": 1661,
+      "sha256": "a2f6ce9ee2e5ffb62c1291054813ee39a0cf2a6b13841ba8762d7aa16377d8d3"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PLAYER_SURFACE_POLISH_MVP41.md",
+      "sizeBytes": 1769,
+      "sha256": "626f33edc9791c081494704a90c86475c8a5a5240416e20061c25a4beee8818e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PLAYER_UI_BUGFIX_MVP79.md",
+      "sizeBytes": 1616,
+      "sha256": "866ec01072b91e8a243eeaee4241f783024d722f3ff2a62972c771e85b6051f1"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PLAYER_VISUAL_POLISH_MVP50.md",
+      "sizeBytes": 1464,
+      "sha256": "c5a61c7a5c49d7971b3c91e9a7bc732569812e00dfea3849d80bec9f88337468"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PLAYLIST_PERSISTENCE_MVP36.md",
+      "sizeBytes": 1506,
+      "sha256": "c358aa734255b0c8b06a9c55814ee51ba4b939a900c9ecf9d617e0e1f251c144"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/POST_COPY_REFRESH_PREVIEW_MVP97.md",
+      "sizeBytes": 1171,
+      "sha256": "f402dfa4d941f8eed0c17760b2cafa69951a3f7a61ec3efc628d7e5da2333a95"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PROJECT_FILE_CLEANUP_MVP108.md",
+      "sizeBytes": 1364,
+      "sha256": "b698a5907d5e4c7772888668f8895041692448ed318e8d4a86cf9dc573aafb7b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PROJECT_MASTER_PLAN_MVP84.md",
+      "sizeBytes": 22431,
+      "sha256": "65a1e5dda53897c28fd1681a570c601f0dcd259b743269a43eb17583f8215429"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/PROJECT_OVERVIEW.md",
+      "sizeBytes": 1411,
+      "sha256": "35b109fdba6e00b38002a1511bf3da383cf8ace96b48cef10cef911630029bc2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/QUEUE_PERSISTENCE_MVP35.md",
+      "sizeBytes": 1167,
+      "sha256": "e62a669f3b6e7b0518122ba7ae769c74a8156c2f0bb4e6e77de63c2d70a54462"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/RJ_IMPORT_READONLY_DETECTION_MVP87.md",
+      "sizeBytes": 1059,
+      "sha256": "54b3b572ac21a67d690ef294b1edd0c46e7ef433fcae7f30a1a599ba9611d078"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/SCANNER_CONTRACT_UI_FLOW_MVP07.md",
+      "sizeBytes": 2309,
+      "sha256": "55c84ef017aba3d4fec58702e7a32a351690e58040dd2a413dbdbe33703c867d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/SETTINGS_DIAGNOSTICS_DAILY_FINALIZE_MVP80.md",
+      "sizeBytes": 1238,
+      "sha256": "0a2140d79ece3d7e86b64b3a643b0782675a23869dd60941bf8fb15ef328911a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/SETTINGS_DIAGNOSTICS_SEPARATION_MVP44.md",
+      "sizeBytes": 1612,
+      "sha256": "1846ec32cd1e8e5a20b49ceea2c4c4204f90cf6dc10c6b6ab79740f4f374b6c5"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/SETTINGS_PERSONAL_WORKFLOW_MVP58.md",
+      "sizeBytes": 1342,
+      "sha256": "b9351b49904a88b7b8f5a4926006f8f88dd91bbcd024bf39d6d626a54c5136b2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/SMALL_SAMPLE_MOVE_ONLY_EXECUTOR_MVP105.md",
+      "sizeBytes": 965,
+      "sha256": "eb47412767de7f8f884f7ddf81758cebdb34bddf8d9ec73c3664a406687dd909"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/TARGET_PATH_PLANNING_MVP90.md",
+      "sizeBytes": 1841,
+      "sha256": "6e4449829199bc2673422ba54131476929e986d6d7babb7c4017625eb2d6392e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/UI_BUG_SWEEP_MVP82.md",
+      "sizeBytes": 1288,
+      "sha256": "f1f20438c98d53ed290bce991333ff170059ea3cc311145346354314a106ea07"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/UI_CLEANUP_CLOSEOUT_BASELINE_SYNC_MVP111.md",
+      "sizeBytes": 1570,
+      "sha256": "ff7768f4cf3470cb608242f9594ae62f902f0c33b04db5ca917e0b7c0877ee12"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/UI_COPY_CLEANUP_MVP38.md",
+      "sizeBytes": 1688,
+      "sha256": "85152a5e28b388f1b2fe34a9f7a8c132a8a7736fb2ab80e4f587771462696aa7"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/UI_DAILY_SURFACE_CLEANUP_MVP72.md",
+      "sizeBytes": 1359,
+      "sha256": "8f7e04b2a602a374797f836f04c3a580d3647b55ba8abd446dff6cc4156a2daa"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/UI_ENGINEERING_PANEL_CLEANUP_MVP109.md",
+      "sizeBytes": 1538,
+      "sha256": "111ce2c9efef5260c225c7c74d008888c7cbb90dce7eb92e10e514d070f9f022"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/UI_SIMPLIFICATION_MVP71.md",
+      "sizeBytes": 1989,
+      "sha256": "0cbff223733e5c492e3a146621b55a609a6f1331a385c05a48689695a93bf20d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/docs/VIRTUAL_PATH_PARSER_MVP08.md",
+      "sizeBytes": 1610,
+      "sha256": "33814416fc48288dea989aa2ea9c868228aa35c6a2db6d79e4909e0ff3c9a5c1"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/CODEX_MINIMAL_PROMPTS.md",
+      "sizeBytes": 956,
+      "sha256": "2eb9662a4d62b3f7dae02f09d12e79c52f7705d0823ab7bb6777db55115bc2cc"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/CODEX_MVP119_REVIEW_PROMPT.md",
+      "sizeBytes": 1240,
+      "sha256": "87401447d54790aa3cb75cebec78b5708b02aa7db6a70c154514ce97c7f5c9ed"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/CODEX_MVP120_RETEST_PROMPT.md",
+      "sizeBytes": 3863,
+      "sha256": "15ef5771940ae616cc5abea82de297f440b9c44c7bebad5317fd1a344592fdab"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/CODEX_MVP121_REVIEW_PROMPT.md",
+      "sizeBytes": 1476,
+      "sha256": "ef1c8ce0a13570d93df24c7a908b01d608d7810564fcd3755b743305d212e7df"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP100_TO_MVP101.md",
+      "sizeBytes": 681,
+      "sha256": "acd005c0eb35d695713e196b0c2c6d268a2c8e56a0bc462b4b17f0219d4bcbb4"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP101_TO_MVP102.md",
+      "sizeBytes": 677,
+      "sha256": "888f110e09a916bcd56931e1e32363d2f4f036eb7a3d70525f734c4e254186aa"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP102_TO_MVP103.md",
+      "sizeBytes": 820,
+      "sha256": "c3b79f281859aa5aec522b5e98326af76c2f978d9f9461e5336d0c8b1484240e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP103_TO_MVP104.md",
+      "sizeBytes": 665,
+      "sha256": "01dc23591ac092dfc2a018b9348ac6203d44a47c13bd31490974e752b2613844"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP104_TO_MVP105.md",
+      "sizeBytes": 951,
+      "sha256": "6d2f792cee1e6435857935e93c878efec3ed053a055437b403906809e0464cb7"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP105_TO_MVP106.md",
+      "sizeBytes": 883,
+      "sha256": "c486479fbeb62bc7bbd1f36362b5991f038cf42ec2b5fba20bef3ff65b7bd9d3"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP106_TO_MVP107.md",
+      "sizeBytes": 1085,
+      "sha256": "7e428ee6ee0ae55dc1fa22abbfec31515a977d86e5f0dcb269d7936225d737b4"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP107_TO_MVP108.md",
+      "sizeBytes": 1138,
+      "sha256": "13d1e2b2c8c2dc3fd46d62d5d92c1e6775b608339b325ead72cd8b19de5f9ce2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP108_TO_MVP109.md",
+      "sizeBytes": 1084,
+      "sha256": "d87bb4b9df232c633ae839f7433ab004aa1bca070fbf99be533796e1634f8ae8"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP109_TO_MVP110.md",
+      "sizeBytes": 825,
+      "sha256": "8c2a9cd531967d44df06fc7d530f86fe5675ea6d2c39a9fd458a06bef3cf020e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP110_TO_MVP111.md",
+      "sizeBytes": 1127,
+      "sha256": "c515ca660b1951459e67ec0d3bc70c2b05e96f7682e837d7e5f2ee312a73934b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP111_TO_MVP112.md",
+      "sizeBytes": 589,
+      "sha256": "bf5e5abea145b169fcf2aa054b2cc9e1e896bdcdd8b3f1ab1e224addab414683"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP112_TO_MVP113.md",
+      "sizeBytes": 577,
+      "sha256": "320d69269a0691f57662fde3b56af12257ad61a53b3295c68e6ba71f6d02b6a9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP113_TO_MVP114.md",
+      "sizeBytes": 496,
+      "sha256": "334fe75027b2a2165f541b561f89a655b76127ee4d639e104d7b9be55add291c"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP114_TO_MVP115.md",
+      "sizeBytes": 232,
+      "sha256": "61952f216617b5bbd984542f97a9a8157f1657b8cfe7988cf9d0e475f12d7991"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP115_TO_MVP116.md",
+      "sizeBytes": 266,
+      "sha256": "61a0b78c5dd7359c6f06a960f087fbd8beed99a1ad0e4da41b25d99511ad82f2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP116_TO_MVP117.md",
+      "sizeBytes": 455,
+      "sha256": "03e28574910e243aafb939a4961c2ed85f3892f8ceb76a2ee232e53d1a320d5f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP117_TO_MVP118.md",
+      "sizeBytes": 323,
+      "sha256": "cce656b609b94cc62bfdce229afb1886b39d6f603e280e1101521e1af6aa4a7e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP118_TO_MVP119.md",
+      "sizeBytes": 504,
+      "sha256": "6113ca024e3ccc459bbedbbfc9fa257cf4d56d039a405dbd98495f16bc7a70b3"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP119_TO_MVP120.md",
+      "sizeBytes": 249,
+      "sha256": "741fe7074a26411db7add578cd5187da5ef54b71055e1a30c8356d527ee90943"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP120_TO_MVP121.md",
+      "sizeBytes": 413,
+      "sha256": "415d8992bebc51d919a33557f85b94813a5a1cf95681bf14616bafab2e603eba"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP121_TO_MVP122.md",
+      "sizeBytes": 381,
+      "sha256": "5a67d50b8a2965b687efda0c82f4f02de2b0982fd4e32796b428b9addec696bf"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP122_TO_MVP123.md",
+      "sizeBytes": 456,
+      "sha256": "9b6cf1b549cc96a12c4485de75e6932f6c9e3cde4e07818fd369aeaab7cf6b9b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP123_TO_MVP124.md",
+      "sizeBytes": 601,
+      "sha256": "16e53ea66042a2bebcebfc80f8d3e50accad131754725270ddfd697782b43f6f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP124_TO_MVP125.md",
+      "sizeBytes": 284,
+      "sha256": "d990c05d424ccfab593ee4867cddfe8333dacc59f482fd06c7ad990539b35425"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP125_TO_MVP126.md",
+      "sizeBytes": 695,
+      "sha256": "36bf55b30c30e9ce7cfcc05f34d8371708c8f15d55200c2153a270c318af8115"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP126_TO_MVP127.md",
+      "sizeBytes": 542,
+      "sha256": "846eaa53232534fb4ec3b82c39109f6f991a329f269317e179e2090e481f92c6"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP127_TO_MVP128.md",
+      "sizeBytes": 895,
+      "sha256": "8d496fc1b4148cbeba66ba46636fd4a338fb40f3bf8cdd988005c74a6d29fd97"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP128_TO_MVP129.md",
+      "sizeBytes": 490,
+      "sha256": "92a07868c55572fcacc922d0b051fa1803a2930b5b0e051f07009f259b2de729"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP56_TO_MVP57.md",
+      "sizeBytes": 192,
+      "sha256": "ec51c5088e03755049a8bab44e3a462906438591b88785efa1aa5da776629706"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP57_TO_MVP58.md",
+      "sizeBytes": 975,
+      "sha256": "6abb856c4d3e983e043f1381cb285ce20aecbd4eb7ef70607cbcf32e29de5e1e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP58_TO_MVP59.md",
+      "sizeBytes": 828,
+      "sha256": "87083df94768d6352ab1d8233bc2ce289320c3e1c4531f44c01a77c2ba1f84ec"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP59_TO_MVP60.md",
+      "sizeBytes": 1201,
+      "sha256": "05dfee0046545f0e988232655545cee5da386027eea87caf193cec4af49838f4"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP60_TO_MVP61.md",
+      "sizeBytes": 1360,
+      "sha256": "8ba7787d9328a9d4303abfe1fbf01d25c5c94ae71fc837b03d6a0a1b5c50c4f3"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP61_TO_MVP62.md",
+      "sizeBytes": 678,
+      "sha256": "94fe351845162433197a61493f818fb973b1c43a99bf1153a2983ab0858c137a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP62_TO_MVP63.md",
+      "sizeBytes": 1119,
+      "sha256": "5f1bd3dc2ad62b01466a1603f7f7f8eccda8169db3e4f4cd77db23668e43e8fd"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP63_TO_MVP64.md",
+      "sizeBytes": 635,
+      "sha256": "df18f5b5fc8e1cb3f9d0d61b979aa3f6fce7dea8a0eef4688b8a827442ce7fe6"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP64_TO_MVP65.md",
+      "sizeBytes": 1048,
+      "sha256": "faae7658aee50c6a6c00e378b3ff2739745e53f97a69258d91af98bb98286b94"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP65_TO_MVP66.md",
+      "sizeBytes": 1019,
+      "sha256": "41079ca2cd689597f3c76554e474dc6da2de79ce268091963c9c35f26bfa40f6"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP66_TO_MVP67.md",
+      "sizeBytes": 761,
+      "sha256": "7b1662a4d493615204a630d378bfbbc22c7610e0b9e0785e010c6dcac9cc3ae0"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP67_TO_MVP68.md",
+      "sizeBytes": 373,
+      "sha256": "d1294530672b8384e37614395f954cfbc94e615f4a0797561f7fdc3a1cfff52d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP68_TO_MVP69.md",
+      "sizeBytes": 638,
+      "sha256": "5e42632224fc36a5c25c61645a524d5605d6a6424236c45fb13bfda0e68f977f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP69_TO_MVP70.md",
+      "sizeBytes": 629,
+      "sha256": "4774ac7c0da2a609b8db63764224a863427486892b401c12cc5d5e5a51977bb9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP70_TO_MVP71.md",
+      "sizeBytes": 1301,
+      "sha256": "cea303eb670edb8e2f00c2a0fe7755a40daeeaba9e290e4c38853815d58aa203"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP71_TO_MVP72.md",
+      "sizeBytes": 943,
+      "sha256": "78fe2fe7452e9f0d60d76cba1e17e3e4e25365bd6d49e641303b2ccfc34bdacd"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP72_TO_MVP73.md",
+      "sizeBytes": 982,
+      "sha256": "52b7ac9806783cbba41f3f0d7b254a773d11f9d049523b8abe943ad68d1e6b70"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP73_TO_MVP74.md",
+      "sizeBytes": 1085,
+      "sha256": "c8d15abf704ba7378e072b723f0ad4ba755fd63a4f606f2c724cc75bda7bab43"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP74_TO_MVP75.md",
+      "sizeBytes": 1001,
+      "sha256": "189f8fb4b6228a5edaa657b7e61e3c1d935d2f25b88635a65595b96254286477"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP75_TO_MVP76.md",
+      "sizeBytes": 1497,
+      "sha256": "a807fdc80fbdbf5c08e332d161711b934191c3fb69a2e84ad33422e1c21b5ffd"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP76_TO_MVP77.md",
+      "sizeBytes": 1726,
+      "sha256": "719417f4c77b690df607b5cac7237200260622654f827acc3dedc35082c5a806"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP77_TO_MVP78.md",
+      "sizeBytes": 1150,
+      "sha256": "acd3094c5d23eb4bf5359d0f4f3641192354a41e63c68d521a4594bf5275eef9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP78_TO_MVP79.md",
+      "sizeBytes": 1222,
+      "sha256": "8e13310252c2532dada3ce092a6369c63bb30fa94c1eae41a7138aead974eb37"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP79_TO_MVP80.md",
+      "sizeBytes": 1014,
+      "sha256": "e898a1bd044f4c69b4753b27479464d9a183bd1b8f6a2ef11bcf267bc75f17f1"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP80_TO_MVP81.md",
+      "sizeBytes": 1177,
+      "sha256": "91994ab3a98dfa173a22a5b044cd9bd5ba81470e5369f6d6e56b4b38687114b0"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP81_TO_MVP82.md",
+      "sizeBytes": 803,
+      "sha256": "801f9846451172e1b914e19f3ff9cec1ca9de47988d952165a9a13d5e608227f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP82_TO_MVP83.md",
+      "sizeBytes": 940,
+      "sha256": "5272f886ec8a9736cec36e6ddea13495766d08ea8555a4e4a77df1d60ba5be47"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP83_TO_MVP84.md",
+      "sizeBytes": 926,
+      "sha256": "27b35285373a3edbbb0c5915e5cba0cfb49bcac920638924fa2ff1686d8318f9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP84_TO_MVP85.md",
+      "sizeBytes": 764,
+      "sha256": "0b09232514ecb76050aee401fe67f99280ec5e8f5b45ab7cc7c82e44d57c9728"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP85_TO_MVP86.md",
+      "sizeBytes": 747,
+      "sha256": "d0c58c04677a0392f759847629e02a95078004e732773bace04d9eabde4843ee"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP86_TO_MVP87.md",
+      "sizeBytes": 711,
+      "sha256": "d377adb9b5ebe603415750b20ebf7bd06cda80891e35aa9a0bf30b6d07b3e0ca"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP87_TO_MVP88.md",
+      "sizeBytes": 869,
+      "sha256": "341a56dfcee54b5d01503662f1c3ba283d914d61f4806164f264f676d0c4dfbf"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP88_TO_MVP89.md",
+      "sizeBytes": 898,
+      "sha256": "60ef37eb97165194303ca2d8c49e839b4e036bf26d2de0b515c9ab43cf1a97dd"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP89_TO_MVP90.md",
+      "sizeBytes": 658,
+      "sha256": "61eeadc945fea54ea23ef0dc7e2cc95a3b0d3606e06036088b6c97a2d716ff77"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP90_TO_MVP91.md",
+      "sizeBytes": 933,
+      "sha256": "2d5b2b8809111fae7fba0acffa75382535b6f0731dd1f08cc63f03e7f77e145f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP91_TO_MVP92.md",
+      "sizeBytes": 593,
+      "sha256": "eac7090afb89d84f009866a0f8bcc6873c156ecfb32acfdd3133130e74a5547f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP92_TO_MVP93.md",
+      "sizeBytes": 917,
+      "sha256": "2484bd4e32fd1d366cc7f763c56181073cdd9951610efa7df97f2d5ea3fb40cf"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP93_TO_MVP94.md",
+      "sizeBytes": 834,
+      "sha256": "8d3b93f2c7adf94a80b650ff29d2ebc30082bd32fe0e501e5b2391713263a4d9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP94_TO_MVP95.md",
+      "sizeBytes": 617,
+      "sha256": "376705505546a5aebeaf2f828e3cdf1d98d92db42d215ef8a3babf14155e2586"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP95_TO_MVP96.md",
+      "sizeBytes": 402,
+      "sha256": "be50bc2330b978c95416696730daaaf635097612a490761fb0b803dd22288872"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP96_TO_MVP97.md",
+      "sizeBytes": 378,
+      "sha256": "ed7853a8d09b3ff017c9bed55d4f691f61e9cc0dfc3b0bda6796317b5aad2f16"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP97_TO_MVP98.md",
+      "sizeBytes": 2271,
+      "sha256": "cb870bc4670560c8691afbf588412794c966e3a1d6a0b2f73248672ece8b2d3e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP98_TO_MVP99.md",
+      "sizeBytes": 1060,
+      "sha256": "9e3f4350237620b3a02a059c69dea296b8825994de3ac637f779bfa3f9eda7d6"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/HANDOFF_MVP99_TO_MVP100.md",
+      "sizeBytes": 817,
+      "sha256": "10b0e73e7ddc62463fcd8e204f0385275f58bda02fbe2c6e751da2759ac7f597"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP100_HANDOFF.txt",
+      "sizeBytes": 310,
+      "sha256": "b54201a73200e059c2ffa17cfd097ce547a13014a420bbac30785795bd72ad93"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP101_HANDOFF.txt",
+      "sizeBytes": 805,
+      "sha256": "4c4d2b8e8b938b370b02b35f057a2cd9549b6be40e1dd3e8e08b10b5d6d32897"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP102_HANDOFF.txt",
+      "sizeBytes": 565,
+      "sha256": "08ccdaea4d055b3c57ad4b6ce294bec44b1fcff4391dbc4f1b4f489bfca8396c"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP103_HANDOFF.txt",
+      "sizeBytes": 557,
+      "sha256": "be7ccfdd0c34f9384673fc4e8f07abcad81c6f2e96f8bdeeca53bd5c0ce8cabd"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP104_HANDOFF.txt",
+      "sizeBytes": 614,
+      "sha256": "d954d5a087029b1651a0565a4620ca7a371ff59de9ea89013c1e0b86718f6742"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP105_HANDOFF.txt",
+      "sizeBytes": 548,
+      "sha256": "c5a9116c24806b1fd2e5e261b20b45ce18d1cb61a21bb971e7e92b59b6bb7c4e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP106_HANDOFF.txt",
+      "sizeBytes": 748,
+      "sha256": "e6ee34d11089c7355e77c53b8498f17d6af11ef230139030814a2207b10b4d48"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP107_HANDOFF.txt",
+      "sizeBytes": 768,
+      "sha256": "bcea702dfbd33531febdc8d1d8c60c05b43f0513cead84a8b6766234bdd0ad39"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP108_HANDOFF.txt",
+      "sizeBytes": 769,
+      "sha256": "47c6b5f2d55cb71e54c5b30f5888378b05b8edab820376c53bda0483ac611e58"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP108_REPO_CLEANUP.txt",
+      "sizeBytes": 1374,
+      "sha256": "a15abd04a2ae2af54f8c7e064f8dca8eb5b231ce5d38737928240bf3d8f3cb68"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP109_HANDOFF.txt",
+      "sizeBytes": 774,
+      "sha256": "5caf97ad8857134bf4478f506a4f2aaa0a0517d078192accf44edb15ab7b89b2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP110_HANDOFF.txt",
+      "sizeBytes": 813,
+      "sha256": "ae74c8dd870f122cc3e195e76ee194637ed4425284a310f63c7cf2405ae9e5e5"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP111_HANDOFF.txt",
+      "sizeBytes": 1246,
+      "sha256": "8b7d27076080379235e0316590395a4673f10687f0ca8f792af4000cb760bb3c"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP112_HANDOFF.txt",
+      "sizeBytes": 293,
+      "sha256": "3b57233809d13750a95481b1447cfff20f25a6267141146f19f1dcc5b471d2f9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP113_HANDOFF.txt",
+      "sizeBytes": 540,
+      "sha256": "a0109b96d34a8d1cee1c696d3a6538064a8a68c0e7185fe5eecdffec84bdcdd3"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP114_HANDOFF.txt",
+      "sizeBytes": 479,
+      "sha256": "12966387be8a84be1a814ed85c9611f1eff4cf628f4fc604e560ec017e76680d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP115_HANDOFF.txt",
+      "sizeBytes": 481,
+      "sha256": "abd3564641a2b27c614aa415c016d26d4c0bfe1f3367ef3e69f661ce3d02bc64"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP116_HANDOFF.txt",
+      "sizeBytes": 221,
+      "sha256": "11411e53aea2cd1e4122c8a469820abf599b31168d9fece04584da264acbfab0"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP117_HANDOFF.txt",
+      "sizeBytes": 482,
+      "sha256": "6337ae51c0de1b20f16b3712fa133a96eee8935d5d1c8993470a4622e69ea485"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP118_HANDOFF.txt",
+      "sizeBytes": 370,
+      "sha256": "06539338fc9f0cd9b8010706379c9f6459d5a1c318eff9ea93f916e549ff0364"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP119_HANDOFF.txt",
+      "sizeBytes": 827,
+      "sha256": "685803c8599b934253486bdb2b0e053c2953cc9a3df837de9fc9d41f1cf092c6"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP120_HANDOFF.txt",
+      "sizeBytes": 405,
+      "sha256": "e89ce0018aeedd9dc9f42509145544d2814723bb23c6ae8c76ad02c6260e66e7"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP121_HANDOFF.txt",
+      "sizeBytes": 677,
+      "sha256": "61edf61d8ec7fa0bffd99b361cc4862db1e290ce89aebcb08edb8ebb6dbac231"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP122_HANDOFF.txt",
+      "sizeBytes": 353,
+      "sha256": "7405039327f08e4d8d73773a6a1aa0a41102f69e02851e39de5b424915d3f033"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP123_HANDOFF.txt",
+      "sizeBytes": 273,
+      "sha256": "4e23be5f081364ca78a224fd7549ab02707b863399a16fc22664644863e97ab7"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP124_HANDOFF.txt",
+      "sizeBytes": 223,
+      "sha256": "d017a5e1a51081e4b82a82782cb2432bc85d4661c0eebfc8a828346af79e2f3e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP125_HANDOFF.txt",
+      "sizeBytes": 338,
+      "sha256": "1fb4e3c777aa146cf2ef46c7022d02035df677f23ac4c4fca368bf3499831f7e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP126_HANDOFF.txt",
+      "sizeBytes": 310,
+      "sha256": "f6625fcffc25a1737e1d43e4a4079a04c69bab27e5049edcd99a426dd8c84538"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP127_HANDOFF.txt",
+      "sizeBytes": 393,
+      "sha256": "c2e1b0b5fab7211bed732829f17dce66bd0d90b17005db86b80f9ef4e7b4a96a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP128_HANDOFF.txt",
+      "sizeBytes": 571,
+      "sha256": "3be590d1cb1ff54921a349f470b8ac230489b26747ed65c6e52ad4388082745a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP129_HANDOFF.txt",
+      "sizeBytes": 389,
+      "sha256": "53a1f4ef68abc06e8f81a793c6fc7283e33868393ac5c46e465cadee9a2e13cf"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP57_HANDOFF.txt",
+      "sizeBytes": 96,
+      "sha256": "608573c2be869cb2858adf9722826b4e126c857e1bedac1f38b0e63026c60abf"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP58_HANDOFF.txt",
+      "sizeBytes": 497,
+      "sha256": "4dfd0596737462fbea5ff4dbdcb1fe0b42fdf0cf274cf4a05f9604b061220cc5"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP59_HANDOFF.txt",
+      "sizeBytes": 614,
+      "sha256": "3ee5b4aaedf9d312f3c4dc5f379f9d96a66860a3310bf4120a8982f9f84e9939"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP60_HANDOFF.txt",
+      "sizeBytes": 484,
+      "sha256": "13d6a834eaab1651a301b28867a701d4b875fd1c50912e924a957411b266f238"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP61_HANDOFF.txt",
+      "sizeBytes": 1088,
+      "sha256": "749ce51ad8cd843fe383366233a3416ddace692b7f42f92e9aac704b041b7bc9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP62_HANDOFF.txt",
+      "sizeBytes": 582,
+      "sha256": "b11f7ef92e4b4490f3660ad7f60dd298d8f66dfade580231245d2da34e45091a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP63_HANDOFF.txt",
+      "sizeBytes": 406,
+      "sha256": "f447adc3cdc06f643e011a08d4857b52eceffa3531fd09bec8837f5e1142828f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP64_HANDOFF.txt",
+      "sizeBytes": 425,
+      "sha256": "07fed96fc15dd29fe1a459d91c770633d71afb48e35f0791d803abfe2b5ccb6b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP65_HANDOFF.txt",
+      "sizeBytes": 290,
+      "sha256": "cbfcf09ce5ab9432d67c2f15f1984e86baeefb1372782d7aa6a4cbcd52a5045d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP66_HANDOFF.txt",
+      "sizeBytes": 511,
+      "sha256": "ff0b802a7787933aabaa66b0e2e1b46b03b841a2518bba78af30d13f13f20a55"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP67_HANDOFF.txt",
+      "sizeBytes": 366,
+      "sha256": "354e6c4ccc7e9c00fc573b0c8d237ca7425d389988b5bde6b824aca407163d12"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP68_HANDOFF.txt",
+      "sizeBytes": 421,
+      "sha256": "5a34636c17d949695cdaf7e6852bf73083680c3f4cf44421c9139a98d1cffdd2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP69_HANDOFF.txt",
+      "sizeBytes": 566,
+      "sha256": "9200edf67011acf7f3fad27c57ac4302d482f830d44860e3e5d18399289ef5ed"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP70_HANDOFF.txt",
+      "sizeBytes": 373,
+      "sha256": "5433fed03afef7b4eeedcb01d46c0ee084c90813623f31cd11254ce6381e2374"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP71_HANDOFF.txt",
+      "sizeBytes": 1029,
+      "sha256": "36c9347141a1c8587cdf94345489f843d5b63285d141ae6ca63d32aca6f3edb3"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP72_HANDOFF.txt",
+      "sizeBytes": 814,
+      "sha256": "8abf91245a4e240645edceae1e9f574204df16239d6ecddd8974408b321d9133"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP73_HANDOFF.txt",
+      "sizeBytes": 953,
+      "sha256": "b8e67e7e888af79ca0d7f70fdd069128c9344aa86d1503a10577fc3e361aeed9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP74_HANDOFF.txt",
+      "sizeBytes": 929,
+      "sha256": "f845c3b69f8e08d55d8cd36ed3a5497cbf73f21496226684ae62256af8a00366"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP75_HANDOFF.txt",
+      "sizeBytes": 850,
+      "sha256": "fa82431be51cc28d36fa3f8cc1a98e96266ef2cce52fa345dd9fb8356f5dad21"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP76_HANDOFF.txt",
+      "sizeBytes": 1121,
+      "sha256": "bc32e0c91877fd811478b690fd489ddca808b9a6c8bc0a92320f8cbf0e290eef"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP77_HANDOFF.txt",
+      "sizeBytes": 1005,
+      "sha256": "ff3b9f1403d3a28aa3d0e2ccef92ec498aaf0880565fe0639bb6780d3c15f414"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP78_HANDOFF.txt",
+      "sizeBytes": 1448,
+      "sha256": "14aff804a09328952341ffec98d1b713fa7bf0213da37ceb144ed1300bd8cd87"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP79_HANDOFF.txt",
+      "sizeBytes": 1322,
+      "sha256": "d8eaa7c5e2b19cd0fef04ab73d6886176bbc6d8292776295f989c49c43597ecf"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP80_HANDOFF.txt",
+      "sizeBytes": 804,
+      "sha256": "a4629efcbf3e9b97896383afa8262ee34f88668b7292903a2d6bf0a0126862e3"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP81_HANDOFF.txt",
+      "sizeBytes": 839,
+      "sha256": "1df9a3045f46dcd47a742ecc95199ff2d058257f362f74c4c1e5197b06bee807"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP82_HANDOFF.txt",
+      "sizeBytes": 771,
+      "sha256": "7d67ac93bc1f93a4d3abbe093c1a343ee6c1edb28ef6594fde6dcae930f19bfd"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP83_HANDOFF.txt",
+      "sizeBytes": 975,
+      "sha256": "4f3bd908f737c69a4cae0c6171cab0bd32f7fb91ab5035d01788107d26c74df3"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP84_HANDOFF.txt",
+      "sizeBytes": 1074,
+      "sha256": "a15051cf59d75e85cf1d73d8078d818853582a78bcc1f3ed011ad5e211c2264a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP85_HANDOFF.txt",
+      "sizeBytes": 891,
+      "sha256": "0acd8b3f2aa31e3e81e9a0630c385a90525c296d117e0c98c0c675076055bf42"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP86_HANDOFF.txt",
+      "sizeBytes": 648,
+      "sha256": "61e56336945996f99b1deeee70aa39d9b18e519fff092ad9f0bc4a5127c663c6"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP87_HANDOFF.txt",
+      "sizeBytes": 515,
+      "sha256": "1da2102f0e39f509cf46f3b1f6a726245b8bcadd3d6ce3a0dbe75387def856d5"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP88_HANDOFF.txt",
+      "sizeBytes": 1116,
+      "sha256": "fc8fbce3574c68167d11ef4d08095d5960dbb5ec038323fb9ab2e350a66332a1"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP89_HANDOFF.txt",
+      "sizeBytes": 798,
+      "sha256": "323bd6e5e289a161c355721a63ce395fe2e3e8a8ed394b5909514925ea56acd6"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP90_HANDOFF.txt",
+      "sizeBytes": 875,
+      "sha256": "85ea76e05abaaddf804103a8d770e344679a93187ec344cc44107209682d419d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP91_HANDOFF.txt",
+      "sizeBytes": 494,
+      "sha256": "7b3c9bc1c89009c4447d76598b8d3f97f469ae88fffb3c76979e0ff0913bb0c6"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP92_HANDOFF.txt",
+      "sizeBytes": 461,
+      "sha256": "b0d39e82c6418636e3efe593ed741905a746755764c6f68069c0baceda18921e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP93_HANDOFF.txt",
+      "sizeBytes": 719,
+      "sha256": "90d5e792556409e46dac45f730a810a98712917670574a7402a9a84f7462ab7e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP94_HANDOFF.txt",
+      "sizeBytes": 705,
+      "sha256": "fa77da074a90c9f505814f6f623e1a0c818a635e16775bf74645e4a9a94d52f4"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP95_HANDOFF.txt",
+      "sizeBytes": 768,
+      "sha256": "f8c3085d3d8f203a58b76f13d9f4d97f4485ab7475970f06fb3238ce7cff6052"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP96_HANDOFF.txt",
+      "sizeBytes": 515,
+      "sha256": "f1ed5d553098ff8dc1a897db686abb839f1867990bc53426315f3afcfd459478"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP97_HANDOFF.txt",
+      "sizeBytes": 523,
+      "sha256": "8e13074fb572498b6ae3ea8212f7240ec0e7885d960174f548499ed87aa9450c"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP98_HANDOFF.txt",
+      "sizeBytes": 999,
+      "sha256": "9a1d0657bc3ca1501e1bc93cb7003259b8571abbeb4a5f5b148aa83d50c03981"
+    },
+    {
+      "path": "archive/legacy-mvp-history/root/PACKAGE_MANIFEST_MVP99_HANDOFF.txt",
+      "sizeBytes": 844,
+      "sha256": "169fa671a33b60b14f6fc8387160bd4f5230904673398178fdfa1f67dc3932d5"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp01-demo-index.mjs",
+      "sizeBytes": 3905,
+      "sha256": "08b8d92963a988c5b664c3d90fd63f8aa68ac5bc29963a66bf5caa8f5ba3f592"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp02-fixture-scanner.mjs",
+      "sizeBytes": 2660,
+      "sha256": "091a5ffa7756d7be89f7b16c4c822d0eaa6545764e7ac5bcbb103fa6121f6d9f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp03-fixture-report.mjs",
+      "sizeBytes": 1546,
+      "sha256": "c59c72cb824873b879e5b313ba8713eb101e3e582059d611fccb1beea4b94236"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp04-fixture-report-ui.mjs",
+      "sizeBytes": 1348,
+      "sha256": "a00a446eea61618530b5ffb0a596aa251a987f9558c14cf928f17bfb53abc5a8"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp05-fixture-cases.mjs",
+      "sizeBytes": 2257,
+      "sha256": "4fb8a5ed0de0fb8e1c9f93c37443def036ce8a42fc5168212f46a3a0a598ea9f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp06-fixture-harness.mjs",
+      "sizeBytes": 2098,
+      "sha256": "69919f55cb28a3d042a6397ad6dc709de20f55f7943a7eac2b10f58fc76b6cd9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp07-scanner-ui-flow.mjs",
+      "sizeBytes": 2207,
+      "sha256": "d1eef8b7fd4835a178d6bb2fda95ca78eb2c7c01cc1b131d27a0d2033628933d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp08-virtual-path-parser.mjs",
+      "sizeBytes": 2095,
+      "sha256": "3de129811ae7846867fa10381d0de66328a4b9bda1b34f6ae5b44811d36de938"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp09-parser-driven-scanner.mjs",
+      "sizeBytes": 3804,
+      "sha256": "93ff361b303486acb8595b4f69b1a2f1a72f8481487031fc148068299f204baf"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp10-dry-run-contract.mjs",
+      "sizeBytes": 3933,
+      "sha256": "096aeee55df4b9969049a88f518688e209eb6c0565296d60ec8d78961a866a3f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp100-library-index-patch-write.mjs",
+      "sizeBytes": 7215,
+      "sha256": "31cbc0ab2f29a1beb431de9c4af6cef0e71726bbd8380f8abdc257069311000a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp101-import-ui-refresh-after-patch.mjs",
+      "sizeBytes": 7091,
+      "sha256": "171988196962155e0010e794013525fa3926b706e6a15419f3ec893b4c6c5c4e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp102-copy-only-import-closeout.mjs",
+      "sizeBytes": 4547,
+      "sha256": "efe41d34d919b3246a0678440d91f4b3048ae7c15dc647b4b6b14e7845551a49"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp103-move-only-strategy.mjs",
+      "sizeBytes": 4550,
+      "sha256": "108e195909b0b18da245f56ccaf650c2aec9c8371f4920cd09ebb6f4058ee03d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp104-move-only-execution-readiness.mjs",
+      "sizeBytes": 4770,
+      "sha256": "75c9585ebb9bad0ab99138964615ca7e2586b998b1f3809e66c7b638a304c73a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp105-small-sample-move-only-executor.mjs",
+      "sizeBytes": 5754,
+      "sha256": "7bd059cfde3d5615fe8a4361e67110eedb55e90826fa9a88d9a2d6470c794b91"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp106-move-only-closeout.mjs",
+      "sizeBytes": 4616,
+      "sha256": "28222997d544c899a6ad08b8febab028f55a2a5eec601805558b8092fc53c587"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp107-importer-daily-ui-cleanup.mjs",
+      "sizeBytes": 5241,
+      "sha256": "3e13867db70e032335c1b9b147f103c6c822c7c4507ddc8044fd47ab8a3ea35e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp108-importer-final-regression-checklist.mjs",
+      "sizeBytes": 4142,
+      "sha256": "55d9bfdcc31755a2603621524c990953ba6861ba08632de43986fcd9d42bd4d0"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp109-ui-engineering-panel-cleanup.mjs",
+      "sizeBytes": 2879,
+      "sha256": "72344046aa6813723cfd1a282c00665748be30d6c9656b359ece66ab47dbd397"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp11-dry-run-ipc-stub.mjs",
+      "sizeBytes": 3918,
+      "sha256": "c986550e4995c4436ea0a7f6302f3c6c8ceb543926efa58b0dc6dc93a5ecfa34"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp110-global-daily-ui-cleanup.mjs",
+      "sizeBytes": 3389,
+      "sha256": "dc2802e4ff7b6db238acf47b656a6d598611abd5ed2ec2ac3d3d559517c8bfbc"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp111-ui-cleanup-closeout-baseline-sync.mjs",
+      "sizeBytes": 3599,
+      "sha256": "fde763fc0f253050754590be21cf1ed4bfd9a1096a7d84d9b51fc199accf8290"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp12-dry-run-stub-preview-ui.mjs",
+      "sizeBytes": 3816,
+      "sha256": "0e4d5c51f8149a79004e9e29b2a8496e80d61291fdfbd42b77c1af08aaa6ebfd"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp13-electron-boundary-contract.mjs",
+      "sizeBytes": 7760,
+      "sha256": "c248c5356529fca320590d5b680b48b36b502e99f41a396ff5538bb45d2343ab"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp14-electron-shell-skeleton.mjs",
+      "sizeBytes": 5053,
+      "sha256": "e0283c08b4689e31614122d3882cf6634e3bb61897433415fe5b68b05078682f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp15-electron-launch-scripts.mjs",
+      "sizeBytes": 12833,
+      "sha256": "b5afd48b9dac62aaa7932e64e764a35e5fe3822e83aab8e5ba0ec69e189d40e7"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp16-electron-runtime-probe.mjs",
+      "sizeBytes": 4769,
+      "sha256": "65fa3e4a134918e60070e17b31f7c3277b8d53bbb25559e7cbaaabe9e466bc2d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp17-electron-smoke-check-ui.mjs",
+      "sizeBytes": 4096,
+      "sha256": "16181350907cfc3e2d0b6662a0e8b3f63bb511c10b02ea6d723ce70b0e623132"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp18-directory-picker-stub.mjs",
+      "sizeBytes": 5847,
+      "sha256": "6d58df1505b809c7c70def8b277ab45b8c3373eb8b40ef3652cab2b05cafb727"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp19-directory-dialog-tokenized-root.mjs",
+      "sizeBytes": 6812,
+      "sha256": "a31e64160b98548e8c242d752b54832c343af802a32c6b8fe220c31b7679d205"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp20-read-only-dry-run-scanner.mjs",
+      "sizeBytes": 10399,
+      "sha256": "a2547a8d449ef7388c01fd6493425fb11cb3afb492f75df8b0549145bcf56031"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp21-22-dry-run-report-index-preview.mjs",
+      "sizeBytes": 3658,
+      "sha256": "094892f9c114e66f5175c604f572ff179687d7eb5c4d1ecba78cb31410948182"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp23-library-index-write.mjs",
+      "sizeBytes": 3898,
+      "sha256": "aec1a1ddf793447ea862bb8539b8fc2dbf23f3766727f0fa59b564c6c31075bf"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp24-library-index-read-ui.mjs",
+      "sizeBytes": 3787,
+      "sha256": "d4bc3d18297287d1ce01b1512a1274b7441355dc07bbcca50859a11ad8ff1324"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp25-html-audio-local-playback.mjs",
+      "sizeBytes": 2875,
+      "sha256": "331af74a87466f97171b85afb1c583d4f11553645b8f6418a254ba7b9560e25f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp26-track-lyrics-read.mjs",
+      "sizeBytes": 2807,
+      "sha256": "d5de892479794c13d21ec7100171d6d1dffec277dc7af225b7a644b8642889e8"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp27-external-open.mjs",
+      "sizeBytes": 5476,
+      "sha256": "5fe68030c1d30e333fb8dc4e49b79e6ad30672dec5d99708b386b01a3e00176d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp28-windows-desktop-validation.mjs",
+      "sizeBytes": 9595,
+      "sha256": "0f6e38c825ac39b01441de19c13aa9c3dbfa43f757336fc8573ac6f5c3690156"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp29-windows-packaging.mjs",
+      "sizeBytes": 4105,
+      "sha256": "f771dcd09a2aa30b3e06b5465c6e42d9e238136071f05a4e888ab77a27e4b011"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp30-onboarding.mjs",
+      "sizeBytes": 3438,
+      "sha256": "1868b4f197917cfa910ce42da56040e8467bd18609b0fa77bd8e3e7c87552bd2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp31-playback-history.mjs",
+      "sizeBytes": 3900,
+      "sha256": "bf06a28287f9ff21fdc8854837994402fc92ad9950f0e02a26066b3fff53f6c0"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp32-library-session.mjs",
+      "sizeBytes": 4616,
+      "sha256": "6c7748851872e2380b411be1e7763fe6cd92087b730aeeda26a613ac01539175"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp33-library-browse-filters.mjs",
+      "sizeBytes": 5253,
+      "sha256": "549bbf2bed88885179f9c701d5a97d3dee511743a6fa1c7fe4c8eae9a76e201b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp34-player-experience.mjs",
+      "sizeBytes": 5959,
+      "sha256": "4e1b486b00ba6118a608f1fa1085c5cb800cd736c2aaeb077eede253bb9b6d94"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp35-queue-persistence.mjs",
+      "sizeBytes": 5218,
+      "sha256": "5b5a012bac4d452a64194ca9cb9a0982cd73ab32a6f8fd3ccec8726709d8e87a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp36-playlist-persistence.mjs",
+      "sizeBytes": 5647,
+      "sha256": "17f7ae79732d055cee64b36d5c4672b87baa77b2a746470f5f89157e23291ff0"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp37-local-cover-artwork.mjs",
+      "sizeBytes": 5819,
+      "sha256": "c960e9f4c91a21bf76cc3bbfbd6bc68785b6fe0ac03db581bd03967ff6d8528d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp38-ui-copy-cleanup.mjs",
+      "sizeBytes": 4022,
+      "sha256": "709b746cb614eeada398568c3c4c107102c8bed64447ef101824735ce92a8f83"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp39-media-library-polish.mjs",
+      "sizeBytes": 2846,
+      "sha256": "db6160fe240dae43fb35f00475c62a07584aaae2955d88d06d4584e13f3fb16a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp40-media-surface-consistency.mjs",
+      "sizeBytes": 3442,
+      "sha256": "7ca727a80b333d11b3c54b2c8ebc4fe85e00e3ed08d9d4b16a3f1728f235018d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp41-player-surface-polish.mjs",
+      "sizeBytes": 3568,
+      "sha256": "9b04fe0829e7e02d498daa4c7a898be8b95d52483d351c9d21b203f3f229339d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp42-daily-listening-surface.mjs",
+      "sizeBytes": 3610,
+      "sha256": "dc8b98ebdaaefc24752ead800cb93722aea476ddcfd0859538d5e2d42b9177a2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp43-collection-empty-states.mjs",
+      "sizeBytes": 3767,
+      "sha256": "dab2394041bed38ec83d44653633f8d67d105a1340a1f43f4c5d00cb97617fac"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp44-settings-diagnostics-separation.mjs",
+      "sizeBytes": 3641,
+      "sha256": "fe0c5d8980395e0d59e0fc2a2e7be20f369ea3953271d29653bd1a2190924382"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp45-home-recent-listening.mjs",
+      "sizeBytes": 3940,
+      "sha256": "5983faabc9d77dfcb3bf76f8c1c017332cf8e7f769532a43d9c220aba213f9a2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp46-library-browse-cleanup.mjs",
+      "sizeBytes": 6911,
+      "sha256": "807d46687f17cfd7a8d3f4d3e576f1b706f2c5b1df2d3a5e6d0210b98b577a66"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp47-packaged-regression.mjs",
+      "sizeBytes": 3853,
+      "sha256": "ddf1bb47a2adc650db8cfd909b07fd153a0d951e0d314d303013b5501e8e5c1c"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp48-beta-closeout.mjs",
+      "sizeBytes": 10002,
+      "sha256": "b5e88ea79c0291cd75c6cfb92920b08f781b883fbe4e5d4994a3e74271f7fd07"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp49-listening-polish.mjs",
+      "sizeBytes": 8240,
+      "sha256": "6530d5d1c2579011a46eebf723aef3128b2b2573125e5ba9cd3b1cce74fc4d9a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp50-player-visual-polish.mjs",
+      "sizeBytes": 8280,
+      "sha256": "414623eb7020b81830f53cf837c00a9df3a66411230d29727ed570e632c69203"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp51-player-immersion-polish.mjs",
+      "sizeBytes": 8059,
+      "sha256": "a1a9bef4c85e06021cab0a193a883f5a1125c2c504ee3e9653e958192e7752bf"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp52-library-regression-polish.mjs",
+      "sizeBytes": 8284,
+      "sha256": "7f15ec8a43a02e9c61a18949a69c4135e9d3b48bcf4c4caf2a6f1d1113586c50"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp53-library-visual-unity.mjs",
+      "sizeBytes": 8562,
+      "sha256": "6386f62be9526da71754247f061b4077620d500982f133b340e1247c8b1b0286"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp54-beta-regression-checklist.mjs",
+      "sizeBytes": 8060,
+      "sha256": "ee4ff82e683a193aa3c731d2b226664cabdfc6a72bda656b734956b8c914ba81"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp55-component-health-review.mjs",
+      "sizeBytes": 7249,
+      "sha256": "0e3d826667e7d7b8139fbe14a8d79ef4e041806c614537bc051ccb6b6a63069d"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp56-asmr-detail-surface.mjs",
+      "sizeBytes": 7317,
+      "sha256": "4e202fcabb3e20fc4f318511b2bc3fc1430bfd83786c818f34f774bfea3ef51a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp57-asmr-detail-side-rail.mjs",
+      "sizeBytes": 6122,
+      "sha256": "96ef98388b5f8930944b1facdbca85725edc116d67bb6ad6264837b4a87bef55"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp58-settings-personal-workflow.mjs",
+      "sizeBytes": 7088,
+      "sha256": "e3947c803508a1a948f5a3337904926d51c6d2df267db88629a35f47669401d9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp59-home-player-beta-polish.mjs",
+      "sizeBytes": 7154,
+      "sha256": "9311e35b703050f7eff070ec18620ef64e5ae6ee74ecf67b880209d757a01b07"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp60-beta-candidate-closeout.mjs",
+      "sizeBytes": 6323,
+      "sha256": "ab0dd1ac5e305336e2ce807c760c8ee92a3853d09ae4188854c574bda176c73e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp61-local-regression-fix.mjs",
+      "sizeBytes": 9343,
+      "sha256": "f5f282c6386afa7a6d11412dbe52111d5c00e3351efbe8071798d2466f7edf56"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp62-electron-regression-hardening.mjs",
+      "sizeBytes": 8179,
+      "sha256": "2afc51bd570ba21c85bd69563d45fbb3c6da6bffcc6ab10a31bf2d522d796cc3"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp63-electron-binary-path-fix.mjs",
+      "sizeBytes": 7879,
+      "sha256": "1e400cc83f73cb6ff7660997cf4b07c27024a2b3a42495be954c378b59e6bb45"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp64-diagnostics-black-view-fix.mjs",
+      "sizeBytes": 6587,
+      "sha256": "ac3ebdcc5def04749c40c8b1cf97a39f894e1060612f1ac4f81116a844ade01c"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp65-diagnostics-map-guard.mjs",
+      "sizeBytes": 3487,
+      "sha256": "e8f869c3bb6ecf348a0ac2992a66dd30515611acc75af9741e9b4b8c75dbb8ff"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp66-beta-gui-regression.mjs",
+      "sizeBytes": 5827,
+      "sha256": "94870ef8ca51afcf641ef581a37b71bfa4c0dee9f88ac02fbb853c8954439993"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp67-beta-rc-closeout.mjs",
+      "sizeBytes": 5918,
+      "sha256": "8c468b72c43c564ddc18cffbb012be677ad4c5b262cb99c195aa147c2477ad5e"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp68-beta-rc-user-guide.mjs",
+      "sizeBytes": 6142,
+      "sha256": "7a9f40ba9e3fd748405a08587b5b250dcc7f01f5a08ec491a300c1015edf8c97"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp69-beta-release-candidate.mjs",
+      "sizeBytes": 6183,
+      "sha256": "c26d04abcdd6fc42fbdf49f98bba8cf60d1cabfa08793a557f608668660158d2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp70-beta-final-handoff.mjs",
+      "sizeBytes": 6132,
+      "sha256": "b41b4898d3a9029eaf8cbce3fa200036a16456ba2177ba90948c78d1d5854547"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp71-ui-simplification.mjs",
+      "sizeBytes": 6145,
+      "sha256": "b4630d4dd5b9bb992707f1851a1c8260381826edb652bb78fe83c9eff12be259"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp72-daily-surface-cleanup.mjs",
+      "sizeBytes": 6158,
+      "sha256": "4ddeacb4d81e4cfdf616fc55184603ddcef05714da987c2c8905f6d5d5674d9c"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp73-player-daily-visual-focus.mjs",
+      "sizeBytes": 5146,
+      "sha256": "f5f8fc7d9b5b93d54c161c93d74d9bd988bda2131a773c3bca0afb3cac9f4af1"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp74-playerbar-home-cleanup.mjs",
+      "sizeBytes": 4444,
+      "sha256": "de4a7cb0d8bac1cde27bfb90801c3fe5582357723c67ce6f16c7d78a45ea8053"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp75-diagnostics-history-fold.mjs",
+      "sizeBytes": 4493,
+      "sha256": "5852830bde26636eae3f9ade832fc94341e3455ffed2f2879267ec3a07d55dcc"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp76-card-layout-unity.mjs",
+      "sizeBytes": 4820,
+      "sha256": "d69abb4ec25a00175022d37479dcf466633dcf3b9e8af045a7de87de3019c66f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp77-packaged-regression-review.mjs",
+      "sizeBytes": 4530,
+      "sha256": "42a3631daf49f02a319b36aa8ec8990458d6e27f8b45c1ac5b85b4ba2bdfc60a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp78-player-layout-review.mjs",
+      "sizeBytes": 5531,
+      "sha256": "4416cbca3824f971edabfbde2b4aeceb136a9a072be6dcf782cb0edb1059fdd6"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp79-player-ui-bugfix.mjs",
+      "sizeBytes": 6293,
+      "sha256": "9eca9323fac58605fda9d4421651ce8d1a6bdbb1a64d501d6c2753a7970af257"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp80-settings-diagnostics-daily-finalize.mjs",
+      "sizeBytes": 5465,
+      "sha256": "b9d6105c629ec86b657797fbe512f85958e09d046173706eca9553df859455c2"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp81-offline-demo-cover-cleanup.mjs",
+      "sizeBytes": 4621,
+      "sha256": "b75c218adb0942e1432a627af0170258dc470ea81d21fabca85cdae2d2c4606f"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp82-ui-bug-sweep.mjs",
+      "sizeBytes": 4032,
+      "sha256": "3ee00aee6745cd06964711d4789cee98be8898a6287ce19fb4b34ffb7f0915a5"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp83-beta-closeout-push-prep.mjs",
+      "sizeBytes": 4503,
+      "sha256": "14eb9f3d5ff3459c8a34dd76e6cd7799b696218d3f104a48c44cfa2b05d9e43a"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp84-import-download-strategy.mjs",
+      "sizeBytes": 4913,
+      "sha256": "23a6cd6d8dfa053287da0b3389fd76369bc7ab851badfa33f41251c7a6b52aa0"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp85-import-download-models.mjs",
+      "sizeBytes": 5411,
+      "sha256": "d87389f50900aeb6a86ef78acda335b4e65b34310a8dc8bc53f99c71ed76a3fb"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp86-importer-ui-shell.mjs",
+      "sizeBytes": 5764,
+      "sha256": "4427824b7fbae51d15052b4454ae094fb5f1a3f820251667623614e7584d9558"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp87-rj-import-readonly-detection.mjs",
+      "sizeBytes": 5371,
+      "sha256": "7773b766d582c5bab8015c5d88d35543cbab5ecfadaf6cf64b13fd973f6c7c83"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp88-music-import-readonly-detection.mjs",
+      "sizeBytes": 5621,
+      "sha256": "7f2f97fe1f2c5666c28e54a91dca84b9d48e706f0913aa61d0944ebdf1bccb57"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp89-import-conflict-detection.mjs",
+      "sizeBytes": 4962,
+      "sha256": "8071d348b679d700f7d8bbc992527da3892bdf9408a8a53c3f0fc29dfebf86e9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp90-target-path-planning.mjs",
+      "sizeBytes": 4513,
+      "sha256": "39b4f3fff898556e90b19293f82a5f3523c0d41b197e5f1bfe387cdc4d5dacf9"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp91-copy-execution-readiness.mjs",
+      "sizeBytes": 4684,
+      "sha256": "30345b1a83c8cfe446afbe32daf6f6f10073afe69e4fbdaa5ddf3883e711fe23"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp92-copy-sample-readiness.mjs",
+      "sizeBytes": 4848,
+      "sha256": "8a648db0529bdd6f0eb0baf186ee7ffae091b21ea91cd48798994d7bc5552da7"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp93-copy-only-main-side-stub.mjs",
+      "sizeBytes": 6232,
+      "sha256": "ffb4b18ffd701fa1a1987ba1c91a8a117fd7bd1749dad251ccda7984525e1801"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp94-copy-only-preflight-real-check.mjs",
+      "sizeBytes": 5360,
+      "sha256": "81770bf702a2cd09dd4580e420b6358c2fc354cf4b8922ffe41cde13655909e6"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp95-copy-only-executor.mjs",
+      "sizeBytes": 6809,
+      "sha256": "9fed060081f1b8a31645d4bf8d94758589858b5abb748d6e2007ef398493477b"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp96-copy-only-operation-log.mjs",
+      "sizeBytes": 6302,
+      "sha256": "3f82172511bd143381cc10b4506ef835908cc0b1b3f47aea368dc6167fdde680"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp97-post-copy-refresh-preview.mjs",
+      "sizeBytes": 6268,
+      "sha256": "eace5a6db3aee1d9b061dd01fae38b0b9136f85e82ddc014352f136f9099a3b4"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp98-library-index-patch-preview.mjs",
+      "sizeBytes": 6522,
+      "sha256": "887dd7db459145406a59b8265441121445d28ff6b2a10f6664d5d5aae0049c02"
+    },
+    {
+      "path": "archive/legacy-mvp-history/scripts/verify-mvp99-library-index-patch-write-readiness.mjs",
+      "sizeBytes": 6789,
+      "sha256": "f6d1d4590be64c0bc85974cff11e80f1839c5187deb7cb86b3e265fdb7128fcf"
+    }
+  ]
+}

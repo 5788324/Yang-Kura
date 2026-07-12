@@ -1,16 +1,17 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { ClipboardPaste, CloudDownload, Eye, FileJson, LoaderCircle, RefreshCw, RotateCcw, Trash2, WandSparkles } from 'lucide-react';
 import type { RJWork } from '../types';
 import {
   asmrMetadataProviderPreviewService,
   type AsmrMetadataProviderCandidateV1,
+  type AsmrMetadataProviderField,
   type AsmrMetadataProviderId,
   type AsmrMetadataProviderPreviewResult,
 } from '../services/asmrMetadataProviderPreviewService';
 
 interface AsmrMetadataProviderPreviewProps {
   work: RJWork;
-  onApplyToDraft: (candidate: AsmrMetadataProviderCandidateV1) => void;
+  onApplyToDraft: (candidate: AsmrMetadataProviderCandidateV1, selectedFields: AsmrMetadataProviderField[]) => void;
 }
 
 interface ProviderRuntimeState {
@@ -42,15 +43,26 @@ export default function AsmrMetadataProviderPreview({ work, onApplyToDraft }: As
   const [isClearingCache, setIsClearingCache] = useState(false);
   const [fetchMessage, setFetchMessage] = useState('');
   const [providerRuntime, setProviderRuntime] = useState<ProviderRuntimeState | null>(null);
-  const changedDiffs = useMemo(() => preview?.diffs.filter((item) => item.changed) ?? [], [preview]);
-
+  const [selectedFields, setSelectedFields] = useState<AsmrMetadataProviderField[]>([]);
   const normalizedRjId = asmrMetadataProviderPreviewService.normalizeRjId(work.id);
+
+  const setPreviewWithSelection = (nextPreview: AsmrMetadataProviderPreviewResult) => {
+    setPreview(nextPreview);
+    setSelectedFields(nextPreview.ok ? nextPreview.diffs.filter((item) => item.changed).map((item) => item.field) : []);
+  };
+
+  const toggleSelectedField = (field: AsmrMetadataProviderField) => {
+    setSelectedFields((current) => current.includes(field)
+      ? current.filter((item) => item !== field)
+      : [...current, field]);
+  };
 
   const reset = () => {
     setRawJson('');
     setPreview(null);
     setFetchMessage('');
     setProviderRuntime(null);
+    setSelectedFields([]);
   };
 
   const fetchFromDlsite = async (forceRefresh: boolean) => {
@@ -73,7 +85,7 @@ export default function AsmrMetadataProviderPreview({ work, onApplyToDraft }: As
         const json = JSON.stringify(result.candidate, null, 2);
         setRawJson(json);
         setProvider('dlsite');
-        setPreview(asmrMetadataProviderPreviewService.preview(work, json));
+        setPreviewWithSelection(asmrMetadataProviderPreviewService.preview(work, json));
         setProviderRuntime({
           source: result.cache.source,
           cachedAt: result.cache.cachedAt,
@@ -156,6 +168,7 @@ export default function AsmrMetadataProviderPreview({ work, onApplyToDraft }: As
               onClick={() => {
                 setRawJson(asmrMetadataProviderPreviewService.buildTemplate(work, provider));
                 setPreview(null);
+                setSelectedFields([]);
               }}
               className="inline-flex items-center gap-1.5 rounded-lg border border-white/5 bg-zinc-900 px-3 py-2 text-[11px] font-semibold text-text-secondary hover:text-text-primary"
             >
@@ -169,6 +182,7 @@ export default function AsmrMetadataProviderPreview({ work, onApplyToDraft }: As
             onChange={(event) => {
               setRawJson(event.target.value);
               setPreview(null);
+              setSelectedFields([]);
             }}
             rows={8}
             spellCheck={false}
@@ -207,7 +221,7 @@ export default function AsmrMetadataProviderPreview({ work, onApplyToDraft }: As
             </button>
             <button
               type="button"
-              onClick={() => setPreview(asmrMetadataProviderPreviewService.preview(work, rawJson))}
+              onClick={() => setPreviewWithSelection(asmrMetadataProviderPreviewService.preview(work, rawJson))}
               className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-2 text-[11px] font-semibold text-white hover:bg-indigo-400"
             >
               <Eye className="h-3.5 w-3.5" />
@@ -245,26 +259,44 @@ export default function AsmrMetadataProviderPreview({ work, onApplyToDraft }: As
               {preview.ok && preview.candidate && (
                 <>
                   {(preview.candidate.sourceLabel || preview.candidate.fetchedAt) && <div className="mt-2 text-[10px] text-text-muted">来源：{preview.candidate.sourceLabel ?? preview.candidate.provider}{preview.candidate.fetchedAt ? ` · ${formatDateTime(preview.candidate.fetchedAt)}` : ''}</div>}
-                  <div className="mt-3 space-y-1.5">
+                  <div className="mt-3 grid grid-cols-[28px_72px_minmax(0,1fr)_minmax(0,1fr)] gap-2 px-2.5 text-[9px] font-semibold text-text-muted">
+                    <span>选择</span><span>字段</span><span>本地当前值</span><span>外部候选值</span>
+                  </div>
+                  <div className="mt-1.5 space-y-1.5" data-testid="mvp121-provider-field-selection">
                     {preview.diffs.map((diff) => (
-                      <div key={diff.field} className="grid grid-cols-[72px_minmax(0,1fr)] gap-2 rounded-lg bg-black/20 px-2.5 py-2 text-[10px]">
+                      <div key={diff.field} className="grid grid-cols-[28px_72px_minmax(0,1fr)_minmax(0,1fr)] gap-2 rounded-lg bg-black/20 px-2.5 py-2 text-[10px]">
+                        <label className="flex items-start pt-0.5">
+                          <input
+                            type="checkbox"
+                            checked={selectedFields.includes(diff.field)}
+                            disabled={!diff.changed}
+                            onChange={() => toggleSelectedField(diff.field)}
+                            aria-label={`选择${diff.label}候选值`}
+                            className="h-3.5 w-3.5 rounded border-white/20 bg-zinc-950 accent-emerald-500 disabled:opacity-30"
+                          />
+                        </label>
                         <span className="font-semibold text-text-secondary">{diff.label}</span>
-                        <div className="min-w-0 space-y-0.5">
-                          <div className="truncate text-text-muted">当前：{diff.currentValue || '未填写'}</div>
-                          <div className={`break-words ${diff.changed ? 'text-emerald-300' : 'text-text-secondary'}`}>预览：{diff.candidateValue || '未填写'}</div>
-                        </div>
+                        <div className="min-w-0 break-words text-text-muted">{diff.currentValue || '未填写'}</div>
+                        <div className={`min-w-0 break-words ${diff.changed ? 'text-emerald-300' : 'text-text-secondary'}`}>{diff.candidateValue || '未填写'}</div>
                       </div>
                     ))}
                   </div>
-                  <button
-                    type="button"
-                    disabled={changedDiffs.length === 0}
-                    onClick={() => onApplyToDraft(preview.candidate!)}
-                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-300 hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <ClipboardPaste className="h-3.5 w-3.5" />
-                    填入当前编辑表单（尚未保存）
-                  </button>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      data-mvp117-legacy-label="填入当前编辑表单（尚未保存）"
+                      disabled={selectedFields.length === 0}
+                      onClick={() => {
+                        const selectedCandidate = asmrMetadataProviderPreviewService.selectCandidateFields(preview.candidate!, selectedFields);
+                        onApplyToDraft(selectedCandidate, selectedFields);
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-300 hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <ClipboardPaste className="h-3.5 w-3.5" />
+                      填入已选 {selectedFields.length} 项（尚未保存）
+                    </button>
+                    <span className="text-[10px] text-text-muted">默认选择所有有差异的字段，可逐项取消。</span>
+                  </div>
                 </>
               )}
             </div>

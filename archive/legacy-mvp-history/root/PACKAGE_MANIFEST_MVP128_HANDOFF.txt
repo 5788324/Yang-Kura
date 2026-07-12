@@ -1,0 +1,22 @@
+Yang-Kura MVP128 source handoff
+Version: 0.166.0-mvp128
+Package: yang-kura-mvp128-controlled-index-cleanup-source.zip
+
+Key files:
+- electron/libraryIndexHealthService.ts
+- electron/main.ts
+- electron/preload.ts
+- src/types/electron-api.d.ts
+- src/components/SettingsPage.tsx
+- scripts/test-mvp128-index-cleanup-service.mjs
+- scripts/verify-mvp128-controlled-index-cleanup.mjs
+- docs/CURRENT_ROADMAP_MVP128.md
+- docs/CONTROLLED_INDEX_CLEANUP_MVP128.md
+- HANDOFF_MVP127_TO_MVP128.md
+
+Excluded from package:
+- node_modules
+- dist
+- dist-electron
+- .git
+- npm cache and logs

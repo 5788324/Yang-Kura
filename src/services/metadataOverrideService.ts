@@ -2,6 +2,20 @@ import type { AudioTrack, MusicAlbum, RJWork } from '../types';
 
 export type MetadataOverrideVersion = 1;
 export type PersonalListeningStatus = 'unheard' | 'listening' | 'completed' | 'abandoned';
+export type AsmrMetadataProviderId = 'dlsite' | 'asmr-one' | 'custom';
+export type AsmrMetadataProviderField = 'title' | 'circle' | 'cvs' | 'releaseDate' | 'description' | 'tags';
+
+export interface AsmrMetadataOverrideProvenance {
+  kind: 'manual' | 'provider';
+  provider?: AsmrMetadataProviderId;
+  sourceLabel?: string;
+  sourceUrl?: string;
+  fetchedAt?: string;
+  appliedFields?: AsmrMetadataProviderField[];
+  savedAt: string;
+}
+
+export type AsmrMetadataSaveContext = Omit<AsmrMetadataOverrideProvenance, 'savedAt'>;
 
 export interface AsmrMetadataOverride {
   workId: string;
@@ -14,6 +28,7 @@ export interface AsmrMetadataOverride {
   rating?: number;
   personalStatus?: PersonalListeningStatus;
   personalNotes?: string;
+  provenance?: AsmrMetadataOverrideProvenance;
   updatedAt: string;
 }
 
@@ -96,6 +111,41 @@ const cleanRating = (value: unknown): number | undefined => {
   if (typeof value !== 'number' || !Number.isFinite(value)) return undefined;
   return Math.min(5, Math.max(0, Math.round(value)));
 };
+const cleanProvider = (value: unknown): AsmrMetadataProviderId | undefined => {
+  return value === 'dlsite' || value === 'asmr-one' || value === 'custom' ? value : undefined;
+};
+const cleanProviderField = (value: unknown): AsmrMetadataProviderField | undefined => {
+  return value === 'title' || value === 'circle' || value === 'cvs' || value === 'releaseDate' || value === 'description' || value === 'tags' ? value : undefined;
+};
+const cleanHttpUrl = (value: unknown): string | undefined => {
+  const text = cleanText(value);
+  if (!text) return undefined;
+  try {
+    const url = new URL(text);
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+};
+const sanitizeProvenance = (value: unknown): AsmrMetadataOverrideProvenance | undefined => {
+  if (!value || typeof value !== 'object') return undefined;
+  const source = value as Partial<AsmrMetadataOverrideProvenance>;
+  const kind = source.kind === 'provider' ? 'provider' : source.kind === 'manual' ? 'manual' : undefined;
+  if (!kind) return undefined;
+  const provider = cleanProvider(source.provider);
+  const fields = Array.isArray(source.appliedFields)
+    ? [...new Set(source.appliedFields.map(cleanProviderField).filter((item): item is AsmrMetadataProviderField => Boolean(item)))]
+    : undefined;
+  return {
+    kind,
+    ...(provider ? { provider } : {}),
+    ...(cleanText(source.sourceLabel) ? { sourceLabel: cleanText(source.sourceLabel) } : {}),
+    ...(cleanHttpUrl(source.sourceUrl) ? { sourceUrl: cleanHttpUrl(source.sourceUrl) } : {}),
+    ...(cleanText(source.fetchedAt) ? { fetchedAt: cleanText(source.fetchedAt) } : {}),
+    ...(fields && fields.length > 0 ? { appliedFields: fields } : {}),
+    savedAt: cleanText(source.savedAt) ?? new Date().toISOString(),
+  };
+};
 const cleanStatus = (value: unknown): PersonalListeningStatus | undefined => {
   return value === 'unheard' || value === 'listening' || value === 'completed' || value === 'abandoned'
     ? value
@@ -125,6 +175,7 @@ const sanitizeStore = (value: unknown): MetadataOverrideStoreV1 => {
         ...(cleanRating(item.rating) !== undefined ? { rating: cleanRating(item.rating) } : {}),
         ...(cleanStatus(item.personalStatus) ? { personalStatus: cleanStatus(item.personalStatus) } : {}),
         ...(typeof item.personalNotes === 'string' ? { personalNotes: item.personalNotes.trim() } : {}),
+        ...(sanitizeProvenance(item.provenance) ? { provenance: sanitizeProvenance(item.provenance) } : {}),
         updatedAt: cleanText(item.updatedAt) ?? new Date().toISOString(),
       };
     }
@@ -180,7 +231,7 @@ const shallowArrayEqual = (a: string[] = [], b: string[] = []) =>
   a.length === b.length && a.every((value, index) => value === b[index]);
 
 const countOverrideFields = (record: Record<string, unknown>, identityKeys: string[]) =>
-  Object.keys(record).filter((key) => !identityKeys.includes(key) && key !== 'updatedAt').length;
+  Object.keys(record).filter((key) => !identityKeys.includes(key) && key !== 'updatedAt' && key !== 'provenance').length;
 
 const summaryOf = (store: MetadataOverrideStoreV1): MetadataOverrideSummary => {
   const asmrWorks = Object.keys(store.asmrWorks).length;
@@ -275,6 +326,18 @@ export const metadataOverrideService = {
     return Boolean(this.getAsmrOverride(workId));
   },
 
+  getAsmrOverrideProvenance(workId: string): AsmrMetadataOverrideProvenance | undefined {
+    return this.getAsmrOverride(workId)?.provenance;
+  },
+
+  getAsmrOverrideSourceLabel(workId: string): string | undefined {
+    const provenance = this.getAsmrOverrideProvenance(workId);
+    if (!provenance) return this.hasAsmrOverride(workId) ? '本地手动修改（旧记录）' : undefined;
+    if (provenance.kind === 'manual') return '手动编辑';
+    if (provenance.sourceLabel) return provenance.sourceLabel;
+    return provenance.provider === 'dlsite' ? 'DLsite 候选信息' : provenance.provider === 'asmr-one' ? 'ASMR.one 候选信息' : '外部候选信息';
+  },
+
   buildAsmrPatch(before: RJWork, after: RJWork): AsmrMetadataOverridePatch {
     const patch: AsmrMetadataOverridePatch = {};
     if (before.title !== after.title) patch.title = after.title;
@@ -289,16 +352,19 @@ export const metadataOverrideService = {
     return patch;
   },
 
-  upsertAsmrOverride(workId: string, patch: AsmrMetadataOverridePatch): AsmrMetadataOverride | undefined {
+  upsertAsmrOverride(workId: string, patch: AsmrMetadataOverridePatch, source?: AsmrMetadataSaveContext): AsmrMetadataOverride | undefined {
     const safeId = cleanText(workId);
     if (!safeId || Object.keys(patch).length === 0) return this.getAsmrOverride(workId);
     const store = this.getStore();
     const previous = store.asmrWorks[safeId];
+    const provenance = source
+      ? sanitizeProvenance({ ...source, savedAt: new Date().toISOString() })
+      : previous?.provenance ?? sanitizeProvenance({ kind: 'manual', savedAt: new Date().toISOString() });
     const merged = sanitizeStore({
       ...store,
       asmrWorks: {
         ...store.asmrWorks,
-        [safeId]: { ...previous, ...patch, workId: safeId, updatedAt: new Date().toISOString() },
+        [safeId]: { ...previous, ...patch, ...(provenance ? { provenance } : {}), workId: safeId, updatedAt: new Date().toISOString() },
       },
     });
     return persist(merged).asmrWorks[safeId];

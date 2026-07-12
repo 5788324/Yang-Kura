@@ -9,8 +9,8 @@ const forbidden = (text, token, label) => {
 };
 
 const pkg = JSON.parse(read('package.json'));
-if (!['0.151.0-mvp113', '0.152.0-mvp114', '0.153.0-mvp115', '0.154.0-mvp116', '0.155.0-mvp117', '0.156.0-mvp118', '0.157.0-mvp119', '0.158.0-mvp120'].includes(pkg.version)) throw new Error(`Unexpected version: ${pkg.version}`);
-required(pkg.scripts['verify:all'], 'verify:mvp113-accessibility-label-hotfix', 'verify:all chain');
+if (!['0.151.0-mvp113', '0.152.0-mvp114', '0.153.0-mvp115', '0.154.0-mvp116', '0.155.0-mvp117', '0.156.0-mvp118', '0.157.0-mvp119', '0.158.0-mvp120', '0.159.0-mvp121', '0.160.0-mvp122', '0.161.0-mvp123', '0.162.0-mvp124', '0.163.0-mvp125', '0.164.0-mvp126', '0.165.0-mvp127', '0.166.0-mvp128', '0.167.0-mvp129'].includes(pkg.version)) throw new Error(`Unexpected version: ${pkg.version}`);
+required(read('scripts/run-stable-regression.mjs'), 'verify:mvp113-accessibility-label-hotfix', 'verify:stable chain');
 
 const layoutService = read('src/services/libraryCardLayoutPolishService.ts');
 required(layoutService, "ariaLabel: '音声作品列表'", 'ASMR user-facing accessible label');

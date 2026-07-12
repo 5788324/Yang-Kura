@@ -60,6 +60,30 @@ const normalizeRjId = (value: unknown): string => {
 
 const formatList = (value: string[] | undefined): string => value?.join('、') ?? '';
 
+const PROVIDER_FIELD_ORDER: AsmrMetadataProviderField[] = ['title', 'circle', 'cvs', 'releaseDate', 'description', 'tags'];
+
+const selectCandidateFields = (
+  candidate: AsmrMetadataProviderCandidateV1,
+  fields: AsmrMetadataProviderField[],
+): AsmrMetadataProviderCandidateV1 => {
+  const selected = new Set(fields);
+  return {
+    schemaVersion: 1,
+    provider: candidate.provider,
+    rjId: candidate.rjId,
+    ...(candidate.sourceLabel ? { sourceLabel: candidate.sourceLabel } : {}),
+    ...(candidate.sourceUrl ? { sourceUrl: candidate.sourceUrl } : {}),
+    ...(candidate.fetchedAt ? { fetchedAt: candidate.fetchedAt } : {}),
+    ...(selected.has('title') && candidate.title !== undefined ? { title: candidate.title } : {}),
+    ...(selected.has('circle') && candidate.circle !== undefined ? { circle: candidate.circle } : {}),
+    ...(selected.has('cvs') && candidate.cvs !== undefined ? { cvs: candidate.cvs } : {}),
+    ...(selected.has('releaseDate') && candidate.releaseDate !== undefined ? { releaseDate: candidate.releaseDate } : {}),
+    ...(selected.has('description') && candidate.description !== undefined ? { description: candidate.description } : {}),
+    ...(selected.has('tags') && candidate.tags !== undefined ? { tags: candidate.tags } : {}),
+  };
+};
+
+
 const sanitizeCandidate = (value: unknown): AsmrMetadataProviderCandidateV1 => {
   if (!value || typeof value !== 'object') throw new Error('查询结果必须是 JSON 对象。');
   const source = value as Record<string, unknown>;
@@ -107,6 +131,8 @@ const buildDiffs = (work: RJWork, candidate: AsmrMetadataProviderCandidateV1): A
 
 export const asmrMetadataProviderPreviewService = {
   normalizeRjId,
+  providerFields: PROVIDER_FIELD_ORDER,
+  selectCandidateFields,
 
   buildTemplate(work: RJWork, provider: AsmrMetadataProviderId = 'custom'): string {
     return JSON.stringify({

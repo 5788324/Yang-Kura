@@ -1,0 +1,4 @@
+Yang-Kura MVP123 source handoff
+Version: 0.161.0-mvp123
+Scope: mpv executable settings, installation/version detection, runtime status, HTMLAudio fallback visibility, Windows read-only sample check.
+Excluded: node_modules, dist, dist-electron, package outputs, npm caches.

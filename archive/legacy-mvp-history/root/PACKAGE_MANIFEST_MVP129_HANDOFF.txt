@@ -1,0 +1,11 @@
+Yang-Kura 0.167.0-mvp129
+
+Primary additions:
+- electron/libraryIndexMaintenanceService.ts
+- scripts/test-mvp129-index-maintenance-runtime.mjs
+- scripts/verify-mvp129-index-maintenance-closeout.mjs
+- docs/CURRENT_ROADMAP_MVP129.md
+- docs/INDEX_MAINTENANCE_CLOSEOUT_MVP129.md
+- HANDOFF_MVP128_TO_MVP129.md
+
+Package excludes node_modules, dist, dist-electron, .git, caches, and runtime logs.

@@ -1,145 +1,50 @@
 # PROJECT_STATE
 
-## 当前基线
+## 当前状态
 
 ```text
-Yang-Kura：0.158.0-mvp120
-阶段：DLsite 单个 RJ Provider 缓存与节流
+版本：0.167.0-mvp129
+状态：MVP129 稳定候选，进入最终清理与 Git 合入准备
+GitHub main：0.158.0-mvp120 / 55e33b3
+MVP130：实验性下载器分支，暂不合入
+MVP131：停止
 ```
 
-## GitHub 正式基线
+## 验收状态
 
-```text
-GitHub main 当前正式基线：0.146.0-mvp108 / 2e4a4aa
-Codex 导入器命令验收：PASS
-导入器 smoke test：PASS
-Git status at MVP108 validation：clean
-```
+- 自动化核心链：PASS。
+- Windows mpv fixture：PASS。
+- `verify:stable`：PASS。
+- Electron 严格 smoke：PASS。
+- portable：构建与实际启动 PASS，无黑屏。
+- NSIS installer：安装、启动、卸载 PASS。
+- 卸载后安装目录移除，用户 `%APPDATA%\Yang-Kura` 按配置保留。
+- Yang Kura / Electron 残留进程：0。
+- 依赖审计：0 high，1 Electron moderate 非阻塞项。
 
-MVP109～MVP113 为待合入 UI 日常化与审计修复整理包。它们基于 MVP108 之后的本地源码包继续降低主界面“AI 工程面板感”，不改变导入器、扫描、播放、字幕、外部打开等真实链路。
+## 已完成主线
 
-## 项目定位
+1. Electron 桌面壳、目录选择和安全 token 边界。
+2. 本地扫描、Local JSON Index 写入/备份/读取。
+3. 音声库、音乐库、详情、歌单、队列和播放历史。
+4. HTMLAudio、mpv 后端、fallback、Seek 合并和进程回收。
+5. LRC/SRT/VTT/ASS 字幕与外部文件打开。
+6. copy-only 完整导入闭环和 move-only 小样本闭环。
+7. 本地元数据编辑、备份/恢复和单 RJ DLsite Provider。
+8. 50,000 曲目性能基准。
+9. 缺失文件检查、受控索引清理、备份恢复和维护历史。
+10. Windows portable / installer 发布链。
 
-Yang-Kura 是个人本地音频媒体库，不商业、不对外发布、不作为开源产品运营。主线是本地资源管理、播放、导入和后续下载/元数据扩展。
+## 仍未完成或未充分实测
 
-```text
-React + Vite + TypeScript + Electron
-Local JSON Index 优先
-SQLite 后置
-ASMR/RJ + 普通音乐双库
-中文 UI 优先
-```
+- 真实 mpv.exe 的多小时日常播放与长期 named-pipe 稳定性仍需要持续使用观察。
+- 真实超大媒体库长期压力测试尚未完成；当前是生成 50,000 曲目模型通过。
+- SQLite 是否必要尚未决定。
+- 系统媒体控制、播放设备设置、批量元数据和下载生态均未进入稳定主线。
+- MVP130 只验证了 Direct URL 下载基础，不属于当前稳定包。
 
-## 当前完成度
+## 当前风险
 
-| 模块 | 状态 |
-|---|---|
-| UI 产品壳 | 已基本成型，MVP109～MVP111 继续做日常化收口。 |
-| 真实资源库链路 | 已可用：选择目录、扫描、写/读 index、显示资源。 |
-| 本地播放 | HTMLAudio 基础可用。 |
-| 字幕读取 | LRC / SRT / VTT / ASS 基础读取可用。 |
-| 外部打开 | 视频 / 图片 / 文件外部打开可用。 |
-| 打包 | portable / installer 基础链路已建立。 |
-| copy-only 导入 | 已闭环，MVP108 验收 PASS。 |
-| move-only 导入 | 小样本 executor 已闭环，MVP108 验收 PASS；暂不放开大批量。 |
-| 下载器 | 后置。 |
-| 本地元数据管理 | 已完成 ASMR 与音乐专辑/曲目编辑、单项还原、JSON 备份恢复。 |
-| 元数据 Provider | 已接入 DLsite 单个 RJ 查询、10 分钟内存缓存、5 秒节流、手动刷新和缓存清除；不做全库自动抓取。 |
-| SQLite | 后置。 |
-| mpv 后端 | 后置。 |
-
-## 导入器审查结论
-
-```text
-copy-only 可以作为当前推荐日常导入方式。
-move-only 仅建议小样本使用，不建议直接大批量。
-导入器主页面已收口，工程说明保留给 AI 维护。
-除非桌面 UI 小样本发现具体问题，否则导入器阶段不再继续扩展。
-```
-
-## 安全边界
-
-当前项目是个人本地项目，边界不用按企业级/公网/多人协作设计；但仍保留以下硬规则：
-
-```text
-真实文件操作必须可预览、可确认、可记录。
-禁止自动覆盖。
-禁止自动删除。
-禁止自动清理源目录。
-失败应停止或明确记录。
-Renderer 不接收 absolutePath / file://。
-SQLite、下载器、联网元数据、mpv 都不在当前阶段插队。
-```
-
-## MVP109～MVP113 UI 收口与审计修复
-
-```text
-MVP109：主界面去 AI 工程面板感。
-MVP110：首页、设置页、下载器 Demo 页等全局日常化。
-MVP111：收口 UI 清理序列，并记录 GitHub main 仍为 MVP108。
-```
-
-主界面原则：
-
-```text
-日常页面只显示操作和结果。
-AI 维护、MVP 历史、IPC、verifier、合同、安全边界说明默认折叠到诊断页 / AI 维护区。
-```
-
-## 下一阶段建议
-
-```text
-Metadata Override / 本地元数据编辑层
-```
-
-先做本地可编辑字段，不联网抓取：作品标题、RJ号、社团、声优、标签、封面、备注、评分、播放状态、音乐专辑 / 艺术家 / 曲目信息。
-
-
-## MVP112 UI 审计修复
-
-当前整理包版本为 `0.150.0-mvp112`。已根据 Codex GUI 审计修复绝对路径显示、下载页重复 key、切页滚动、导入器首屏、诊断页默认负载和音乐库无障碍问题。GitHub main 的已知正式基线仍需以实际仓库 HEAD 为准。
-
-## MVP113 无障碍标签热修复
-
-当前整理包版本为 `0.151.0-mvp113`。Codex 对 MVP112 复验时确认主要修复均通过，仅剩音乐库与音声库的可访问标签仍包含 MVP76 工程文案。本轮已将其改为“音乐库歌曲列表”“音乐专辑列表”“音声作品列表”，不改布局或真实业务链路。GitHub main 当前仍为 `0.146.0-mvp108 / 2e4a4aa`，待 Codex 复验后统一提交 MVP109～MVP113。
-
-## MVP114 更新
-
-- 当前开发包：`0.152.0-mvp114`。
-- 新增 `yang_kura_metadata_overrides_v1` 本地元数据覆盖层。
-- 音声作品人工编辑在 index 重新读取后继续保留。
-- 音乐专辑和曲目覆盖模型已预留，编辑 UI 后续接入。
-- GitHub main 仍以已提交的 MVP108 为正式基线；MVP109～MVP114 尚待统一提交。
-
-
-## MVP114～MVP116 本地元数据管理
-
-```text
-ASMR 详情人工修改可跨 index 重载保留。
-音乐专辑和曲目支持本地编辑与单项还原。
-全部覆盖数据可导出 JSON，并可导入恢复。
-不修改真实音频文件标签，不联网，不接 SQLite。
-```
-
-## MVP117 单个 RJ Provider 预览
-
-- 本地元数据第一阶段已收口。
-- 支持粘贴标准化单个 RJ JSON 查询结果并预览字段差异。
-- 候选信息只能手动填入编辑表单，仍需用户点击保存。
-- 当前不联网、不自动覆盖、不写媒体文件标签。
-## MVP118 DLsite 单个 RJ Provider
-
-已接入 Electron main 单个 RJ HTTPS 查询、域名白名单、12 秒默认超时和 4 MB 响应上限。结果只进入差异预览，不自动保存。当前环境无外网 DNS，真实在线响应待 Windows Electron 快检。
-
-## MVP119 Provider 缓存与节流
-
-- 成功查询结果在 Electron main 内存中缓存 10 分钟。
-- 同一 RJ 的联网请求至少间隔 5 秒。
-- 支持优先缓存、手动重新查询、缓存清除与最近查询时间显示。
-- 网络失败时保留手动 JSON 差异预览入口。
-- 不自动保存、不修改媒体文件、不接 SQLite。
-
-
-## MVP120：DLsite 查询总截止时间热修复
-
-单个 RJ 查询的默认 12 秒现在是整个查询的总预算。最多 6 个候选 URL 共享剩余时间，不再发生 6 × 12 秒的串行等待。
+- `DiagnosticsPage.tsx`、`electron/main.ts`、`ImporterPage.tsx` 和 `SettingsPage.tsx` 仍较大；稳定阶段不做高风险重构。
+- Electron 依赖有一个 moderate 提示，当前不做盲目升级。
+- GitHub main 落后于稳定候选，必须由 Codex 做一次有意图的合入。

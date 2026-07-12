@@ -1,0 +1,16 @@
+Yang-Kura 0.165.0-mvp127
+
+Primary additions:
+- electron/libraryIndexHealthService.ts
+- scripts/test-mvp127-library-index-health-service.mjs
+- scripts/verify-mvp127-missing-index-management.mjs
+- docs/MISSING_FILE_INDEX_MANAGEMENT_MVP127.md
+- docs/CURRENT_ROADMAP_MVP127.md
+- HANDOFF_MVP126_TO_MVP127.md
+
+Package exclusions:
+- node_modules
+- dist
+- dist-electron
+- .git
+- local caches and logs

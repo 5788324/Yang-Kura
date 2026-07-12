@@ -130,17 +130,14 @@ const checks = [
   ['Electron binary metadata path.txt exists', fs.existsSync(electronPathTxt), 'desktop:setup runs npm rebuild electron and resolves basename-only path.txt through dist/<binary>'],
   ['Electron resolved binary exists', Boolean(electronCli.binaryPath && fs.existsSync(electronCli.binaryPath)), electronCli.binaryPath || 'resolved binary unavailable before setup'],
   ['Electron CLI launches --version', electronCli.ok, electronCli.ok ? electronCli.version : electronCli.reason],
-  ['MVP-61 local regression docs', exists('docs/LOCAL_REGRESSION_FIX_MVP61.md'), 'MVP-61 should include local regression launch notes'],
-  ['MVP-62 electron hardening docs', exists('docs/ELECTRON_REGRESSION_HARDENING_MVP62.md'), 'MVP-62 should include Electron setup and strict smoke hardening notes'],
-  ['MVP-63 electron binary path docs', exists('docs/ELECTRON_BINARY_PATH_FIX_MVP63.md'), 'MVP-63 should document dist/electron.exe fallback and strict smoke false-negative fix'],
-  ['MVP-66 Beta GUI regression docs', exists('docs/BETA_GUI_REGRESSION_MVP66.md'), 'MVP-66 should document Beta 0.1 GUI full-chain regression checklist'],
-  ['MVP-67 Beta RC closeout docs', exists('docs/BETA_RC_CLOSEOUT_MVP67.md'), 'MVP-67 should document real sample regression pass and Beta 0.1 RC closeout'],
-  ['MVP-68 Beta RC user guide docs', exists('docs/BETA_RC_USER_GUIDE_MVP68.md'), 'MVP-68 should include Beta RC usage, packaging, and diagnostics fold plan notes'],
-  ['MVP-69 Beta release candidate docs', exists('docs/BETA_RELEASE_CANDIDATE_MVP69.md'), 'MVP-69 should confirm Beta 0.1 Release Candidate package boundaries'],
-  ['MVP-70 Beta final handoff docs', exists('docs/BETA_FINAL_HANDOFF_MVP70.md'), 'MVP-70 should include final handoff and Beta 0.1 RC maintenance notes'],
+  ['MVP129 stable release docs', exists('docs/STABLE_RELEASE_MVP129.md'), 'current release summary'],
+  ['MVP129 Windows stabilization docs', exists('docs/STABILIZATION_ROUND4_WINDOWS_RELEASE_FIX.md'), 'Round 4 release fix record'],
+  ['MVP129 current state docs', exists('PROJECT_STATE.md') && exists('NEXT_CHAT_HANDOFF.md'), 'active handoff entrypoints'],
+  ['MVP130 no-merge boundary', exists('MVP130_EXPERIMENTAL_DO_NOT_MERGE.md'), 'experimental downloader must remain separate'],
+  ['Legacy history archive', exists('archive/legacy-mvp-history/README.md'), 'MVP01-MVP111 traceability archive'],
 ];
 
-console.log('Yang-Kura MVP-70 Beta 0.1 最终交接包启动验收状态');
+console.log('Yang-Kura MVP129 稳定候选启动验收状态');
 console.log(`package: ${pkg.name}@${pkg.version}`);
 console.log(`platform: ${process.platform} ${process.arch}`);
 console.log(`node: ${process.version}`);
@@ -151,7 +148,7 @@ for (const [label, ok, detail] of checks) {
 
 const electronFailures = checks.filter(([label, ok]) => !ok && String(label).startsWith('Electron'));
 if (strictElectron && electronFailures.length) {
-  console.error('\n[Yang-Kura] Strict Electron smoke failed. Run npm run desktop:setup, then retry npm run desktop:smoke-check:strict. MVP-63 setup resolves basename-only path.txt through dist/electron.exe and still runs install + rebuild electron.');
+  console.error('\n[Yang-Kura] Strict Electron smoke failed. Run npm run desktop:setup, then retry npm run desktop:smoke-check:strict. desktop:setup resolves Electron binary metadata and verifies the electron-builder compatibility patch.');
   process.exit(1);
 }
 
@@ -160,8 +157,8 @@ console.log('1. nvm use 22  # 推荐 Node 22.12+ LTS；正式门禁仍是 node 2
 console.log('2. npm ci --ignore-scripts');
 console.log('3. npm run lint');
 console.log('4. npm run build:electron');
-console.log('5. npm run verify:all');
-console.log('6. npm run build');
+console.log('5. npm run verify:stable  # 当前稳定回归链；verify:all 是兼容别名');
+console.log('6. npm audit --audit-level=high');
 console.log('7. npm run desktop:setup  # 安装 / rebuild / 验证 Electron binary，用于真实 GUI 回归（legacy: npm run electron:install）');
 console.log('8. npm run desktop:smoke-check:strict');
 console.log('9. npm run dev:electron  # alias: npm run desktop:dev');

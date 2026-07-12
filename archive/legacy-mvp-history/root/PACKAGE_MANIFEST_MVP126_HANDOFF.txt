@@ -1,0 +1,5 @@
+Yang-Kura MVP126 source handoff
+Version: 0.164.0-mvp126
+Scope: synthetic large-library benchmark, deferred search, bounded DOM rendering, route code splitting, two-stage diagnostics loading
+Excluded from package: node_modules, dist, dist-electron, .git, npm cache, runtime logs
+Real media library access: none

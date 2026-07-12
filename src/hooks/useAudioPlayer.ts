@@ -3,6 +3,7 @@ import { PlayerState, AudioTrack } from '../types';
 import { playerExperienceService } from '../services/playerExperienceService';
 import { playerQueuePersistenceService } from '../services/playerQueuePersistenceService';
 import { playbackHistoryService } from '../services/playbackHistoryService';
+import { mpvPlaybackPreferenceService, type MpvPlaybackPreference } from '../services/mpvPlaybackPreferenceService';
 
 function isTokenizedLocalTrack(track: AudioTrack | null | undefined): track is AudioTrack & { rootPathToken: string; sourceRelativePath: string } {
   return Boolean(track?.rootPathToken && track?.sourceRelativePath && track.playbackSourceKind === 'tokenized-local-file');
@@ -26,11 +27,14 @@ export function useAudioPlayer() {
     playCompletionMode: 'continue-queue',
     playbackMode: 'idle',
     playbackError: null,
+    playbackNotice: null,
     resolvedMediaUrl: null,
     ...restoredQueueState,
   });
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const mpvPreferenceRef = useRef<MpvPlaybackPreference>(mpvPlaybackPreferenceService.getPreference());
+  const forceHtmlFallbackTrackRef = useRef<{ trackId: string; reason: string } | null>(null);
   const pendingInitialSeekRef = useRef<{ trackId: string; progress: number } | null>(null);
   const lastHistorySaveRef = useRef<{ trackId: string; progress: number; savedAt: number } | null>(null);
   const lastQueueSaveRef = useRef<{ signature: string; progress: number; savedAt: number } | null>(null);
@@ -86,6 +90,16 @@ export function useAudioPlayer() {
     };
   }, []);
 
+
+  useEffect(() => {
+    const handlePreferenceChanged = (event: Event) => {
+      const custom = event as CustomEvent<MpvPlaybackPreference>;
+      mpvPreferenceRef.current = custom.detail ?? mpvPlaybackPreferenceService.getPreference();
+    };
+    window.addEventListener(mpvPlaybackPreferenceService.updateEventName, handlePreferenceChanged);
+    return () => window.removeEventListener(mpvPlaybackPreferenceService.updateEventName, handlePreferenceChanged);
+  }, []);
+
   const handleNextTrackRef = useRef<() => void>(() => {});
   const handleAutoTrackEndedRef = useRef<(audio?: HTMLAudioElement) => void>(() => {});
 
@@ -111,6 +125,7 @@ export function useAudioPlayer() {
         isPlaying: true,
         playbackMode: isTokenizedLocalTrack(nextTrack) ? 'resolving-local-media' : 'mock-simulated',
         playbackError: null,
+        playbackNotice: null,
         resolvedMediaUrl: null,
       };
     });
@@ -132,7 +147,11 @@ export function useAudioPlayer() {
       }
 
       if (current.loopMode === 'one') {
-        if (audio) {
+        if (current.playbackMode === 'mpv' && window.yangKura?.requestMpvPlaybackCommand) {
+          void window.yangKura.requestMpvPlaybackCommand({ mode: 'mpv-playback-command', command: 'seek', seconds: 0 });
+          void window.yangKura.requestMpvPlaybackCommand({ mode: 'mpv-playback-command', command: 'resume' });
+          setPlayerState((prev) => ({ ...prev, progress: 0, isPlaying: true }));
+        } else if (audio) {
           audio.currentTime = 0;
           void audio.play().catch((error) => {
             setPlayerState((prev) => ({
@@ -184,6 +203,7 @@ export function useAudioPlayer() {
         isPlaying: true,
         playbackMode: isTokenizedLocalTrack(prevTrack) ? 'resolving-local-media' : 'mock-simulated',
         playbackError: null,
+        playbackNotice: null,
         resolvedMediaUrl: null,
       };
     });
@@ -210,6 +230,7 @@ export function useAudioPlayer() {
       currentIndex: idx >= 0 ? idx : 0,
       playbackMode: isTokenizedLocalTrack(track) ? 'resolving-local-media' : 'mock-simulated',
       playbackError: null,
+      playbackNotice: null,
       resolvedMediaUrl: null,
     }));
   }, []);
@@ -239,11 +260,14 @@ export function useAudioPlayer() {
   }, []);
 
   const handleSeek = useCallback((seconds: number) => {
+    const normalized = Math.max(0, seconds);
     const audio = audioRef.current;
-    if (audio && stateRef.current.playbackMode === 'html-audio') {
-      audio.currentTime = Math.max(0, seconds);
+    if (stateRef.current.playbackMode === 'mpv' && window.yangKura?.requestMpvPlaybackCommand) {
+      void window.yangKura.requestMpvPlaybackCommand({ mode: 'mpv-playback-command', command: 'seek', seconds: normalized });
+    } else if (audio && stateRef.current.playbackMode === 'html-audio') {
+      audio.currentTime = normalized;
     }
-    setPlayerState(prev => ({ ...prev, progress: Math.max(0, seconds) }));
+    setPlayerState(prev => ({ ...prev, progress: normalized }));
   }, []);
 
   const handleVolumeChange = useCallback((vol: number) => {
@@ -281,113 +305,182 @@ export function useAudioPlayer() {
   const currentTrackRelativePath = currentTrack?.sourceRelativePath;
 
   useEffect(() => {
-    let cancelled = false;
-    const audio = audioRef.current;
+    if (!window.yangKura?.onMpvPlaybackEvent) return;
+    return window.yangKura.onMpvPlaybackEvent((event) => {
+      const current = stateRef.current.currentTrack;
+      if (!current || event.trackId !== current.id) return;
 
-    if (!currentTrack) {
-      if (audio) {
-        audio.pause();
-        audio.removeAttribute('src');
-        audio.load();
-      }
-      return;
-    }
-
-    if (!isTokenizedLocalTrack(currentTrack)) {
-      if (audio) {
-        audio.pause();
-        audio.removeAttribute('src');
-        audio.load();
-      }
-      setPlayerState((prev) => ({
-        ...prev,
-        playbackMode: prev.isPlaying ? 'mock-simulated' : 'idle',
-        resolvedMediaUrl: null,
-        playbackError: null,
-      }));
-      return;
-    }
-
-    if (playerState.playbackMode === 'html-audio' && playerState.resolvedMediaUrl) {
-      return;
-    }
-
-    if (!playerState.isPlaying && playerState.playbackMode === 'idle') {
-      return;
-    }
-
-    if (!window.yangKura?.requestResolveTrackMediaUrl) {
-      setPlayerState((prev) => ({
-        ...prev,
-        isPlaying: false,
-        playbackMode: 'unsupported-local-media',
-        playbackError: '当前不在 Electron 运行环境，无法解析本地音频。请使用 npm run desktop:dev。',
-        resolvedMediaUrl: null,
-      }));
-      return;
-    }
-
-    setPlayerState((prev) => ({ ...prev, playbackMode: 'resolving-local-media', playbackError: null, resolvedMediaUrl: null }));
-
-    window.yangKura.requestResolveTrackMediaUrl({
-      rootPathToken: currentTrack.rootPathToken,
-      relativePath: currentTrack.sourceRelativePath,
-      trackId: currentTrack.id,
-      expectedKind: 'audio',
-    }).then((result) => {
-      if (cancelled) return;
-      if (!result.ok) {
+      if (event.type === 'ready') {
+        forceHtmlFallbackTrackRef.current = null;
+        setPlayerState((prev) => ({ ...prev, playbackMode: 'mpv', playbackError: null, playbackNotice: null, resolvedMediaUrl: null }));
+      } else if (event.type === 'time') {
+        setPlayerState((prev) => prev.playbackMode === 'mpv' ? { ...prev, progress: Math.max(0, event.positionSeconds) } : prev);
+      } else if (event.type === 'duration') {
+        setPlayerState((prev) => {
+          if (!prev.currentTrack || prev.currentTrack.id !== event.trackId) return prev;
+          const duration = safeDuration(event.durationSeconds);
+          if (!duration) return prev;
+          const updatedTrack = { ...prev.currentTrack, duration };
+          return {
+            ...prev,
+            currentTrack: updatedTrack,
+            queue: prev.queue.map((track) => track.id === updatedTrack.id ? { ...track, duration } : track),
+          };
+        });
+      } else if (event.type === 'pause-state') {
+        setPlayerState((prev) => prev.playbackMode === 'mpv' ? { ...prev, isPlaying: !event.paused } : prev);
+      } else if (event.type === 'ended') {
+        handleAutoTrackEndedRef.current();
+      } else if (event.type === 'fallback-requested') {
+        forceHtmlFallbackTrackRef.current = { trackId: event.trackId, reason: event.reason };
+        pendingInitialSeekRef.current = { trackId: event.trackId, progress: Math.max(0, event.resumeSeconds) };
+        setPlayerState((prev) => ({
+          ...prev,
+          isPlaying: true,
+          progress: Math.max(0, event.resumeSeconds),
+          playbackMode: 'resolving-local-media',
+          playbackError: null,
+          playbackNotice: `${event.message} 正在从上次位置切换到 HTMLAudio。`,
+          resolvedMediaUrl: null,
+        }));
+      } else if (event.type === 'error') {
         setPlayerState((prev) => ({
           ...prev,
           isPlaying: false,
           playbackMode: 'unsupported-local-media',
-          playbackError: result.message,
-          resolvedMediaUrl: null,
+          playbackError: event.message,
         }));
-        return;
       }
+    });
+  }, []);
 
-      if (!audioRef.current) return;
+  useEffect(() => {
+    let cancelled = false;
+    const audio = audioRef.current;
+
+    const clearHtmlAudio = () => {
+      if (!audio) return;
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+    };
+
+    const startHtmlAudioFallback = async (mpvMessage?: string) => {
+      if (!window.yangKura?.requestResolveTrackMediaUrl || !currentTrack || !isTokenizedLocalTrack(currentTrack)) {
+        throw new Error(mpvMessage || '当前 Electron preload 未提供本地音频解析接口。');
+      }
+      const result = await window.yangKura.requestResolveTrackMediaUrl({
+        rootPathToken: currentTrack.rootPathToken,
+        relativePath: currentTrack.sourceRelativePath,
+        trackId: currentTrack.id,
+        expectedKind: 'audio',
+      });
+      if (!result.ok) throw new Error([mpvMessage, result.message].filter(Boolean).join('；'));
+      if (cancelled || !audioRef.current) return;
+
       audioRef.current.src = result.mediaUrl;
       const initialSeek = pendingInitialSeekRef.current?.trackId === currentTrack.id ? pendingInitialSeekRef.current.progress : 0;
       audioRef.current.currentTime = Math.max(0, initialSeek);
       audioRef.current.volume = stateRef.current.volume;
       audioRef.current.muted = stateRef.current.isMuted;
       audioRef.current.load();
-
       setPlayerState((prev) => ({
         ...prev,
         playbackMode: 'html-audio',
         playbackError: null,
+        playbackNotice: mpvMessage ? (mpvMessage.startsWith('已按设置') ? mpvMessage : `mpv 不可用，已切换 HTMLAudio：${mpvMessage}`) : prev.playbackNotice,
         resolvedMediaUrl: result.mediaUrl,
         currentTrack: prev.currentTrack ? { ...prev.currentTrack, mediaUrl: result.mediaUrl } : prev.currentTrack,
       }));
-
       if (stateRef.current.isPlaying) {
-        void audioRef.current.play().catch((error) => {
-          setPlayerState((prev) => ({
-            ...prev,
-            isPlaying: false,
-            playbackMode: 'unsupported-local-media',
-            playbackError: error instanceof Error ? error.message : String(error),
-          }));
-        });
+        await audioRef.current.play();
       }
-    }).catch((error) => {
-      if (cancelled) return;
+    };
+
+    if (!currentTrack) {
+      clearHtmlAudio();
+      if (window.yangKura?.requestMpvPlaybackCommand) {
+        void window.yangKura.requestMpvPlaybackCommand({ mode: 'mpv-playback-command', command: 'stop' });
+      }
+      return;
+    }
+
+    if (!isTokenizedLocalTrack(currentTrack)) {
+      clearHtmlAudio();
+      if (window.yangKura?.requestMpvPlaybackCommand) {
+        void window.yangKura.requestMpvPlaybackCommand({ mode: 'mpv-playback-command', command: 'stop' });
+      }
       setPlayerState((prev) => ({
         ...prev,
-        isPlaying: false,
-        playbackMode: 'unsupported-local-media',
-        playbackError: error instanceof Error ? error.message : String(error),
+        playbackMode: prev.isPlaying ? 'mock-simulated' : 'idle',
         resolvedMediaUrl: null,
+        playbackError: null,
+        playbackNotice: null,
       }));
-    });
+      return;
+    }
 
+    if (!playerState.isPlaying || playerState.playbackMode === 'mpv' || playerState.playbackMode === 'html-audio') return;
+
+    const start = async () => {
+      setPlayerState((prev) => ({ ...prev, playbackMode: 'resolving-local-media', playbackError: null, resolvedMediaUrl: null }));
+      let mpvFailureMessage: string | undefined;
+      const forcedHtmlFallback = forceHtmlFallbackTrackRef.current?.trackId === currentTrack.id;
+      const shouldAttemptMpv = mpvPlaybackPreferenceService.shouldAttemptMpv(mpvPreferenceRef.current) && !forcedHtmlFallback;
+      if (shouldAttemptMpv && window.yangKura?.requestMpvPlaybackStart) {
+        try {
+          const mpvResult = await window.yangKura.requestMpvPlaybackStart({
+            rootPathToken: currentTrack.rootPathToken,
+            relativePath: currentTrack.sourceRelativePath,
+            trackId: currentTrack.id,
+            mode: 'mpv-playback-start',
+            startSeconds: pendingInitialSeekRef.current?.trackId === currentTrack.id ? pendingInitialSeekRef.current.progress : 0,
+            volume: stateRef.current.volume,
+            muted: stateRef.current.isMuted,
+          });
+          if (cancelled) {
+            if (mpvResult.ok) void window.yangKura.requestMpvPlaybackCommand?.({ mode: 'mpv-playback-command', command: 'stop' });
+            return;
+          }
+          if (mpvResult.ok) {
+            forceHtmlFallbackTrackRef.current = null;
+            clearHtmlAudio();
+            setPlayerState((prev) => ({ ...prev, playbackMode: 'mpv', playbackError: null, playbackNotice: null, resolvedMediaUrl: null }));
+            return;
+          }
+          mpvFailureMessage = mpvResult.message;
+        } catch (error) {
+          mpvFailureMessage = error instanceof Error ? error.message : String(error);
+        }
+      }
+
+      if (!shouldAttemptMpv && !forcedHtmlFallback) {
+        mpvFailureMessage = '已按设置仅使用 HTMLAudio。';
+      } else if (forcedHtmlFallback && !mpvFailureMessage) {
+        mpvFailureMessage = forceHtmlFallbackTrackRef.current?.reason || 'mpv 运行中断。';
+      }
+
+      try {
+        await startHtmlAudioFallback(mpvFailureMessage);
+        forceHtmlFallbackTrackRef.current = null;
+      } catch (error) {
+        if (cancelled) return;
+        setPlayerState((prev) => ({
+          ...prev,
+          isPlaying: false,
+          playbackMode: 'unsupported-local-media',
+          playbackError: error instanceof Error ? error.message : String(error),
+          playbackNotice: null,
+          resolvedMediaUrl: null,
+        }));
+      }
+    };
+
+    void start();
     return () => {
       cancelled = true;
     };
-  }, [currentTrackId, currentTrackRootToken, currentTrackRelativePath, playerState.isPlaying, playerState.playbackMode, playerState.resolvedMediaUrl]);
+  }, [currentTrackId, currentTrackRootToken, currentTrackRelativePath, playerState.isPlaying, playerState.playbackMode]);
 
 
   useEffect(() => {
@@ -477,6 +570,11 @@ export function useAudioPlayer() {
   }, [currentTrackId, currentTrackRootToken, currentTrackRelativePath]);
 
   useEffect(() => {
+    if (playerState.playbackMode === 'mpv' && window.yangKura?.requestMpvPlaybackCommand) {
+      void window.yangKura.requestMpvPlaybackCommand({ mode: 'mpv-playback-command', command: 'set-volume', volume: playerState.volume });
+      void window.yangKura.requestMpvPlaybackCommand({ mode: 'mpv-playback-command', command: 'set-muted', muted: playerState.isMuted });
+      return;
+    }
     const audio = audioRef.current;
     if (!audio || playerState.playbackMode !== 'html-audio') return;
     audio.volume = playerState.volume;
@@ -484,6 +582,13 @@ export function useAudioPlayer() {
   }, [playerState.volume, playerState.isMuted, playerState.playbackMode]);
 
   useEffect(() => {
+    if (playerState.playbackMode === 'mpv' && window.yangKura?.requestMpvPlaybackCommand) {
+      void window.yangKura.requestMpvPlaybackCommand({
+        mode: 'mpv-playback-command',
+        command: playerState.isPlaying ? 'resume' : 'pause',
+      });
+      return;
+    }
     const audio = audioRef.current;
     if (!audio || playerState.playbackMode !== 'html-audio') return;
 

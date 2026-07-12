@@ -1,13 +1,7 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 // Legacy verifier marker: Demo 模式 / 尚未接入真实扫描 / No SQLite
 import Sidebar from './components/Sidebar';
-import Dashboard from './components/Dashboard';
-import AsmrLibrary from './components/AsmrLibrary';
-import AsmrDetail from './components/AsmrDetail';
-import MusicLibrary from './components/MusicLibrary';
-import PlaylistPage from './components/PlaylistPage';
 import PlayerBar from './components/PlayerBar';
-import DiagnosticsRuntimeBoundary from './components/DiagnosticsRuntimeBoundary';
 
 import { PageType, AudioTrack, PlayerState, LibrarySettings, ThemeType, RJWork, Playlist, MusicAlbum, LocalJsonIndex } from './types';
 import { mockRjWorks, mockMusicAlbums, mockPlaylists, mockRecentPlays } from './mockData';
@@ -20,14 +14,22 @@ import { Headphones, Sparkles, CheckCircle2, ChevronRight, X, Play } from 'lucid
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import CoverArtwork from './components/CoverArtwork';
+import DiagnosticsRuntimeBoundary from './components/DiagnosticsRuntimeBoundary';
 import { coverArtworkService } from './services/coverArtworkService';
 import { settingsPathPrivacyService } from './services/settingsPathPrivacyService';
 import { metadataOverrideService } from './services/metadataOverrideService';
+import type { AsmrMetadataSaveContext } from './services/metadataOverrideService';
 
+// MVP126 route-level code splitting: daily library pages load only when opened.
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const AsmrLibrary = lazy(() => import('./components/AsmrLibrary'));
+const AsmrDetail = lazy(() => import('./components/AsmrDetail'));
+const MusicLibrary = lazy(() => import('./components/MusicLibrary'));
+const PlaylistPage = lazy(() => import('./components/PlaylistPage'));
+const DiagnosticsPageShell = lazy(() => import('./components/DiagnosticsPageShell'));
 const ImporterPage = lazy(() => import('./components/ImporterPage'));
 const DownloaderPage = lazy(() => import('./components/DownloaderPage'));
 const SettingsPage = lazy(() => import('./components/SettingsPage'));
-const DiagnosticsPage = lazy(() => import('./components/DiagnosticsPage'));
 const LyricsPanel = lazy(() => import('./components/LyricsPanel'));
 
 export default function App() {
@@ -271,10 +273,11 @@ export default function App() {
   };
 
   // Handler: Update metadata / manually added tags
-  const handleUpdateRjWork = (updated: RJWork) => {
+  const handleUpdateRjWork = (updated: RJWork, source?: AsmrMetadataSaveContext) => {
     const base = rjWorksBaseRef.current.find((item) => item.id === updated.id) ?? updated;
     const patch = metadataOverrideService.buildAsmrPatch(base, updated);
     if (Object.keys(patch).length === 0) metadataOverrideService.clearAsmrOverride(updated.id);
+    else if (source) metadataOverrideService.upsertAsmrOverride(updated.id, patch, source);
     else metadataOverrideService.upsertAsmrOverride(updated.id, patch);
     setRjWorks((previous) => previous.map((item) => item.id === updated.id ? metadataOverrideService.applyAsmrOverride(base) : item));
   };
@@ -593,8 +596,8 @@ export default function App() {
           )}
 
           {currentPage === 'diagnostics' && (
-            <DiagnosticsRuntimeBoundary resetKey={`diagnostics-${rjWorks.length}-${musicAlbums.length}-${scanStatus}`}>
-              <DiagnosticsPage 
+            <DiagnosticsRuntimeBoundary resetKey={`diagnostics-shell-${rjWorks.length}-${musicAlbums.length}-${scanStatus}`}>
+              <DiagnosticsPageShell
                 onScanLibrary={handleScanLibrary}
                 scanStatus={scanStatus}
                 rjWorks={rjWorks}

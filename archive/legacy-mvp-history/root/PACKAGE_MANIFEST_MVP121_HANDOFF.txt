@@ -1,0 +1,19 @@
+Yang-Kura MVP121 source handoff
+Version: 0.159.0-mvp121
+Base: GitHub main 0.158.0-mvp120 / 55e33b383d8b2c555d3d47b7ba600e1c52b67f73
+
+Core changes:
+- src/components/AsmrMetadataProviderPreview.tsx
+- src/components/AsmrDetail.tsx
+- src/services/asmrMetadataProviderPreviewService.ts
+- src/services/metadataOverrideService.ts
+- src/App.tsx
+- tests/fixtures/dlsite/RJ01554928-translation-success.html
+- scripts/verify-mvp121-metadata-source-management.mjs
+- docs/METADATA_SOURCE_MANAGEMENT_MVP121.md
+- docs/CURRENT_ROADMAP_MVP121.md
+- HANDOFF_MVP120_TO_MVP121.md
+- CODEX_MVP121_REVIEW_PROMPT.md
+
+Excluded from package:
+node_modules, dist, dist-electron, .npm-cache, temporary logs

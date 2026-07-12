@@ -1,0 +1,14 @@
+Yang-Kura 0.160.0-mvp122
+
+Added:
+- electron/mpvPlaybackBackend.ts
+- tests/fixtures/mpv/fake-mpv.mjs
+- scripts/verify-mvp122-mpv-backend-minimal.mjs
+- docs/MPV_BACKEND_MINIMAL_MVP122.md
+- docs/CURRENT_ROADMAP_MVP122.md
+- HANDOFF_MVP121_TO_MVP122.md
+
+Key behavior:
+- mpv controlled in Electron main
+- HTMLAudio fallback
+- no absolutePath/file:// exposure

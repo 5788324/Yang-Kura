@@ -126,8 +126,10 @@ export interface PlayerState {
   /** MVP-34: user-facing end-of-track behavior for ASMR and music listening. */
   playCompletionMode?: PlaybackCompletionMode;
   /** MVP-25: real HTMLAudio status for tokenized local files; mock fallback remains for demo data. */
-  playbackMode?: 'mock-simulated' | 'resolving-local-media' | 'html-audio' | 'unsupported-local-media' | 'idle';
+  playbackMode?: 'mock-simulated' | 'resolving-local-media' | 'resolving-mpv' | 'mpv' | 'html-audio' | 'unsupported-local-media' | 'idle';
   playbackError?: string | null;
+  /** MVP124: non-fatal backend/fallback notice shown separately from playback errors. */
+  playbackNotice?: string | null;
   resolvedMediaUrl?: string | null;
 }
 

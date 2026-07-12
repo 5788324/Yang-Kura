@@ -1,0 +1,31 @@
+Yang-Kura MVP129 stabilized clean candidate
+Version: 0.167.0-mvp129
+GitHub baseline before merge: 0.158.0-mvp120 / 55e33b3
+Windows Round 4 release gate: PASS
+MVP130: experimental, do not merge
+
+Active release surface:
+- src/
+- electron/
+- scripts/ current stable and runtime tools
+- docs/ MVP112-MVP129 and current stabilization documents
+- archive/legacy-mvp-history/ traceability archive
+- current root handoff and roadmap documents
+
+Release gate:
+- npm run verify:stable
+- npm run desktop:setup
+- npm run desktop:smoke-check:strict
+- npm run desktop:pack
+- npm run desktop:dist
+- npm audit --audit-level=high
+
+Package excludes:
+- node_modules
+- dist
+- dist-electron
+- release
+- .git
+- local npm caches
+- runtime logs
+- real library-index.json and user data

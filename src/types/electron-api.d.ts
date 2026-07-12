@@ -437,6 +437,348 @@ declare global {
   type YangKuraReadLibraryIndexResult = YangKuraReadLibraryIndexSuccessResult | YangKuraReadLibraryIndexErrorResult;
 
 
+  type YangKuraLibraryIndexHealthItemKind = 'track' | 'cover' | 'subtitle' | 'collection-reference';
+  type YangKuraLibraryIndexHealthStatus = 'missing' | 'unreadable' | 'wrong-type' | 'invalid-path' | 'invalid-reference';
+
+  interface YangKuraLibraryIndexHealthCheckRequest {
+    rootPathToken: string;
+    mode: 'read-only-health-check';
+    maxEntries?: number;
+  }
+
+  interface YangKuraLibraryIndexHealthIssue {
+    id: string;
+    kind: YangKuraLibraryIndexHealthItemKind;
+    entityId: string;
+    ownerId?: string;
+    collectionId?: string;
+    relativePath?: string;
+    expectedKind: 'file' | 'track-reference';
+    canRemoveFromIndex: boolean;
+    canRevealParent: boolean;
+    status: YangKuraLibraryIndexHealthStatus;
+    message: string;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraLibraryIndexHealthCheckSuccessResult {
+    ok: true;
+    status: 'mvp127-library-index-health-check-complete';
+    rootPathToken: string;
+    displayName: string;
+    libraryType: YangKuraLibraryType;
+    checkedAt: string;
+    indexSha256: string;
+    bytesRead: number;
+    absolutePathsReturned: false;
+    fileUrlReturned: false;
+    summary: {
+      indexedReferenceCount: number;
+      checkedReferenceCount: number;
+      healthyCount: number;
+      problemCount: number;
+      missingCount: number;
+      unreadableCount: number;
+      wrongTypeCount: number;
+      invalidPathCount: number;
+      invalidReferenceCount: number;
+      trackProblemCount: number;
+      coverProblemCount: number;
+      subtitleProblemCount: number;
+      truncated: boolean;
+      canGenerateRemovalPreview: boolean;
+    };
+    issues: YangKuraLibraryIndexHealthIssue[];
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraLibraryIndexHealthCheckErrorResult {
+    ok: false;
+    status: string;
+    absolutePathsReturned: false;
+    fileUrlReturned: false;
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  type YangKuraLibraryIndexHealthCheckResult = YangKuraLibraryIndexHealthCheckSuccessResult | YangKuraLibraryIndexHealthCheckErrorResult;
+
+  interface YangKuraLibraryIndexRemovalPreviewRequest {
+    rootPathToken: string;
+    mode: 'remove-missing-preview';
+    issueIds?: string[];
+  }
+
+  interface YangKuraLibraryIndexRemovalPreviewResult {
+    ok: boolean;
+    status: string;
+    rootPathToken?: string;
+    displayName?: string;
+    libraryType?: YangKuraLibraryType;
+    sourceIndexSha256?: string;
+    absolutePathsReturned: false;
+    fileUrlReturned: false;
+    writePerformed: false;
+    preview?: {
+      previewVersion: 'mvp127-library-index-removal-preview-v1';
+      generatedAt: string;
+      writePerformed: false;
+      deleteMediaFiles: false;
+      selectedIssueCount: number;
+      operations: Array<{
+        operation: 'remove-track' | 'detach-cover' | 'detach-subtitle' | 'remove-stale-track-reference';
+        entityId: string;
+        ownerId?: string;
+        collectionId?: string;
+        relativePath?: string;
+      }>;
+      summary: {
+        trackRemovalCount: number;
+        coverDetachCount: number;
+        subtitleDetachCount: number;
+        staleReferenceRemovalCount: number;
+        affectedCollectionCount: number;
+        emptyCollectionCount: number;
+      };
+      safetyNotes: string[];
+    };
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraLibraryIndexRemovalWriteRequest {
+    rootPathToken: string;
+    mode: 'confirmed-index-removal-write';
+    sourceIndexSha256: string;
+    previewGeneratedAt: string;
+    userConfirmed: boolean;
+    confirmationText: string;
+    createBackup: boolean;
+  }
+
+  interface YangKuraLibraryIndexRemovalWriteResult {
+    ok: boolean;
+    status: string;
+    rootPathToken?: string;
+    displayName?: string;
+    libraryType?: YangKuraLibraryType;
+    writePerformed: boolean;
+    backupCreated: boolean;
+    backupRelativePath?: string;
+    sourceIndexSha256?: string;
+    writtenIndexSha256?: string;
+    writtenAt?: string;
+    mediaFilesDeleted: false;
+    absolutePathsReturned: false;
+    fileUrlReturned: false;
+    requiredConfirmationText?: 'CONFIRM_REMOVE_MISSING_INDEX_RECORDS';
+    rollbackRestored?: boolean;
+    summary?: {
+      removedTrackCount: number;
+      detachedCoverCount: number;
+      detachedSubtitleCount: number;
+      removedStaleReferenceCount: number;
+      cascadedCoverCount: number;
+      cascadedSubtitleCount: number;
+      affectedCollectionCount: number;
+      emptyCollectionCount: number;
+    };
+    indexSummary?: {
+      schemaVersion: number;
+      rootCount: number;
+      collectionCount: number;
+      trackCount: number;
+      coverCount: number;
+      subtitleCount: number;
+      warningCount: number;
+    };
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraLibraryIndexBackupRecord {
+    relativePath: string;
+    fileName: string;
+    createdAt: string;
+    modifiedAt: string;
+    sizeBytes: number;
+    sha256?: string;
+    validationStatus: 'valid' | 'invalid-json' | 'invalid-index' | 'unsafe-content' | 'unreadable';
+    valid: boolean;
+    generation: 'mvp23' | 'mvp100' | 'mvp128' | 'mvp129-restore' | 'other';
+    summary?: Record<string, number>;
+    message: string;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraLibraryIndexBackupListRequest {
+    rootPathToken: string;
+    mode: 'list-index-backups';
+    maxEntries?: number;
+  }
+
+  interface YangKuraLibraryIndexBackupListResult {
+    ok: boolean;
+    status: string;
+    rootPathToken?: string;
+    displayName?: string;
+    libraryType?: YangKuraLibraryType;
+    listedAt?: string;
+    absolutePathsReturned: false;
+    fileUrlReturned: false;
+    backups?: YangKuraLibraryIndexBackupRecord[];
+    summary?: { totalCount: number; validCount: number; invalidCount: number; totalBytes: number };
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraLibraryIndexBackupRestoreRequest {
+    rootPathToken: string;
+    mode: 'restore-index-backup';
+    backupRelativePath: string;
+    backupSha256: string;
+    confirmationText: string;
+    createCurrentBackup: boolean;
+  }
+
+  interface YangKuraLibraryIndexBackupRestoreResult {
+    ok: boolean;
+    status: string;
+    rootPathToken?: string;
+    displayName?: string;
+    libraryType?: YangKuraLibraryType;
+    writePerformed: boolean;
+    currentBackupCreated: boolean;
+    currentBackupRelativePath?: string;
+    restoredBackupRelativePath?: string;
+    sourceIndexSha256?: string;
+    restoredIndexSha256?: string;
+    restoredAt?: string;
+    bytesWritten?: number;
+    rollbackRestored?: boolean;
+    requiredConfirmationText?: 'CONFIRM_RESTORE_LIBRARY_INDEX_BACKUP';
+    mediaFilesDeleted: false;
+    absolutePathsReturned: false;
+    fileUrlReturned: false;
+    indexSummary?: Record<string, number>;
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraLibraryIndexBackupRetentionPreviewRequest {
+    rootPathToken: string;
+    mode: 'preview-backup-retention';
+    maxAgeDays?: number;
+    keepNewest?: number;
+  }
+
+  interface YangKuraLibraryIndexBackupRetentionPreviewResult {
+    ok: boolean;
+    status: string;
+    rootPathToken?: string;
+    displayName?: string;
+    libraryType?: YangKuraLibraryType;
+    absolutePathsReturned: false;
+    fileUrlReturned: false;
+    deletePerformed: false;
+    preview?: {
+      previewVersion: 'mvp129-backup-retention-preview-v1';
+      generatedAt: string;
+      deletePerformed: false;
+      maxAgeDays: number;
+      keepNewest: number;
+      totalBackupCount: number;
+      candidateCount: number;
+      candidateBytes: number;
+      retainedCount: number;
+      candidates: Array<Pick<YangKuraLibraryIndexBackupRecord, 'relativePath' | 'fileName' | 'modifiedAt' | 'sizeBytes' | 'sha256' | 'validationStatus'>>;
+      safetyNotes: string[];
+    };
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraLibraryIndexMaintenanceHistoryRequest {
+    rootPathToken: string;
+    mode: 'read-index-maintenance-history';
+    maxEntries?: number;
+  }
+
+  interface YangKuraLibraryIndexMaintenanceHistoryEntry {
+    historyVersion: 'mvp129-index-maintenance-history-v1';
+    id: string;
+    displayName: string;
+    libraryType: string;
+    action: 'controlled-cleanup' | 'backup-restore';
+    status: 'complete' | 'failed';
+    occurredAt: string;
+    sourceSha256?: string;
+    resultSha256?: string;
+    backupRelativePath?: string;
+    restoredBackupRelativePath?: string;
+    summary?: Record<string, number>;
+    message: string;
+    mediaFilesDeleted: false;
+    absolutePathsStored: false;
+  }
+
+  interface YangKuraLibraryIndexMaintenanceHistoryResult {
+    ok: boolean;
+    status: string;
+    rootPathToken?: string;
+    displayName?: string;
+    libraryType?: YangKuraLibraryType;
+    readAt?: string;
+    absolutePathsReturned: false;
+    fileUrlReturned: false;
+    entries?: YangKuraLibraryIndexMaintenanceHistoryEntry[];
+    summary?: { totalCount: number; cleanupCount: number; restoreCount: number; successCount: number; failedCount: number };
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraRevealMissingEntryParentRequest {
+    rootPathToken: string;
+    relativePath: string;
+    entryId: string;
+    mode: 'reveal-nearest-existing-parent';
+  }
+
+  interface YangKuraRevealMissingEntryParentResult {
+    ok: boolean;
+    status: string;
+    rootPathToken?: string;
+    entryId?: string;
+    requestedRelativePath?: string;
+    nearestExistingRelativePath?: string;
+    absolutePathsReturned: false;
+    fileUrlReturned: false;
+    message: string;
+    safetyNotes: string[];
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+
   interface YangKuraResolveTrackMediaUrlRequest {
     rootPathToken: string;
     relativePath: string;
@@ -1242,6 +1584,26 @@ interface YangKuraImportMoveOnlyExecuteResult {
   interface YangKuraAsmrMetadataProviderCacheClearResult { ok: boolean; status: 'mvp119-dlsite-cache-cleared' | 'mvp119-dlsite-cache-clear-invalid-request'; provider: 'dlsite'; requestedRjId: string; cleared: boolean; metadataWritePerformed: false; mediaFileMutationPerformed: false; absolutePathReturned: false; fileUrlReturned: false; message: string; safetyNotes: string[]; absolutePath?: never; fileUrl?: never; }
   type YangKuraAsmrMetadataProviderResult = YangKuraAsmrMetadataProviderSuccessResult | YangKuraAsmrMetadataProviderErrorResult;
 
+  interface YangKuraMpvPlaybackStartRequest { rootPathToken: string; relativePath: string; trackId: string; mode: 'mpv-playback-start'; startSeconds?: number; volume?: number; muted?: boolean; }
+  type YangKuraMpvPlaybackCommandRequest =
+    | { mode: 'mpv-playback-command'; command: 'pause' | 'resume' | 'stop' }
+    | { mode: 'mpv-playback-command'; command: 'seek'; seconds: number }
+    | { mode: 'mpv-playback-command'; command: 'set-volume'; volume: number }
+    | { mode: 'mpv-playback-command'; command: 'set-muted'; muted: boolean };
+  interface YangKuraMpvPlaybackStartResult { ok: boolean; status: 'mvp122-mpv-started' | 'mvp122-mpv-unavailable' | 'mvp122-mpv-start-failed'; backend: 'mpv' | 'html-audio-fallback'; trackId: string; message: string; executableLabel: string; absolutePathReturned: false; fileUrlReturned: false; absolutePath?: never; fileUrl?: never; }
+  interface YangKuraMpvPlaybackCommandResult { ok: boolean; status: 'mvp122-mpv-command-accepted' | 'mvp122-mpv-not-running' | 'mvp122-mpv-command-failed'; command: string; message: string; absolutePathReturned: false; fileUrlReturned: false; absolutePath?: never; fileUrl?: never; }
+  interface YangKuraMpvRuntimeStatus { status: 'mvp122-mpv-runtime-status'; configuredExecutable: string; running: boolean; connected: boolean; activeTrackId: string | null; fallbackAvailable: true; seekStrategy: 'coalesced-absolute-exact'; pendingSeek: boolean; lastKnownPositionSeconds: number; lastKnownDurationSeconds: number; lastErrorMessage: string | null; lastExitReason: string | null; shutdownState: 'idle' | 'graceful' | 'forced'; processStartedAt: string | null; absolutePathReturned: false; fileUrlReturned: false; absolutePath?: never; fileUrl?: never; }
+  interface YangKuraMpvInstallationStatus { status: 'mvp123-mpv-installation-status'; available: boolean; source: 'environment' | 'user-selected' | 'system-path' | 'none'; executableLabel: string; versionLabel: string | null; configured: boolean; canSelectExecutable: true; canClearUserSelection: boolean; checkedAt: string; message: string; running: boolean; connected: boolean; activeTrackId: string | null; seekStrategy: 'coalesced-absolute-exact'; pendingSeek: boolean; lastKnownPositionSeconds: number; lastKnownDurationSeconds: number; lastErrorMessage: string | null; lastExitReason: string | null; shutdownState: 'idle' | 'graceful' | 'forced'; processStartedAt: string | null; absolutePathReturned: false; fileUrlReturned: false; absolutePath?: never; fileUrl?: never; }
+  interface YangKuraMpvExecutableActionResult extends YangKuraMpvInstallationStatus { ok: boolean; actionStatus: 'mvp123-mpv-selection-cancelled' | 'mvp123-mpv-executable-selected' | 'mvp123-mpv-executable-invalid' | 'mvp123-mpv-executable-cleared'; }
+  type YangKuraMpvPlaybackEvent =
+    | { type: 'ready'; trackId: string; backend: 'mpv'; at: string }
+    | { type: 'time'; trackId: string; positionSeconds: number; at: string }
+    | { type: 'duration'; trackId: string; durationSeconds: number; at: string }
+    | { type: 'pause-state'; trackId: string; paused: boolean; at: string }
+    | { type: 'ended'; trackId: string; reason: string; at: string }
+    | { type: 'error'; trackId: string; message: string; at: string }
+    | { type: 'fallback-requested'; trackId: string; resumeSeconds: number; reason: string; message: string; at: string };
+
   interface YangKuraElectronShellStatus {
     status: 'mvp28-shell-runtime-validation-ready';
     hasRealElectronRuntime: true;
@@ -1252,6 +1614,8 @@ interface YangKuraImportMoveOnlyExecuteResult {
     canGenerateIndexWritePreview: true;
     canReadLibraryIndex: true;
     canResolveMediaTrackUrl: true;
+    canUseMpvPlayback: true;
+    canConfigureMpvExecutable: true;
     canReadTrackLyrics: true;
     canOpenExternalFile: true;
     canOpenInFileManager: true;
@@ -1264,6 +1628,14 @@ interface YangKuraImportMoveOnlyExecuteResult {
     canPreviewLibraryIndexPatch: true;
     canCheckLibraryIndexPatchWriteReadiness: true;
     canWriteLibraryIndexPatch: true;
+    canCheckLibraryIndexHealth: true;
+    canPreviewMissingIndexRemoval: true;
+    canWriteControlledIndexRemoval: true;
+    canListIndexBackups: true;
+    canRestoreIndexBackup: true;
+    canPreviewBackupRetention: true;
+    canReadIndexMaintenanceHistory: true;
+    canRevealNearestExistingParent: true;
     canRefreshLibraryIndexAfterPatch: true;
     canExecuteMoveOnly: true;
     registersMediaProtocol: true;
@@ -1276,7 +1648,22 @@ interface YangKuraImportMoveOnlyExecuteResult {
     requestWriteIndexPreview(request: YangKuraWriteIndexPreviewRequest): Promise<YangKuraWriteIndexPreviewResult>;
     requestWriteLibraryIndex(request: YangKuraWriteLibraryIndexRequest): Promise<YangKuraWriteLibraryIndexResult>;
     requestReadLibraryIndex(request: YangKuraReadLibraryIndexRequest): Promise<YangKuraReadLibraryIndexResult>;
+    requestLibraryIndexHealthCheck(request: YangKuraLibraryIndexHealthCheckRequest): Promise<YangKuraLibraryIndexHealthCheckResult>;
+    requestLibraryIndexRemovalPreview(request: YangKuraLibraryIndexRemovalPreviewRequest): Promise<YangKuraLibraryIndexRemovalPreviewResult>;
+    requestLibraryIndexRemovalWrite(request: YangKuraLibraryIndexRemovalWriteRequest): Promise<YangKuraLibraryIndexRemovalWriteResult>;
+    requestLibraryIndexBackupList(request: YangKuraLibraryIndexBackupListRequest): Promise<YangKuraLibraryIndexBackupListResult>;
+    requestLibraryIndexBackupRestore(request: YangKuraLibraryIndexBackupRestoreRequest): Promise<YangKuraLibraryIndexBackupRestoreResult>;
+    requestLibraryIndexBackupRetentionPreview(request: YangKuraLibraryIndexBackupRetentionPreviewRequest): Promise<YangKuraLibraryIndexBackupRetentionPreviewResult>;
+    requestLibraryIndexMaintenanceHistory(request: YangKuraLibraryIndexMaintenanceHistoryRequest): Promise<YangKuraLibraryIndexMaintenanceHistoryResult>;
+    requestRevealMissingEntryParent(request: YangKuraRevealMissingEntryParentRequest): Promise<YangKuraRevealMissingEntryParentResult>;
     requestResolveTrackMediaUrl(request: YangKuraResolveTrackMediaUrlRequest): Promise<YangKuraResolveTrackMediaUrlResult>;
+    requestMpvPlaybackStart(request: YangKuraMpvPlaybackStartRequest): Promise<YangKuraMpvPlaybackStartResult>;
+    requestMpvPlaybackCommand(request: YangKuraMpvPlaybackCommandRequest): Promise<YangKuraMpvPlaybackCommandResult>;
+    getMpvPlaybackStatus(): Promise<YangKuraMpvRuntimeStatus>;
+    getMpvInstallationStatus(): Promise<YangKuraMpvInstallationStatus>;
+    selectMpvExecutable(): Promise<YangKuraMpvExecutableActionResult>;
+    clearMpvExecutable(): Promise<YangKuraMpvExecutableActionResult>;
+    onMpvPlaybackEvent(listener: (event: YangKuraMpvPlaybackEvent) => void): () => void;
     requestReadTrackLyrics(request: YangKuraReadTrackLyricsRequest): Promise<YangKuraReadTrackLyricsResult>;
     requestOpenExternalFile(request: YangKuraOpenExternalFileRequest): Promise<YangKuraOpenExternalFileResult>;
     requestOpenInFileManager(request: YangKuraOpenInFileManagerRequest): Promise<YangKuraOpenInFileManagerResult>;

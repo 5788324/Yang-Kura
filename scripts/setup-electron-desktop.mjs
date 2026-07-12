@@ -110,5 +110,6 @@ console.log('[Yang-Kura] This script intentionally runs npm install + npm rebuil
 console.log('[Yang-Kura] Final validation runs electron --version.');
 runCommand('Installing / refreshing Electron dependency', npmCommand, ['install', 'electron@^39.8.1', '--save-dev']);
 runCommand('Rebuilding Electron binary metadata', npmCommand, ['rebuild', 'electron']);
+runCommand('Patching electron-builder blockmap compatibility', process.execPath, [path.join(cwd, 'scripts', 'patch-electron-builder-mvp29.mjs')]);
 runElectronVersion();
 console.log('\n[Yang-Kura] Desktop setup completed. You can now run: npm run desktop:smoke-check:strict');

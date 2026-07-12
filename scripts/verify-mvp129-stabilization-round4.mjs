@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+const mpvTest = fs.readFileSync('scripts/test-mpv-settings-runtime.mjs', 'utf8');
+const builderPatch = fs.readFileSync('scripts/patch-electron-builder-mvp29.mjs', 'utf8');
+const setup = fs.readFileSync('scripts/setup-electron-desktop.mjs', 'utf8');
+const smoke = fs.readFileSync('scripts/desktop-smoke-check.mjs', 'utf8');
+const stable = fs.readFileSync('scripts/run-stable-regression.mjs', 'utf8');
+if (!mpvTest.includes('fs.copyFileSync(process.execPath, fakeMpv)')) throw new Error('Windows PE mpv fixture missing');
+if (!builderPatch.includes("path.join(appBuilderRoot, 'src', 'targets', 'blockmap', 'blockmap.ts')")) throw new Error('src blockmap patch candidate missing');
+if (!builderPatch.includes('electron-builder patch incomplete')) throw new Error('blockmap patch self-check missing');
+if (!pkg.scripts?.['desktop:pack']?.includes('patch:electron-builder')) throw new Error('desktop:pack does not force patch');
+if (!pkg.scripts?.['desktop:dist']?.includes('patch:electron-builder')) throw new Error('desktop:dist does not force patch');
+if (!setup.includes('Patching electron-builder blockmap compatibility')) throw new Error('desktop:setup patch step missing');
+if (!pkg.scripts?.['verify:stable']) throw new Error('verify:stable missing');
+if (!stable.includes('verify:mvp129-index-maintenance-closeout')) throw new Error('stable regression missing MVP129');
+if (!smoke.includes('MVP129 稳定候选')) throw new Error('smoke title stale');
+if (!smoke.includes('npm run verify:stable')) throw new Error('smoke still lacks stable command');
+console.log('MVP129 stabilization round4 verifier PASS');

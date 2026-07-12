@@ -1,0 +1,11 @@
+PACKAGE_MANIFEST_MVP125_HANDOFF.txt
+src/services/playerAcceptanceService.ts
+scripts/mpv-windows-acceptance-check.mjs
+scripts/verify-mvp125-player-acceptance.mjs
+docs/PLAYER_ACCEPTANCE_MVP125.md
+docs/CURRENT_ROADMAP_MVP125.md
+HANDOFF_MVP124_TO_MVP125.md
+src/components/SettingsPage.tsx
+src/services/index.ts
+package.json
+package-lock.json

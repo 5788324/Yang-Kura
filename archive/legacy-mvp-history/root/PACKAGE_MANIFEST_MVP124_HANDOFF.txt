@@ -1,0 +1,4 @@
+Yang-Kura MVP124 source handoff
+Version: 0.162.0-mvp124
+Scope: mpv long-audio seek stability, process cleanup, backend preference, runtime fallback, diagnostics
+Excluded: node_modules, dist, dist-electron, .npm-cache, logs

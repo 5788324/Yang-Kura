@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-if (!['0.156.0-mvp118', '0.157.0-mvp119', '0.158.0-mvp120'].includes(packageJson.version)) throw new Error(`unexpected version: ${packageJson.version}`);
+if (!['0.156.0-mvp118', '0.157.0-mvp119', '0.158.0-mvp120', '0.159.0-mvp121', '0.160.0-mvp122', '0.161.0-mvp123', '0.162.0-mvp124', '0.163.0-mvp125', '0.164.0-mvp126', '0.165.0-mvp127', '0.166.0-mvp128', '0.167.0-mvp129'].includes(packageJson.version)) throw new Error(`unexpected version: ${packageJson.version}`);
 for (const [file, marker] of [
   ['electron/dlsiteMetadataParser.ts', 'parseDlsiteProductPage'],
   ['electron/dlsiteMetadataProvider.ts', 'official-dlsite-domain-only'],

@@ -3,8 +3,8 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-if (pkg.version !== '0.158.0-mvp120') throw new Error(`unexpected version: ${pkg.version}`);
-if (!pkg.scripts?.['verify:all']?.includes('verify:mvp120-dlsite-total-deadline')) throw new Error('verify:all missing MVP120');
+if (!['0.158.0-mvp120', '0.159.0-mvp121', '0.160.0-mvp122', '0.161.0-mvp123', '0.162.0-mvp124', '0.163.0-mvp125', '0.164.0-mvp126', '0.165.0-mvp127', '0.166.0-mvp128', '0.167.0-mvp129'].includes(pkg.version)) throw new Error(`unexpected version: ${pkg.version}`);
+if (!fs.readFileSync('scripts/run-stable-regression.mjs', 'utf8').includes('verify:mvp120-dlsite-total-deadline')) throw new Error('verify:stable missing MVP120');
 
 for (const [file, markers] of [
   ['electron/providerRequestDeadline.ts', ['createProviderRequestDeadline', 'getProviderRequestRemainingMs', 'deadlineAtMs']],

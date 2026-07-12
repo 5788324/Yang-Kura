@@ -450,3 +450,11 @@ export type {
   AsmrMetadataProviderFieldDiff,
   AsmrMetadataProviderPreviewResult,
 } from './asmrMetadataProviderPreviewService';
+
+export { mpvPlaybackPreferenceService } from './mpvPlaybackPreferenceService';
+export type { MpvPlaybackPreference } from './mpvPlaybackPreferenceService';
+
+export * from './playerAcceptanceService';
+
+export { libraryPerformanceService, LARGE_LIBRARY_RENDER_LIMITS } from './libraryPerformanceService';
+export type { LibraryRenderWindowModel, MusicSearchIndex, LibraryPerformanceDiagnosticsModel } from './libraryPerformanceService';

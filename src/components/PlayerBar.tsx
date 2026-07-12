@@ -353,6 +353,10 @@ export default function PlayerBar({
                 <p className="text-[9px] text-rose-300 truncate mt-0.5" title={playerState.playbackError}>
                   播放失败：{playerState.playbackError}
                 </p>
+              ) : playerState.playbackNotice ? (
+                <p className="text-[9px] text-amber-300 truncate mt-0.5" title={playerState.playbackNotice}>
+                  播放提示：{playerState.playbackNotice}
+                </p>
               ) : (
                 <>
                 <div id="mvp74-playerbar-daily-control-strip" className="mt-1.5 flex items-center gap-1.5 text-[9px] text-zinc-400 truncate" title={mvp74PlayerBar.hiddenMaintenanceNote}>
