@@ -3,47 +3,87 @@
 ## 当前状态
 
 ```text
-版本：0.167.0-mvp129
-状态：稳定主线，已合入并推送 GitHub main
-GitHub main：316d8127d6d423a1d9e6930b8b804a3bac11140e
-HEAD = origin/main：是
-Round 6 最终 Git 合入：PASS
-MVP130：实验性下载器，独立封存，禁止合入
-MVP131：未开始
+核心版本：0.167.0-mvp129
+代码基线：GitHub main
+产品化增量：U02～U08 已合入
+当前任务：U09 渐进式结构优化与状态文档同步
+MVP130：独立实验下载器，继续冻结，禁止合入
 ```
 
-## 发布与验收
-
-- `verify:stable`：PASS。
-- Windows mpv fixture：PASS。
-- Electron 严格 smoke：PASS。
-- portable 构建与实际启动：PASS，无黑屏。
-- NSIS installer 构建、安装、启动、卸载：PASS。
-- 卸载后安装目录移除；用户 `%APPDATA%\Yang-Kura` 按配置保留。
-- Yang Kura / Electron 残留进程：0。
-- 依赖审计：0 high/critical；1 Electron moderate 非阻塞项。
-- Git 工作区：Round 6 报告中为 clean。
+不再在长期文档中固定某个 Git SHA。GitHub `main` 与最近合并的 PR 是唯一代码事实来源，避免文档在每次小型质量提交后立即过期。
 
 ## 已完成主线
 
 1. Electron 桌面壳、目录选择和安全 token 边界。
-2. 本地扫描、Local JSON Index 写入/备份/读取。
+2. 本地扫描、Local JSON Index 写入、备份和读取。
 3. 音声库、音乐库、详情、歌单、队列和播放历史。
 4. HTMLAudio、mpv 后端、fallback、Seek 合并和进程回收。
-5. LRC/SRT/VTT/ASS 字幕与外部文件打开。
+5. LRC、SRT、VTT、ASS 字幕与外部文件打开。
 6. copy-only 完整导入闭环和 move-only 小样本闭环。
-7. 本地元数据编辑、备份/恢复和单 RJ DLsite Provider。
+7. 本地元数据编辑、备份恢复和单 RJ DLsite Provider。
 8. 50,000 曲目生成数据性能基准。
 9. 缺失文件检查、受控索引清理、备份恢复和维护历史。
-10. Windows portable / installer 发布链。
-11. 依赖精简、稳定回归链和 476 份历史资料归档。
+10. Windows portable / NSIS installer 发布链。
+11. 依赖精简、稳定回归链和历史资料归档。
+
+## U02～U08 产品化增量
+
+- U02：干净配置不再注入演示媒体；首页、顶栏和一级导航产品化。
+- U03：中文页面语言、键盘焦点和系统减少动画基线。
+- U04：旧弹窗的语义、Escape、Tab 圈定与焦点返回。
+- U05：移除 ASMR 详情页伪造的播放进度和字幕关联。
+- U06：播放器底栏映射现有主题 token。
+- U07：移除全屏播放器演示书签；黑胶动画响应减少动画设置。
+- U08：全屏播放页增加 dialog 语义、Escape 和焦点进入/返回。
+- CI：Pull Request 在 Windows runner 上自动执行专项 verifier、稳定回归和生产构建。
+
+## 当前 U09
+
+U09 只做渐进式结构优化：
+
+- 从 `LyricsPanel.tsx` 抽离全屏弹窗键盘/焦点生命周期；
+- 抽离黑胶与唱臂的 reduced-motion 动画循环；
+- 保持播放、Seek、队列、字幕、书签和存储行为不变；
+- 修正文档仍停留在旧 Round 6 / 旧 SHA 的问题。
 
 ## 当前阶段
 
-先进行真实日常使用观察，只修明确 Bug。不要根据旧待办表自动进入下载器、SQLite 或大重构。
+项目已越过主体功能开发期，进入：
 
-仍需长期观察：真实多小时播放、真实超大媒体库、named-pipe 长期稳定性。当前 50,000 曲目为生成数据基准。
+```text
+产品质量收口
+→ 渐进式代码结构优化
+→ Windows GUI 用户流程验收
+→ 定向缺陷修复
+→ 重新打包形成新 Beta 基线
+```
 
-## 历史阶段说明
+禁止为了代码整齐进行全项目重构。只拆分当前正在维护、已有明确职责拥挤的模块。
 
-`MVP129 稳定候选`阶段已经结束；当前状态是已合入 GitHub main 的 MVP129 稳定主线。
+## 自动验证
+
+Pull Request 自动门禁当前覆盖：
+
+```text
+npm ci --ignore-scripts --no-audit --no-fund
+全部 scripts/verify-u*.mjs
+npm run verify:stable
+npm run build
+```
+
+核心 MVP129 历史基线还曾通过 Electron strict smoke、portable、NSIS、mpv fixture 和依赖审计；U02 之后需要在最终发布前重新执行完整桌面发布链。
+
+## 仍需完成
+
+1. Windows 真实 GUI 完整用户流程验收。
+2. 1040×680、常规窗口和最大化布局检查。
+3. 三主题对比度与交互一致性检查。
+4. 实际 mpv/HTMLAudio、字幕、队列、重启恢复和 copy-only 流程复验。
+5. `build:electron`、strict smoke、portable、NSIS、安装卸载和残留进程复验。
+6. 根据实机结果修复明确缺陷并形成新 Beta 发布记录。
+
+## 长期观察与冻结项
+
+- 继续观察真实多小时播放、真实超大媒体库和 named-pipe 长期稳定性。
+- SQLite、系统媒体控制、批量元数据和字幕 Worker 集成只有出现明确需求时再启动。
+- 下载器继续冻结；不得把 MVP130 或历史实验包自动合入主线。
