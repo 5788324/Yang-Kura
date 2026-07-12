@@ -4,7 +4,6 @@ import Sidebar from './components/Sidebar';
 import PlayerBar from './components/PlayerBar';
 
 import { PageType, AudioTrack, PlayerState, LibrarySettings, ThemeType, RJWork, Playlist, MusicAlbum, LocalJsonIndex } from './types';
-import { mockRjWorks, mockMusicAlbums, mockPlaylists, mockRecentPlays } from './mockData';
 import { libraryIndexAdapter } from './services/libraryIndexAdapter';
 import { playbackHistoryService } from './services/playbackHistoryService';
 import { librarySessionService, type LibrarySessionSnapshot } from './services/librarySessionService';
@@ -38,13 +37,13 @@ export default function App() {
   const mainContentRef = useRef<HTMLElement | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   
-  // Demo prototype states. These localStorage keys are historical mock names; they are not SQLite or real disk sync.
-  const [rjWorks, setRjWorks] = useLocalStorage<RJWork[]>('sqlite_rj_works', mockRjWorks);
-  const rjWorksBaseRef = useRef<RJWork[]>(mockRjWorks);
+  // Keep the historical localStorage keys for compatibility, while a clean profile starts with real empty state.
+  const [rjWorks, setRjWorks] = useLocalStorage<RJWork[]>('sqlite_rj_works', []);
+  const rjWorksBaseRef = useRef<RJWork[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>(() =>
-    playlistPersistenceService.hydrateInitialPlaylists(mockPlaylists),
+    playlistPersistenceService.hydrateInitialPlaylists([]),
   );
-  const [musicAlbums, setMusicAlbums] = useLocalStorage<MusicAlbum[]>('sqlite_music_albums', mockMusicAlbums);
+  const [musicAlbums, setMusicAlbums] = useLocalStorage<MusicAlbum[]>('sqlite_music_albums', []);
   const musicAlbumsBaseRef = useRef<MusicAlbum[]>(musicAlbums);
   const [recentTracks, setRecentTracks] = useState<AudioTrack[]>([]);
   const [librarySessionSnapshot, setLibrarySessionSnapshot] = useState<LibrarySessionSnapshot>(() =>
@@ -61,7 +60,7 @@ export default function App() {
   const [playlistDetailId, setPlaylistDetailId] = useState<string | null>(null);
 
   // Favorites (list of track IDs)
-  const [favorites, setFavorites] = useLocalStorage<string[]>('sqlite_favorites', ['track_rj100204_02', 'track_music_01_01']);
+  const [favorites, setFavorites] = useLocalStorage<string[]>('sqlite_favorites', []);
 
   const updatePlaylists = (updater: (previous: Playlist[]) => Playlist[]) => {
     setPlaylists((previous) => {
@@ -461,6 +460,22 @@ export default function App() {
   const selectedAsmrWork = rjWorks.find(rj => rj.id === asmrDetailId);
   const selectedPlaylistObj = playlists.find(p => p.id === playlistDetailId);
   const queueSurface = dailyListeningSurfaceService.getQueueSummary(playerState);
+  const selectedRootCount = Object.keys(librarySessionSnapshot.selectedRoots).length;
+  const libraryRuntimeStatus = librarySessionSnapshot.lastIndex
+    ? `已加载 ${librarySessionSnapshot.lastIndex.trackCount} 条音轨`
+    : selectedRootCount > 0
+      ? '资源库待重新连接'
+      : '尚未选择资源库';
+  const libraryRuntimeTone = librarySessionSnapshot.lastIndex
+    ? 'text-emerald-500'
+    : selectedRootCount > 0
+      ? 'text-amber-500'
+      : 'text-text-muted';
+  const libraryRuntimeDot = librarySessionSnapshot.lastIndex
+    ? 'bg-emerald-500'
+    : selectedRootCount > 0
+      ? 'bg-amber-500'
+      : 'bg-zinc-500';
 
   return (
     <div className={`h-screen w-screen flex flex-col theme-${settings.currentTheme} transition-all duration-300 overflow-hidden`}>
@@ -472,12 +487,12 @@ export default function App() {
           <span className="font-semibold text-[11px]">Yang-Kura 本地音频媒体库</span>
         </div>
         <div className="flex items-center space-x-2 font-sans">
-          <span className="text-[10px] text-text-muted bg-border-color/40 px-2 py-0.5 rounded font-mono">
-导入器预览 / 详情导航 / 媒体库体验
+          <span className="text-[10px] text-text-muted bg-border-color/40 px-2 py-0.5 rounded">
+            本地媒体库
           </span>
-          <span className="text-emerald-500 flex items-center space-x-1 font-semibold text-[10px]">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            <span>真实音频可播</span>
+          <span className={`${libraryRuntimeTone} flex items-center space-x-1 font-semibold text-[10px]`}>
+            <span className={`inline-block w-1.5 h-1.5 rounded-full ${libraryRuntimeDot}`}></span>
+            <span>{libraryRuntimeStatus}</span>
           </span>
         </div>
       </header>
@@ -503,7 +518,7 @@ export default function App() {
           {/* Page Router with Drilldowns */}
           {currentPage === 'dashboard' && !asmrDetailId && !playlistDetailId && (
             <Dashboard 
-              recentTracks={recentTracks.length > 0 ? recentTracks : mockRecentPlays}
+              recentTracks={recentTracks}
               librarySessionSnapshot={librarySessionSnapshot}
               playlists={playlists}
               rjWorks={rjWorks}

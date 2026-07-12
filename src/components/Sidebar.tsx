@@ -41,14 +41,17 @@ export default function Sidebar({
     setPlaylistDetailId(null);
   };
 
-  const navItems = [
+  const dailyNavItems = [
     { id: 'dashboard', label: '首页', icon: History },
     { id: 'asmr-lib', label: 'ASMR', icon: Headphones },
     { id: 'music-lib', label: '流行音乐', icon: Music },
     { id: 'playlists', label: '我的歌单', icon: ListMusic },
     { id: 'importer', label: '导入器', icon: ArchiveRestore },
-    { id: 'downloader', label: '下载规划', icon: DownloadCloud },
+  ];
+
+  const maintenanceNavItems = [
     { id: 'settings', label: '系统设置', icon: Settings },
+    { id: 'downloader', label: '下载规划', icon: DownloadCloud },
     { id: 'diagnostics', label: '诊断工具', icon: Cpu },
   ];
 
@@ -107,9 +110,9 @@ export default function Sidebar({
       {/* Navigation Menu */}
       <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto scrollbar-thin">
         <div className="px-3 mb-2 text-[10px] font-semibold text-text-muted tracking-wider uppercase">
-          导航菜单
+          媒体与导入
         </div>
-        {navItems.map((item) => {
+        {dailyNavItems.map((item) => {
           const Icon = item.icon;
           return (
             <div key={item.id} className="space-y-1">
@@ -122,6 +125,20 @@ export default function Sidebar({
                   <Icon className="w-4 h-4 flex-shrink-0" />
                   <span>{item.label}</span>
                 </div>
+                {currentPage === item.id && <ChevronRight className="w-3 h-3" />}
+              </button>
+            </div>
+          );
+        })}
+        <div className="px-3 pt-5 mb-2 text-[10px] font-semibold text-text-muted tracking-wider uppercase">
+          设置与维护
+        </div>
+        {maintenanceNavItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <div key={item.id} className="space-y-1">
+              <button id={`nav-${item.id}`} onClick={() => handleNavClick(item.id as PageType)} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all text-left ${activeClass(item.id as PageType)}`}>
+                <div className="flex items-center space-x-3"><Icon className="w-4 h-4 flex-shrink-0" /><span>{item.label}</span></div>
                 {currentPage === item.id && <ChevronRight className="w-3 h-3" />}
               </button>
             </div>
