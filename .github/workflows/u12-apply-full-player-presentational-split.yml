@@ -1,0 +1,91 @@
+name: Apply U12 Full Player Presentational Split
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.head_ref == 'codex/u12-full-player-presentational-split'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out U12 branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Apply focused LyricsPanel extraction
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/components/LyricsPanel.tsx')
+          text = path.read_text(encoding='utf-8')
+
+          icon_import = "  ChevronDown, \n  Play, "
+          if icon_import not in text:
+              raise SystemExit('U12 patch: ChevronDown import anchor missing')
+          text = text.replace(icon_import, "  Play, ", 1)
+
+          hook_anchor = "import { useVinylMotion } from '../hooks/useVinylMotion';\n"
+          component_imports = (
+              "import FullPlayerHeader, { type FullPlayerStyle } from './player/FullPlayerHeader';\n"
+              "import PlayerFocusSummary from './player/PlayerFocusSummary';\n"
+          )
+          if hook_anchor not in text:
+              raise SystemExit('U12 patch: hook import anchor missing')
+          if component_imports not in text:
+              text = text.replace(hook_anchor, hook_anchor + component_imports, 1)
+
+          state_before = "const [playerStyle, setPlayerStyle] = useState<'classic' | 'vinyl' | 'lyrics'>('classic');"
+          state_after = "const [playerStyle, setPlayerStyle] = useState<FullPlayerStyle>('classic');"
+          if state_before not in text:
+              raise SystemExit('U12 patch: playerStyle state anchor missing')
+          text = text.replace(state_before, state_after, 1)
+
+          start_marker = '      {/* Header Area (Borderless and fades out during inactivity) */}'
+          end_marker = '      <div id="mvp78-player-panel-layout-review"'
+          start = text.find(start_marker)
+          end = text.find(end_marker, start)
+          if start < 0 or end < 0:
+              raise SystemExit('U12 patch: presentational block anchors missing')
+
+          replacement = """      <FullPlayerHeader
+            isInactive={isUserInactive}
+            closeButtonRef={closeButtonRef}
+            onClose={onClose}
+            playerStyle={playerStyle}
+            onPlayerStyleChange={setPlayerStyle}
+            modeTitle={playerSurfaceSummary.modeTitle}
+            sourceHint={playerSurfaceSummary.sourceHint}
+          />
+
+          <PlayerFocusSummary
+            isInactive={isUserInactive}
+            model={mvp73PlayerFocus}
+          />
+
+"""
+          text = text[:start] + replacement + text[end:]
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Remove temporary patch automation
+        shell: bash
+        run: git rm .github/workflows/u12-apply-full-player-presentational-split.yml
+
+      - name: Commit extracted presentation components
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/LyricsPanel.tsx
+          git commit -m "refactor: delegate full player presentation blocks"
+          git push origin HEAD:${{ github.head_ref }}
