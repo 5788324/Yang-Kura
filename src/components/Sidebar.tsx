@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import {
   Headphones,
@@ -9,7 +10,9 @@ import {
   History,
   Search,
   ChevronRight,
+  ChevronDown,
   Cpu,
+  Bot,
 } from 'lucide-react';
 import type { PageType, ThemeType } from '../types';
 
@@ -44,10 +47,10 @@ const DAILY_NAV_ITEMS: readonly SidebarNavItem[] = [
   { id: 'music-lib', label: '流行音乐', icon: Music },
   { id: 'playlists', label: '我的歌单', icon: ListMusic },
   { id: 'importer', label: '导入器', icon: ArchiveRestore },
+  { id: 'settings', label: '系统设置', icon: Settings },
 ];
 
 const MAINTENANCE_NAV_ITEMS: readonly SidebarNavItem[] = [
-  { id: 'settings', label: '系统设置', icon: Settings },
   { id: 'downloader', label: '下载规划', icon: DownloadCloud },
   { id: 'diagnostics', label: '诊断工具', icon: Cpu },
 ];
@@ -108,6 +111,10 @@ export default function Sidebar({
   setAsmrDetailId,
   setPlaylistDetailId,
 }: SidebarProps) {
+  const [isAiMaintenanceOpen, setIsAiMaintenanceOpen] = useState(false);
+  const isMaintenancePage = MAINTENANCE_NAV_ITEMS.some((item) => item.id === currentPage);
+  const showAiMaintenance = isAiMaintenanceOpen || isMaintenancePage;
+
   const handleNavClick = (page: PageType) => {
     setCurrentPage(page);
     setAsmrDetailId(null);
@@ -170,19 +177,52 @@ export default function Sidebar({
       <nav aria-label="页面导航" className="flex-1 px-3 py-2 overflow-y-auto scrollbar-thin">
         <SidebarNavSection
           headingId="sidebar-daily-navigation"
-          title="媒体与导入"
+          title="日常使用"
           items={DAILY_NAV_ITEMS}
           currentPage={currentPage}
           onNavigate={handleNavClick}
         />
-        <SidebarNavSection
-          headingId="sidebar-maintenance-navigation"
-          title="设置与维护"
-          items={MAINTENANCE_NAV_ITEMS}
-          currentPage={currentPage}
-          onNavigate={handleNavClick}
-          className="pt-5"
-        />
+
+        <section aria-labelledby="sidebar-ai-maintenance-heading" className="pt-5">
+          <h2 id="sidebar-ai-maintenance-heading" className="sr-only">
+            AI 维护
+          </h2>
+          <button
+            id="sidebar-ai-maintenance-toggle"
+            type="button"
+            aria-expanded={showAiMaintenance}
+            aria-controls="sidebar-ai-maintenance-panel"
+            onClick={() => setIsAiMaintenanceOpen((open) => !open)}
+            className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-text-muted hover:text-text-primary hover:bg-hover-bg/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-color/70 focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg"
+          >
+            <span className="flex items-center gap-3 min-w-0">
+              <Bot className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+              <span className="min-w-0">
+                <span className="block text-xs font-semibold">AI 维护</span>
+                <span className="block text-[9px] text-text-muted truncate">工程与检修工具</span>
+              </span>
+            </span>
+            <ChevronDown
+              className={`w-3.5 h-3.5 flex-shrink-0 transition-transform motion-reduce:transition-none ${showAiMaintenance ? 'rotate-180' : ''}`}
+              aria-hidden="true"
+            />
+          </button>
+
+          {showAiMaintenance && (
+            <div
+              id="sidebar-ai-maintenance-panel"
+              className="mt-2 ml-3 pl-2 border-l border-border-color/60"
+            >
+              <SidebarNavSection
+                headingId="sidebar-maintenance-navigation"
+                title="仅供维护"
+                items={MAINTENANCE_NAV_ITEMS}
+                currentPage={currentPage}
+                onNavigate={handleNavClick}
+              />
+            </div>
+          )}
+        </section>
       </nav>
     </aside>
   );
