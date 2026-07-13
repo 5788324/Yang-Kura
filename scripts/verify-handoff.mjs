@@ -23,7 +23,9 @@ const tokens = [
   ['PROJECT_STATE.md', '核心版本：0.167.0-mvp129'],
   ['PROJECT_STATE.md', 'U02～U08 已合入'],
   ['PROJECT_ROADMAP.md', '渐进式结构与质量优化'],
-  ['PROJECT_ROADMAP.md', '下载器：冻结'],
+  ['PROJECT_ROADMAP.md', 'MVP130'],
+  ['PROJECT_ROADMAP.md', '冻结'],
+  ['PROJECT_ROADMAP.md', '禁止合入'],
   ['MVP130_EXPERIMENTAL_DO_NOT_MERGE.md', '824c914f844b1ac57391df8ebb5c1f30c8b40903145b3a66e6a13e95e5413efe'],
 ];
 
