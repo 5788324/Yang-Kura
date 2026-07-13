@@ -4,6 +4,7 @@ import { useFloatingLyricText } from '../hooks/useFloatingLyricText';
 import { usePlayerBarActions } from '../hooks/usePlayerBarActions';
 import { usePlayerSeekInteraction } from '../hooks/usePlayerSeekInteraction';
 import { useDelayedVisibility } from '../hooks/usePlayerTransientUi';
+import { formatPlayerTime } from '../player/playerBarMath';
 import { createPlayerBarPresentationModel } from '../player/playerBarPresentationModel';
 import {
   PlayerEmptyState,
@@ -122,10 +123,7 @@ export default function PlayerBar({
         progressPercent={progressPercent}
         isDragging={isProgressDragging}
         hoverPercent={hoverPercent}
-        hoverTimeLabel={hoverTime !== null ? presentation.transport.currentTimeLabel.replace(
-          presentation.transport.currentTimeLabel,
-          `${Math.floor(hoverTime / 60)}:${Math.floor(hoverTime % 60).toString().padStart(2, '0')}`,
-        ) : null}
+        hoverTimeLabel={hoverTime !== null ? formatPlayerTime(hoverTime) : null}
         progressTrackRef={progressTrackRef}
         onTrackMouseMove={handleProgressTrackMouseMove}
         onTrackMouseLeave={handleProgressTrackMouseLeave}
