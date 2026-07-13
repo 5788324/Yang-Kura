@@ -23,7 +23,13 @@ const errors = (transpiled.diagnostics ?? []).filter(
   (diagnostic) => diagnostic.category === ts.DiagnosticCategory.Error,
 );
 if (errors.length > 0) {
-  failures.push(`SettingsPage TypeScript diagnostics: ${errors.map((item) => item.messageText).join('; ')}`);
+  const formatted = errors.map((item) => {
+    const message = ts.flattenDiagnosticMessageText(item.messageText, ' ');
+    if (!item.file || item.start === undefined) return message;
+    const location = item.file.getLineAndCharacterOfPosition(item.start);
+    return `${location.line + 1}:${location.character + 1} ${message}`;
+  });
+  failures.push(`SettingsPage TypeScript diagnostics: ${formatted.join('; ')}`);
 }
 
 const detailsOpening = settings.match(/<details id="u26-settings-ai-library-maintenance"([^>]*)>/)?.[0];
