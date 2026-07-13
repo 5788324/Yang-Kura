@@ -7,51 +7,60 @@ const result = fs.readFileSync('docs/U27_WINDOWS_GUI_ACCEPTANCE_RESULT.md', 'utf
 const u28Task = fs.readFileSync('docs/U28_NATIVE_LIBRARY_WORKFLOW_TASK.md', 'utf8');
 
 for (const marker of [
+  'NO-GO',
   'CONDITIONAL GO',
+  '已被真实资源库补测覆盖',
+  'MAJ-001',
+  'MAJ-002',
   '449C19A8659D8316DAA5E8AED3C4439822A5C20346B5BA0A728C5B9E3D78C922',
   '0 high / critical；1 moderate',
   'MIN-001',
-  '原生目录选择器',
-  'NOT TESTED',
+  'E:\\arsm',
   '用户原配置已恢复',
 ]) {
-  assert.ok(result.includes(marker), `U27 result missing acceptance fact: ${marker}`);
+  assert.ok(result.includes(marker), `U27 result missing corrected acceptance fact: ${marker}`);
 }
 
 for (const marker of [
   'U27 已完成',
-  'CONDITIONAL GO',
+  'NO-GO',
   'U28',
-  '原生目录',
+  'MAJ-001',
+  'MAJ-002',
+  '真实 Index',
   'MVP130',
   '冻结',
 ]) {
-  assert.ok(`${state}\n${roadmap}`.includes(marker), `project progress missing U27/U28 fact: ${marker}`);
+  assert.ok(`${state}\n${roadmap}`.includes(marker), `project progress missing U27 no-go/U28 repair fact: ${marker}`);
 }
 
 for (const marker of [
-  '人工交接点',
-  'asmr-library',
-  'music-library',
-  'copy-only',
-  'move-only',
-  'LRC',
-  'SRT',
-  'VTT',
-  'ASS',
-  '重启恢复',
-  '不主动修复',
+  '根因定位要求',
+  'Windows 原生目录授权',
+  'root snapshot',
+  '读取已有 Index',
+  '一键扫描并应用',
+  '单一资源快照',
+  '真实诊断',
+  '暂时禁用',
+  'E:\\arsm',
+  '不再引用 Demo 扫描作为真实状态',
+  'MAJ-001 关闭',
+  'MAJ-002 关闭',
 ]) {
-  assert.ok(u28Task.includes(marker), `U28 task missing native workflow contract: ${marker}`);
+  assert.ok(u28Task.includes(marker), `U28 repair task missing closure contract: ${marker}`);
 }
 
-for (const forbidden of [
-  'npm audit fix',
-  '使用用户真实大库做写入',
-  '脚本直接注入绝对路径来替代 GUI 授权',
+for (const safetyBoundary of [
+  '不对真实库执行清理、move、覆盖',
+  '禁止使用脚本、配置文件、开发者工具或手工修改 Store 绕过原生目录授权',
+  '禁止运行 `npm audit fix`',
+  'MVP130 下载器继续冻结',
 ]) {
-  const index = u28Task.indexOf(forbidden);
-  assert.ok(index >= 0, `U28 task must explicitly address safety boundary: ${forbidden}`);
+  assert.ok(u28Task.includes(safetyBoundary), `U28 repair task missing safety boundary: ${safetyBoundary}`);
 }
 
-console.log('U27 acceptance closeout and U28 native workflow verifier PASS');
+assert.ok(!state.includes('结论 CONDITIONAL GO'), 'PROJECT_STATE must not retain CONDITIONAL GO as the final status');
+assert.ok(!roadmap.includes('实机结果：CONDITIONAL GO'), 'PROJECT_ROADMAP must not retain the superseded final result');
+
+console.log('U27 NO-GO correction and U28 library-closure repair verifier PASS');
