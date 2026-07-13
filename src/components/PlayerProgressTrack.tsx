@@ -2,7 +2,6 @@ import type {
   ChangeEventHandler,
   MouseEventHandler,
   RefObject,
-  TouchEventHandler,
 } from 'react';
 import { PlayerSeekPreview } from './PlayerTransientPresenters';
 
@@ -18,9 +17,9 @@ interface PlayerProgressTrackProps {
   onTrackMouseMove: MouseEventHandler<HTMLDivElement>;
   onTrackMouseLeave: MouseEventHandler<HTMLDivElement>;
   onTrackClick: MouseEventHandler<HTMLDivElement>;
-  onRangeStart: MouseEventHandler<HTMLInputElement> | TouchEventHandler<HTMLInputElement>;
+  onRangeStart: () => void;
   onRangeChange: ChangeEventHandler<HTMLInputElement>;
-  onRangeCommit: MouseEventHandler<HTMLInputElement> | TouchEventHandler<HTMLInputElement>;
+  onRangeCommit: () => void;
 }
 
 export function PlayerProgressTrack({
@@ -72,11 +71,11 @@ export function PlayerProgressTrack({
           max={duration || 0}
           value={displayProgress}
           disabled={duration <= 0}
-          onMouseDown={onRangeStart as MouseEventHandler<HTMLInputElement>}
-          onTouchStart={onRangeStart as TouchEventHandler<HTMLInputElement>}
+          onMouseDown={onRangeStart}
+          onTouchStart={onRangeStart}
           onChange={onRangeChange}
-          onMouseUp={onRangeCommit as MouseEventHandler<HTMLInputElement>}
-          onTouchEnd={onRangeCommit as TouchEventHandler<HTMLInputElement>}
+          onMouseUp={onRangeCommit}
+          onTouchEnd={onRangeCommit}
           onClick={(event) => event.stopPropagation()}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           aria-label="播放进度"
