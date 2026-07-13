@@ -1,25 +1,27 @@
-name: U26 Apply Verified Safe Patch
+name: Branch Validation
 
 on:
-  push:
+  pull_request:
     branches:
-      - codex/u26-safe-library-maintenance
-    paths:
-      - .github/workflows/branch-validation.yml
+      - main
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: branch-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  apply:
+  validate:
+    name: Windows stable regression
     runs-on: windows-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
+
     steps:
-      - name: Check out safe U26 branch
+      - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          ref: codex/u26-safe-library-maintenance
-          fetch-depth: 0
 
       - name: Set up Node 22
         uses: actions/setup-node@v4
@@ -27,33 +29,73 @@ jobs:
           node-version: '22'
           cache: npm
 
-      - name: Apply exact non-invasive patch
-        shell: pwsh
-        run: node scripts/apply-u26-safe-library-maintenance.mjs
-
       - name: Install dependencies without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
 
-      - name: Verify source before committing
-        shell: pwsh
-        run: |
-          node scripts/verify-u26-safe-library-maintenance.mjs
-          npm run lint
-          git diff --check
+      - name: Audit high and critical dependency risk
+        run: npm audit --audit-level=high
 
-      - name: Restore normal validation and remove temporary files
+      - name: Run focused UI verifiers
+        id: focused-verifiers
         shell: pwsh
         run: |
-          git fetch origin main --depth=1
-          git checkout origin/main -- .github/workflows/branch-validation.yml
-          Remove-Item scripts/apply-u26-safe-library-maintenance.mjs
-          Remove-Item .github/workflows/u26-apply-safe-library-maintenance.yml
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          $results = [System.Collections.Generic.List[string]]::new()
+          $results.Add("verifier`tstatus`texit_code")
+          $failed = $false
 
-      - name: Commit verified source
+          Get-ChildItem -Path scripts -Filter 'verify-u*.mjs' |
+            Sort-Object Name |
+            ForEach-Object {
+              Write-Host "Running $($_.Name)"
+              node $_.FullName
+              $exitCode = $LASTEXITCODE
+              $status = if ($exitCode -eq 0) { 'PASS' } else { 'FAIL' }
+              $results.Add("$($_.Name)`t$status`t$exitCode")
+              if ($exitCode -ne 0) { $failed = $true }
+            }
+
+          $reportPath = 'artifacts/focused-verifier-results.tsv'
+          $results | Set-Content -Path $reportPath -Encoding utf8
+          $results | ForEach-Object { Write-Host $_ }
+
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Focused verifier results'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '```text'
+          $results | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '```'
+
+          if ($failed) { exit 1 }
+
+      - name: Upload focused verifier report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: focused-verifier-results
+          path: artifacts/focused-verifier-results.tsv
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Run stable regression
         shell: pwsh
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "refactor: gate library maintenance with safe visibility toggle"
-          git push origin HEAD:codex/u26-safe-library-maintenance
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          npm run verify:stable 2>&1 | Tee-Object -FilePath artifacts/stable-regression.log
+          $exitCode = $LASTEXITCODE
+          if ($exitCode -ne 0) { exit $exitCode }
+
+      - name: Upload stable regression log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stable-regression-log
+          path: artifacts/stable-regression.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Build production renderer
+        shell: pwsh
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: npm run build
