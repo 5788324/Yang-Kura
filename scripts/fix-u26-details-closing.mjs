@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 
+// One-time exact source repair for the U26 maintenance wrapper.
 const path = 'src/components/SettingsPage.tsx';
 let source = fs.readFileSync(path, 'utf8');
 const from = `              )}
