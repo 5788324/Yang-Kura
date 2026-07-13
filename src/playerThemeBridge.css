@@ -1,60 +1,96 @@
 /*
- * U06 scopes legacy zinc-based player surfaces to the active theme tokens.
- * Playback behavior and component structure remain unchanged.
+ * U14 maps legacy neutral utility classes inside the bottom player to the
+ * active theme contract. Functional playback accents remain unchanged.
  */
 #app-player-bar {
-  background-color: var(--player-bg) !important;
-  border-color: var(--border-color) !important;
-  color: var(--text-primary) !important;
+  --player-token-surface: var(--player-bg);
+  --player-token-panel: var(--input-bg);
+  --player-token-hover: var(--hover-bg);
+  --player-token-border: var(--border-color);
+  --player-token-border-hover: var(--border-color-hover);
+  --player-token-text: var(--text-primary);
+  --player-token-text-secondary: var(--text-secondary);
+  --player-token-text-muted: var(--text-muted);
+
+  background-color: var(--player-token-surface) !important;
+  border-color: var(--player-token-border) !important;
+  color: var(--player-token-text) !important;
 }
 
 #app-player-bar [class~="bg-zinc-950"],
-#app-player-bar [class~="bg-zinc-950/95"] {
-  background-color: var(--player-bg) !important;
+#app-player-bar [class~="bg-zinc-950/95"],
+#app-player-bar [class~="bg-zinc-950/90"] {
+  background-color: var(--player-token-surface) !important;
 }
 
 #app-player-bar [class~="bg-zinc-900"],
 #app-player-bar [class~="bg-zinc-900/40"],
-#app-player-bar [class~="bg-zinc-900/60"] {
-  background-color: var(--input-bg) !important;
+#app-player-bar [class~="bg-zinc-900/60"],
+#app-player-bar [class~="bg-white/5"] {
+  background-color: var(--player-token-panel) !important;
 }
 
-#app-player-bar [class~="bg-zinc-800"] {
-  background-color: var(--hover-bg) !important;
+#app-player-bar [class~="bg-zinc-800"],
+#app-player-bar [class~="bg-white/10"] {
+  background-color: var(--player-token-hover) !important;
 }
 
 #app-player-bar [class~="border-zinc-700"],
 #app-player-bar [class~="border-zinc-800"],
+#app-player-bar [class~="border-zinc-800/40"],
 #app-player-bar [class~="border-zinc-800/60"],
 #app-player-bar [class~="border-zinc-800/80"],
-#app-player-bar [class~="border-zinc-900"] {
-  border-color: var(--border-color) !important;
+#app-player-bar [class~="border-zinc-900"],
+#app-player-bar [class~="border-white/10"] {
+  border-color: var(--player-token-border) !important;
 }
 
 #app-player-bar [class~="text-zinc-100"],
 #app-player-bar [class~="text-zinc-200"] {
-  color: var(--text-primary) !important;
+  color: var(--player-token-text) !important;
 }
 
 #app-player-bar [class~="text-zinc-300"],
 #app-player-bar [class~="text-zinc-400"] {
-  color: var(--text-secondary) !important;
+  color: var(--player-token-text-secondary) !important;
 }
 
 #app-player-bar [class~="text-zinc-500"],
 #app-player-bar [class~="text-zinc-600"] {
-  color: var(--text-muted) !important;
+  color: var(--player-token-text-muted) !important;
+}
+
+#app-player-bar [class~="text-zinc-800"] {
+  color: var(--player-token-border) !important;
 }
 
 #app-player-bar [class~="hover:bg-zinc-800"]:hover,
-#app-player-bar [class~="hover:bg-zinc-900"]:hover {
-  background-color: var(--hover-bg) !important;
+#app-player-bar [class~="hover:bg-zinc-900"]:hover,
+#app-player-bar [class~="hover:bg-zinc-900/60"]:hover,
+#app-player-bar [class~="hover:bg-white/10"]:hover {
+  background-color: var(--player-token-hover) !important;
 }
 
 #app-player-bar [class~="hover:text-white"]:hover,
 #app-player-bar [class~="hover:text-zinc-200"]:hover,
 #app-player-bar [class~="hover:text-zinc-300"]:hover {
-  color: var(--text-primary) !important;
+  color: var(--player-token-text) !important;
+}
+
+#app-player-bar [class~="group/heart"]:hover [class~="group-hover/heart:text-zinc-300"] {
+  color: var(--player-token-text-secondary) !important;
+}
+
+#app-player-bar [class~="hover:border-zinc-800/80"]:hover {
+  border-color: var(--player-token-border-hover) !important;
+}
+
+#app-player-bar [class~="disabled:hover:border-zinc-800"]:disabled:hover {
+  border-color: var(--player-token-border) !important;
+}
+
+#app-player-bar [class~="disabled:hover:text-zinc-300"]:disabled:hover {
+  color: var(--player-token-text-secondary) !important;
 }
 
 #app-player-bar input[type="range"] {

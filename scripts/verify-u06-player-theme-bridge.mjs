@@ -10,16 +10,19 @@ if (!main.includes("import './playerThemeBridge.css';")) {
 
 for (const marker of [
   '#app-player-bar',
-  'background-color: var(--player-bg)',
-  'border-color: var(--border-color)',
-  'color: var(--text-primary)',
-  'background-color: var(--input-bg)',
-  'background-color: var(--hover-bg)',
-  'color: var(--text-secondary)',
-  'color: var(--text-muted)',
+  '--player-token-surface: var(--player-bg)',
+  '--player-token-panel: var(--input-bg)',
+  '--player-token-hover: var(--hover-bg)',
+  '--player-token-border: var(--border-color)',
+  '--player-token-text: var(--text-primary)',
+  '--player-token-text-secondary: var(--text-secondary)',
+  '--player-token-text-muted: var(--text-muted)',
+  'background-color: var(--player-token-surface)',
+  'border-color: var(--player-token-border)',
+  'color: var(--player-token-text)',
   'accent-color: var(--brand-color)',
 ]) {
-  if (!css.includes(marker)) failures.push(`missing player theme marker: ${marker}`);
+  if (!css.includes(marker)) failures.push(`missing stable player theme contract: ${marker}`);
 }
 
 for (const forbidden of [
