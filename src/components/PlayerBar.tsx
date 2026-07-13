@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Play, 
   Pause, 
@@ -35,6 +35,7 @@ import {
   getSafeTrackDuration,
   seekFromPointerPosition,
 } from '../player/playerBarMath';
+import { useAutoDismissMessage, useDelayedVisibility } from '../hooks/usePlayerTransientUi';
 
 interface PlayerBarProps {
   playerState: PlayerState;
@@ -81,10 +82,14 @@ export default function PlayerBar({
   const { currentTrack, isPlaying, progress, volume, isMuted, loopMode } = playerState;
 
   // Local state controls
-  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+  const {
+    isVisible: showVolumeSlider,
+    show: handleVolumeMouseEnter,
+    scheduleHide: handleVolumeMouseLeave,
+  } = useDelayedVisibility();
   const [showPlaylistDropdown, setShowPlaylistDropdown] = useState(false);
   const [desktopLyricsActive, setDesktopLyricsActive] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const { message: toastMessage, showMessage: setToastMessage } = useAutoDismissMessage();
 
   // Hover & Drag preview states
   const [hoverTime, setHoverTime] = useState<number | null>(null);
@@ -92,39 +97,6 @@ export default function PlayerBar({
   const [dragValue, setDragValue] = useState<number | null>(null);
   const progressBarRef = React.useRef<HTMLDivElement>(null);
   const pendingSeekValueRef = React.useRef<number | null>(null);
-
-  // Volume hover timer buffer
-  const volumeTimeoutRef = React.useRef<any>(null);
-
-  const handleVolumeMouseEnter = () => {
-    if (volumeTimeoutRef.current) {
-      clearTimeout(volumeTimeoutRef.current);
-      volumeTimeoutRef.current = null;
-    }
-    setShowVolumeSlider(true);
-  };
-
-  const handleVolumeMouseLeave = () => {
-    volumeTimeoutRef.current = setTimeout(() => {
-      setShowVolumeSlider(false);
-    }, 800); // 800ms delay gives plenty of time to transition mouse cleanly
-  };
-
-  useEffect(() => {
-    return () => {
-      if (volumeTimeoutRef.current) {
-        clearTimeout(volumeTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Auto clear toast
-  useEffect(() => {
-    if (toastMessage) {
-      const t = setTimeout(() => setToastMessage(null), 2500);
-      return () => clearTimeout(t);
-    }
-  }, [toastMessage]);
 
   const handleProgressSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     const duration = getSafeTrackDuration(currentTrack);
