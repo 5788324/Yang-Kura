@@ -70,17 +70,19 @@ assert.equal(lyrics.getActiveLyricText(timeline, 6, 'fallback'), '第二句');
 assert.equal(lyrics.getActiveLyricText([], 6, 'fallback'), 'fallback');
 
 const playerBar = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
+const seekHook = fs.readFileSync('src/hooks/usePlayerSeekInteraction.ts', 'utf8');
+const playerIntegration = `${playerBar}\n${seekHook}`;
 for (const marker of [
   "from '../player/playerBarMath'",
   "from '../player/lyricsTimeline'",
   'getSafeTrackDuration(currentTrack)',
-  'getPlayerProgressMetrics(progress, dragValue, totalDuration)',
+  'getPlayerProgressMetrics(progress, dragPreviewSeconds, duration)',
   'getPlayerVolumeMetrics(volume, isMuted)',
-  'seekFromPointerPosition(e.clientX, rect.left, rect.width, duration)',
+  'seekFromPointerPosition(event.clientX, rect.left, rect.width, duration)',
   'parseLyrics(currentTrack?.lyrics)',
   "getActiveLyricText(parsedLyrics, progress, 'Yang-Kura 本地音频播放中')",
 ]) {
-  assert.ok(playerBar.includes(marker), `PlayerBar integration missing: ${marker}`);
+  assert.ok(playerIntegration.includes(marker), `player integration missing: ${marker}`);
 }
 
 for (const forbidden of [
