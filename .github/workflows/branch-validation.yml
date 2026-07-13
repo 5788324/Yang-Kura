@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: branch-validation-${{ github.event.pull_request.number || github.ref }}
@@ -22,35 +22,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-
-      - name: Apply exact U26 JSX closing repair
-        if: github.event.pull_request.head.ref == 'codex/u26-ai-library-maintenance'
-        shell: pwsh
-        run: |
-          $path = 'src/components/SettingsPage.tsx'
-          $source = Get-Content -Raw -Path $path
-          $pattern = '(?m)^( {16}</details>\r?\n\r?\n {14}\{/\* ASMR \(RJ\) 仓库 \*/\})'
-          $matches = [regex]::Matches($source, $pattern)
-          if ($matches.Count -ne 1) {
-            throw "U26 closing marker expected once, found $($matches.Count)"
-          }
-          $replacement = "                  </div>`n`$1"
-          $updated = [regex]::Replace($source, $pattern, $replacement, 1)
-          [System.IO.File]::WriteAllText($path, $updated, [System.Text.UTF8Encoding]::new($false))
-          git diff --check
-          git diff -- $path
-          git diff --quiet -- $path
-          if ($LASTEXITCODE -eq 0) {
-            throw 'U26 repair produced no SettingsPage diff'
-          }
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add $path
-          git commit -m "fix: close U26 library maintenance wrapper"
-          git push origin HEAD:${{ github.head_ref }}
 
       - name: Set up Node 22
         uses: actions/setup-node@v4
