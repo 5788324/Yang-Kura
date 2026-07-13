@@ -10,7 +10,8 @@ After U20, `PlayerBar.tsx` still owned the complete progress-track DOM plus Hove
 - add `PlayerProgressTrack` for the progress rail, fill, hover preview, hidden range input, and accessible progress label;
 - continue using U15 `playerBarMath` for duration protection, pointer conversion, clamping, and progress metrics;
 - rename local visibility state to explicit `isPlaylistMenuOpen`, `isFloatingLyricsVisible`, `isVolumePopoverVisible`, and `playerToastMessage` names;
-- update auxiliary-control props and historical verifiers to follow the clearer state contract.
+- update auxiliary-control props and historical verifiers to follow the clearer state contract;
+- keep the public `PlayerBar` prop contract unchanged.
 
 ## Preserved interaction order
 
