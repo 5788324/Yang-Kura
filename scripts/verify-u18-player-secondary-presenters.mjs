@@ -70,12 +70,21 @@ for (const marker of [
   "import { useFloatingLyricText } from '../hooks/useFloatingLyricText';",
   '<PlayerProgressTrack',
   'hoverTimeLabel={hoverTime !== null ? formatPlayerTime(hoverTime) : null}',
-  '<PlayerEmptyState',
-  'regressionLine={mvp54PlayerRegression.compactLine}',
+  '<PlayerEmptyState {...presentation.emptyState} />',
   '<PlayerFloatingLyrics text={activeLyric} onClose={closeFloatingLyrics} />',
   'onToggleFloatingLyrics={toggleFloatingLyrics}',
 ]) {
   assert.ok(playerBar.includes(marker), `PlayerBar secondary presenter integration missing: ${marker}`);
+}
+
+const presentationModel = fs.readFileSync('src/player/playerBarPresentationModel.ts', 'utf8');
+for (const marker of [
+  'emptyState:',
+  'title: beta.emptyTitle',
+  'hint: beta.emptyHint',
+  'regressionLine: regression.compactLine',
+]) {
+  assert.ok(presentationModel.includes(marker), `empty-state presentation mapping missing: ${marker}`);
 }
 
 const lyricHook = fs.readFileSync('src/hooks/useFloatingLyricText.ts', 'utf8');
@@ -104,6 +113,7 @@ for (const forbidden of [
   'type="range"',
   'parseLyrics(',
   'getActiveLyricText(',
+  'regressionLine={mvp54PlayerRegression.compactLine}',
 ]) {
   assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns extracted secondary presentation or lyric derivation: ${forbidden}`);
 }
