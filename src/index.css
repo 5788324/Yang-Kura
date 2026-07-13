@@ -46,74 +46,7 @@
   to { opacity: 1; scale: 1; }
 }
 
-/* Theme 1: Light Theme */
-.theme-light {
-  --bg-primary: #f8fafc;
-  --sidebar-bg: #ffffff;
-  --card-bg: #ffffff;
-  --input-bg: #f1f5f9;
-  --border-color: #e2e8f0;
-  --border-color-hover: #cbd5e1;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --brand-color: #4f46e5;
-  --brand-color-hover: #4338ca;
-  --brand-active: #4f46e5;
-  --hover-bg: #f1f5f9;
-  --player-bg: #ffffff;
-  background-color: #f8fafc;
-  color: #0f172a;
-}
-
-/* Light theme high-contrast readability overrides */
-.theme-light .bg-white\/5 {
-  background-color: rgba(15, 23, 42, 0.04) !important;
-}
-.theme-light .bg-white\/10 {
-  background-color: rgba(15, 23, 42, 0.08) !important;
-}
-.theme-light .bg-white\/2 {
-  background-color: rgba(15, 23, 42, 0.02) !important;
-}
-.theme-light .bg-card-bg\/20 {
-  background-color: rgba(255, 255, 255, 0.85) !important;
-  border-color: rgba(15, 23, 42, 0.08) !important;
-}
-.theme-light .bg-card-bg\/40 {
-  background-color: #ffffff !important;
-  border-color: rgba(15, 23, 42, 0.08) !important;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04) !important;
-}
-.theme-light .border-white\/5 {
-  border-color: rgba(15, 23, 42, 0.06) !important;
-}
-.theme-light .border-white\/10 {
-  border-color: rgba(15, 23, 42, 0.12) !important;
-}
-.theme-light .text-zinc-400 {
-  color: #475569 !important;
-}
-.theme-light .text-zinc-500 {
-  color: #64748b !important;
-}
-.theme-light .text-text-muted {
-  color: #64748b !important;
-}
-.theme-light .text-text-secondary {
-  color: #475569 !important;
-}
-.theme-light .hover\/text-white:hover {
-  color: #0f172a !important;
-}
-.theme-light .hover\/bg-white\/10:hover {
-  background-color: rgba(15, 23, 42, 0.08) !important;
-}
-.theme-light .hover\/bg-white\/15:hover {
-  background-color: rgba(15, 23, 42, 0.1) !important;
-}
-
-/* Theme 2: Dark Theme (Obsidian Midnight) */
+/* Theme 1: Dark Theme (Obsidian Midnight) */
 .theme-dark {
   --bg-primary: #0a0b10;
   --sidebar-bg: #101119;
@@ -133,7 +66,7 @@
   color: #f3f4f6;
 }
 
-/* Theme 3: Acrylic Mist (Cosmic Nebula) */
+/* Theme 2: Acrylic Mist (Cosmic Nebula) */
 .theme-acrylic-mist {
   --bg-primary: #0c0d21;
   --sidebar-bg: #12132e;
@@ -153,7 +86,7 @@
   color: #f5f3ff;
 }
 
-/* Theme 4: Ocean Drops (Deep Blue Trench) */
+/* Theme 3: Ocean Drops (Deep Blue Trench) */
 .theme-ocean-drops {
   --bg-primary: #030c14;
   --sidebar-bg: #061523;
@@ -173,35 +106,10 @@
   color: #f0f9ff;
 }
 
-/* Theme 5: Forest Cabin (Moss Jade Sanctuary) */
-.theme-forest-cabin {
-  --bg-primary: #040d08;
-  --sidebar-bg: #07160e;
-  --card-bg: #0d281a;
-  --input-bg: #133824;
-  --border-color: #19472e;
-  --border-color-hover: #266b45;
-  --text-primary: #f0fdf4;
-  --text-secondary: #bbf7d0;
-  --text-muted: #86efac;
-  --brand-color: #10b981;
-  --brand-color-hover: #059669;
-  --brand-active: #34d399;
-  --hover-bg: #133824;
-  --player-bg: #07160e;
-  background-image: radial-gradient(at top left, #072516, #010805);
-  color: #f0fdf4;
-}
-
 /* Ensure native dropdown options are perfectly readable with clear backgrounds and text */
 select option {
   background-color: var(--card-bg, #161824) !important;
   color: var(--text-primary, #f3f4f6) !important;
-}
-
-.theme-light select option {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
 }
 
 .theme-dark select option {
@@ -217,11 +125,6 @@ select option {
 .theme-ocean-drops select option {
   background-color: #0b253c !important;
   color: #f0f9ff !important;
-}
-
-.theme-forest-cabin select option {
-  background-color: #0d281a !important;
-  color: #f0fdf4 !important;
 }
 
 body {
@@ -244,10 +147,6 @@ body {
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
-}
-
-.theme-light .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
@@ -279,5 +178,3 @@ body {
   transform-origin: bottom;
   animation-delay: 0.45s;
 }
-
-
