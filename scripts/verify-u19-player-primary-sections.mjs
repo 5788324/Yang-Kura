@@ -59,8 +59,7 @@ const playerBar = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
 for (const marker of [
   "import { PlayerTrackSummary, PlayerTransportControls } from './PlayerBarPrimarySections';",
   '<PlayerTrackSummary',
-  'onToggleFavorite={() => {',
-  "setPlayerToastMessage(isLiked ? '已取消喜欢' : '已添加到喜欢')",
+  'onToggleFavorite={toggleCurrentFavorite}',
   '<PlayerTransportControls',
   'onToggleLoopMode={toggleLoopMode}',
   'onPrevious={onPrev}',
@@ -71,14 +70,23 @@ for (const marker of [
   assert.ok(playerBar.includes(marker), `PlayerBar primary section integration missing: ${marker}`);
 }
 
+const actionHook = fs.readFileSync('src/hooks/usePlayerBarActions.ts', 'utf8');
+for (const marker of [
+  'toggleFavorite(currentTrack.id)',
+  'showMessage(getFavoriteToggleMessage(isLiked))',
+]) {
+  assert.ok(actionHook.includes(marker), `favorite action integration missing: ${marker}`);
+}
+
 for (const forbidden of [
   '<SkipBack className=',
   '<SkipForward className=',
   '<Heart ',
   '<CoverArtwork',
   'role="group"\n        aria-label="播放控制"',
+  'setPlayerToastMessage',
 ]) {
-  assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns extracted primary presentation: ${forbidden}`);
+  assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns extracted primary presentation or favorite feedback: ${forbidden}`);
 }
 
 const progressDocuments = `${fs.readFileSync('PROJECT_STATE.md', 'utf8')}\n${fs.readFileSync('PROJECT_ROADMAP.md', 'utf8')}`;
