@@ -88,7 +88,8 @@ for (const marker of [
 
 const projectDocuments = `${fs.readFileSync('PROJECT_STATE.md', 'utf8')}\n${fs.readFileSync('PROJECT_ROADMAP.md', 'utf8')}\n${fs.readFileSync('docs/U24_DAILY_UI_AI_MAINTENANCE.md', 'utf8')}`;
 for (const marker of [
-  'U09～U24',
+  'U24',
+  '侧栏去工程化与 AI 维护入口',
   'AI 维护',
   '工程与检修工具',
   'Windows GUI',
