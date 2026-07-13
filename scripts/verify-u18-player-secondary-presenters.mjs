@@ -66,9 +66,18 @@ for (const marker of [
   'text={activeLyric}',
   'onClose={() => setDesktopLyricsActive(false)}',
   'aria-label="播放进度"',
-  'aria-pressed={desktopLyricsActive}',
+  'onToggleDesktopLyrics={handleToggleDesktopLyrics}',
 ]) {
   assert.ok(playerBar.includes(marker), `PlayerBar secondary presenter integration missing: ${marker}`);
+}
+
+const auxiliary = fs.readFileSync('src/components/PlayerBarAuxiliaryControls.tsx', 'utf8');
+for (const marker of [
+  'aria-label={desktopLyricsActive ? \'关闭歌词浮窗\' : \'开启歌词浮窗\'}',
+  'aria-pressed={desktopLyricsActive}',
+  '<Tv className="w-4.5 h-4.5" aria-hidden="true" />',
+]) {
+  assert.ok(auxiliary.includes(marker), `auxiliary lyrics-toggle integration missing: ${marker}`);
 }
 
 for (const forbidden of [
