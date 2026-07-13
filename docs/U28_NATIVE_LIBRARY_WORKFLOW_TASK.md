@@ -1,32 +1,45 @@
-# U28 — Windows 原生目录选择与真实媒体闭环任务书
+# U28 — 资源库授权与真实 Index 闭环修复任务书
 
 ## 1. 任务性质
 
-U28 是 U27 `CONDITIONAL GO` 的补充实机验收轮。
-
-本轮目标不是开发新功能，而是使用真实 Windows 原生目录选择器和仓库外临时样本，完成 U27 无法自动化的媒体闭环：
+U28 是 U27 `NO-GO` 后的定向缺陷修复轮，允许修改产品代码，但范围只限：
 
 ```text
-原生目录授权
-→ 扫描与 Local JSON Index
-→ UI 显示真实临时媒体
-→ HTMLAudio / mpv 播放与 Seek
-→ LRC / SRT / VTT / ASS
-→ copy-only / move-only 临时副本
-→ 重启恢复
+Windows 原生目录授权
+→ Electron 安全 token / root snapshot
+→ Settings 授权与按钮状态
+→ Local JSON Index 读取或扫描
+→ App 资源库状态
+→ 首页 / 音声库 / 音乐库 / PlayerBar
+→ AI 维护真实诊断状态
 ```
 
-本轮默认不修改源码、不提交、不推送。发现问题先记录；只有用户明确批准后，才另开定向修复分支。
+禁止顺带重构播放器、导入器、主题、下载器或全局状态架构。
 
-## 2. 唯一代码来源
+## 2. 已确认问题
+
+### MAJ-001：授权、Index 与浏览状态断裂
+
+真实复现：
+
+1. 用户通过原生目录选择器选择 `E:\arsm`。
+2. 页面显示“已选择 arsm”。
+3. 顶栏仍显示“已加载 51 条音轨”。
+4. 设置页仍提示需要选择音声库目录。
+5. “读取已有记录”和“一键扫描并应用”均为 disabled。
+6. 音声库为 `0 / 0`，首页和队列为空。
+
+### MAJ-002：诊断页仍使用 Demo 状态
+
+AI 维护中的资源刷新显示 Demo 扫描，明确声明不会读取真实磁盘，资源计数为 0，无法反映真实授权与 Index。
+
+## 3. 唯一代码来源
 
 ```text
 https://github.com/5788324/Yang-Kura.git
 ```
 
-必须从最新 `origin/main` 开始，不使用旧 ZIP 或历史工作区副本。
-
-执行前阅读：
+从最新 `origin/main` 创建独立分支。执行前阅读：
 
 ```text
 PROJECT_ROADMAP.md
@@ -36,409 +49,169 @@ docs/U27_WINDOWS_GUI_ACCEPTANCE_RESULT.md
 docs/U28_NATIVE_LIBRARY_WORKFLOW_TASK.md
 ```
 
-## 3. Git 与环境基线
+## 4. 根因定位要求
 
-建议工作目录：
+必须先画出真实状态链，不允许直接在按钮上硬编码 `disabled={false}`：
 
-```text
-G:\Codex\Yang Kura
-```
+1. 原生目录选择器返回什么值。
+2. Electron main 如何生成 root token、display name 和授权 snapshot。
+3. Renderer/Store 如何保存当前授权 root。
+4. Settings 如何判断：
+   - 已选择目录；
+   - 可以读取已有 Index；
+   - 可以执行扫描；
+   - 正在运行；
+   - 当前 root 与上次 Index 是否匹配。
+5. App 顶栏“51 条音轨”来自哪里。
+6. 音声库 `0 / 0` 来自哪里。
+7. 诊断页 Demo 数据由哪个 service 或 fixture 提供。
+8. 重启后授权、Index 和 UI 状态如何水合。
 
-先执行：
+报告中必须明确根因，不得只描述现象。
+
+## 5. 修复合同
+
+### 5.1 授权状态
+
+原生目录选择成功后：
+
+- 设置页立即显示已授权 root 的安全名称；
+- 不暴露真实绝对路径或 `file://`；
+- root token/snapshot 成为读取和扫描能力的唯一来源；
+- 不允许“页面显示已选择，但按钮仍认为未选择”。
+
+### 5.2 Index 读取与扫描
+
+- 已存在兼容 Index：允许“读取已有记录”。
+- 没有 Index：允许“一键扫描并应用”。
+- Index 不兼容或损坏：显示可理解错误，并允许安全重建，不静默回退 Demo。
+- 扫描与读取期间按钮状态正确，结束后恢复。
+- 不得通过写死计数或导入旧 mock 数据制造成功。
+
+### 5.3 单一资源快照
+
+以下界面必须来自同一当前资源快照：
+
+- 顶栏资源数量；
+- 设置页上次资源库和当前授权状态；
+- 首页最近/继续播放；
+- 音声库和音乐库数量；
+- PlayerBar 当前曲目与队列；
+- AI 维护诊断摘要。
+
+发现旧缓存时必须定义明确优先级和失效条件。
+
+### 5.4 诊断页
+
+可接受两种实现之一：
+
+**方案 A：真实诊断**
+
+- 读取当前授权 root、Index 元数据、作品数、音轨数和最近错误；
+- 显示数据来源是当前 Index/Store；
+- 刷新后与浏览页计数一致。
+
+**方案 B：暂时禁用**
+
+- 明确显示“真实资源诊断尚未接入”；
+- 禁用刷新操作；
+- 不显示 Demo 计数为当前用户状态。
+
+禁止保留“刷新成功”但实际只执行 Demo 的行为。
+
+## 6. 数据安全边界
+
+- 真实 `E:\arsm` 只允许授权、读取、浏览和播放验证。
+- 不对真实库执行清理、move、覆盖、批量元数据写入或删除。
+- 写入、扫描重建和损坏 Index 测试只使用仓库外临时样本目录。
+- 禁止使用脚本、配置文件、开发者工具或手工修改 Store 绕过原生目录授权。
+- 禁止运行 `npm audit fix`。
+- MVP130 下载器继续冻结。
+
+## 7. 自动测试要求
+
+新增 U28 专项 verifier，至少覆盖：
+
+1. 目录选择结果映射到授权 snapshot。
+2. 有授权 root 时读取和扫描能力为 true。
+3. 无授权 root 时核心按钮为 disabled。
+4. 有 Index / 无 Index / 损坏 Index 的决策。
+5. 顶栏、库页面和诊断使用同一快照或明确适配层。
+6. 诊断页不再引用 Demo 扫描作为真实状态。
+7. 不暴露绝对路径和 `file://`。
+8. TypeScript 转译和关键纯决策函数真实输入输出。
+
+完整门禁：
 
 ```powershell
-$Repo = "G:\Codex\Yang Kura"
-Set-Location $Repo
-
-git status --short
+npm ci --ignore-scripts --no-audit --no-fund
+npm audit --audit-level=high
+npm run verify:all
+npm run verify:stable
+npm run build
 ```
 
-如果存在未提交改动：
+## 8. Windows 实机复验
 
-```text
-立即停止。
-不 stash。
-不 reset。
-不覆盖用户工作。
-在报告中记录。
-```
+### 8.1 临时样本库
 
-工作区干净时执行：
-
-```powershell
-git fetch origin --prune
-git checkout main
-git pull --ff-only origin main
-
-git status --short
-git rev-parse HEAD
-git log -1 --oneline
-node --version
-npm --version
-```
-
-报告必须记录实际 HEAD。
-
-## 4. 测试目录与数据边界
-
-所有测试数据必须位于仓库外的专用目录：
+使用仓库外临时目录：
 
 ```text
 G:\Codex\YangKuraAcceptance\U28\
 ├── asmr-library\
 ├── music-library\
-├── import-source-copy\
-├── import-source-move\
-├── import-target\
-├── profile-backup\
 ├── screenshots\
 ├── logs\
 └── report\
 ```
 
-禁止：
+由用户只在 Windows 原生对话框中选择目录。其余操作由 Codex 完成。
 
-- 使用用户真实大库做写入、清理、copy 或 move 测试。
-- 把验收目录放进仓库。
-- 覆盖同名目标。
-- 自动删除源目录。
-- 通过脚本绕过原生目录选择器。
-- 把绝对路径或 `file://` 暴露到日常 Renderer 界面。
-- 运行 `npm audit fix`。
+必须验证：
 
-## 5. 临时样本要求
+1. 选择目录后设置页授权状态一致。
+2. 无 Index 时扫描按钮可用。
+3. 扫描生成或更新 Index。
+4. 读取并应用后音声库/音乐库出现真实样本。
+5. 顶栏计数与库页面一致。
+6. 播放至少一个音轨。
+7. 关闭应用、无残留进程、重新启动后状态可恢复。
+8. 诊断页显示真实状态或明确禁用。
 
-### ASMR 样本
+### 8.2 真实 `E:\arsm` 只读验证
 
-至少准备：
+必须验证：
 
-```text
-asmr-library\
-├── RJ01234567_中文 日文 [测试]\
-│   ├── cover.jpg
-│   ├── 01_短音频.mp3
-│   ├── 01_短音频.lrc
-│   ├── 02_短音频.wav
-│   ├── 02_短音频.srt
-│   ├── 03_短音频.flac
-│   ├── 03_短音频.vtt
-│   ├── 04_短音频.m4a
-│   └── 04_短音频.ass
-├── RJ07654321_无封面无字幕\
-│   └── 01_track.mp3
-└── 长路径_特殊字符_【测试】\深层目录\
-    └── 01_long_seek_sample.mp3
-```
+1. 原生授权后设置页不再提示未选择。
+2. “读取已有记录”或“一键扫描并应用”至少一个根据真实情况可用。
+3. 音声库能够显示真实作品。
+4. 顶栏、音声库和诊断计数一致或有明确解释。
+5. 播放一个音轨。
 
-要求：
+不得执行破坏性操作。
 
-- 音频只需短小、合法、可公开测试的合成声音或静音文件。
-- 长 Seek 样本可以是较长的合成音频，不使用用户真实 ASMR 内容。
-- 四种字幕分别包含明确可识别的测试文本和时间戳。
-
-### 音乐样本
-
-至少准备：
-
-```text
-music-library\
-├── 测试艺术家 - 测试专辑\
-│   ├── cover.png
-│   ├── 01 - 测试歌曲.mp3
-│   └── 02 - 日本語 Song.flac
-└── Singles\
-    └── 特殊 字符 [single].mp3
-```
-
-### 导入样本
-
-`import-source-copy` 与 `import-source-move` 必须是两个相互独立的副本。每份包含：
-
-- 1～3 个小音频；
-- 1 个封面；
-- 1 个字幕或文本；
-- 一个与目标同名的冲突副本，用于验证不覆盖策略。
-
-## 6. 自动门禁
-
-使用仓库本地 npm cache：
-
-```powershell
-$Repo = "G:\Codex\Yang Kura"
-$env:NPM_CONFIG_CACHE = "$Repo\.npm-cache"
-$env:npm_config_cache = "$Repo\.npm-cache"
-
-npm ci --ignore-scripts --no-audit --no-fund --prefer-offline --cache "$Repo\.npm-cache"
-```
-
-执行：
-
-```powershell
-npm run verify:env
-npm run lint
-npm run build:electron
-npm run verify:all
-npm run build
-npm audit --audit-level=high
-npm run desktop:smoke-check:strict
-npm run desktop:pack
-```
-
-如果存在可用 mpv，并准备了测试音频：
-
-```powershell
-$env:YANG_KURA_MPV_TEST_AUDIO = "<一个临时测试音频绝对路径>"
-$env:YANG_KURA_MPV_TEST_AUDIO_2 = "<第二个临时测试音频绝对路径>"
-npm run test:mpv:acceptance
-```
-
-如果 mpv 不可用，记录 `NOT TESTED`，不要伪造 PASS。
-
-## 7. 原生目录选择器人工交接点
-
-当前自动化接口不能操作 Windows 原生目录选择器，因此允许用户在以下时刻只完成目录选择：
-
-1. Codex 打开“选择 ASMR 资源库目录”。
-2. 用户选择 `U28\asmr-library` 并确认。
-3. Codex 打开“选择音乐资源库目录”。
-4. 用户选择 `U28\music-library` 并确认。
-5. 导入器选择 copy 来源和目标时，由用户选择对应临时目录。
-6. 导入器选择 move 来源和目标时，由用户选择对应临时目录。
-
-用户只负责原生对话框中的目录选择。其余页面点击、结果检查、日志整理和报告由 Codex 继续完成。
-
-不得用开发者工具、配置文件或脚本直接注入绝对路径来替代 GUI 授权。
-
-## 8. 资源库与 Index 验收
-
-### 8.1 ASMR 目录
-
-通过原生目录选择器授权后：
-
-1. 执行一键扫描。
-2. 检查扫描进度与完成提示。
-3. 检查 `library-index.json` 是否生成或更新。
-4. 检查 Index 备份。
-5. 读取并应用 Index。
-6. 打开音声库。
-7. 检查两个 RJ 目录是否正确显示。
-8. 检查封面、有字幕、无封面、无字幕状态。
-9. 检查中文、日文、空格、方括号和较长路径。
-10. 检查日常界面不显示绝对路径或 `file://`。
-
-### 8.2 音乐目录
-
-重复授权、扫描、写入、读取和应用流程，并检查：
-
-- 专辑与单曲分组；
-- 封面；
-- 艺术家、专辑和曲目标题；
-- 中文、日文与特殊字符；
-- 音乐库搜索和基本筛选。
-
-### 8.3 重启恢复
-
-关闭 portable，确认无残留进程，再重新启动：
-
-- 检查上次资源库提示；
-- 按产品现有安全策略重新授权或读取 Index；
-- 检查资源库可恢复；
-- 检查空状态不会错误覆盖真实临时资源。
-
-## 9. 播放与 Seek 验收
-
-分别验证 HTMLAudio 与 mpv 可用条件下的行为。
-
-### 9.1 基础控制
-
-- 播放、暂停。
-- 上一首、下一首。
-- 队列打开、关闭和切换。
-- 音量、静音。
-- 循环模式。
-- 播放完成策略。
-- 喜欢与歌单入口。
-
-### 9.2 Seek
-
-- 点击进度条立即跳转。
-- 拖拽中只预览，释放后提交。
-- 连续快速拖拽。
-- 接近 0 秒和接近结尾。
-- 长音频中段和后段 Seek。
-- Seek 后时间和歌词行同步。
-
-### 9.3 fallback 与进程
-
-如果 mpv 可用：
-
-- 验证 mpv 播放。
-- 验证正常切歌。
-- 在安全可控条件下验证 mpv 退出后的 HTMLAudio fallback。
-- 检查恢复位置不是从 0 开始。
-- 检查没有双重播放。
-- 关闭应用后无 mpv 残留。
-
-如果 mpv 不可用：
-
-- 检查提示清晰。
-- 检查 HTMLAudio fallback 可播放。
-- 记录 `mpv NOT TESTED`，不阻断其他 U28 流程。
-
-## 10. 字幕验收
-
-逐个播放对应音轨并检查：
-
-| 格式 | 必须检查 |
-|---|---|
-| LRC | 时间戳解析、当前行高亮、Seek 后同步 |
-| SRT | 分段时间、文本显示、Seek 后同步 |
-| VTT | cue 解析与显示 |
-| ASS | 基础文本提取与时间同步 |
-
-还要检查：
-
-- 无字幕音轨的真实空状态；
-- 双语分隔显示；
-- 全屏歌词页；
-- 桌面歌词浮窗；
-- 上一首/下一首后字幕切换；
-- 重启后的字幕重新关联。
-
-## 11. 导入器验收
-
-### 11.1 初始页 MIN-001 复核
-
-在未选择来源时记录：
-
-- 是否仍显示“4 个示例文件”；
-- 是否明确标注为示例；
-- “0 阻断 / 1 提醒”是否可能被理解为当前扫描结果。
-
-不在本轮直接修复。根据真实导入后的对比决定是否建立 Minor 修复任务。
-
-### 11.2 copy-only
-
-使用 `import-source-copy`：
-
-- 预览来源、目标和冲突；
-- 确认不会覆盖同名目标；
-- 执行 copy-only；
-- 源文件必须保留；
-- 目标文件必须出现；
-- OperationLog 必须记录；
-- Index 必须备份并安全更新；
-- 导入后资源库刷新并能播放。
-
-### 11.3 move-only
-
-只使用 `import-source-move` 副本：
-
-- 必须有二次确认；
-- 冲突时不覆盖；
-- 成功项从来源移动到目标；
-- 失败时停止后续 move；
-- OperationLog 记录结果；
-- 不自动删除空源目录；
-- Index 更新和资源库刷新正确。
-
-## 12. UI 与窗口补测
-
-至少检查：
-
-- 1040×680。
-- 常规窗口。
-- 最大化。
-- 100% DPI。
-- 环境允许时的 125% 和 150% DPI。
-- 三主题。
-- 完整 Tab / Shift+Tab 主流程。
-- Escape 关闭弹层和全屏播放器。
-- 弹层关闭后的焦点返回。
-- reduced-motion 设置。
-
-## 13. 问题分级
+## 9. 问题分级
 
 | 等级 | 定义 |
 |---|---|
-| Blocker | 数据损坏、误删、应用无法启动、核心流程完全不可用 |
-| Major | 扫描、播放、字幕或导入核心流程存在明显错误 |
-| Minor | 文案、布局、单项状态或低频交互问题 |
-| Observation | 环境限制、测试工具限制或非阻塞风险 |
+| Blocker | 数据损坏、误删、应用无法启动 |
+| Major | 授权、Index、浏览或播放主链不可用/不一致 |
+| Minor | 单项文案、布局或低频状态问题 |
+| Observation | 环境限制或非阻塞风险 |
 
-## 14. 报告格式
+## 10. 完成条件
 
-```text
-U28 Windows 原生媒体闭环验收报告
+U28 只有在以下项目全部满足时才能合并：
 
-基线：
-- 日期：
-- Git HEAD：
-- version：
-- Node / npm：
-- portable：
-- SHA-256：
-- mpv：
-
-自动门禁：
-- verify:env：
-- lint：
-- build:electron：
-- verify:all：
-- build：
-- audit high：
-- strict smoke：
-- desktop pack：
-- mpv acceptance：
-
-原生目录授权：PASS / FAIL
-ASMR 扫描与 Index：PASS / FAIL
-音乐扫描与 Index：PASS / FAIL
-HTMLAudio：PASS / FAIL / NOT TESTED
-mpv：PASS / FAIL / NOT TESTED
-Seek：PASS / FAIL / NOT TESTED
-字幕：PASS / FAIL / NOT TESTED
-copy-only：PASS / FAIL
-move-only：PASS / FAIL
-重启恢复：PASS / FAIL
-窗口与主题：PASS / FAIL
-键盘：PASS / FAIL / PARTIAL
-
-MIN-001 复核：
-
-问题表：
-- ID：
-- 等级：
-- 模块：
-- 复现步骤：
-- 实际：
-- 预期：
-- 证据：
-
-数据安全：
-- 误删：
-- 覆盖：
-- 错误移动：
-- 原配置恢复：
-- 残留进程：
-
-结论：GO / CONDITIONAL GO / NO-GO
-是否建议进入 U29：
-```
-
-## 15. 完成条件
-
-U28 只有在以下项目均有真实结果时才算完成：
-
-- 原生目录选择器授权。
-- 至少一个 ASMR 和一个音乐样本进入 UI。
-- 至少一个音轨真实播放并完成 Seek。
-- 至少一种字幕真实同步；四种字幕要么全部通过，要么明确列出问题。
-- copy-only 通过。
-- move-only 在临时副本上通过，或明确记录阻断缺陷。
-- 重启恢复检查。
+- MAJ-001 关闭。
+- MAJ-002 关闭，或改为明确禁用且不再误导。
+- 临时样本完成授权 → Index → 浏览 → 播放 → 重启恢复。
+- 真实 `E:\arsm` 只读链完成授权 → 浏览 → 播放。
+- U02～U28 专项 verifier 全通过。
+- 完整稳定回归和生产构建通过。
 - 用户原配置恢复。
-- Git 工作区保持 clean。
-- 无残留 Electron / Yang Kura / mpv 进程。
+- Git 工作区 clean。
+- 无 Yang Kura / Electron / mpv 残留进程。
 
-完成后停止，不主动修复。
+完成后输出根因、修改文件、自动门禁、实机证据和 GO / CONDITIONAL GO / NO-GO。不得在同一轮继续字幕、导入器或发布功能。
