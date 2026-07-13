@@ -86,9 +86,6 @@ for (const marker of [
   "import { usePlayerSeekInteraction } from '../hooks/usePlayerSeekInteraction';",
   "import { PlayerProgressTrack } from './PlayerProgressTrack';",
   'isVisible: isVolumePopoverVisible',
-  'const [isPlaylistMenuOpen, setIsPlaylistMenuOpen] = useState(false);',
-  'const [isFloatingLyricsVisible, setIsFloatingLyricsVisible] = useState(false);',
-  'message: playerToastMessage',
   'usePlayerSeekInteraction({ currentTrack, progress, onSeek })',
   '<PlayerProgressTrack',
   'onRangeCommit={commitProgressDrag}',
@@ -97,6 +94,15 @@ for (const marker of [
   'isVolumePopoverVisible={isVolumePopoverVisible}',
 ]) {
   assert.ok(playerBar.includes(marker), `PlayerBar U21 integration missing: ${marker}`);
+}
+
+const actionHook = fs.readFileSync('src/hooks/usePlayerBarActions.ts', 'utf8');
+for (const marker of [
+  'const [isPlaylistMenuOpen, setIsPlaylistMenuOpen] = useState(false);',
+  'const [isFloatingLyricsVisible, setIsFloatingLyricsVisible] = useState(false);',
+  'const { message: playerToastMessage, showMessage } = useAutoDismissMessage();',
+]) {
+  assert.ok(actionHook.includes(marker), `U21 visibility state moved without contract: ${marker}`);
 }
 
 for (const forbidden of [
@@ -111,6 +117,7 @@ for (const forbidden of [
   'desktopLyricsActive',
   'showVolumeSlider',
   'toastMessage',
+  'useState(',
 ]) {
   assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns U21 state or presentation: ${forbidden}`);
 }

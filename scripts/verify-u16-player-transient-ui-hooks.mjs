@@ -100,10 +100,17 @@ for (const marker of [
   'isVisible: isVolumePopoverVisible',
   'show: handleVolumeMouseEnter',
   'scheduleHide: handleVolumeMouseLeave',
-  'message: playerToastMessage',
-  'showMessage: setPlayerToastMessage',
 ]) {
-  assert.ok(playerBar.includes(marker), `PlayerBar transient UI integration missing: ${marker}`);
+  assert.ok(playerBar.includes(marker), `PlayerBar volume lifecycle integration missing: ${marker}`);
+}
+
+const actionHook = fs.readFileSync('src/hooks/usePlayerBarActions.ts', 'utf8');
+for (const marker of [
+  "from './usePlayerTransientUi'",
+  'const { message: playerToastMessage, showMessage } = useAutoDismissMessage();',
+  'playerToastMessage,',
+]) {
+  assert.ok(actionHook.includes(marker), `player action Toast integration missing: ${marker}`);
 }
 
 for (const forbidden of [
@@ -112,6 +119,7 @@ for (const forbidden of [
   'const [toastMessage, setToastMessage]',
   'setTimeout(() => setPlayerToastMessage(null)',
   'useEffect(() => {\n    return () => {\n      if (volumeTimeoutRef.current)',
+  'useAutoDismissMessage()',
 ]) {
   assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns transient lifecycle: ${forbidden}`);
 }

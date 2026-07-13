@@ -62,22 +62,31 @@ for (const forbidden of [
 const playerBar = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
 for (const marker of [
   "import { PlayerAuxiliaryControls, PlayerCompatibilityMarkers } from './PlayerBarAuxiliaryControls';",
-  'const handleTogglePlaylist = () => {',
-  'const handleToggleFloatingLyrics = () => {',
-  'const handleMoreActions = () => {',
-  "setPlayerToastMessage(isFloatingLyricsVisible ? '歌词浮窗已关闭' : '歌词浮窗已开启')",
-  "setPlayerToastMessage('更多播放操作将在后续版本开放')",
+  "import { usePlayerBarActions } from '../hooks/usePlayerBarActions';",
   '<PlayerAuxiliaryControls',
   'onToggleCompletion={() => toggleCompletionMode?.()}',
-  'onSelectPlaylist={handlePlaylistSelect}',
-  'onToggleFloatingLyrics={handleToggleFloatingLyrics}',
+  'onSelectPlaylist={selectPlaylist}',
+  'onToggleFloatingLyrics={toggleFloatingLyrics}',
   'onToggleMute={toggleMute}',
-  'onMoreActions={handleMoreActions}',
+  'onMoreActions={showMoreActions}',
   '<PlayerCompatibilityMarkers',
   'betaChips={mvp59PlayerBeta.chips}',
   'hiddenMaintenanceNote={mvp79PlayerUi.hiddenMaintenanceNote}',
 ]) {
   assert.ok(playerBar.includes(marker), `PlayerBar auxiliary integration missing: ${marker}`);
+}
+
+const actionHook = fs.readFileSync('src/hooks/usePlayerBarActions.ts', 'utf8');
+for (const marker of [
+  'const [isPlaylistMenuOpen, setIsPlaylistMenuOpen] = useState(false);',
+  'const [isFloatingLyricsVisible, setIsFloatingLyricsVisible] = useState(false);',
+  'const togglePlaylistMenu = useCallback(() => {',
+  'const selectPlaylist = useCallback(',
+  'const toggleFloatingLyrics = useCallback(() => {',
+  'const showMoreActions = useCallback(() => {',
+  'showMessage(MORE_PLAYER_ACTIONS_MESSAGE)',
+]) {
+  assert.ok(actionHook.includes(marker), `player action auxiliary contract missing: ${marker}`);
 }
 
 for (const forbidden of [
@@ -93,8 +102,12 @@ for (const forbidden of [
   'showPlaylistDropdown',
   'desktopLyricsActive',
   'showVolumeSlider',
+  'handleTogglePlaylist',
+  'handleToggleFloatingLyrics',
+  'handleMoreActions',
+  'setPlayerToastMessage',
 ]) {
-  assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns extracted auxiliary presentation or stale naming: ${forbidden}`);
+  assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns extracted auxiliary presentation or actions: ${forbidden}`);
 }
 
 const progressDocuments = `${fs.readFileSync('PROJECT_STATE.md', 'utf8')}\n${fs.readFileSync('PROJECT_ROADMAP.md', 'utf8')}`;

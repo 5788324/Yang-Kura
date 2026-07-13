@@ -1,4 +1,3 @@
-import { useMemo, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import type { PlayerState, AudioTrack, Playlist } from '../types';
 import { playerExperienceService } from '../services/playerExperienceService';
@@ -8,10 +7,11 @@ import { betaRegressionChecklistService } from '../services/betaRegressionCheckl
 import { homePlayerBetaPolishService } from '../services/homePlayerBetaPolishService';
 import { playerBarDailyCleanupService } from '../services/playerBarDailyCleanupService';
 import { playerUiBugfixService } from '../services/playerUiBugfixService';
-import { getActiveLyricText, parseLyrics } from '../player/lyricsTimeline';
 import { formatPlayerTime, getPlayerVolumeMetrics } from '../player/playerBarMath';
+import { useFloatingLyricText } from '../hooks/useFloatingLyricText';
+import { usePlayerBarActions } from '../hooks/usePlayerBarActions';
 import { usePlayerSeekInteraction } from '../hooks/usePlayerSeekInteraction';
-import { useAutoDismissMessage, useDelayedVisibility } from '../hooks/usePlayerTransientUi';
+import { useDelayedVisibility } from '../hooks/usePlayerTransientUi';
 import {
   PlayerEmptyState,
   PlayerFloatingLyrics,
@@ -35,7 +35,7 @@ interface PlayerBarProps {
   toggleQueue: () => void;
   isLyricsOpen: boolean;
   toggleLyrics: () => void;
-  
+
   // Custom interactive extensions
   favorites: string[];
   toggleFavorite: (trackId: string) => void;
@@ -59,20 +59,36 @@ export default function PlayerBar({
   favorites,
   toggleFavorite,
   playlists,
-  onAddToPlaylist
+  onAddToPlaylist,
 }: PlayerBarProps) {
-  
   const { currentTrack, isPlaying, progress, volume, isMuted, loopMode } = playerState;
+  const hasTrack = currentTrack !== null;
+  const canToggleCompletion = toggleCompletionMode !== undefined;
 
-  // Local state controls
   const {
     isVisible: isVolumePopoverVisible,
     show: handleVolumeMouseEnter,
     scheduleHide: handleVolumeMouseLeave,
   } = useDelayedVisibility();
-  const [isPlaylistMenuOpen, setIsPlaylistMenuOpen] = useState(false);
-  const [isFloatingLyricsVisible, setIsFloatingLyricsVisible] = useState(false);
-  const { message: playerToastMessage, showMessage: setPlayerToastMessage } = useAutoDismissMessage();
+
+  const {
+    isLiked,
+    isPlaylistMenuOpen,
+    isFloatingLyricsVisible,
+    playerToastMessage,
+    toggleCurrentFavorite,
+    togglePlaylistMenu,
+    closePlaylistMenu,
+    selectPlaylist,
+    toggleFloatingLyrics,
+    closeFloatingLyrics,
+    showMoreActions,
+  } = usePlayerBarActions({
+    currentTrack,
+    favorites,
+    toggleFavorite,
+    onAddToPlaylist,
+  });
 
   const {
     duration: totalDuration,
@@ -90,44 +106,13 @@ export default function PlayerBar({
     onRangeCommit: commitProgressDrag,
   } = usePlayerSeekInteraction({ currentTrack, progress, onSeek });
 
-  const handleVolumeSlide = (e: ChangeEvent<HTMLInputElement>) => {
-    onVolumeChange(parseFloat(e.target.value));
-  };
+  const activeLyric = useFloatingLyricText(currentTrack, progress);
 
-  const handlePlaylistSelect = (playlist: Playlist) => {
-    if (!currentTrack) return;
-
-    const exists = playlist.tracks.some((track) => track.id === currentTrack.id);
-    const isReadOnly = Boolean(playlist.isSystem);
-
-    if (isReadOnly) {
-      setPlayerToastMessage('系统示例歌单不可修改，请新建自建歌单');
-    } else if (!exists) {
-      onAddToPlaylist(currentTrack, playlist.id);
-      setPlayerToastMessage(`成功收藏到歌单《${playlist.name}》`);
-    } else {
-      setPlayerToastMessage('已存在于该歌单中');
-    }
-
-    setIsPlaylistMenuOpen(false);
-  };
-
-  const handleTogglePlaylist = () => {
-    if (currentTrack) setIsPlaylistMenuOpen((visible) => !visible);
-  };
-
-  const handleToggleFloatingLyrics = () => {
-    if (!currentTrack) return;
-    setIsFloatingLyricsVisible(!isFloatingLyricsVisible);
-    setPlayerToastMessage(isFloatingLyricsVisible ? '歌词浮窗已关闭' : '歌词浮窗已开启');
-  };
-
-  const handleMoreActions = () => {
-    setPlayerToastMessage('更多播放操作将在后续版本开放');
+  const handleVolumeSlide = (event: ChangeEvent<HTMLInputElement>) => {
+    onVolumeChange(Number.parseFloat(event.target.value));
   };
 
   const { visibleVolume, visibleVolumePercent } = getPlayerVolumeMetrics(volume, isMuted);
-  const isLiked = currentTrack ? favorites.includes(currentTrack.id) : false;
   const playerSummary = playerExperienceService.getSummary(playerState);
   const mvp49Player = listeningExperiencePolishService.getPlayerBarModel(playerState);
   const mvp50PlayerVisual = playerVisualPolishService.getPlayerBarModel(playerState);
@@ -136,22 +121,14 @@ export default function PlayerBar({
   const mvp74PlayerBar = playerBarDailyCleanupService.getPlayerBarModel(playerState);
   const mvp79PlayerUi = playerUiBugfixService.getModel();
 
-  // Desktop floating lyrics reuse the shared LRC timeline contract.
-  const parsedLyrics = useMemo(() => parseLyrics(currentTrack?.lyrics), [currentTrack]);
-
-  const activeLyric = useMemo(() => {
-    if (!currentTrack) return '';
-    return getActiveLyricText(parsedLyrics, progress, 'Yang-Kura 本地音频播放中');
-  }, [parsedLyrics, progress, currentTrack]);
-
   return (
-    <div 
-      id="app-player-bar" 
+    <div
+      id="app-player-bar"
       className="h-20 bg-zinc-950 border-t border-zinc-800/80 px-8 flex items-center justify-between select-none relative z-50 text-white"
       data-mvp79-player-ui-bugfix="true"
     >
       <PlayerProgressTrack
-        hasTrack={Boolean(currentTrack)}
+        hasTrack={hasTrack}
         duration={totalDuration}
         displayProgress={currentDisplayProgress}
         progressPercent={progressPercent}
@@ -167,10 +144,9 @@ export default function PlayerBar({
         onRangeCommit={commitProgressDrag}
       />
 
-      {/* Left side: Vinyl circle style cover art + Metadata & Stats (Heart rate) */}
-      <div 
+      <div
         className="w-1/3 flex items-center space-x-4 pr-4"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
       >
         {currentTrack ? (
           <PlayerTrackSummary
@@ -188,10 +164,7 @@ export default function PlayerBar({
             regressionLine={mvp54PlayerRegression.compactLine}
             compactLine={mvp59PlayerBeta.compactLine}
             onOpenLyrics={toggleLyrics}
-            onToggleFavorite={() => {
-              toggleFavorite(currentTrack.id);
-              setPlayerToastMessage(isLiked ? '已取消喜欢' : '已添加到喜欢');
-            }}
+            onToggleFavorite={toggleCurrentFavorite}
           />
         ) : (
           <PlayerEmptyState
@@ -203,7 +176,7 @@ export default function PlayerBar({
       </div>
 
       <PlayerTransportControls
-        hasTrack={Boolean(currentTrack)}
+        hasTrack={hasTrack}
         loopMode={loopMode}
         playbackMode={playerState.playbackMode}
         isPlaying={isPlaying}
@@ -219,19 +192,19 @@ export default function PlayerBar({
       />
 
       <PlayerAuxiliaryControls
-        hasTrack={Boolean(currentTrack)}
+        hasTrack={hasTrack}
         completionLabel={mvp49Player.completionLabel}
         completionHint={mvp49Player.completionHint}
-        canToggleCompletion={Boolean(toggleCompletionMode)}
+        canToggleCompletion={canToggleCompletion}
         onToggleCompletion={() => toggleCompletionMode?.()}
         currentTrack={currentTrack}
         playlists={playlists}
         isPlaylistMenuOpen={isPlaylistMenuOpen}
-        onTogglePlaylist={handleTogglePlaylist}
-        onClosePlaylist={() => setIsPlaylistMenuOpen(false)}
-        onSelectPlaylist={handlePlaylistSelect}
+        onTogglePlaylist={togglePlaylistMenu}
+        onClosePlaylist={closePlaylistMenu}
+        onSelectPlaylist={selectPlaylist}
         isFloatingLyricsVisible={isFloatingLyricsVisible}
-        onToggleFloatingLyrics={handleToggleFloatingLyrics}
+        onToggleFloatingLyrics={toggleFloatingLyrics}
         isMuted={isMuted}
         isVolumePopoverVisible={isVolumePopoverVisible}
         visibleVolume={visibleVolume}
@@ -240,7 +213,7 @@ export default function PlayerBar({
         onVolumeMouseEnter={handleVolumeMouseEnter}
         onVolumeMouseLeave={handleVolumeMouseLeave}
         onVolumeChange={handleVolumeSlide}
-        onMoreActions={handleMoreActions}
+        onMoreActions={showMoreActions}
       />
 
       <PlayerCompatibilityMarkers
@@ -248,15 +221,10 @@ export default function PlayerBar({
         hiddenMaintenanceNote={mvp79PlayerUi.hiddenMaintenanceNote}
       />
 
-      {/* 10. Floating lyrics overlay */}
       {isFloatingLyricsVisible && currentTrack && (
-        <PlayerFloatingLyrics
-          text={activeLyric}
-          onClose={() => setIsFloatingLyricsVisible(false)}
-        />
+        <PlayerFloatingLyrics text={activeLyric} onClose={closeFloatingLyrics} />
       )}
 
-      {/* Elegant Action Success Float Toast */}
       {playerToastMessage && <PlayerToast message={playerToastMessage} />}
     </div>
   );

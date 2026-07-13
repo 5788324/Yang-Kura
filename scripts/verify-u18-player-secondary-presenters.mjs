@@ -67,16 +67,23 @@ for (const marker of [
   'PlayerEmptyState,',
   'PlayerFloatingLyrics,',
   "import { PlayerProgressTrack } from './PlayerProgressTrack';",
+  "import { useFloatingLyricText } from '../hooks/useFloatingLyricText';",
   '<PlayerProgressTrack',
   'hoverTimeLabel={hoverTime !== null ? formatPlayerTime(hoverTime) : null}',
   '<PlayerEmptyState',
   'regressionLine={mvp54PlayerRegression.compactLine}',
-  '<PlayerFloatingLyrics',
-  'text={activeLyric}',
-  'onClose={() => setIsFloatingLyricsVisible(false)}',
-  'onToggleFloatingLyrics={handleToggleFloatingLyrics}',
+  '<PlayerFloatingLyrics text={activeLyric} onClose={closeFloatingLyrics} />',
+  'onToggleFloatingLyrics={toggleFloatingLyrics}',
 ]) {
   assert.ok(playerBar.includes(marker), `PlayerBar secondary presenter integration missing: ${marker}`);
+}
+
+const lyricHook = fs.readFileSync('src/hooks/useFloatingLyricText.ts', 'utf8');
+for (const marker of [
+  'parseLyrics(currentTrack?.lyrics)',
+  'getActiveLyricText(parsedLyrics, progress, fallback)',
+]) {
+  assert.ok(lyricHook.includes(marker), `floating lyric derivation missing: ${marker}`);
 }
 
 const auxiliary = fs.readFileSync('src/components/PlayerBarAuxiliaryControls.tsx', 'utf8');
@@ -95,8 +102,10 @@ for (const forbidden of [
   'id="mvp59-player-empty-hint" className="text-[10px] text-zinc-500"',
   'id="mvp75-playerbar-progress-stability"',
   'type="range"',
+  'parseLyrics(',
+  'getActiveLyricText(',
 ]) {
-  assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns extracted secondary presentation: ${forbidden}`);
+  assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns extracted secondary presentation or lyric derivation: ${forbidden}`);
 }
 
 const progressDocuments = `${fs.readFileSync('PROJECT_STATE.md', 'utf8')}\n${fs.readFileSync('PROJECT_ROADMAP.md', 'utf8')}`;
