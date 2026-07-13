@@ -1622,6 +1622,18 @@ export default function SettingsPage({
                   )}
                 </div>
 
+                <details id="u26-settings-ai-library-maintenance" className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+                  <summary className="cursor-pointer list-none rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-color/60">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                      <div>
+                        <p className="text-[10px] font-bold text-amber-200 tracking-wider">AI 维护</p>
+                        <h3 className="mt-1 text-xs font-bold text-text-primary">资源库检修</h3>
+                        <p className="mt-1 text-[10px] text-text-muted leading-relaxed">缺失检查、索引清理、备份恢复和扫描预览集中在这里，日常无需展开。</p>
+                      </div>
+                      <span className="rounded-full border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-[9px] font-bold text-amber-100 whitespace-nowrap">默认折叠</span>
+                    </div>
+                  </summary>
+                  <div id="u26-settings-ai-library-maintenance-panel" className="mt-4 space-y-5">
                 <div id="mvp127-library-index-health-management" className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
                   <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-3">
                     <div>
@@ -1990,7 +2002,7 @@ export default function SettingsPage({
                 </div>
               </div>
 
-              <div id="mvp54-settings-regression-path" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3">
+              <div id="mvp54-settings-regression-path" hidden aria-hidden="true" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-bold text-text-primary"><span className="sr-only">Beta 回归路径</span>{mvp54BetaRegression.title}</h3>
@@ -2509,6 +2521,8 @@ export default function SettingsPage({
               </div>
                 </div>
               )}
+                  </div>
+                </details>
 
               {/* ASMR (RJ) 仓库 */}
               <div className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4">
