@@ -20,6 +20,7 @@ U20 extracts this display-heavy region while leaving every business decision and
 - consolidate repeated auxiliary icon-button class strings into stable local constants;
 - mark all decorative auxiliary icons as `aria-hidden`;
 - keep playlist mutation, Toast selection, lyrics state, mute state, completion behavior, and volume events in `PlayerBar.tsx`;
+- remove moved icon/presenter imports and stop destructuring the unused `isLyricsOpen` prop while keeping the public prop contract intact;
 - update U14 and U19 verifiers so they follow presentation responsibilities instead of old source locations.
 
 ## Preserved behavior
