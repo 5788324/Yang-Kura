@@ -73,9 +73,12 @@
 
 #app-player-bar [class~="hover:text-white"]:hover,
 #app-player-bar [class~="hover:text-zinc-200"]:hover,
-#app-player-bar [class~="hover:text-zinc-300"]:hover,
-#app-player-bar [class~="group-hover/heart:text-zinc-300"] {
+#app-player-bar [class~="hover:text-zinc-300"]:hover {
   color: var(--player-token-text) !important;
+}
+
+#app-player-bar [class~="group/heart"]:hover [class~="group-hover/heart:text-zinc-300"] {
+  color: var(--player-token-text-secondary) !important;
 }
 
 #app-player-bar [class~="hover:border-zinc-800/80"]:hover {
