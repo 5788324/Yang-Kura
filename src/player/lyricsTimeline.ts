@@ -74,3 +74,12 @@ export function findActiveLyricIndex(lines: readonly ParsedLyricLine[], progress
 
   return activeIndex;
 }
+
+export function getActiveLyricText(
+  lines: readonly ParsedLyricLine[],
+  progress: number,
+  fallback: string,
+): string {
+  const activeIndex = findActiveLyricIndex(lines, progress);
+  return activeIndex >= 0 ? lines[activeIndex].text : fallback;
+}
