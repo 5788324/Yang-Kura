@@ -10,14 +10,17 @@ for (const marker of [
   'npm ci --ignore-scripts --no-audit --no-fund',
   'npm run verify:stable',
   'npm run build',
+  'focused-verifier-results.tsv',
+  'actions/upload-artifact@v4',
 ]) {
   if (!workflow.includes(marker)) failures.push(`missing branch quality gate: ${marker}`);
 }
 
 for (const marker of [
   'U10（已完成）',
-  'U11',
-  '高危依赖审计',
+  'U11（已完成）',
+  'high / critical 依赖风险',
+  '逐 verifier TSV 报告',
 ]) {
   if (!projectState.includes(marker)) failures.push(`missing U11 progress fact: ${marker}`);
 }
