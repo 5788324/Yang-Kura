@@ -1,4 +1,3 @@
-import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import ts from 'typescript';
 
@@ -8,6 +7,7 @@ const state = fs.readFileSync('PROJECT_STATE.md', 'utf8');
 const roadmap = fs.readFileSync('PROJECT_ROADMAP.md', 'utf8');
 const rules = fs.readFileSync('docs/UI_DAILY_SURFACE_RULES.md', 'utf8');
 const u26 = fs.readFileSync('docs/U26_AI_LIBRARY_MAINTENANCE.md', 'utf8');
+const failures = [];
 
 const transpiled = ts.transpileModule(settings, {
   compilerOptions: {
@@ -22,11 +22,13 @@ const transpiled = ts.transpileModule(settings, {
 const errors = (transpiled.diagnostics ?? []).filter(
   (diagnostic) => diagnostic.category === ts.DiagnosticCategory.Error,
 );
-assert.equal(errors.length, 0, `SettingsPage TypeScript diagnostics: ${errors.map((item) => item.messageText).join('; ')}`);
+if (errors.length > 0) {
+  failures.push(`SettingsPage TypeScript diagnostics: ${errors.map((item) => item.messageText).join('; ')}`);
+}
 
 const detailsOpening = settings.match(/<details id="u26-settings-ai-library-maintenance"([^>]*)>/)?.[0];
-assert.ok(detailsOpening, 'U26 AI library maintenance details missing');
-assert.ok(!/\sopen(?:\s|=|>)/.test(detailsOpening), 'AI library maintenance must be closed by default');
+if (!detailsOpening) failures.push('U26 AI library maintenance details missing');
+else if (/\sopen(?:\s|=|>)/.test(detailsOpening)) failures.push('AI library maintenance must be closed by default');
 
 for (const marker of [
   '<summary',
@@ -35,32 +37,37 @@ for (const marker of [
   '日常无需展开',
   'id="u26-settings-ai-library-maintenance-panel"',
 ]) {
-  assert.ok(settings.includes(marker), `U26 maintenance disclosure missing: ${marker}`);
+  if (!settings.includes(marker)) failures.push(`U26 maintenance disclosure missing: ${marker}`);
 }
 
 const detailsStart = settings.indexOf('id="u26-settings-ai-library-maintenance"');
-const detailsEnd = settings.indexOf('</details>', detailsStart);
-assert.ok(detailsStart >= 0 && detailsEnd > detailsStart, 'U26 maintenance details boundary invalid');
+const asmrLibraryIndex = settings.indexOf('ASMR / RJ 音声库目录');
+const detailsEnd = asmrLibraryIndex >= 0 ? settings.lastIndexOf('</details>', asmrLibraryIndex) : -1;
+if (!(detailsStart >= 0 && detailsEnd > detailsStart && asmrLibraryIndex > detailsEnd)) {
+  failures.push(`U26 maintenance details boundary invalid: start=${detailsStart}, end=${detailsEnd}, asmr=${asmrLibraryIndex}`);
+}
 
+const maintenanceRegion = detailsStart >= 0 && detailsEnd > detailsStart
+  ? settings.slice(detailsStart, detailsEnd)
+  : '';
 const requiredMaintenanceMarkers = [
   'id="mvp127-library-index-health-management"',
   'id="mvp128-controlled-index-cleanup"',
   'id="mvp129-index-maintenance-closeout"',
   'id="mvp39-advanced-library-tools"',
 ];
-let previousIndex = detailsStart;
+let previousIndex = -1;
 for (const marker of requiredMaintenanceMarkers) {
-  const index = settings.indexOf(marker);
-  assert.ok(index > previousIndex && index < detailsEnd, `maintenance capability not enclosed in AI maintenance: ${marker}`);
+  const index = maintenanceRegion.indexOf(marker);
+  if (!(index > previousIndex)) failures.push(`maintenance capability not enclosed in expected order: ${marker}`);
   previousIndex = index;
 }
 
 const regressionOpening = settings.match(/<div id="mvp54-settings-regression-path"([^>]*)>/)?.[0];
-assert.ok(regressionOpening, 'MVP54 compatibility marker missing');
-assert.ok(/\shidden(?:\s|=|>)/.test(regressionOpening) && regressionOpening.includes('aria-hidden="true"'), 'MVP54 historical regression card must remain hidden');
-
-const asmrLibraryIndex = settings.indexOf('ASMR / RJ 音声库目录');
-assert.ok(asmrLibraryIndex > detailsEnd, 'daily ASMR path management must remain outside AI maintenance');
+if (!regressionOpening) failures.push('MVP54 compatibility marker missing');
+else if (!/\shidden(?:\s|=|>)/.test(regressionOpening) || !regressionOpening.includes('aria-hidden="true"')) {
+  failures.push('MVP54 historical regression card must remain hidden');
+}
 
 for (const marker of [
   '选择本地资源库目录',
@@ -69,7 +76,7 @@ for (const marker of [
   '一键扫描并应用',
   '音乐库路径',
 ]) {
-  assert.ok(settings.includes(marker), `daily library capability missing: ${marker}`);
+  if (!settings.includes(marker)) failures.push(`daily library capability missing: ${marker}`);
 }
 
 for (const marker of [
@@ -82,7 +89,7 @@ for (const marker of [
   'handleRunDryRunPreview',
   'handleGenerateIndexWritePreview',
 ]) {
-  assert.ok(settings.includes(marker), `maintenance handler removed: ${marker}`);
+  if (!settings.includes(marker)) failures.push(`maintenance handler removed: ${marker}`);
 }
 
 const projectText = `${state}\n${roadmap}\n${rules}\n${u26}`;
@@ -94,7 +101,12 @@ for (const marker of [
   '默认折叠',
   '日常层只展示用户实际会使用的功能',
 ]) {
-  assert.ok(projectText.includes(marker), `U26 project record missing: ${marker}`);
+  if (!projectText.includes(marker)) failures.push(`U26 project record missing: ${marker}`);
+}
+
+if (failures.length > 0) {
+  console.error(failures.join('\n'));
+  process.exit(1);
 }
 
 console.log('U26 AI library maintenance verifier PASS');
