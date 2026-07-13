@@ -3,7 +3,8 @@ import fs from 'node:fs';
 
 const player = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
 const transientPresenters = fs.readFileSync('src/components/PlayerTransientPresenters.tsx', 'utf8');
-const playerPresentation = `${player}\n${transientPresenters}`;
+const primarySections = fs.readFileSync('src/components/PlayerBarPrimarySections.tsx', 'utf8');
+const playerPresentation = `${player}\n${transientPresenters}\n${primarySections}`;
 const bridge = fs.readFileSync('src/playerThemeBridge.css', 'utf8');
 const projectState = fs.readFileSync('PROJECT_STATE.md', 'utf8');
 const roadmap = fs.readFileSync('PROJECT_ROADMAP.md', 'utf8');

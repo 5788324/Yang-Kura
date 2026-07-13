@@ -11,6 +11,8 @@ for (const marker of [
   'npm run verify:stable',
   'npm run build',
   'focused-verifier-results.tsv',
+  'stable-regression.log',
+  'stable-regression-log',
   'actions/upload-artifact@v4',
 ]) {
   if (!workflow.includes(marker)) failures.push(`missing branch quality gate: ${marker}`);
