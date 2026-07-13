@@ -10,6 +10,7 @@
 - reuse `src/player/lyricsTimeline.ts` for the desktop floating-lyrics timeline;
 - add `getActiveLyricText` as a small shared helper over the existing active-index contract;
 - keep `PlayerBar.tsx` responsible for React state, event wiring, and JSX only;
+- remove the duplicate inline math and LRC parser after the shared modules are connected;
 - execute real boundary-value assertions for duration, time, pointer Seek, progress, volume, and active lyrics.
 
 ## Preserved behavior
