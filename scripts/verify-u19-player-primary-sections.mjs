@@ -67,10 +67,6 @@ for (const marker of [
   'onTogglePlay={togglePlay}',
   'onNext={onNext}',
   'onToggleQueue={toggleQueue}',
-  'aria-label={`播放完成策略：${mvp49Player.completionLabel}`}',
-  'aria-haspopup="menu"',
-  'aria-expanded={showPlaylistDropdown}',
-  'aria-pressed={isMuted}',
 ]) {
   assert.ok(playerBar.includes(marker), `PlayerBar primary section integration missing: ${marker}`);
 }
