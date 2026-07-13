@@ -26,7 +26,8 @@ U18 extracts all three together to reduce the container's JSX density while pres
 - the empty title, hint and hidden regression markers remain unchanged;
 - floating lyrics still stop click propagation, show the same text and close through the same state setter;
 - reduced-motion remains governed by the existing global accessibility stylesheet;
-- all current colors, layout, animation classes and visible wording remain unchanged.
+- all current colors, layout, animation classes and visible wording remain unchanged;
+- the presenter module remains free of React state, effects, storage access and player commands.
 
 ## Boundaries
 
