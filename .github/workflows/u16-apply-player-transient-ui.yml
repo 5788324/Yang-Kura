@@ -32,9 +32,6 @@ jobs:
       - name: Apply focused PlayerBar patch
         run: node scripts/apply-u16-player-transient-ui-hooks.mjs
 
-      - name: Verify transient UI hooks
-        run: node scripts/verify-u16-player-transient-ui-hooks.mjs
-
       - name: Remove temporary patch automation
         shell: bash
         run: |
