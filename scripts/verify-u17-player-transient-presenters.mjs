@@ -54,12 +54,20 @@ const playerBar = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
 for (const marker of [
   "from './PlayerTransientPresenters'",
   '<PlayerToast message={playerToastMessage} />',
-  'onSelectPlaylist={handlePlaylistSelect}',
+  'onSelectPlaylist={selectPlaylist}',
   'onVolumeChange={handleVolumeSlide}',
-  "setPlayerToastMessage(`成功收藏到歌单《${playlist.name}》`)",
-  "setPlayerToastMessage('已存在于该歌单中')",
 ]) {
   assert.ok(playerBar.includes(marker), `PlayerBar presenter integration missing: ${marker}`);
+}
+
+const actionHook = fs.readFileSync('src/hooks/usePlayerBarActions.ts', 'utf8');
+for (const marker of [
+  'getPlaylistSelectionDecision(currentTrack, playlist)',
+  'if (decision.shouldAdd) onAddToPlaylist(currentTrack, playlist.id)',
+  'showMessage(decision.message)',
+  'setIsPlaylistMenuOpen(false)',
+]) {
+  assert.ok(actionHook.includes(marker), `playlist action integration missing: ${marker}`);
 }
 
 const auxiliary = fs.readFileSync('src/components/PlayerBarAuxiliaryControls.tsx', 'utf8');
