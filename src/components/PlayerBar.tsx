@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { PlayerState, AudioTrack, Playlist } from '../types';
+import type { PlayerState, AudioTrack, Playlist } from '../types';
 import { playerExperienceService } from '../services/playerExperienceService';
 import { listeningExperiencePolishService } from '../services/listeningExperiencePolishService';
 import { playerVisualPolishService } from '../services/playerVisualPolishService';
@@ -20,10 +20,8 @@ import { useAutoDismissMessage, useDelayedVisibility } from '../hooks/usePlayerT
 import {
   PlayerEmptyState,
   PlayerFloatingLyrics,
-  PlayerPlaylistMenu,
   PlayerSeekPreview,
   PlayerToast,
-  PlayerVolumePopover,
 } from './PlayerTransientPresenters';
 import { PlayerTrackSummary, PlayerTransportControls } from './PlayerBarPrimarySections';
 import { PlayerAuxiliaryControls, PlayerCompatibilityMarkers } from './PlayerBarAuxiliaryControls';
@@ -62,7 +60,6 @@ export default function PlayerBar({
   toggleCompletionMode,
   isQueueOpen,
   toggleQueue,
-  isLyricsOpen,
   toggleLyrics,
   favorites,
   toggleFavorite,
