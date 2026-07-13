@@ -1,4 +1,5 @@
 import type { LibraryPath, LibrarySettings } from "../types";
+import { normalizeThemeType } from "../theme/themeContract";
 
 const WINDOWS_ABSOLUTE_PATH = /^[a-zA-Z]:[\\/]/;
 const UNC_PATH = /^(?:\\\\|\/\/)[^/\\]+[\\/][^/\\]+/;
@@ -43,6 +44,7 @@ export const settingsPathPrivacyService = {
       audioLibPath: this.sanitizePathValue(settings.audioLibPath, "local"),
       musicLibPath: this.sanitizePathValue(settings.musicLibPath, "local"),
       tempDownloadPath: this.sanitizePathValue(settings.tempDownloadPath, "local"),
+      currentTheme: normalizeThemeType(settings.currentTheme),
       asmrPaths: Array.isArray(settings.asmrPaths)
         ? settings.asmrPaths.map((item) => this.sanitizeLibraryPath(item))
         : [],
