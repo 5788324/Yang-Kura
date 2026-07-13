@@ -1,19 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  Play, 
-  Pause, 
-  SkipBack, 
-  SkipForward, 
-  Volume2, 
-  VolumeX, 
-  Repeat, 
-  Repeat1, 
-  Shuffle, 
-  ListMusic, 
-  Heart, 
-  FolderPlus, 
-  Tv, 
-  MoreHorizontal
+import {
+  Volume2,
+  VolumeX,
+  FolderPlus,
+  Tv,
+  MoreHorizontal,
 } from 'lucide-react';
 import { PlayerState, AudioTrack, Playlist } from '../types';
 import { playerExperienceService } from '../services/playerExperienceService';
@@ -23,7 +14,6 @@ import { betaRegressionChecklistService } from '../services/betaRegressionCheckl
 import { homePlayerBetaPolishService } from '../services/homePlayerBetaPolishService';
 import { playerBarDailyCleanupService } from '../services/playerBarDailyCleanupService';
 import { playerUiBugfixService } from '../services/playerUiBugfixService';
-import CoverArtwork from './CoverArtwork';
 import { getActiveLyricText, parseLyrics } from '../player/lyricsTimeline';
 import {
   clampPlayerValue,
@@ -42,6 +32,7 @@ import {
   PlayerToast,
   PlayerVolumePopover,
 } from './PlayerTransientPresenters';
+import { PlayerTrackSummary, PlayerTransportControls } from './PlayerBarPrimarySections';
 
 interface PlayerBarProps {
   playerState: PlayerState;
@@ -257,106 +248,26 @@ export default function PlayerBar({
         onClick={(e) => e.stopPropagation()}
       >
         {currentTrack ? (
-          <>
-            {/* Spinning Vinyl Album Art */}
-            <div 
-              onClick={toggleLyrics}
-              className={`relative w-12 h-12 rounded-full overflow-hidden bg-black/60 border border-zinc-800 flex-shrink-0 cursor-pointer shadow-xl group/album transition-transform hover:scale-105 ${
-                isPlaying ? 'animate-spin-slow' : ''
-              }`}
-            >
-              <CoverArtwork
-                src={currentTrack.coverUrl}
-                title={currentTrack.title}
-                subtitle={currentTrack.artist}
-                kind={currentTrack.type === 'asmr' ? 'asmr' : 'music'}
-                className="w-full h-full object-cover rounded-full p-1"
-                rounded
-              />
-              {/* Vinyl center pin point */}
-              <div className="absolute inset-0 m-auto w-3.5 h-3.5 bg-zinc-950 border border-zinc-700 rounded-full flex items-center justify-center">
-                <div className="w-1 h-1 bg-white rounded-full" />
-              </div>
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center space-x-2">
-                <h3 
-                  onClick={toggleLyrics}
-                  className="text-[13px] font-bold text-zinc-100 hover:text-sky-400 cursor-pointer transition-colors truncate"
-                  title={currentTrack.title}
-                >
-                  {currentTrack.title}
-                </h3>
-                {/* 本地 badge matching the mockup */}
-                <span className="text-[8px] bg-sky-500/15 text-sky-400 border border-sky-500/25 px-1 py-px rounded font-extrabold uppercase tracking-wide flex-shrink-0">
-                  本地
-                </span>
-              </div>
-              <p className="text-xs text-zinc-400 truncate mt-1" title={currentTrack.artist}>
-                {currentTrack.artist}
-              </p>
-              {playerState.playbackError ? (
-                <p className="text-[9px] text-rose-300 truncate mt-0.5" title={playerState.playbackError}>
-                  播放失败：{playerState.playbackError}
-                </p>
-              ) : playerState.playbackNotice ? (
-                <p className="text-[9px] text-amber-300 truncate mt-0.5" title={playerState.playbackNotice}>
-                  播放提示：{playerState.playbackNotice}
-                </p>
-              ) : (
-                <>
-                <div id="mvp74-playerbar-daily-control-strip" className="mt-1.5 flex items-center gap-1.5 text-[9px] text-zinc-400 truncate" title={mvp74PlayerBar.hiddenMaintenanceNote}>
-                  <span className="h-1.5 w-1.5 rounded-full bg-sky-400/90 flex-shrink-0" />
-                  <span className="truncate">{mvp74PlayerBar.compactStatus}</span>
-                </div>
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {mvp74PlayerBar.visibleBadges.slice(0, 3).map((badge) => (
-                    <span key={badge} className="rounded-full border border-white/10 bg-white/5 px-1.5 py-0.5 text-[8px] font-bold text-zinc-300">
-                      {badge}
-                    </span>
-                  ))}
-                </div>
-                <div id="mvp49-player-status-strip" hidden aria-hidden="true" title={playerSummary.completionModeDescription}>
-                  {mvp49Player.statusBadges.slice(0, 3).map((badge) => (
-                    <span key={`${badge.label}-${badge.tone}`}>{badge.label}</span>
-                  ))}
-                </div>
-                <div id="mvp50-player-visual-strip" hidden aria-hidden="true" title={mvp50PlayerVisual.contextLine}>
-                  <span>{mvp50PlayerVisual.contextLine}</span>
-                </div>
-                <div id="mvp54-player-regression-strip" hidden aria-hidden="true" title={mvp54PlayerRegression.compactLine}>
-                  <span>{mvp54PlayerRegression.compactLine}</span>
-                </div>
-                <div id="mvp59-player-compact-strip" hidden aria-hidden="true" title={mvp59PlayerBeta.compactLine}>
-                  <span>{mvp59PlayerBeta.compactLine}</span>
-                </div>
-                <div id="mvp74-playerbar-maintenance-markers" hidden aria-hidden="true">{mvp74PlayerBar.hiddenMaintenanceNote}</div>
-                </>
-              )}
-            </div>
-
-            {/* Favorite button wrapper (Comments removed as requested) */}
-            <div className="flex items-center pl-3 border-l border-zinc-800/80 flex-shrink-0">
-              <button 
-                onClick={() => {
-                  toggleFavorite(currentTrack.id);
-                  setToastMessage(isLiked ? '已取消喜欢' : '已添加到喜欢');
-                }}
-                className="flex items-center space-x-1.5 text-zinc-400 hover:text-white transition-colors group/heart"
-                title={isLiked ? '取消喜欢' : '喜欢这首音声'}
-              >
-                <Heart 
-                  className={`w-4.5 h-4.5 transition-all ${
-                    isLiked ? 'fill-rose-500 text-rose-500 scale-110' : 'group-hover/heart:scale-110'
-                  }`} 
-                />
-                <span className="text-[10px] font-bold text-zinc-500 group-hover/heart:text-zinc-300">
-                  喜欢
-                </span>
-              </button>
-            </div>
-          </>
+          <PlayerTrackSummary
+            track={currentTrack}
+            isPlaying={isPlaying}
+            isLiked={isLiked}
+            playbackError={playerState.playbackError}
+            playbackNotice={playerState.playbackNotice}
+            compactStatus={mvp74PlayerBar.compactStatus}
+            visibleBadges={mvp74PlayerBar.visibleBadges}
+            hiddenMaintenanceNote={mvp74PlayerBar.hiddenMaintenanceNote}
+            completionModeDescription={playerSummary.completionModeDescription}
+            statusBadges={mvp49Player.statusBadges}
+            visualContextLine={mvp50PlayerVisual.contextLine}
+            regressionLine={mvp54PlayerRegression.compactLine}
+            compactLine={mvp59PlayerBeta.compactLine}
+            onOpenLyrics={toggleLyrics}
+            onToggleFavorite={() => {
+              toggleFavorite(currentTrack.id);
+              setToastMessage(isLiked ? '已取消喜欢' : '已添加到喜欢');
+            }}
+          />
         ) : (
           <PlayerEmptyState
             title={mvp59PlayerBeta.emptyTitle}
@@ -366,89 +277,21 @@ export default function PlayerBar({
         )}
       </div>
 
-      {/* Center: Play controls (Tighter and perfectly aligned layout matching standard music apps) */}
-      <div 
-        onClick={(e) => e.stopPropagation()}
-        className="flex-1 flex items-center justify-center"
-      >
-        <div className="flex items-center bg-zinc-900/40 border border-zinc-900 px-5 py-2.5 rounded-full shadow-inner space-x-5">
-          {/* Loop Mode Selection */}
-          <button
-            onClick={toggleLoopMode}
-            disabled={!currentTrack}
-            className={`p-1.5 rounded-lg transition-all ${
-              !currentTrack ? 'opacity-30' : 'hover:bg-zinc-800 text-zinc-400 hover:text-white cursor-pointer hover:scale-105'
-            }`}
-            title={loopMode === 'shuffle' ? '随机播放' : loopMode === 'one' ? '单曲循环' : '列表循环'}
-          >
-            {loopMode === 'shuffle' ? (
-              <Shuffle className="w-4 h-4 text-sky-400" />
-            ) : loopMode === 'one' ? (
-              <Repeat1 className="w-4 h-4 text-pink-400" />
-            ) : (
-              <Repeat className="w-4 h-4 text-zinc-400" />
-            )}
-          </button>
-
-          {/* Previous Button */}
-          <button
-            onClick={onPrev}
-            disabled={!currentTrack}
-            className="p-1.5 rounded-full hover:bg-zinc-800 text-zinc-200 disabled:opacity-30 transition-all cursor-pointer hover:scale-105 active:scale-95"
-            title="上一首"
-          >
-            <SkipBack className="w-4.5 h-4.5" />
-          </button>
-
-          {/* Play/Pause Button (Requirement 2) */}
-          <button
-            onClick={togglePlay}
-            disabled={!currentTrack}
-            className="w-11 h-11 rounded-full bg-sky-500 hover:bg-sky-400 text-white flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer"
-            title={playerState.playbackMode === 'resolving-local-media' ? '正在解析本地音频' : isPlaying ? '暂停' : '播放'}
-          >
-            {isPlaying ? (
-              <Pause className="w-5 h-5 text-white" />
-            ) : (
-              <Play className="w-5 h-5 text-white translate-x-0.5" />
-            )}
-          </button>
-
-          {/* Next Button */}
-          <button
-            onClick={onNext}
-            disabled={!currentTrack}
-            className="p-1.5 rounded-full hover:bg-zinc-800 text-zinc-200 disabled:opacity-30 transition-all cursor-pointer hover:scale-105 active:scale-95"
-            title="下一首"
-          >
-            <SkipForward className="w-4.5 h-4.5" />
-          </button>
-
-          {/* Play Queue trigger moved to the center cluster, as shown in beautiful music bar blueprints */}
-          <button
-            onClick={toggleQueue}
-            disabled={!currentTrack}
-            className={`p-1.5 rounded-lg transition-all flex items-center justify-center ${
-              !currentTrack ? 'opacity-30' : ''
-            } ${
-              isQueueOpen 
-                ? 'bg-sky-500/20 text-sky-400 border border-sky-500/20' 
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-800 cursor-pointer hover:scale-105'
-            }`}
-            title="当前播放队列"
-          >
-            <ListMusic className="w-4 h-4" />
-            <span className="text-[9px] font-mono font-bold ml-1 text-zinc-500">{playerState.queue.length}</span>
-          </button>
-
-          {/* Timeline counter pill */}
-          <div className="text-[10px] text-zinc-400 font-mono flex items-center space-x-1 pl-3.5 border-l border-zinc-800">
-            <span className="text-sky-400 font-bold">{formatPlayerTime(currentDisplayProgress)}</span>
-            <span className="text-zinc-600">/</span>
-            <span>{formatPlayerTime(totalDuration)}</span>
-          </div>
-        </div>
-      </div>
+      <PlayerTransportControls
+        hasTrack={Boolean(currentTrack)}
+        loopMode={loopMode}
+        playbackMode={playerState.playbackMode}
+        isPlaying={isPlaying}
+        isQueueOpen={isQueueOpen}
+        queueCount={playerState.queue.length}
+        currentTimeLabel={formatPlayerTime(currentDisplayProgress)}
+        durationLabel={formatPlayerTime(totalDuration)}
+        onToggleLoopMode={toggleLoopMode}
+        onPrevious={onPrev}
+        onTogglePlay={togglePlay}
+        onNext={onNext}
+        onToggleQueue={toggleQueue}
+      />
 
       {/* Right side: Volume, folder save, and desktop lyrics (No "全景声" and no lyrics "词" button) */}
       <div 
@@ -468,6 +311,7 @@ export default function PlayerBar({
           disabled={!currentTrack || !toggleCompletionMode}
           className="text-[10px] border border-zinc-800 bg-zinc-900/60 text-zinc-300 px-2.5 py-1 rounded-full font-bold flex-shrink-0 hover:border-sky-500/40 hover:text-sky-300 disabled:opacity-40 disabled:hover:border-zinc-800 disabled:hover:text-zinc-300 transition-colors"
           title={mvp49Player.completionHint}
+          aria-label={`播放完成策略：${mvp49Player.completionLabel}`}
         >
           <span hidden aria-hidden="true">播放策略</span><span hidden aria-hidden="true">策略：</span>{mvp49Player.completionLabel}
         </button>
@@ -487,6 +331,9 @@ export default function PlayerBar({
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-900 border-transparent hover:border-zinc-800/80 cursor-pointer'
             }`}
             title="收藏到歌单"
+            aria-label="收藏到歌单"
+            aria-haspopup="menu"
+            aria-expanded={showPlaylistDropdown}
           >
             <FolderPlus className="w-4.5 h-4.5" />
           </button>
@@ -537,6 +384,8 @@ export default function PlayerBar({
             onClick={toggleMute}
             className="text-zinc-400 hover:text-white p-2 rounded-xl hover:bg-zinc-900 transition-colors cursor-pointer"
             title={isMuted ? "取消静音" : "静音"}
+            aria-label={isMuted ? '取消静音' : '静音'}
+            aria-pressed={isMuted}
           >
             {isMuted ? <VolumeX className="w-4.5 h-4.5 text-zinc-500" /> : <Volume2 className="w-4.5 h-4.5" />}
           </button>
