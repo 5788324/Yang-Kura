@@ -71,7 +71,8 @@ assert.equal(lyrics.getActiveLyricText([], 6, 'fallback'), 'fallback');
 
 const playerBar = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
 const seekHook = fs.readFileSync('src/hooks/usePlayerSeekInteraction.ts', 'utf8');
-const playerIntegration = `${playerBar}\n${seekHook}`;
+const lyricHook = fs.readFileSync('src/hooks/useFloatingLyricText.ts', 'utf8');
+const playerIntegration = `${playerBar}\n${seekHook}\n${lyricHook}`;
 for (const marker of [
   "from '../player/playerBarMath'",
   "from '../player/lyricsTimeline'",
@@ -80,7 +81,8 @@ for (const marker of [
   'getPlayerVolumeMetrics(volume, isMuted)',
   'seekFromPointerPosition(event.clientX, rect.left, rect.width, duration)',
   'parseLyrics(currentTrack?.lyrics)',
-  "getActiveLyricText(parsedLyrics, progress, 'Yang-Kura 本地音频播放中')",
+  "getActiveLyricText(parsedLyrics, progress, fallback)",
+  'useFloatingLyricText(currentTrack, progress)',
 ]) {
   assert.ok(playerIntegration.includes(marker), `player integration missing: ${marker}`);
 }
@@ -92,6 +94,8 @@ for (const forbidden of [
   'const parseLrcFractionalSeconds =',
   'const seekFromPointer =',
   'currentTrack.lyrics.map(line =>',
+  'parseLyrics(',
+  'getActiveLyricText(',
 ]) {
   assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns extracted logic: ${forbidden}`);
 }
