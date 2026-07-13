@@ -40,6 +40,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          New-Item -ItemType Directory -Force -Path artifacts/focused-verifier-logs | Out-Null
           $results = [System.Collections.Generic.List[string]]::new()
           $results.Add("verifier`tstatus`texit_code")
           $failed = $false
@@ -48,7 +49,8 @@ jobs:
             Sort-Object Name |
             ForEach-Object {
               Write-Host "Running $($_.Name)"
-              node $_.FullName
+              $logPath = Join-Path 'artifacts/focused-verifier-logs' "$($_.BaseName).log"
+              node $_.FullName 2>&1 | Tee-Object -FilePath $logPath
               $exitCode = $LASTEXITCODE
               $status = if ($exitCode -eq 0) { 'PASS' } else { 'FAIL' }
               $results.Add("$($_.Name)`t$status`t$exitCode")
@@ -71,7 +73,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: focused-verifier-results
-          path: artifacts/focused-verifier-results.tsv
+          path: |
+            artifacts/focused-verifier-results.tsv
+            artifacts/focused-verifier-logs
           if-no-files-found: warn
           retention-days: 7
 
