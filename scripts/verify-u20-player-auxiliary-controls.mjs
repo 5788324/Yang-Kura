@@ -27,9 +27,12 @@ for (const marker of [
   'AUXILIARY_ICON_BUTTON_IDLE_CLASS',
   'aria-label="辅助播放控制"',
   'aria-label={`播放完成策略：${completionLabel}`}',
+  'isPlaylistMenuOpen: boolean;',
+  'isFloatingLyricsVisible: boolean;',
+  'isVolumePopoverVisible: boolean;',
   'aria-haspopup="menu"',
-  'aria-expanded={showPlaylistDropdown}',
-  'aria-pressed={desktopLyricsActive}',
+  'aria-expanded={isPlaylistMenuOpen}',
+  'aria-pressed={isFloatingLyricsVisible}',
   'aria-pressed={isMuted}',
   '<FolderPlus className="w-4.5 h-4.5" aria-hidden="true" />',
   '<Tv className="w-4.5 h-4.5" aria-hidden="true" />',
@@ -49,7 +52,7 @@ for (const forbidden of [
   'setTimeout(',
   'useAudioPlayer',
   'onAddToPlaylist',
-  'setToastMessage',
+  'setPlayerToastMessage',
   'toggleCompletionMode(',
   'toggleMute(',
 ]) {
@@ -60,14 +63,14 @@ const playerBar = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
 for (const marker of [
   "import { PlayerAuxiliaryControls, PlayerCompatibilityMarkers } from './PlayerBarAuxiliaryControls';",
   'const handleTogglePlaylist = () => {',
-  'const handleToggleDesktopLyrics = () => {',
+  'const handleToggleFloatingLyrics = () => {',
   'const handleMoreActions = () => {',
-  "setToastMessage(desktopLyricsActive ? '歌词浮窗已关闭' : '歌词浮窗已开启')",
-  "setToastMessage('更多播放操作将在后续版本开放')",
+  "setPlayerToastMessage(isFloatingLyricsVisible ? '歌词浮窗已关闭' : '歌词浮窗已开启')",
+  "setPlayerToastMessage('更多播放操作将在后续版本开放')",
   '<PlayerAuxiliaryControls',
   'onToggleCompletion={() => toggleCompletionMode?.()}',
   'onSelectPlaylist={handlePlaylistSelect}',
-  'onToggleDesktopLyrics={handleToggleDesktopLyrics}',
+  'onToggleFloatingLyrics={handleToggleFloatingLyrics}',
   'onToggleMute={toggleMute}',
   'onMoreActions={handleMoreActions}',
   '<PlayerCompatibilityMarkers',
@@ -87,8 +90,11 @@ for (const forbidden of [
   'id="mvp59-player-beta-chips"',
   'id="mvp79-player-ui-bugfix"',
   'aria-label={`播放完成策略：${mvp49Player.completionLabel}`}',
+  'showPlaylistDropdown',
+  'desktopLyricsActive',
+  'showVolumeSlider',
 ]) {
-  assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns extracted auxiliary presentation: ${forbidden}`);
+  assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns extracted auxiliary presentation or stale naming: ${forbidden}`);
 }
 
 const progressDocuments = `${fs.readFileSync('PROJECT_STATE.md', 'utf8')}\n${fs.readFileSync('PROJECT_ROADMAP.md', 'utf8')}`;
