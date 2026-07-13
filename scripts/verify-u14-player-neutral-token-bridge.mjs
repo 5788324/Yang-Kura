@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const player = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
+const progressTrack = fs.readFileSync('src/components/PlayerProgressTrack.tsx', 'utf8');
 const transientPresenters = fs.readFileSync('src/components/PlayerTransientPresenters.tsx', 'utf8');
 const primarySections = fs.readFileSync('src/components/PlayerBarPrimarySections.tsx', 'utf8');
 const auxiliaryControls = fs.readFileSync('src/components/PlayerBarAuxiliaryControls.tsx', 'utf8');
-const playerPresentation = `${player}\n${transientPresenters}\n${primarySections}\n${auxiliaryControls}`;
+const playerPresentation = `${player}\n${progressTrack}\n${transientPresenters}\n${primarySections}\n${auxiliaryControls}`;
 const bridge = fs.readFileSync('src/playerThemeBridge.css', 'utf8');
 const projectState = fs.readFileSync('PROJECT_STATE.md', 'utf8');
 const roadmap = fs.readFileSync('PROJECT_ROADMAP.md', 'utf8');

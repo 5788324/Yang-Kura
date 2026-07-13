@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import type { PlayerState, AudioTrack, Playlist } from '../types';
 import { playerExperienceService } from '../services/playerExperienceService';
 import { listeningExperiencePolishService } from '../services/listeningExperiencePolishService';
@@ -8,21 +9,15 @@ import { homePlayerBetaPolishService } from '../services/homePlayerBetaPolishSer
 import { playerBarDailyCleanupService } from '../services/playerBarDailyCleanupService';
 import { playerUiBugfixService } from '../services/playerUiBugfixService';
 import { getActiveLyricText, parseLyrics } from '../player/lyricsTimeline';
-import {
-  clampPlayerValue,
-  formatPlayerTime,
-  getPlayerProgressMetrics,
-  getPlayerVolumeMetrics,
-  getSafeTrackDuration,
-  seekFromPointerPosition,
-} from '../player/playerBarMath';
+import { formatPlayerTime, getPlayerVolumeMetrics } from '../player/playerBarMath';
+import { usePlayerSeekInteraction } from '../hooks/usePlayerSeekInteraction';
 import { useAutoDismissMessage, useDelayedVisibility } from '../hooks/usePlayerTransientUi';
 import {
   PlayerEmptyState,
   PlayerFloatingLyrics,
-  PlayerSeekPreview,
   PlayerToast,
 } from './PlayerTransientPresenters';
+import { PlayerProgressTrack } from './PlayerProgressTrack';
 import { PlayerTrackSummary, PlayerTransportControls } from './PlayerBarPrimarySections';
 import { PlayerAuxiliaryControls, PlayerCompatibilityMarkers } from './PlayerBarAuxiliaryControls';
 
@@ -71,45 +66,31 @@ export default function PlayerBar({
 
   // Local state controls
   const {
-    isVisible: showVolumeSlider,
+    isVisible: isVolumePopoverVisible,
     show: handleVolumeMouseEnter,
     scheduleHide: handleVolumeMouseLeave,
   } = useDelayedVisibility();
-  const [showPlaylistDropdown, setShowPlaylistDropdown] = useState(false);
-  const [desktopLyricsActive, setDesktopLyricsActive] = useState(false);
-  const { message: toastMessage, showMessage: setToastMessage } = useAutoDismissMessage();
+  const [isPlaylistMenuOpen, setIsPlaylistMenuOpen] = useState(false);
+  const [isFloatingLyricsVisible, setIsFloatingLyricsVisible] = useState(false);
+  const { message: playerToastMessage, showMessage: setPlayerToastMessage } = useAutoDismissMessage();
 
-  // Hover & Drag preview states
-  const [hoverTime, setHoverTime] = useState<number | null>(null);
-  const [hoverPercent, setHoverPercent] = useState<number | null>(null);
-  const [dragValue, setDragValue] = useState<number | null>(null);
-  const progressBarRef = React.useRef<HTMLDivElement>(null);
-  const pendingSeekValueRef = React.useRef<number | null>(null);
+  const {
+    duration: totalDuration,
+    displayProgress: currentDisplayProgress,
+    progressPercent,
+    hoverPercent,
+    hoverTime,
+    isDragging: isProgressDragging,
+    progressTrackRef,
+    onTrackClick: handleProgressTrackClick,
+    onTrackMouseMove: handleProgressTrackMouseMove,
+    onTrackMouseLeave: handleProgressTrackMouseLeave,
+    onRangeStart: beginProgressDrag,
+    onRangeChange: updateProgressDrag,
+    onRangeCommit: commitProgressDrag,
+  } = usePlayerSeekInteraction({ currentTrack, progress, onSeek });
 
-  const handleProgressSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const duration = getSafeTrackDuration(currentTrack);
-    if (!currentTrack || duration <= 0) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const newProgress = seekFromPointerPosition(e.clientX, rect.left, rect.width, duration);
-    if (newProgress !== null) onSeek(newProgress);
-  };
-
-  const handleProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const duration = getSafeTrackDuration(currentTrack);
-    if (!currentTrack || !progressBarRef.current || duration <= 0) return;
-    const rect = progressBarRef.current.getBoundingClientRect();
-    if (rect.width <= 0) return;
-    const percent = clampPlayerValue((e.clientX - rect.left) / rect.width, 0, 1);
-    setHoverPercent(percent);
-    setHoverTime(percent * duration);
-  };
-
-  const handleProgressMouseLeave = () => {
-    setHoverPercent(null);
-    setHoverTime(null);
-  };
-
-  const handleVolumeSlide = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVolumeSlide = (e: ChangeEvent<HTMLInputElement>) => {
     onVolumeChange(parseFloat(e.target.value));
   };
 
@@ -120,33 +101,31 @@ export default function PlayerBar({
     const isReadOnly = Boolean(playlist.isSystem);
 
     if (isReadOnly) {
-      setToastMessage('系统示例歌单不可修改，请新建自建歌单');
+      setPlayerToastMessage('系统示例歌单不可修改，请新建自建歌单');
     } else if (!exists) {
       onAddToPlaylist(currentTrack, playlist.id);
-      setToastMessage(`成功收藏到歌单《${playlist.name}》`);
+      setPlayerToastMessage(`成功收藏到歌单《${playlist.name}》`);
     } else {
-      setToastMessage('已存在于该歌单中');
+      setPlayerToastMessage('已存在于该歌单中');
     }
 
-    setShowPlaylistDropdown(false);
+    setIsPlaylistMenuOpen(false);
   };
 
   const handleTogglePlaylist = () => {
-    if (currentTrack) setShowPlaylistDropdown((visible) => !visible);
+    if (currentTrack) setIsPlaylistMenuOpen((visible) => !visible);
   };
 
-  const handleToggleDesktopLyrics = () => {
+  const handleToggleFloatingLyrics = () => {
     if (!currentTrack) return;
-    setDesktopLyricsActive(!desktopLyricsActive);
-    setToastMessage(desktopLyricsActive ? '歌词浮窗已关闭' : '歌词浮窗已开启');
+    setIsFloatingLyricsVisible(!isFloatingLyricsVisible);
+    setPlayerToastMessage(isFloatingLyricsVisible ? '歌词浮窗已关闭' : '歌词浮窗已开启');
   };
 
   const handleMoreActions = () => {
-    setToastMessage('更多播放操作将在后续版本开放');
+    setPlayerToastMessage('更多播放操作将在后续版本开放');
   };
 
-  const totalDuration = getSafeTrackDuration(currentTrack);
-  const { currentDisplayProgress, progressPercent } = getPlayerProgressMetrics(progress, dragValue, totalDuration);
   const { visibleVolume, visibleVolumePercent } = getPlayerVolumeMetrics(volume, isMuted);
   const isLiked = currentTrack ? favorites.includes(currentTrack.id) : false;
   const playerSummary = playerExperienceService.getSummary(playerState);
@@ -171,81 +150,22 @@ export default function PlayerBar({
       className="h-20 bg-zinc-950 border-t border-zinc-800/80 px-8 flex items-center justify-between select-none relative z-50 text-white"
       data-mvp79-player-ui-bugfix="true"
     >
-      {/* 1. Thin Progress Bar Line at the top of Player bar */}
-      <div
-        id="mvp75-playerbar-progress-stability" 
-        ref={progressBarRef}
-        onMouseMove={handleProgressMouseMove}
-        onMouseLeave={handleProgressMouseLeave}
-        onClick={(e) => {
-          e.stopPropagation();
-          handleProgressSeek(e);
-        }}
-        className="absolute -top-1.5 left-0 right-0 h-4 flex items-center bg-transparent cursor-pointer group/progress z-50"
-        title={currentTrack && totalDuration > 0 ? '点击或拖拽跳转进度' : '等待可播放音轨'}
-      >
-        <div className="w-full h-1 bg-zinc-900 group-hover/progress:h-1.5 rounded-full relative transition-all duration-150 overflow-hidden">
-          <div 
-            className="h-full bg-gradient-to-r from-sky-500 to-sky-400 group-hover/progress:from-sky-400 group-hover/progress:to-sky-300 transition-all rounded-r-full relative"
-            style={{ width: `${progressPercent}%`, transitionProperty: dragValue !== null ? 'none' : undefined }}
-          >
-            {/* Glowing active thumb indicator on hover */}
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full shadow-lg border-2 border-sky-400 scale-0 group-hover/progress:scale-100 transition-transform duration-150 z-50" />
-          </div>
-        </div>
-
-        {/* Hover seek-preview tooltip */}
-        {hoverPercent !== null && hoverTime !== null && currentTrack && (
-          <PlayerSeekPreview
-            percent={hoverPercent}
-            timeLabel={formatPlayerTime(hoverTime)}
-          />
-        )}
-
-        {/* Invisible precise seeker range overlay */}
-        {currentTrack && (
-          <input 
-            type="range" 
-            min="0"
-            max={totalDuration || 0}
-            value={currentDisplayProgress}
-            disabled={totalDuration <= 0}
-            onMouseDown={() => {
-              pendingSeekValueRef.current = currentDisplayProgress;
-              setDragValue(currentDisplayProgress);
-            }}
-            onTouchStart={() => {
-              pendingSeekValueRef.current = currentDisplayProgress;
-              setDragValue(currentDisplayProgress);
-            }}
-            onChange={(e) => {
-              const parsedValue = parseFloat(e.target.value);
-              const val = totalDuration > 0 ? clampPlayerValue(Number.isFinite(parsedValue) ? parsedValue : 0, 0, totalDuration) : 0;
-              pendingSeekValueRef.current = val;
-              setDragValue(val);
-            }}
-            onMouseUp={() => {
-              const finalSeek = pendingSeekValueRef.current;
-              if (finalSeek !== null && totalDuration > 0) {
-                onSeek(clampPlayerValue(finalSeek, 0, totalDuration));
-              }
-              pendingSeekValueRef.current = null;
-              setDragValue(null);
-            }}
-            onTouchEnd={() => {
-              const finalSeek = pendingSeekValueRef.current;
-              if (finalSeek !== null && totalDuration > 0) {
-                onSeek(clampPlayerValue(finalSeek, 0, totalDuration));
-              }
-              pendingSeekValueRef.current = null;
-              setDragValue(null);
-            }}
-            onClick={(e) => e.stopPropagation()}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            aria-label="播放进度"
-          />
-        )}
-      </div>
+      <PlayerProgressTrack
+        hasTrack={Boolean(currentTrack)}
+        duration={totalDuration}
+        displayProgress={currentDisplayProgress}
+        progressPercent={progressPercent}
+        isDragging={isProgressDragging}
+        hoverPercent={hoverPercent}
+        hoverTimeLabel={hoverTime !== null ? formatPlayerTime(hoverTime) : null}
+        progressTrackRef={progressTrackRef}
+        onTrackMouseMove={handleProgressTrackMouseMove}
+        onTrackMouseLeave={handleProgressTrackMouseLeave}
+        onTrackClick={handleProgressTrackClick}
+        onRangeStart={beginProgressDrag}
+        onRangeChange={updateProgressDrag}
+        onRangeCommit={commitProgressDrag}
+      />
 
       {/* Left side: Vinyl circle style cover art + Metadata & Stats (Heart rate) */}
       <div 
@@ -270,7 +190,7 @@ export default function PlayerBar({
             onOpenLyrics={toggleLyrics}
             onToggleFavorite={() => {
               toggleFavorite(currentTrack.id);
-              setToastMessage(isLiked ? '已取消喜欢' : '已添加到喜欢');
+              setPlayerToastMessage(isLiked ? '已取消喜欢' : '已添加到喜欢');
             }}
           />
         ) : (
@@ -306,14 +226,14 @@ export default function PlayerBar({
         onToggleCompletion={() => toggleCompletionMode?.()}
         currentTrack={currentTrack}
         playlists={playlists}
-        showPlaylistDropdown={showPlaylistDropdown}
+        isPlaylistMenuOpen={isPlaylistMenuOpen}
         onTogglePlaylist={handleTogglePlaylist}
-        onClosePlaylist={() => setShowPlaylistDropdown(false)}
+        onClosePlaylist={() => setIsPlaylistMenuOpen(false)}
         onSelectPlaylist={handlePlaylistSelect}
-        desktopLyricsActive={desktopLyricsActive}
-        onToggleDesktopLyrics={handleToggleDesktopLyrics}
+        isFloatingLyricsVisible={isFloatingLyricsVisible}
+        onToggleFloatingLyrics={handleToggleFloatingLyrics}
         isMuted={isMuted}
-        showVolumeSlider={showVolumeSlider}
+        isVolumePopoverVisible={isVolumePopoverVisible}
         visibleVolume={visibleVolume}
         visibleVolumePercent={visibleVolumePercent}
         onToggleMute={toggleMute}
@@ -329,15 +249,15 @@ export default function PlayerBar({
       />
 
       {/* 10. Floating lyrics overlay */}
-      {desktopLyricsActive && currentTrack && (
+      {isFloatingLyricsVisible && currentTrack && (
         <PlayerFloatingLyrics
           text={activeLyric}
-          onClose={() => setDesktopLyricsActive(false)}
+          onClose={() => setIsFloatingLyricsVisible(false)}
         />
       )}
 
       {/* Elegant Action Success Float Toast */}
-      {toastMessage && <PlayerToast message={toastMessage} />}
+      {playerToastMessage && <PlayerToast message={playerToastMessage} />}
     </div>
   );
 }

@@ -18,14 +18,14 @@ interface PlayerAuxiliaryControlsProps {
   onToggleCompletion: () => void;
   currentTrack: AudioTrack | null;
   playlists: Playlist[];
-  showPlaylistDropdown: boolean;
+  isPlaylistMenuOpen: boolean;
   onTogglePlaylist: () => void;
   onClosePlaylist: () => void;
   onSelectPlaylist: (playlist: Playlist) => void;
-  desktopLyricsActive: boolean;
-  onToggleDesktopLyrics: () => void;
+  isFloatingLyricsVisible: boolean;
+  onToggleFloatingLyrics: () => void;
   isMuted: boolean;
-  showVolumeSlider: boolean;
+  isVolumePopoverVisible: boolean;
   visibleVolume: number;
   visibleVolumePercent: number;
   onToggleMute: () => void;
@@ -43,14 +43,14 @@ export function PlayerAuxiliaryControls({
   onToggleCompletion,
   currentTrack,
   playlists,
-  showPlaylistDropdown,
+  isPlaylistMenuOpen,
   onTogglePlaylist,
   onClosePlaylist,
   onSelectPlaylist,
-  desktopLyricsActive,
-  onToggleDesktopLyrics,
+  isFloatingLyricsVisible,
+  onToggleFloatingLyrics,
   isMuted,
-  showVolumeSlider,
+  isVolumePopoverVisible,
   visibleVolume,
   visibleVolumePercent,
   onToggleMute,
@@ -87,19 +87,19 @@ export function PlayerAuxiliaryControls({
           className={`${AUXILIARY_ICON_BUTTON_BASE_CLASS} ${
             !hasTrack ? AUXILIARY_ICON_BUTTON_DISABLED_CLASS : ''
           } ${
-            showPlaylistDropdown
+            isPlaylistMenuOpen
               ? 'bg-sky-500/15 border-sky-500/40 text-sky-400'
               : AUXILIARY_ICON_BUTTON_IDLE_CLASS
           }`}
           title="收藏到歌单"
           aria-label="收藏到歌单"
           aria-haspopup="menu"
-          aria-expanded={showPlaylistDropdown}
+          aria-expanded={isPlaylistMenuOpen}
         >
           <FolderPlus className="w-4.5 h-4.5" aria-hidden="true" />
         </button>
 
-        {showPlaylistDropdown && currentTrack && (
+        {isPlaylistMenuOpen && currentTrack && (
           <PlayerPlaylistMenu
             currentTrack={currentTrack}
             playlists={playlists}
@@ -111,18 +111,18 @@ export function PlayerAuxiliaryControls({
 
       <button
         type="button"
-        onClick={onToggleDesktopLyrics}
+        onClick={onToggleFloatingLyrics}
         disabled={!hasTrack}
         className={`${AUXILIARY_ICON_BUTTON_BASE_CLASS} ${
           !hasTrack ? AUXILIARY_ICON_BUTTON_DISABLED_CLASS : ''
         } ${
-          desktopLyricsActive
+          isFloatingLyricsVisible
             ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-400 font-extrabold scale-105'
             : AUXILIARY_ICON_BUTTON_IDLE_CLASS
         }`}
         title="歌词浮窗开关"
-        aria-label={desktopLyricsActive ? '关闭歌词浮窗' : '开启歌词浮窗'}
-        aria-pressed={desktopLyricsActive}
+        aria-label={isFloatingLyricsVisible ? '关闭歌词浮窗' : '开启歌词浮窗'}
+        aria-pressed={isFloatingLyricsVisible}
       >
         <Tv className="w-4.5 h-4.5" aria-hidden="true" />
       </button>
@@ -149,7 +149,7 @@ export function PlayerAuxiliaryControls({
           )}
         </button>
 
-        {showVolumeSlider && (
+        {isVolumePopoverVisible && (
           <PlayerVolumePopover
             visibleVolume={visibleVolume}
             visibleVolumePercent={visibleVolumePercent}

@@ -53,28 +53,36 @@ for (const forbidden of [
   assert.ok(!presenterSource.includes(forbidden), `secondary presenter crossed behavior boundary: ${forbidden}`);
 }
 
+const progressTrack = fs.readFileSync('src/components/PlayerProgressTrack.tsx', 'utf8');
+for (const marker of [
+  "import { PlayerSeekPreview } from './PlayerTransientPresenters';",
+  '<PlayerSeekPreview percent={hoverPercent} timeLabel={hoverTimeLabel} />',
+  'aria-label="播放进度"',
+]) {
+  assert.ok(progressTrack.includes(marker), `progress-track presenter integration missing: ${marker}`);
+}
+
 const playerBar = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
 for (const marker of [
-  'PlayerSeekPreview,',
   'PlayerEmptyState,',
   'PlayerFloatingLyrics,',
-  '<PlayerSeekPreview',
-  'timeLabel={formatPlayerTime(hoverTime)}',
+  "import { PlayerProgressTrack } from './PlayerProgressTrack';",
+  '<PlayerProgressTrack',
+  'hoverTimeLabel={hoverTime !== null ? formatPlayerTime(hoverTime) : null}',
   '<PlayerEmptyState',
   'regressionLine={mvp54PlayerRegression.compactLine}',
   '<PlayerFloatingLyrics',
   'text={activeLyric}',
-  'onClose={() => setDesktopLyricsActive(false)}',
-  'aria-label="播放进度"',
-  'onToggleDesktopLyrics={handleToggleDesktopLyrics}',
+  'onClose={() => setIsFloatingLyricsVisible(false)}',
+  'onToggleFloatingLyrics={handleToggleFloatingLyrics}',
 ]) {
   assert.ok(playerBar.includes(marker), `PlayerBar secondary presenter integration missing: ${marker}`);
 }
 
 const auxiliary = fs.readFileSync('src/components/PlayerBarAuxiliaryControls.tsx', 'utf8');
 for (const marker of [
-  'aria-label={desktopLyricsActive ? \'关闭歌词浮窗\' : \'开启歌词浮窗\'}',
-  'aria-pressed={desktopLyricsActive}',
+  "aria-label={isFloatingLyricsVisible ? '关闭歌词浮窗' : '开启歌词浮窗'}",
+  'aria-pressed={isFloatingLyricsVisible}',
   '<Tv className="w-4.5 h-4.5" aria-hidden="true" />',
 ]) {
   assert.ok(auxiliary.includes(marker), `auxiliary lyrics-toggle integration missing: ${marker}`);
@@ -85,6 +93,8 @@ for (const forbidden of [
   '<span>跳转预览</span>',
   'fixed bottom-24 left-1/2 -translate-x-1/2 bg-zinc-950/90',
   'id="mvp59-player-empty-hint" className="text-[10px] text-zinc-500"',
+  'id="mvp75-playerbar-progress-stability"',
+  'type="range"',
 ]) {
   assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns extracted secondary presentation: ${forbidden}`);
 }

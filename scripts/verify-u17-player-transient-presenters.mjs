@@ -53,11 +53,11 @@ for (const forbidden of [
 const playerBar = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
 for (const marker of [
   "from './PlayerTransientPresenters'",
-  '<PlayerToast message={toastMessage} />',
+  '<PlayerToast message={playerToastMessage} />',
   'onSelectPlaylist={handlePlaylistSelect}',
   'onVolumeChange={handleVolumeSlide}',
-  "setToastMessage(`成功收藏到歌单《${playlist.name}》`)",
-  "setToastMessage('已存在于该歌单中')",
+  "setPlayerToastMessage(`成功收藏到歌单《${playlist.name}》`)",
+  "setPlayerToastMessage('已存在于该歌单中')",
 ]) {
   assert.ok(playerBar.includes(marker), `PlayerBar presenter integration missing: ${marker}`);
 }

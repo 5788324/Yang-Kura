@@ -60,7 +60,7 @@ for (const marker of [
   "import { PlayerTrackSummary, PlayerTransportControls } from './PlayerBarPrimarySections';",
   '<PlayerTrackSummary',
   'onToggleFavorite={() => {',
-  "setToastMessage(isLiked ? '已取消喜欢' : '已添加到喜欢')",
+  "setPlayerToastMessage(isLiked ? '已取消喜欢' : '已添加到喜欢')",
   '<PlayerTransportControls',
   'onToggleLoopMode={toggleLoopMode}',
   'onPrevious={onPrev}',
