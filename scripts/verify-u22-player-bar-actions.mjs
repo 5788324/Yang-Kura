@@ -4,14 +4,16 @@ import vm from 'node:vm';
 import ts from 'typescript';
 
 function transpile(path, jsx = false) {
+  const compilerOptions = {
+    module: ts.ModuleKind.CommonJS,
+    target: ts.ScriptTarget.ES2022,
+    strict: true,
+  };
+  if (jsx) compilerOptions.jsx = ts.JsxEmit.ReactJSX;
+
   const source = fs.readFileSync(path, 'utf8');
   const result = ts.transpileModule(source, {
-    compilerOptions: {
-      jsx: jsx ? ts.JsxEmit.ReactJSX : undefined,
-      module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2022,
-      strict: true,
-    },
+    compilerOptions,
     fileName: path,
     reportDiagnostics: true,
   });
@@ -34,18 +36,18 @@ const systemPlaylist = { id: 'system', name: '系统', isSystem: true, tracks: [
 const duplicatePlaylist = { id: 'duplicate', name: '重复', tracks: [{ id: 'track-1' }] };
 const writablePlaylist = { id: 'custom', name: '睡前收藏', tracks: [] };
 
-assert.deepEqual(
-  decisions.getPlaylistSelectionDecision(track, systemPlaylist),
-  { shouldAdd: false, message: '系统示例歌单不可修改，请新建自建歌单' },
-);
-assert.deepEqual(
-  decisions.getPlaylistSelectionDecision(track, duplicatePlaylist),
-  { shouldAdd: false, message: '已存在于该歌单中' },
-);
-assert.deepEqual(
-  decisions.getPlaylistSelectionDecision(track, writablePlaylist),
-  { shouldAdd: true, message: '成功收藏到歌单《睡前收藏》' },
-);
+const systemDecision = decisions.getPlaylistSelectionDecision(track, systemPlaylist);
+assert.equal(systemDecision.shouldAdd, false);
+assert.equal(systemDecision.message, '系统示例歌单不可修改，请新建自建歌单');
+
+const duplicateDecision = decisions.getPlaylistSelectionDecision(track, duplicatePlaylist);
+assert.equal(duplicateDecision.shouldAdd, false);
+assert.equal(duplicateDecision.message, '已存在于该歌单中');
+
+const writableDecision = decisions.getPlaylistSelectionDecision(track, writablePlaylist);
+assert.equal(writableDecision.shouldAdd, true);
+assert.equal(writableDecision.message, '成功收藏到歌单《睡前收藏》');
+
 assert.equal(decisions.getFavoriteToggleMessage(false), '已添加到喜欢');
 assert.equal(decisions.getFavoriteToggleMessage(true), '已取消喜欢');
 assert.equal(decisions.getFloatingLyricsToggleMessage(false), '歌词浮窗已开启');
@@ -91,7 +93,7 @@ const lyricHook = fs.readFileSync('src/hooks/useFloatingLyricText.ts', 'utf8');
 for (const marker of [
   'export function useFloatingLyricText',
   'parseLyrics(currentTrack?.lyrics)',
-  "getActiveLyricText(parsedLyrics, progress, fallback)",
+  'getActiveLyricText(parsedLyrics, progress, fallback)',
   "DEFAULT_FLOATING_LYRIC_FALLBACK = 'Yang-Kura 本地音频播放中'",
 ]) {
   assert.ok(lyricHook.includes(marker), `floating lyric hook contract missing: ${marker}`);
