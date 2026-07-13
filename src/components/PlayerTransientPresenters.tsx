@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react';
+import type { ChangeEvent, CSSProperties } from 'react';
 import { X } from 'lucide-react';
 import type { AudioTrack, Playlist } from '../types';
 
@@ -106,7 +106,7 @@ export function PlayerVolumePopover({
           value={visibleVolume}
           onChange={onChange}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer origin-bottom"
-          style={{ writingMode: 'bt-lr', WebkitAppearance: 'slider-vertical' } as React.CSSProperties}
+          style={{ writingMode: 'bt-lr', WebkitAppearance: 'slider-vertical' } as CSSProperties}
           aria-label="播放音量"
         />
         <div
