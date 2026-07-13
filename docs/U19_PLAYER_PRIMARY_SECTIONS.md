@@ -16,7 +16,8 @@ U19 extracts both regions together so the container keeps data preparation and c
 - keep favorite mutation, Toast selection, loop transitions, playback commands, queue toggling, and all player state in `PlayerBar.tsx`;
 - add keyboard access to the cover/title lyric entry;
 - add accessible names and pressed state to favorite, play/pause, queue, playlist, mute, and other icon controls;
-- keep the existing layout, visible wording, color utilities, animation classes, and callbacks.
+- keep the existing layout, visible wording, color utilities, animation classes, and callbacks;
+- keep both new components free of React state, effects, storage access, timers, and audio-backend calls.
 
 ## Preserved behavior
 
