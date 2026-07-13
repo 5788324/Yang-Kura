@@ -1,17 +1,10 @@
 import type { ChangeEvent } from 'react';
 import type { PlayerState, AudioTrack, Playlist } from '../types';
-import { playerExperienceService } from '../services/playerExperienceService';
-import { listeningExperiencePolishService } from '../services/listeningExperiencePolishService';
-import { playerVisualPolishService } from '../services/playerVisualPolishService';
-import { betaRegressionChecklistService } from '../services/betaRegressionChecklistService';
-import { homePlayerBetaPolishService } from '../services/homePlayerBetaPolishService';
-import { playerBarDailyCleanupService } from '../services/playerBarDailyCleanupService';
-import { playerUiBugfixService } from '../services/playerUiBugfixService';
-import { formatPlayerTime, getPlayerVolumeMetrics } from '../player/playerBarMath';
 import { useFloatingLyricText } from '../hooks/useFloatingLyricText';
 import { usePlayerBarActions } from '../hooks/usePlayerBarActions';
 import { usePlayerSeekInteraction } from '../hooks/usePlayerSeekInteraction';
 import { useDelayedVisibility } from '../hooks/usePlayerTransientUi';
+import { createPlayerBarPresentationModel } from '../player/playerBarPresentationModel';
 import {
   PlayerEmptyState,
   PlayerFloatingLyrics,
@@ -61,8 +54,7 @@ export default function PlayerBar({
   playlists,
   onAddToPlaylist,
 }: PlayerBarProps) {
-  const { currentTrack, isPlaying, progress, volume, isMuted, loopMode } = playerState;
-  const hasTrack = currentTrack !== null;
+  const { currentTrack, progress } = playerState;
   const canToggleCompletion = toggleCompletionMode !== undefined;
 
   const {
@@ -107,19 +99,15 @@ export default function PlayerBar({
   } = usePlayerSeekInteraction({ currentTrack, progress, onSeek });
 
   const activeLyric = useFloatingLyricText(currentTrack, progress);
+  const presentation = createPlayerBarPresentationModel({
+    playerState,
+    displayProgress: currentDisplayProgress,
+    duration: totalDuration,
+  });
 
   const handleVolumeSlide = (event: ChangeEvent<HTMLInputElement>) => {
     onVolumeChange(Number.parseFloat(event.target.value));
   };
-
-  const { visibleVolume, visibleVolumePercent } = getPlayerVolumeMetrics(volume, isMuted);
-  const playerSummary = playerExperienceService.getSummary(playerState);
-  const mvp49Player = listeningExperiencePolishService.getPlayerBarModel(playerState);
-  const mvp50PlayerVisual = playerVisualPolishService.getPlayerBarModel(playerState);
-  const mvp54PlayerRegression = betaRegressionChecklistService.getPlayerModel(playerState);
-  const mvp59PlayerBeta = homePlayerBetaPolishService.getPlayerBarModel(playerState);
-  const mvp74PlayerBar = playerBarDailyCleanupService.getPlayerBarModel(playerState);
-  const mvp79PlayerUi = playerUiBugfixService.getModel();
 
   return (
     <div
@@ -128,13 +116,16 @@ export default function PlayerBar({
       data-mvp79-player-ui-bugfix="true"
     >
       <PlayerProgressTrack
-        hasTrack={hasTrack}
+        hasTrack={presentation.hasTrack}
         duration={totalDuration}
         displayProgress={currentDisplayProgress}
         progressPercent={progressPercent}
         isDragging={isProgressDragging}
         hoverPercent={hoverPercent}
-        hoverTimeLabel={hoverTime !== null ? formatPlayerTime(hoverTime) : null}
+        hoverTimeLabel={hoverTime !== null ? presentation.transport.currentTimeLabel.replace(
+          presentation.transport.currentTimeLabel,
+          `${Math.floor(hoverTime / 60)}:${Math.floor(hoverTime % 60).toString().padStart(2, '0')}`,
+        ) : null}
         progressTrackRef={progressTrackRef}
         onTrackMouseMove={handleProgressTrackMouseMove}
         onTrackMouseLeave={handleProgressTrackMouseLeave}
@@ -151,39 +142,19 @@ export default function PlayerBar({
         {currentTrack ? (
           <PlayerTrackSummary
             track={currentTrack}
-            isPlaying={isPlaying}
             isLiked={isLiked}
-            playbackError={playerState.playbackError}
-            playbackNotice={playerState.playbackNotice}
-            compactStatus={mvp74PlayerBar.compactStatus}
-            visibleBadges={mvp74PlayerBar.visibleBadges}
-            hiddenMaintenanceNote={mvp74PlayerBar.hiddenMaintenanceNote}
-            completionModeDescription={playerSummary.completionModeDescription}
-            statusBadges={mvp49Player.statusBadges}
-            visualContextLine={mvp50PlayerVisual.contextLine}
-            regressionLine={mvp54PlayerRegression.compactLine}
-            compactLine={mvp59PlayerBeta.compactLine}
+            {...presentation.trackSummary}
             onOpenLyrics={toggleLyrics}
             onToggleFavorite={toggleCurrentFavorite}
           />
         ) : (
-          <PlayerEmptyState
-            title={mvp59PlayerBeta.emptyTitle}
-            hint={mvp59PlayerBeta.emptyHint}
-            regressionLine={mvp54PlayerRegression.compactLine}
-          />
+          <PlayerEmptyState {...presentation.emptyState} />
         )}
       </div>
 
       <PlayerTransportControls
-        hasTrack={hasTrack}
-        loopMode={loopMode}
-        playbackMode={playerState.playbackMode}
-        isPlaying={isPlaying}
+        {...presentation.transport}
         isQueueOpen={isQueueOpen}
-        queueCount={playerState.queue.length}
-        currentTimeLabel={formatPlayerTime(currentDisplayProgress)}
-        durationLabel={formatPlayerTime(totalDuration)}
         onToggleLoopMode={toggleLoopMode}
         onPrevious={onPrev}
         onTogglePlay={togglePlay}
@@ -192,9 +163,7 @@ export default function PlayerBar({
       />
 
       <PlayerAuxiliaryControls
-        hasTrack={hasTrack}
-        completionLabel={mvp49Player.completionLabel}
-        completionHint={mvp49Player.completionHint}
+        {...presentation.auxiliary}
         canToggleCompletion={canToggleCompletion}
         onToggleCompletion={() => toggleCompletionMode?.()}
         currentTrack={currentTrack}
@@ -205,10 +174,7 @@ export default function PlayerBar({
         onSelectPlaylist={selectPlaylist}
         isFloatingLyricsVisible={isFloatingLyricsVisible}
         onToggleFloatingLyrics={toggleFloatingLyrics}
-        isMuted={isMuted}
         isVolumePopoverVisible={isVolumePopoverVisible}
-        visibleVolume={visibleVolume}
-        visibleVolumePercent={visibleVolumePercent}
         onToggleMute={toggleMute}
         onVolumeMouseEnter={handleVolumeMouseEnter}
         onVolumeMouseLeave={handleVolumeMouseLeave}
@@ -216,10 +182,7 @@ export default function PlayerBar({
         onMoreActions={showMoreActions}
       />
 
-      <PlayerCompatibilityMarkers
-        betaChips={mvp59PlayerBeta.chips}
-        hiddenMaintenanceNote={mvp79PlayerUi.hiddenMaintenanceNote}
-      />
+      <PlayerCompatibilityMarkers {...presentation.compatibility} />
 
       {isFloatingLyricsVisible && currentTrack && (
         <PlayerFloatingLyrics text={activeLyric} onClose={closeFloatingLyrics} />
