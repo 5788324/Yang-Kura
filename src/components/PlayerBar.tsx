@@ -1,11 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import {
-  Volume2,
-  VolumeX,
-  FolderPlus,
-  Tv,
-  MoreHorizontal,
-} from 'lucide-react';
 import { PlayerState, AudioTrack, Playlist } from '../types';
 import { playerExperienceService } from '../services/playerExperienceService';
 import { listeningExperiencePolishService } from '../services/listeningExperiencePolishService';
@@ -33,6 +26,7 @@ import {
   PlayerVolumePopover,
 } from './PlayerTransientPresenters';
 import { PlayerTrackSummary, PlayerTransportControls } from './PlayerBarPrimarySections';
+import { PlayerAuxiliaryControls, PlayerCompatibilityMarkers } from './PlayerBarAuxiliaryControls';
 
 interface PlayerBarProps {
   playerState: PlayerState;
@@ -138,6 +132,20 @@ export default function PlayerBar({
     }
 
     setShowPlaylistDropdown(false);
+  };
+
+  const handleTogglePlaylist = () => {
+    if (currentTrack) setShowPlaylistDropdown((visible) => !visible);
+  };
+
+  const handleToggleDesktopLyrics = () => {
+    if (!currentTrack) return;
+    setDesktopLyricsActive(!desktopLyricsActive);
+    setToastMessage(desktopLyricsActive ? '歌词浮窗已关闭' : '歌词浮窗已开启');
+  };
+
+  const handleMoreActions = () => {
+    setToastMessage('更多播放操作将在后续版本开放');
   };
 
   const totalDuration = getSafeTrackDuration(currentTrack);
@@ -293,125 +301,35 @@ export default function PlayerBar({
         onToggleQueue={toggleQueue}
       />
 
-      {/* Right side: Volume, folder save, and desktop lyrics (No "全景声" and no lyrics "词" button) */}
-      <div 
-        onClick={(e) => e.stopPropagation()}
-        className="w-1/3 flex items-center justify-end space-x-4 pl-4"
-      >
-        <div id="mvp59-player-beta-chips" hidden aria-hidden="true">
-          {mvp59PlayerBeta.chips.map((chip) => (
-            <span key={chip.id}>{chip.label}：{chip.value}</span>
-          ))}
-        </div>
+      <PlayerAuxiliaryControls
+        hasTrack={Boolean(currentTrack)}
+        completionLabel={mvp49Player.completionLabel}
+        completionHint={mvp49Player.completionHint}
+        canToggleCompletion={Boolean(toggleCompletionMode)}
+        onToggleCompletion={() => toggleCompletionMode?.()}
+        currentTrack={currentTrack}
+        playlists={playlists}
+        showPlaylistDropdown={showPlaylistDropdown}
+        onTogglePlaylist={handleTogglePlaylist}
+        onClosePlaylist={() => setShowPlaylistDropdown(false)}
+        onSelectPlaylist={handlePlaylistSelect}
+        desktopLyricsActive={desktopLyricsActive}
+        onToggleDesktopLyrics={handleToggleDesktopLyrics}
+        isMuted={isMuted}
+        showVolumeSlider={showVolumeSlider}
+        visibleVolume={visibleVolume}
+        visibleVolumePercent={visibleVolumePercent}
+        onToggleMute={toggleMute}
+        onVolumeMouseEnter={handleVolumeMouseEnter}
+        onVolumeMouseLeave={handleVolumeMouseLeave}
+        onVolumeChange={handleVolumeSlide}
+        onMoreActions={handleMoreActions}
+      />
 
-        {/* Completion strategy: user-facing ASMR/music stop behavior */}
-        <button
-          type="button"
-          onClick={toggleCompletionMode}
-          disabled={!currentTrack || !toggleCompletionMode}
-          className="text-[10px] border border-zinc-800 bg-zinc-900/60 text-zinc-300 px-2.5 py-1 rounded-full font-bold flex-shrink-0 hover:border-sky-500/40 hover:text-sky-300 disabled:opacity-40 disabled:hover:border-zinc-800 disabled:hover:text-zinc-300 transition-colors"
-          title={mvp49Player.completionHint}
-          aria-label={`播放完成策略：${mvp49Player.completionLabel}`}
-        >
-          <span hidden aria-hidden="true">播放策略</span><span hidden aria-hidden="true">策略：</span>{mvp49Player.completionLabel}
-        </button>
-
-        {/* 9. 收藏到歌单 [+] Folder Save */}
-        <div className="relative">
-          <button
-            onClick={() => {
-              if (currentTrack) setShowPlaylistDropdown(!showPlaylistDropdown);
-            }}
-            disabled={!currentTrack}
-            className={`p-2 rounded-xl transition-all border flex items-center justify-center ${
-              !currentTrack ? 'opacity-30 border-transparent' : ''
-            } ${
-              showPlaylistDropdown
-                ? 'bg-sky-500/15 border-sky-500/40 text-sky-400' 
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-900 border-transparent hover:border-zinc-800/80 cursor-pointer'
-            }`}
-            title="收藏到歌单"
-            aria-label="收藏到歌单"
-            aria-haspopup="menu"
-            aria-expanded={showPlaylistDropdown}
-          >
-            <FolderPlus className="w-4.5 h-4.5" />
-          </button>
-
-          {/* Playlist picker popup dropdown */}
-          {showPlaylistDropdown && currentTrack && (
-            <PlayerPlaylistMenu
-              currentTrack={currentTrack}
-              playlists={playlists}
-              onClose={() => setShowPlaylistDropdown(false)}
-              onSelectPlaylist={handlePlaylistSelect}
-            />
-          )}
-        </div>
-
-        {/* 10. 歌词浮窗 */}
-        <button
-          onClick={() => {
-            if (currentTrack) {
-              setDesktopLyricsActive(!desktopLyricsActive);
-              setToastMessage(desktopLyricsActive ? '歌词浮窗已关闭' : '歌词浮窗已开启');
-            }
-          }}
-          disabled={!currentTrack}
-          className={`p-2 rounded-xl transition-all border flex items-center justify-center ${
-            !currentTrack ? 'opacity-30 border-transparent' : ''
-          } ${
-            desktopLyricsActive 
-              ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-400 font-extrabold scale-105' 
-              : 'text-zinc-400 hover:text-white hover:bg-zinc-900 border-transparent hover:border-zinc-800/80 cursor-pointer'
-          }`}
-          title="歌词浮窗开关"
-          aria-label={desktopLyricsActive ? '关闭歌词浮窗' : '开启歌词浮窗'}
-          aria-pressed={desktopLyricsActive}
-        >
-          <Tv className="w-4.5 h-4.5" />
-        </button>
-
-        <span className="text-zinc-800">|</span>
-
-        {/* 7. Volume Hover Vertical Slider with seamless hover bridge */}
-        <div 
-          className="relative flex items-center justify-center"
-          onMouseEnter={handleVolumeMouseEnter}
-          onMouseLeave={handleVolumeMouseLeave}
-        >
-          <button
-            onClick={toggleMute}
-            className="text-zinc-400 hover:text-white p-2 rounded-xl hover:bg-zinc-900 transition-colors cursor-pointer"
-            title={isMuted ? "取消静音" : "静音"}
-            aria-label={isMuted ? '取消静音' : '静音'}
-            aria-pressed={isMuted}
-          >
-            {isMuted ? <VolumeX className="w-4.5 h-4.5 text-zinc-500" /> : <Volume2 className="w-4.5 h-4.5" />}
-          </button>
-          
-          {/* Hover Popover Slider widget with invisible physical overlay bridge */}
-          {showVolumeSlider && (
-            <PlayerVolumePopover
-              visibleVolume={visibleVolume}
-              visibleVolumePercent={visibleVolumePercent}
-              onChange={handleVolumeSlide}
-            />
-          )}
-        </div>
-
-        {/* More placeholder: no silent/dead button; gives explicit feedback until the menu is implemented. */}
-        <button
-          onClick={() => setToastMessage('更多播放操作将在后续版本开放')}
-          className="text-zinc-500 hover:text-white p-1 rounded transition-colors cursor-pointer"
-          title="更多播放操作（后续开放）"
-          aria-label="更多播放操作（后续开放）"
-        >
-          <MoreHorizontal className="w-4 h-4" />
-        </button>
-      </div>
-
-      <div id="mvp79-player-ui-bugfix" hidden aria-hidden="true">{mvp79PlayerUi.hiddenMaintenanceNote}</div>
+      <PlayerCompatibilityMarkers
+        betaChips={mvp59PlayerBeta.chips}
+        hiddenMaintenanceNote={mvp79PlayerUi.hiddenMaintenanceNote}
+      />
 
       {/* 10. Floating lyrics overlay */}
       {desktopLyricsActive && currentTrack && (
