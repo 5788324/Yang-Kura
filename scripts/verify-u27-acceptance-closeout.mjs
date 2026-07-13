@@ -9,7 +9,8 @@ const u28Task = fs.readFileSync('docs/U28_NATIVE_LIBRARY_WORKFLOW_TASK.md', 'utf
 for (const marker of [
   'NO-GO',
   'CONDITIONAL GO',
-  '已被真实资源库补测覆盖',
+  '真实音声库补测',
+  '唯一有效的最终结论',
   'MAJ-001',
   'MAJ-002',
   '449C19A8659D8316DAA5E8AED3C4439822A5C20346B5BA0A728C5B9E3D78C922',
@@ -23,7 +24,7 @@ for (const marker of [
 
 for (const marker of [
   'U27 已完成',
-  'NO-GO',
+  '最终结论 NO-GO',
   'U28',
   'MAJ-001',
   'MAJ-002',
@@ -62,5 +63,6 @@ for (const safetyBoundary of [
 
 assert.ok(!state.includes('结论 CONDITIONAL GO'), 'PROJECT_STATE must not retain CONDITIONAL GO as the final status');
 assert.ok(!roadmap.includes('实机结果：CONDITIONAL GO'), 'PROJECT_ROADMAP must not retain the superseded final result');
+assert.ok(result.indexOf('NO-GO') < result.indexOf('CONDITIONAL GO') || result.includes('唯一有效的最终结论是 `NO-GO`'));
 
 console.log('U27 NO-GO correction and U28 library-closure repair verifier PASS');
