@@ -14,7 +14,7 @@ U16 moves these lifecycles into small reusable Hooks and a resettable timer prim
 - add `createResettableTimeout` with injected scheduler support for executable timer tests;
 - add `useDelayedVisibility` for the volume hover popover;
 - add `useAutoDismissMessage` for player toast messages;
-- cancel pending timers when Hooks unmount or their state changes;
+- cancel pending timers when Hooks unmount, the message changes, or delayed visibility is reopened;
 - keep `PlayerBar.tsx` responsible for event wiring and rendering instead of timer ownership.
 
 ## Preserved behavior
