@@ -1,0 +1,38 @@
+name: U26 Apply AI Library Maintenance
+
+on:
+  push:
+    branches:
+      - codex/u26-ai-library-maintenance
+    paths:
+      - scripts/apply-u26-ai-library-maintenance.mjs
+      - .github/workflows/u26-apply-ai-library-maintenance.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: windows-latest
+    steps:
+      - name: Check out U26 branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/u26-ai-library-maintenance
+          fetch-depth: 0
+      - name: Apply exact U26 source patch
+        shell: pwsh
+        run: node scripts/apply-u26-ai-library-maintenance.mjs
+      - name: Remove one-time patch files
+        shell: pwsh
+        run: |
+          Remove-Item scripts/apply-u26-ai-library-maintenance.mjs
+          Remove-Item .github/workflows/u26-apply-ai-library-maintenance.yml
+      - name: Commit patched source
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor: group library maintenance under AI maintenance"
+          git push origin HEAD:codex/u26-ai-library-maintenance
