@@ -7,7 +7,8 @@
 代码基线：GitHub main
 产品化增量：U02～U08 已合入
 结构、质量与日常 UI 增量：U09～U26 已合入
-当前任务：Windows GUI 日常界面验收与定向修复
+Windows GUI 验收：U27 已完成，结论 CONDITIONAL GO
+当前任务：U28 原生目录选择与真实媒体闭环补测
 MVP130：独立实验下载器，继续冻结，禁止合入
 ```
 
@@ -180,6 +181,17 @@ MVP130：独立实验下载器，继续冻结，禁止合入
 - 新增 UI 无法明确回答“用户日常是否会直接操作”时，默认进入 AI 维护；
 - 详细规则见 docs/UI_DAILY_SURFACE_RULES.md。
 
+## U27 Windows GUI 实机验收（已完成）
+
+- 结论：`CONDITIONAL GO`。
+- 自动门禁、Electron strict smoke、生产构建和 portable 打包通过。
+- 干净首次启动、空库、AI 维护默认折叠、三主题、常规/最大化窗口和进程回收通过。
+- 0 Blocker、0 Major、1 Minor、2 Observation。
+- MIN-001：导入器未选择来源时仍显示“4 个示例文件”，需在真实导入后复核是否误导。
+- 原生目录选择器无法由当前自动化接口操作，因此扫描、真实播放/Seek、字幕和 copy/move 导入保持 NOT TESTED。
+- 用户原配置已恢复，Git 工作区 clean，无 Yang Kura / Electron / mpv 残留进程。
+- 详细记录见 `docs/U27_WINDOWS_GUI_ACCEPTANCE_RESULT.md`。
+
 ## 当前阶段
 
 项目已越过主体功能开发期，进入：
@@ -188,12 +200,13 @@ MVP130：独立实验下载器，继续冻结，禁止合入
 产品质量收口
 → PlayerBar 结构优化已完成
 → 日常界面去工程化已完成
-→ Windows GUI 用户流程验收
-→ 定向缺陷修复
-→ 重新打包形成新 Beta 基线
+→ U27 Windows GUI 基线验收已完成（CONDITIONAL GO）
+→ U28 原生目录选择与真实媒体闭环补测
+→ U29～U31 定向实机验收与修复
+→ U32～U33 发布候选与新 Beta 收口
 ```
 
-禁止为了代码整齐进行全项目重构。下一步只根据 Windows 实机结果修复明确缺陷。
+禁止为了代码整齐进行全项目重构。U28 先补齐 U27 未测试的原生目录选择、扫描、播放、字幕、导入和重启恢复；发现问题先记录，另开定向修复分支。
 
 ## 自动验证
 
@@ -214,12 +227,12 @@ npm run build
 
 ## 仍需完成
 
-1. Windows 真实 GUI 完整用户流程验收。
-2. 1040×680、常规窗口和最大化布局检查。
-3. 三主题对比度与交互一致性检查。
-4. 实际 mpv/HTMLAudio、字幕、队列、重启恢复和 copy-only 流程复验。
-5. `build:electron`、strict smoke、portable、NSIS、安装卸载和残留进程复验。
-6. 根据实机结果修复明确缺陷并形成新 Beta 发布记录。
+1. U28：人工原生目录授权、ASMR/音乐扫描、Index 写入读取和重启恢复。
+2. U28：真实 HTMLAudio/mpv、Seek、队列和 LRC/SRT/VTT/ASS 字幕补测。
+3. U28：临时副本上的 copy-only / move-only 导入与 MIN-001 复核。
+4. U29～U31：根据真实媒体流程继续播放器、UI、窗口和数据安全验收。
+5. U32：strict smoke、mpv acceptance、portable、NSIS、安装升级卸载和残留进程。
+6. U33：版本号、Release Notes、tag、产物 SHA-256 和新 Beta 发布收口。
 
 ## 长期观察与冻结项
 
