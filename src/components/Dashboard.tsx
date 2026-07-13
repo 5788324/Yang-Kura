@@ -411,7 +411,7 @@ export default function Dashboard({
         </div>
       </section>
 
-      <section id="mvp71-home-user-facing-simplification" className="rounded-3xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
+      <section id="mvp71-home-user-facing-simplification" hidden aria-hidden="true" className="rounded-3xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
           <div>
             <p className="text-[10px] font-bold text-emerald-300 tracking-wider">日常首页</p>

@@ -1128,7 +1128,7 @@ export default function SettingsPage({
                 </div>
               </section>
 
-              <section id="mvp124-mpv-stability-diagnostics" className="rounded-2xl border border-border-color bg-card-bg/30 p-5 space-y-4">
+              <section id="mvp124-mpv-stability-diagnostics" hidden aria-hidden="true" className="rounded-2xl border border-border-color bg-card-bg/30 p-5 space-y-4">
                 <div className="flex items-center gap-2">
                   <Info className="h-4 w-4 text-violet-300" />
                   <h3 className="text-xs font-bold text-text-primary">播放稳定性状态</h3>
@@ -1158,7 +1158,7 @@ export default function SettingsPage({
                 )}
               </section>
 
-              <section id="mvp125-player-acceptance-checklist" className="rounded-2xl border border-border-color bg-card-bg/30 p-5 space-y-4">
+              <section id="mvp125-player-acceptance-checklist" hidden aria-hidden="true" className="rounded-2xl border border-border-color bg-card-bg/30 p-5 space-y-4">
                 <div className="flex items-center gap-2">
                   <HardDrive className="h-4 w-4 text-cyan-300" />
                   <h3 className="text-xs font-bold text-text-primary">Windows 播放链路快检</h3>
@@ -1182,7 +1182,7 @@ export default function SettingsPage({
                 </p>
               </section>
 
-              <section id="mvp123-mpv-windows-sample-check" className="rounded-2xl border border-border-color bg-card-bg/30 p-5 space-y-3">
+              <section id="mvp123-mpv-windows-sample-check" hidden aria-hidden="true" className="rounded-2xl border border-border-color bg-card-bg/30 p-5 space-y-3">
                 <div className="flex items-center gap-2">
                   <HardDrive className="h-4 w-4 text-cyan-300" />
                   <h3 className="text-xs font-bold text-text-primary">Windows 小样本验证工具</h3>
@@ -1203,7 +1203,7 @@ export default function SettingsPage({
           {/* TAB 3: 资源库目录 */}
           {activeTab === "paths" && (
             <div className="space-y-5 animate-fade-in">
-              <section id="mvp44-settings-daily-flow" className="rounded-2xl border border-brand-color/20 bg-brand-color/5 p-5 space-y-4">
+              <section id="mvp44-settings-daily-flow" hidden aria-hidden="true" className="rounded-2xl border border-brand-color/20 bg-brand-color/5 p-5 space-y-4">
                 <div className="flex flex-col gap-1 border-b border-border-color/30 pb-3">
                   <h3 className="text-xs font-bold text-text-primary">{mvp44Separation.settingsTitle}</h3>
                   <p className="text-[10px] text-text-muted leading-relaxed">
@@ -1242,7 +1242,7 @@ export default function SettingsPage({
                 </div>
               </section>
 
-              <section id="mvp58-settings-personal-workflow" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
+              <section id="mvp58-settings-personal-workflow" hidden aria-hidden="true" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
                 <div className="flex flex-col gap-1 border-b border-border-color/30 pb-3">
                   <h3 className="text-xs font-bold text-text-primary">{mvp58PersonalWorkflow.title}</h3>
                   <p className="text-[10px] text-text-muted leading-relaxed">{mvp58PersonalWorkflow.description}</p>
@@ -1274,7 +1274,7 @@ export default function SettingsPage({
                 <p className="text-[10px] text-text-muted leading-relaxed border-t border-border-color/30 pt-2">{mvp58PersonalWorkflow.helper}</p>
               </section>
 
-              <section id="mvp71-settings-user-facing-simplification" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
+              <section id="mvp71-settings-user-facing-simplification" hidden aria-hidden="true" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
                     <p className="text-[10px] font-bold text-emerald-300 tracking-wider">设置页精简</p>
@@ -1292,7 +1292,7 @@ export default function SettingsPage({
                 </div>
               </section>
 
-              <section id="mvp80-settings-daily-finalize" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4">
+              <section id="mvp80-settings-daily-finalize" hidden aria-hidden="true" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 border-b border-border-color/30 pb-3">
                   <div>
                     <p className="text-[10px] font-bold text-sky-300 tracking-wider">日常设置检查</p>
@@ -1319,7 +1319,7 @@ export default function SettingsPage({
                 </div>
               </section>
 
-              <section id="mvp110-settings-daily-language" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-3">
+              <section id="mvp110-settings-daily-language" hidden aria-hidden="true" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
                     <p className="text-[10px] font-bold text-sky-300 tracking-wider">日常设置</p>
@@ -1340,7 +1340,7 @@ export default function SettingsPage({
                 </p>
               </section>
 
-              <section id="mvp111-github-baseline-sync" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-3">
+              <section id="mvp111-github-baseline-sync" hidden aria-hidden="true" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
                     <p className="text-[10px] font-bold text-emerald-300 tracking-wider">项目基线</p>
@@ -2347,7 +2347,7 @@ export default function SettingsPage({
               </div>
 
               {/* MVP-07 Scanner Contract UI Flow */}
-              <div className="bg-blue-500/5 border border-blue-500/15 p-5 rounded-2xl space-y-4">
+              <div hidden aria-hidden="true" className="bg-blue-500/5 border border-blue-500/15 p-5 rounded-2xl space-y-4">
                 <div className="flex items-start justify-between gap-3 border-b border-border-color/30 pb-3">
                   <div className="flex items-start space-x-2.5">
                     <ShieldAlert className="w-5 h-5 text-blue-400 mt-0.5" />
@@ -2951,7 +2951,7 @@ export default function SettingsPage({
                   <span className="rounded-full border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-[9px] font-bold text-amber-100 whitespace-nowrap">默认折叠</span>
                 </summary>
                 <div className="mt-4 space-y-4">
-              <section id="mvp60-beta-candidate-summary" className="rounded-2xl border border-brand-color/20 bg-brand-color/5 p-5 space-y-4">
+              <section id="mvp60-beta-candidate-summary" hidden aria-hidden="true" className="rounded-2xl border border-brand-color/20 bg-brand-color/5 p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-bold text-text-primary">{mvp60BetaCandidate.title}</h3>
@@ -3000,7 +3000,7 @@ export default function SettingsPage({
               </section>
 
 
-              <section id="mvp61-local-regression-fix" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4">
+              <section id="mvp61-local-regression-fix" hidden aria-hidden="true" className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-bold text-text-primary">{mvp61LocalRegression.title}</h3>
@@ -3045,7 +3045,7 @@ export default function SettingsPage({
 
 
 
-              <section id="mvp66-beta-gui-regression" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
+              <section id="mvp66-beta-gui-regression" hidden aria-hidden="true" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-bold text-text-primary">{mvp66BetaGuiRegression.title}</h3>
@@ -3088,7 +3088,7 @@ export default function SettingsPage({
               </section>
 
 
-              <section id="mvp67-beta-rc-closeout" className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-5 space-y-4">
+              <section id="mvp67-beta-rc-closeout" hidden aria-hidden="true" className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-bold text-text-primary">{mvp67BetaRcCloseout.title}</h3>
@@ -3136,7 +3136,7 @@ export default function SettingsPage({
               </section>
 
 
-              <section id="mvp70-beta-final-handoff" className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-5 space-y-4">
+              <section id="mvp70-beta-final-handoff" hidden aria-hidden="true" className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-bold text-text-primary">{mvp70BetaFinalHandoff.title}</h3>
@@ -3184,7 +3184,7 @@ export default function SettingsPage({
               </section>
 
 
-              <section id="mvp69-beta-release-candidate" className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-5 space-y-4">
+              <section id="mvp69-beta-release-candidate" hidden aria-hidden="true" className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-bold text-text-primary">{mvp69BetaReleaseCandidate.title}</h3>
@@ -3235,7 +3235,7 @@ export default function SettingsPage({
               </section>
 
 
-              <section id="mvp68-beta-rc-user-guide" className="rounded-2xl border border-sky-500/25 bg-sky-500/10 p-5 space-y-4">
+              <section id="mvp68-beta-rc-user-guide" hidden aria-hidden="true" className="rounded-2xl border border-sky-500/25 bg-sky-500/10 p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-bold text-text-primary">{mvp68BetaRcUserGuide.title}</h3>
@@ -3286,7 +3286,7 @@ export default function SettingsPage({
               </section>
 
 
-              <section id="mvp64-diagnostics-black-view-fix" className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 space-y-4">
+              <section id="mvp64-diagnostics-black-view-fix" hidden aria-hidden="true" className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-bold text-text-primary">{mvp64DiagnosticsBlackViewFix.title}</h3>
@@ -3325,7 +3325,7 @@ export default function SettingsPage({
               </section>
 
 
-              <section id="mvp63-electron-binary-path-fix" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
+              <section id="mvp63-electron-binary-path-fix" hidden aria-hidden="true" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-bold text-text-primary">{mvp63ElectronBinaryPathFix.title}</h3>
@@ -3369,7 +3369,7 @@ export default function SettingsPage({
               </section>
 
 
-              <section id="mvp62-electron-regression-hardening" className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5 space-y-4">
+              <section id="mvp62-electron-regression-hardening" hidden aria-hidden="true" className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-bold text-text-primary">{mvp62ElectronHardening.title}</h3>
