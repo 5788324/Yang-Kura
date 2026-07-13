@@ -6,8 +6,8 @@
 核心版本：0.167.0-mvp129
 代码基线：GitHub main
 产品化增量：U02～U08 已合入
-结构质量增量：U09～U10 已合入
-当前任务：U11 高危依赖审计自动门禁
+结构与质量增量：U09～U11 已合入
+当前任务：U12 侧栏导航结构与可访问性优化
 MVP130：独立实验下载器，继续冻结，禁止合入
 ```
 
@@ -38,7 +38,7 @@ MVP130：独立实验下载器，继续冻结，禁止合入
 - U08：全屏播放页增加 dialog 语义、Escape 和焦点进入/返回。
 - CI：Pull Request 在 Windows runner 上自动执行专项 verifier、稳定回归和生产构建。
 
-## 渐进式结构质量增量
+## 渐进式结构与质量增量
 
 ### U09（已完成）
 
@@ -54,11 +54,19 @@ MVP130：独立实验下载器，继续冻结，禁止合入
 - 修正 U09 verifier 对路线文档固定措辞的耦合；
 - 保持字幕加载、自动滚动、播放进度和 UI 行为不变。
 
-### U11（当前）
+### U11（已完成）
 
-- 在 Windows Pull Request 门禁中增加 `npm audit --audit-level=high`；
-- high / critical 依赖风险将直接阻止合并；
-- 既有 Electron moderate 提示仍按非阻塞风险记录，不执行自动修复。
+- Windows Pull Request 门禁增加 `npm audit --audit-level=high`；
+- high / critical 依赖风险直接阻止合并；
+- 既有 Electron moderate 提示继续按非阻塞风险记录，不执行自动修复；
+- CI 保存每份 `verify-u*.mjs` 的结果报告，便于定位专项失败。
+
+### U12（当前）
+
+- 把侧栏日常导航和维护导航改为类型化只读配置；
+- 使用共享 `SidebarNavSection` 消除两套重复 JSX；
+- 增加导航分区语义、键盘焦点样式和 reduced-motion 显式处理；
+- 保持八个入口的名称、顺序、页面跳转和详情状态清理行为不变。
 
 ## 当前阶段
 
@@ -82,6 +90,7 @@ Pull Request 自动门禁当前覆盖：
 npm ci --ignore-scripts --no-audit --no-fund
 npm audit --audit-level=high
 全部 scripts/verify-u*.mjs
+逐 verifier TSV 报告与 Actions artifact
 npm run verify:stable
 npm run build
 ```
