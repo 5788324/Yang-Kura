@@ -97,11 +97,11 @@ for (const marker of [
 const playerBar = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
 for (const marker of [
   "from '../hooks/usePlayerTransientUi'",
-  'isVisible: showVolumeSlider',
+  'isVisible: isVolumePopoverVisible',
   'show: handleVolumeMouseEnter',
   'scheduleHide: handleVolumeMouseLeave',
-  'message: toastMessage',
-  'showMessage: setToastMessage',
+  'message: playerToastMessage',
+  'showMessage: setPlayerToastMessage',
 ]) {
   assert.ok(playerBar.includes(marker), `PlayerBar transient UI integration missing: ${marker}`);
 }
@@ -110,7 +110,7 @@ for (const forbidden of [
   'volumeTimeoutRef',
   'const [showVolumeSlider, setShowVolumeSlider]',
   'const [toastMessage, setToastMessage]',
-  'setTimeout(() => setToastMessage(null)',
+  'setTimeout(() => setPlayerToastMessage(null)',
   'useEffect(() => {\n    return () => {\n      if (volumeTimeoutRef.current)',
 ]) {
   assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns transient lifecycle: ${forbidden}`);
