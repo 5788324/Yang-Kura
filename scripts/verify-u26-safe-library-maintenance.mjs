@@ -85,7 +85,7 @@ for (const marker of [
   '读取已有记录',
   '一键扫描并应用',
   'ASMR / RJ 音声库目录',
-  '流行音乐库目录',
+  '音乐库路径',
 ]) {
   if (!settings.includes(marker)) failures.push(`daily library capability missing: ${marker}`);
 }
