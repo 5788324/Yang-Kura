@@ -64,16 +64,29 @@ for (const marker of [
   "import { PlayerAuxiliaryControls, PlayerCompatibilityMarkers } from './PlayerBarAuxiliaryControls';",
   "import { usePlayerBarActions } from '../hooks/usePlayerBarActions';",
   '<PlayerAuxiliaryControls',
+  '{...presentation.auxiliary}',
   'onToggleCompletion={() => toggleCompletionMode?.()}',
   'onSelectPlaylist={selectPlaylist}',
   'onToggleFloatingLyrics={toggleFloatingLyrics}',
   'onToggleMute={toggleMute}',
   'onMoreActions={showMoreActions}',
-  '<PlayerCompatibilityMarkers',
-  'betaChips={mvp59PlayerBeta.chips}',
-  'hiddenMaintenanceNote={mvp79PlayerUi.hiddenMaintenanceNote}',
+  '<PlayerCompatibilityMarkers {...presentation.compatibility} />',
 ]) {
   assert.ok(playerBar.includes(marker), `PlayerBar auxiliary integration missing: ${marker}`);
+}
+
+const presentationModel = fs.readFileSync('src/player/playerBarPresentationModel.ts', 'utf8');
+for (const marker of [
+  'auxiliary:',
+  'completionLabel: listening.completionLabel',
+  'completionHint: listening.completionHint',
+  'visibleVolume: volume.visibleVolume',
+  'visibleVolumePercent: volume.visibleVolumePercent',
+  'compatibility:',
+  'betaChips: beta.chips',
+  'hiddenMaintenanceNote: compatibility.hiddenMaintenanceNote',
+]) {
+  assert.ok(presentationModel.includes(marker), `auxiliary presentation mapping missing: ${marker}`);
 }
 
 const actionHook = fs.readFileSync('src/hooks/usePlayerBarActions.ts', 'utf8');
@@ -106,6 +119,8 @@ for (const forbidden of [
   'handleToggleFloatingLyrics',
   'handleMoreActions',
   'setPlayerToastMessage',
+  'mvp59PlayerBeta',
+  'mvp79PlayerUi',
 ]) {
   assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns extracted auxiliary presentation or actions: ${forbidden}`);
 }
