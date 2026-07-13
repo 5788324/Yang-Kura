@@ -114,10 +114,12 @@ const playerBar = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
 for (const marker of [
   "import { useFloatingLyricText } from '../hooks/useFloatingLyricText';",
   "import { usePlayerBarActions } from '../hooks/usePlayerBarActions';",
-  'const hasTrack = currentTrack !== null;',
+  "import { createPlayerBarPresentationModel } from '../player/playerBarPresentationModel';",
   'const canToggleCompletion = toggleCompletionMode !== undefined;',
   'usePlayerBarActions({',
   'const activeLyric = useFloatingLyricText(currentTrack, progress);',
+  'const presentation = createPlayerBarPresentationModel({',
+  'hasTrack={presentation.hasTrack}',
   'onToggleFavorite={toggleCurrentFavorite}',
   'onTogglePlaylist={togglePlaylistMenu}',
   'onClosePlaylist={closePlaylistMenu}',
@@ -129,6 +131,10 @@ for (const marker of [
 ]) {
   assert.ok(playerBar.includes(marker), `PlayerBar U22 integration missing: ${marker}`);
 }
+
+const presentationModel = fs.readFileSync('src/player/playerBarPresentationModel.ts', 'utf8');
+assert.ok(presentationModel.includes('const hasTrack = playerState.currentTrack !== null;'));
+assert.ok(presentationModel.includes('hasTrack,'));
 
 for (const forbidden of [
   'useState(',
@@ -143,6 +149,7 @@ for (const forbidden of [
   'getActiveLyricText(',
   'Boolean(currentTrack)',
   'Boolean(toggleCompletionMode)',
+  'const hasTrack = currentTrack !== null;',
 ]) {
   assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns U22 state or decisions: ${forbidden}`);
 }

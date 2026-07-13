@@ -72,13 +72,14 @@ assert.equal(lyrics.getActiveLyricText([], 6, 'fallback'), 'fallback');
 const playerBar = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
 const seekHook = fs.readFileSync('src/hooks/usePlayerSeekInteraction.ts', 'utf8');
 const lyricHook = fs.readFileSync('src/hooks/useFloatingLyricText.ts', 'utf8');
-const playerIntegration = `${playerBar}\n${seekHook}\n${lyricHook}`;
+const presentationModel = fs.readFileSync('src/player/playerBarPresentationModel.ts', 'utf8');
+const playerIntegration = `${playerBar}\n${seekHook}\n${lyricHook}\n${presentationModel}`;
 for (const marker of [
   "from '../player/playerBarMath'",
   "from '../player/lyricsTimeline'",
   'getSafeTrackDuration(currentTrack)',
   'getPlayerProgressMetrics(progress, dragPreviewSeconds, duration)',
-  'getPlayerVolumeMetrics(volume, isMuted)',
+  'getPlayerVolumeMetrics(playerState.volume, playerState.isMuted)',
   'seekFromPointerPosition(event.clientX, rect.left, rect.width, duration)',
   'parseLyrics(currentTrack?.lyrics)',
   "getActiveLyricText(parsedLyrics, progress, fallback)",
@@ -96,6 +97,7 @@ for (const forbidden of [
   'currentTrack.lyrics.map(line =>',
   'parseLyrics(',
   'getActiveLyricText(',
+  'getPlayerVolumeMetrics(',
 ]) {
   assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns extracted logic: ${forbidden}`);
 }
