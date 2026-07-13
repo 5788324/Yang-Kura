@@ -16,6 +16,7 @@ U17 moves these blocks into a small presentation module so the player container 
 - add `PlayerVolumePopover` for the vertical volume range and percentage display;
 - add `PlayerToast` for transient status announcements;
 - keep playlist add/existing/read-only decisions and all messages in `PlayerBar.tsx`;
+- keep U16 timer Hooks in `PlayerBar.tsx`; the new presenters own no timers or React lifecycle;
 - add menu, close-button, volume-range and polite status semantics without changing visible content.
 
 ## Preserved behavior
