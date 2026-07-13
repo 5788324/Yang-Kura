@@ -2522,6 +2522,7 @@ export default function SettingsPage({
                 </div>
               )}
                   </div>
+                  </div>
                 </details>
 
               {/* ASMR (RJ) 仓库 */}
