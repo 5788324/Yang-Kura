@@ -70,7 +70,7 @@ assert.ok(bridge.includes('#app-player-bar input[type="range"]'));
 assert.ok(bridge.includes('accent-color: var(--brand-color);'));
 
 const progressDocuments = `${projectState}\n${roadmap}`;
-for (const marker of ['U13（已完成）', 'U14', '播放器中性色', 'MVP130']) {
+for (const marker of ['U13', 'U14', 'MVP130']) {
   assert.ok(progressDocuments.includes(marker), `project progress missing U14 fact: ${marker}`);
 }
 

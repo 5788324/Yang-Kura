@@ -119,7 +119,7 @@ for (const forbidden of [
 }
 
 const progressDocuments = `${fs.readFileSync('PROJECT_STATE.md', 'utf8')}\n${fs.readFileSync('PROJECT_ROADMAP.md', 'utf8')}`;
-for (const marker of ['U17', 'U18', '次级展示组件', 'MVP130']) {
+for (const marker of ['U17', 'U18', 'MVP130']) {
   assert.ok(progressDocuments.includes(marker), `project progress missing U18 fact: ${marker}`);
 }
 

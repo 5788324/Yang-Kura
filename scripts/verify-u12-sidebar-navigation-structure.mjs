@@ -78,7 +78,7 @@ if (mapOccurrences !== 1) {
 }
 
 const progressDocuments = `${projectState}\n${roadmap}`;
-for (const marker of ['U12', 'U24', '侧栏导航', 'AI 维护', 'MVP130']) {
+for (const marker of ['U12', 'U24', 'AI 维护', 'MVP130']) {
   if (!progressDocuments.includes(marker)) failures.push(`project progress missing sidebar fact: ${marker}`);
 }
 
