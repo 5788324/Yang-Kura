@@ -201,6 +201,7 @@ export default function SettingsPage({
     electronRuntimeProbeService.getInitialProbe(),
   );
   const [showAdvancedLibraryTools, setShowAdvancedLibraryTools] = useState(false);
+  const [showLibraryMaintenance, setShowLibraryMaintenance] = useState(false);
   const [mpvStatus, setMpvStatus] = useState<YangKuraMpvInstallationStatus | null>(null);
   const [mpvStatusMessage, setMpvStatusMessage] = useState<string | null>(null);
   const [isCheckingMpv, setIsCheckingMpv] = useState(false);
@@ -1622,7 +1623,25 @@ export default function SettingsPage({
                   )}
                 </div>
 
-                <div id="mvp127-library-index-health-management" className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
+                <div id="u26-settings-ai-library-maintenance" className="rounded-2xl border border-amber-500/20 bg-card-bg/35 p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-amber-300">AI 维护</p>
+                      <h3 className="mt-1 text-xs font-bold text-text-primary">资源库检修</h3>
+                      <p className="mt-1 text-[10px] leading-relaxed text-text-muted">缺失检查、索引清理、备份恢复和扫描预览默认隐藏，日常无需展开。</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowLibraryMaintenance((value) => !value)}
+                      aria-expanded={showLibraryMaintenance}
+                      className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-100 transition-colors hover:bg-amber-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-color/60"
+                    >
+                      {showLibraryMaintenance ? "收起检修工具" : "展开检修工具"}
+                    </button>
+                  </div>
+                </div>
+
+                <div id="mvp127-library-index-health-management" hidden={!showLibraryMaintenance} aria-hidden={!showLibraryMaintenance} className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
                   <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
@@ -1990,7 +2009,7 @@ export default function SettingsPage({
                 </div>
               </div>
 
-              <div id="mvp54-settings-regression-path" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3">
+              <div id="mvp54-settings-regression-path" hidden aria-hidden="true" className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-bold text-text-primary"><span className="sr-only">Beta 回归路径</span>{mvp54BetaRegression.title}</h3>
@@ -2010,7 +2029,7 @@ export default function SettingsPage({
                 <p className="text-[10px] text-text-muted leading-relaxed border-t border-border-color/30 pt-2">{mvp54BetaRegression.helper}</p>
               </div>
 
-              <div id="mvp39-advanced-library-tools" className="rounded-2xl border border-border-color/60 bg-card-bg/45 p-4 space-y-3">
+              <div id="mvp39-advanced-library-tools" hidden={!showLibraryMaintenance} aria-hidden={!showLibraryMaintenance} className="rounded-2xl border border-border-color/60 bg-card-bg/45 p-4 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-bold text-text-primary">高级资源库工具</h3>
