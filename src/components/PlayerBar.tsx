@@ -26,6 +26,15 @@ import { homePlayerBetaPolishService } from '../services/homePlayerBetaPolishSer
 import { playerBarDailyCleanupService } from '../services/playerBarDailyCleanupService';
 import { playerUiBugfixService } from '../services/playerUiBugfixService';
 import CoverArtwork from './CoverArtwork';
+import { getActiveLyricText, parseLyrics } from '../player/lyricsTimeline';
+import {
+  clampPlayerValue,
+  formatPlayerTime,
+  getPlayerProgressMetrics,
+  getPlayerVolumeMetrics,
+  getSafeTrackDuration,
+  seekFromPointerPosition,
+} from '../player/playerBarMath';
 
 interface PlayerBarProps {
   playerState: PlayerState;
@@ -117,48 +126,20 @@ export default function PlayerBar({
     }
   }, [toastMessage]);
 
-  // Format seconds to mm:ss
-  const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
-
-  const getSafeDuration = (track: AudioTrack | null): number => {
-    if (!track || !Number.isFinite(track.duration) || track.duration <= 0) return 0;
-    return track.duration;
-  };
-
-  const formatTime = (seconds: number) => {
-    const safeSeconds = Number.isFinite(seconds) && seconds > 0 ? seconds : 0;
-    const mins = Math.floor(safeSeconds / 60);
-    const secs = Math.floor(safeSeconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const parseLrcFractionalSeconds = (fraction: string | undefined): number => {
-    if (!fraction) return 0;
-    const parsed = Number.parseInt(fraction, 10);
-    if (!Number.isFinite(parsed)) return 0;
-    return parsed / Math.pow(10, fraction.length);
-  };
-
-  const seekFromPointer = (clientX: number, rect: DOMRect, duration: number) => {
-    if (duration <= 0 || rect.width <= 0) return null;
-    const percent = clamp((clientX - rect.left) / rect.width, 0, 1);
-    return percent * duration;
-  };
-
   const handleProgressSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const duration = getSafeDuration(currentTrack);
+    const duration = getSafeTrackDuration(currentTrack);
     if (!currentTrack || duration <= 0) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const newProgress = seekFromPointer(e.clientX, rect, duration);
+    const newProgress = seekFromPointerPosition(e.clientX, rect.left, rect.width, duration);
     if (newProgress !== null) onSeek(newProgress);
   };
 
   const handleProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const duration = getSafeDuration(currentTrack);
+    const duration = getSafeTrackDuration(currentTrack);
     if (!currentTrack || !progressBarRef.current || duration <= 0) return;
     const rect = progressBarRef.current.getBoundingClientRect();
     if (rect.width <= 0) return;
-    const percent = clamp((e.clientX - rect.left) / rect.width, 0, 1);
+    const percent = clampPlayerValue((e.clientX - rect.left) / rect.width, 0, 1);
     setHoverPercent(percent);
     setHoverTime(percent * duration);
   };
@@ -172,13 +153,9 @@ export default function PlayerBar({
     onVolumeChange(parseFloat(e.target.value));
   };
 
-  const totalDuration = getSafeDuration(currentTrack);
-  const safeProgress = Number.isFinite(progress) ? Math.max(0, progress) : 0;
-  const currentDisplayProgress = totalDuration > 0 ? clamp(dragValue !== null ? dragValue : safeProgress, 0, totalDuration) : 0;
-  const progressPercent = totalDuration > 0 ? clamp((currentDisplayProgress / totalDuration) * 100, 0, 100) : 0;
-  const safeVolume = clamp(Number.isFinite(volume) ? volume : 0, 0, 1);
-  const visibleVolume = isMuted ? 0 : safeVolume;
-  const visibleVolumePercent = clamp(visibleVolume * 100, 0, 100);
+  const totalDuration = getSafeTrackDuration(currentTrack);
+  const { currentDisplayProgress, progressPercent } = getPlayerProgressMetrics(progress, dragValue, totalDuration);
+  const { visibleVolume, visibleVolumePercent } = getPlayerVolumeMetrics(volume, isMuted);
   const isLiked = currentTrack ? favorites.includes(currentTrack.id) : false;
   const playerSummary = playerExperienceService.getSummary(playerState);
   const mvp49Player = listeningExperiencePolishService.getPlayerBarModel(playerState);
@@ -188,34 +165,12 @@ export default function PlayerBar({
   const mvp74PlayerBar = playerBarDailyCleanupService.getPlayerBarModel(playerState);
   const mvp79PlayerUi = playerUiBugfixService.getModel();
 
-  // Real-time parsed lyrics parser for Desktop Floating Overlay (Requirement 10)
-  const parsedLyrics = useMemo(() => {
-    if (!currentTrack || !currentTrack.lyrics) return [];
-    return currentTrack.lyrics.map(line => {
-      const timeReg = /\[(\d+):(\d+)(?:\.(\d+))?\]/;
-      const match = line.match(timeReg);
-      if (!match) return { time: -1, text: line };
-      const mins = parseInt(match[1]);
-      const secs = parseInt(match[2]);
-      const ms = parseLrcFractionalSeconds(match[3]);
-      const time = mins * 60 + secs + ms;
-      const text = line.replace(timeReg, '').trim();
-      return { time, text };
-    }).filter(item => item.time >= 0);
-  }, [currentTrack]);
+  // Desktop floating lyrics reuse the shared LRC timeline contract.
+  const parsedLyrics = useMemo(() => parseLyrics(currentTrack?.lyrics), [currentTrack]);
 
   const activeLyric = useMemo(() => {
     if (!currentTrack) return '';
-    if (parsedLyrics.length === 0) return 'Yang-Kura 本地音频播放中';
-    let active = parsedLyrics[0].text;
-    for (let i = 0; i < parsedLyrics.length; i++) {
-      if (progress >= parsedLyrics[i].time) {
-        active = parsedLyrics[i].text;
-      } else {
-        break;
-      }
-    }
-    return active;
+    return getActiveLyricText(parsedLyrics, progress, 'Yang-Kura 本地音频播放中');
   }, [parsedLyrics, progress, currentTrack]);
 
   return (
@@ -253,7 +208,7 @@ export default function PlayerBar({
             className="absolute bottom-4 bg-zinc-950/95 border border-zinc-800 text-white px-3 py-1.5 rounded-xl text-[10px] font-mono pointer-events-none transform -translate-x-1/2 z-[99] shadow-2xl backdrop-blur-xl transition-all duration-75 flex flex-col items-center gap-0.5 border-b-2 border-b-sky-500"
             style={{ left: `${hoverPercent * 100}%` }}
           >
-            <span className="text-sky-300 font-bold text-xs tracking-wider">{formatTime(hoverTime)}</span>
+            <span className="text-sky-300 font-bold text-xs tracking-wider">{formatPlayerTime(hoverTime)}</span>
             <span className="text-[7.5px] text-zinc-500 uppercase tracking-widest font-sans font-bold">跳转预览</span>
             {/* Tooltip triangle indicator */}
             <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-950 border-r border-b border-zinc-800 rotate-45" />
@@ -278,14 +233,14 @@ export default function PlayerBar({
             }}
             onChange={(e) => {
               const parsedValue = parseFloat(e.target.value);
-              const val = totalDuration > 0 ? clamp(Number.isFinite(parsedValue) ? parsedValue : 0, 0, totalDuration) : 0;
+              const val = totalDuration > 0 ? clampPlayerValue(Number.isFinite(parsedValue) ? parsedValue : 0, 0, totalDuration) : 0;
               pendingSeekValueRef.current = val;
               setDragValue(val);
             }}
             onMouseUp={() => {
               const finalSeek = pendingSeekValueRef.current;
               if (finalSeek !== null && totalDuration > 0) {
-                onSeek(clamp(finalSeek, 0, totalDuration));
+                onSeek(clampPlayerValue(finalSeek, 0, totalDuration));
               }
               pendingSeekValueRef.current = null;
               setDragValue(null);
@@ -293,7 +248,7 @@ export default function PlayerBar({
             onTouchEnd={() => {
               const finalSeek = pendingSeekValueRef.current;
               if (finalSeek !== null && totalDuration > 0) {
-                onSeek(clamp(finalSeek, 0, totalDuration));
+                onSeek(clampPlayerValue(finalSeek, 0, totalDuration));
               }
               pendingSeekValueRef.current = null;
               setDragValue(null);
@@ -502,9 +457,9 @@ export default function PlayerBar({
 
           {/* Timeline counter pill */}
           <div className="text-[10px] text-zinc-400 font-mono flex items-center space-x-1 pl-3.5 border-l border-zinc-800">
-            <span className="text-sky-400 font-bold">{formatTime(currentDisplayProgress)}</span>
+            <span className="text-sky-400 font-bold">{formatPlayerTime(currentDisplayProgress)}</span>
             <span className="text-zinc-600">/</span>
-            <span>{formatTime(totalDuration)}</span>
+            <span>{formatPlayerTime(totalDuration)}</span>
           </div>
         </div>
       </div>
