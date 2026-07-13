@@ -21,8 +21,8 @@ interface PlayerTrackSummaryProps {
   track: AudioTrack;
   isPlaying: boolean;
   isLiked: boolean;
-  playbackError?: string | null;
-  playbackNotice?: string | null;
+  playbackError: string | null | undefined;
+  playbackNotice: string | null | undefined;
   compactStatus: string;
   visibleBadges: string[];
   hiddenMaintenanceNote: string;
