@@ -53,24 +53,34 @@ for (const forbidden of [
 const playerBar = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
 for (const marker of [
   "from './PlayerTransientPresenters'",
-  '<PlayerPlaylistMenu',
-  'onSelectPlaylist={handlePlaylistSelect}',
-  '<PlayerVolumePopover',
-  'onChange={handleVolumeSlide}',
   '<PlayerToast message={toastMessage} />',
+  'onSelectPlaylist={handlePlaylistSelect}',
+  'onVolumeChange={handleVolumeSlide}',
   "setToastMessage(`成功收藏到歌单《${playlist.name}》`)",
   "setToastMessage('已存在于该歌单中')",
 ]) {
   assert.ok(playerBar.includes(marker), `PlayerBar presenter integration missing: ${marker}`);
 }
 
+const auxiliary = fs.readFileSync('src/components/PlayerBarAuxiliaryControls.tsx', 'utf8');
+for (const marker of [
+  "from './PlayerTransientPresenters'",
+  '<PlayerPlaylistMenu',
+  'onSelectPlaylist={onSelectPlaylist}',
+  '<PlayerVolumePopover',
+  'onChange={onVolumeChange}',
+]) {
+  assert.ok(auxiliary.includes(marker), `auxiliary presenter integration missing: ${marker}`);
+}
+
 for (const forbidden of [
   'playlists.map(p =>',
-  'style={{ contentVisibility: \'auto\' }}',
+  "style={{ contentVisibility: 'auto' }}",
   'fixed bottom-24 right-6 z-50 bg-sky-500 text-white',
   '<span>请选择收藏的歌单</span>',
 ]) {
   assert.ok(!playerBar.includes(forbidden), `PlayerBar still owns extracted presentation: ${forbidden}`);
+  assert.ok(!auxiliary.includes(forbidden), `auxiliary wrapper duplicated transient presentation: ${forbidden}`);
 }
 
 const progressDocuments = `${fs.readFileSync('PROJECT_STATE.md', 'utf8')}\n${fs.readFileSync('PROJECT_ROADMAP.md', 'utf8')}`;
