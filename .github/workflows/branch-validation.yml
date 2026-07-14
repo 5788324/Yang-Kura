@@ -4,79 +4,123 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: u30-materialize-${{ github.event.pull_request.number }}
-  cancel-in-progress: false
+  group: branch-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  materialize:
-    name: Materialize validated U30 product patch
+  validate:
+    name: Windows full-chain regression
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 70
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
 
-      - name: Materialize product files
-        shell: pwsh
+      - name: Install dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Audit high and critical dependency risk
+        run: npm audit --audit-level=high
+
+      - name: Rebuild Electron runtime for desktop E2E
+        run: npm rebuild electron
+
+      - name: TypeScript validation
+        run: npm run lint
+
+      - name: Build desktop application
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
         run: |
-          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
-          git fetch origin main
-          git show origin/main:.github/workflows/branch-validation.yml | Set-Content -Path .github/workflows/branch-validation.yml -Encoding utf8
-          node scripts/relax-u30-patch-anchors.mjs
-          node scripts/apply-u30-ui-fast-track.mjs
-          node scripts/fix-u30-generated-test.mjs
+          npm run build
+          npm run build:electron
 
-          $temporaryFiles = @(
-            'scripts/apply-u30-ui-fast-track.mjs',
-            'scripts/relax-u30-patch-anchors.mjs',
-            'scripts/fix-u30-generated-test.mjs',
-            '.github/workflows/u30-apply.yml'
-          )
-          foreach ($file in $temporaryFiles) {
-            if (Test-Path $file) { Remove-Item -Force $file }
-          }
+      - name: Run U28 resource-library Electron E2E
+        run: npm run test:u28:electron-e2e
 
-          git checkout origin/${{ github.head_ref }} -- .github/workflows/branch-validation.yml
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git status --short 2>&1 | Tee-Object -FilePath artifacts/u30-materialize.log
-          git commit -m "fix: complete U30 responsive UI fast-track" 2>&1 | Tee-Object -FilePath artifacts/u30-materialize.log -Append
-          $commitExit = $LASTEXITCODE
-          "commit_exit=$commitExit" | Tee-Object -FilePath artifacts/u30-materialize.log -Append
-          if ($commitExit -eq 0) {
-            git push origin HEAD:${{ github.head_ref }} 2>&1 | Tee-Object -FilePath artifacts/u30-materialize.log -Append
-            $pushExit = $LASTEXITCODE
-          } else {
-            $pushExit = 99
-          }
-          "push_exit=$pushExit" | Tee-Object -FilePath artifacts/u30-materialize.log -Append
-          "$commitExit,$pushExit" | Set-Content -Path artifacts/u30-materialize-status.txt -Encoding ascii
+      - name: Run U29 player Electron E2E
+        run: npm run test:u29:electron-e2e
 
-      - name: Upload materialization log
+      - name: Run U30 UI and accessibility matrix
+        run: npm run test:u30:ui-matrix
+
+      - name: Upload Electron E2E artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: u30-materialize-log
+          name: u28-u30-electron-e2e
           path: |
-            artifacts/u30-materialize.log
-            artifacts/u30-materialize-status.txt
-          if-no-files-found: error
-          retention-days: 7
+            artifacts/u28-electron-e2e
+            artifacts/u29-electron-e2e
+            artifacts/u30-ui-matrix
+          if-no-files-found: warn
+          retention-days: 14
 
-      - name: Assert materialization succeeded
+      - name: Run focused U verifiers
         shell: pwsh
         run: |
-          $status = Get-Content artifacts/u30-materialize-status.txt
-          if ($status -ne '0,0') { throw "U30 materialization failed: $status" }
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          $results = [System.Collections.Generic.List[string]]::new()
+          $results.Add("verifier`tstatus`texit_code")
+          $failed = $false
+
+          Get-ChildItem -Path scripts -Filter 'verify-u*.mjs' |
+            Sort-Object Name |
+            ForEach-Object {
+              Write-Host "Running $($_.Name)"
+              node $_.FullName
+              $exitCode = $LASTEXITCODE
+              $status = if ($exitCode -eq 0) { 'PASS' } else { 'FAIL' }
+              $results.Add("$($_.Name)`t$status`t$exitCode")
+              if ($exitCode -ne 0) { $failed = $true }
+            }
+
+          $results | Set-Content -Path artifacts/focused-verifier-results.tsv -Encoding utf8
+          if ($failed) { exit 1 }
+
+      - name: Upload focused verifier report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: focused-verifier-results
+          path: artifacts/focused-verifier-results.tsv
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Run stable regression
+        shell: pwsh
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run verify:stable 2>&1 | Tee-Object -FilePath artifacts/stable-regression.log
+          $exitCode = $LASTEXITCODE
+          if ($exitCode -ne 0) { exit $exitCode }
+
+      - name: Upload stable regression log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stable-regression-log
+          path: artifacts/stable-regression.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Build production renderer again after regression
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: npm run build
