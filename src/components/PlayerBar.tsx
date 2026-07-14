@@ -115,6 +115,14 @@ export default function PlayerBar({
       id="app-player-bar"
       className="h-20 bg-zinc-950 border-t border-zinc-800/80 px-8 flex items-center justify-between select-none relative z-50 text-white"
       data-mvp79-player-ui-bugfix="true"
+      data-u29-playback-mode={playerState.playbackMode ?? 'idle'}
+      data-u29-track-id={currentTrack?.id ?? ''}
+      data-u29-progress={Number.isFinite(progress) ? progress.toFixed(3) : '0.000'}
+      data-u29-duration={Number.isFinite(currentTrack?.duration) ? String(currentTrack?.duration ?? 0) : '0'}
+      data-u29-queue-count={String(playerState.queue.length)}
+      data-u29-current-index={String(playerState.currentIndex)}
+      data-u29-source-ready={currentTrack?.rootPathToken ? 'true' : 'false'}
+      data-u29-lyrics-status={currentTrack?.lyricsLoadStatus ?? 'idle'}
     >
       <PlayerProgressTrack
         hasTrack={presentation.hasTrack}

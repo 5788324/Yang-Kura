@@ -1,4 +1,5 @@
 import type { AudioTrack, PlayerState, PlaybackCompletionMode } from '../types';
+import { sanitizePersistedPlayerTrack } from '../player/playerRuntimePolicy';
 
 const STORAGE_KEY = 'yang_kura_player_queue_v1';
 const UPDATE_EVENT_NAME = 'yang-kura-player-queue-updated';
@@ -32,13 +33,7 @@ function safeNumber(value: unknown, fallback = 0): number {
 }
 
 function sanitizeTrackForQueue(track: AudioTrack): AudioTrack {
-  return {
-    ...track,
-    mediaUrl: undefined,
-    lyrics: track.lyricsSourceKind === 'mock' ? track.lyrics : undefined,
-    lyricsLoadStatus: track.lyricsLoadStatus === 'loaded' ? 'idle' : track.lyricsLoadStatus,
-    lyricsLoadError: undefined,
-  };
+  return sanitizePersistedPlayerTrack(track);
 }
 
 function emitUpdated(): void {

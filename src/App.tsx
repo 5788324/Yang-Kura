@@ -16,6 +16,7 @@ import CoverArtwork from './components/CoverArtwork';
 import DiagnosticsRuntimeBoundary from './components/DiagnosticsRuntimeBoundary';
 import { coverArtworkService } from './services/coverArtworkService';
 import { settingsPathPrivacyService } from './services/settingsPathPrivacyService';
+import { reconcileTracksWithLibrary } from './player/playerRuntimePolicy';
 import { metadataOverrideService } from './services/metadataOverrideService';
 import type { AsmrMetadataSaveContext } from './services/metadataOverrideService';
 
@@ -229,7 +230,24 @@ export default function App() {
     handleToggleMute,
     handleToggleLoopMode,
     handleToggleCompletionMode,
+    handleReconcileQueueWithLibrary,
   } = useAudioPlayer();
+
+  useEffect(() => {
+    if (!librarySessionSnapshot.lastIndex) return;
+    const currentLibraryTracks = collectAllLibraryTracks(rjWorks, musicAlbums);
+    if (currentLibraryTracks.length === 0) return;
+    handleReconcileQueueWithLibrary(currentLibraryTracks);
+    setPlaylists((previous) => {
+      let changed = false;
+      const next = previous.map((playlist) => {
+        const tracks = reconcileTracksWithLibrary(playlist.tracks, currentLibraryTracks);
+        if (tracks.some((track, index) => track !== playlist.tracks[index])) changed = true;
+        return tracks === playlist.tracks ? playlist : { ...playlist, tracks, tracksCount: tracks.length };
+      });
+      return changed ? next : previous;
+    });
+  }, [rjWorks, musicAlbums, librarySessionSnapshot.lastIndex?.displayName, handleReconcileQueueWithLibrary]);
 
   // Player sidebar drawer (Right side)
   const [isQueueOpen, setIsQueueOpen] = useState<boolean>(false);
@@ -632,7 +650,7 @@ export default function App() {
         {/* MVP-35 verifier anchor: 队列会在本机保存；不保存真实路径或媒体链接。 */}
         {/* Dynamic sliding side drawer for playing Queue */}
         {isQueueOpen && (
-          <div className="absolute right-0 top-0 bottom-0 w-80 bg-sidebar-bg/95 backdrop-blur-xl border-l border-border-color z-40 p-4 shadow-2xl flex flex-col justify-between animate-fade-in">
+          <div id="u29-queue-drawer" className="absolute right-0 top-0 bottom-0 w-80 bg-sidebar-bg/95 backdrop-blur-xl border-l border-border-color z-40 p-4 shadow-2xl flex flex-col justify-between animate-fade-in">
             <div className="flex-1 overflow-hidden flex flex-col">
               <div id="mvp42-queue-drawer-surface" className="border-b border-border-color pb-3 mb-4 space-y-3">
                 <div className="flex items-center justify-between">
@@ -683,6 +701,8 @@ export default function App() {
                     return (
                       <div
                         key={track.id + '_q_' + idx}
+                        data-queue-track-id={track.id}
+                        data-queue-current={isPlayingThis ? 'true' : 'false'}
                         onClick={() => handlePlayTrack(track, playerState.queue)}
                         className={`flex items-center space-x-2.5 p-2 rounded-lg cursor-pointer transition-all border ${isPlayingThis ? 'bg-brand-color/15 border-brand-color text-brand-color' : 'hover:bg-hover-bg border-transparent text-text-primary'}`}
                       >

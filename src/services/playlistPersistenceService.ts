@@ -1,4 +1,5 @@
 import type { AudioTrack, Playlist } from '../types';
+import { sanitizePersistedPlayerTrack } from '../player/playerRuntimePolicy';
 import { coverArtworkService } from './coverArtworkService';
 
 const STORAGE_KEY = 'yang_kura_user_playlists_v1';
@@ -41,13 +42,7 @@ function stableUniqueTracks(tracks: AudioTrack[]): AudioTrack[] {
 }
 
 function sanitizePlaylistTrack(track: AudioTrack): AudioTrack {
-  return {
-    ...track,
-    mediaUrl: undefined,
-    lyrics: track.lyricsSourceKind === 'mock' ? track.lyrics : undefined,
-    lyricsLoadStatus: track.lyricsLoadStatus === 'loaded' ? 'idle' : track.lyricsLoadStatus,
-    lyricsLoadError: undefined,
-  };
+  return sanitizePersistedPlayerTrack(track);
 }
 
 function sanitizeUserPlaylist(playlist: Playlist): Playlist | null {

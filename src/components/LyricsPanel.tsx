@@ -328,6 +328,9 @@ export default function LyricsPanel({
       aria-modal="true"
       aria-label="全屏播放与歌词"
       tabIndex={-1}
+      data-u29-track-id={currentTrack.id}
+      data-u29-lyrics-status={currentTrack.lyricsLoadStatus ?? 'idle'}
+      data-u29-lyrics-path={currentTrack.lyricsRelativePath ?? ''}
       className="fixed inset-0 z-[100] bg-zinc-950 text-white overflow-hidden flex flex-col animate-slide-up select-none"
     >
       {/* Bedtime Ambient Dim Screen Overlay */}

@@ -1,4 +1,5 @@
 import type { AudioTrack } from '../types';
+import { sanitizePersistedPlayerTrack } from '../player/playerRuntimePolicy';
 
 const STORAGE_KEY = 'yang_kura_playback_history_v1';
 const MAX_HISTORY_ITEMS = 50;
@@ -30,13 +31,7 @@ function clampProgress(progress: number, duration: number): number {
 }
 
 function sanitizeTrack(track: AudioTrack): AudioTrack {
-  return {
-    ...track,
-    mediaUrl: undefined,
-    lyrics: track.lyricsSourceKind === 'mock' ? track.lyrics : undefined,
-    lyricsLoadStatus: track.lyricsLoadStatus === 'loaded' ? 'idle' : track.lyricsLoadStatus,
-    lyricsLoadError: undefined,
-  };
+  return sanitizePersistedPlayerTrack(track);
 }
 
 function parseHistory(raw: string | null): PlaybackHistoryEntry[] {
