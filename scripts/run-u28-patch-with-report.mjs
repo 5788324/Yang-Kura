@@ -30,4 +30,5 @@ run('add stable Settings navigation marker', 'scripts/patch-u28-settings-selecto
 run('patch Electron CDP shutdown', 'scripts/patch-u28-cdp-close.mjs');
 run('add routed page waits', 'scripts/patch-u28-navigation-waits.mjs');
 run('verify Diagnostics refresh flow', 'scripts/patch-u28-diagnostics-flow.mjs');
+run('add Diagnostics value markers', 'scripts/patch-u28-diagnostics-markers.mjs');
 console.log('U28 patch preparation completed.');
