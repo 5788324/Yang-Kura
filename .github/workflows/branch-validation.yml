@@ -15,9 +15,9 @@ concurrency:
 
 jobs:
   validate:
-    name: Windows stable regression
+    name: Windows full-chain regression
     runs-on: windows-latest
-    timeout-minutes: 35
+    timeout-minutes: 55
 
     steps:
       - name: Check out repository
@@ -34,6 +34,31 @@ jobs:
 
       - name: Audit high and critical dependency risk
         run: npm audit --audit-level=high
+
+      - name: Rebuild Electron runtime for desktop E2E
+        run: npm rebuild electron
+
+      - name: TypeScript validation
+        run: npm run lint
+
+      - name: Build desktop application for U28 E2E
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run build
+          npm run build:electron
+
+      - name: Run U28 Electron full-chain UI acceptance
+        run: npm run test:u28:electron-e2e
+
+      - name: Upload U28 Electron screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u28-electron-e2e
+          path: artifacts/u28-electron-e2e
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Run focused UI verifiers
         id: focused-verifiers
@@ -58,12 +83,6 @@ jobs:
           $reportPath = 'artifacts/focused-verifier-results.tsv'
           $results | Set-Content -Path $reportPath -Encoding utf8
           $results | ForEach-Object { Write-Host $_ }
-
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Focused verifier results'
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '```text'
-          $results | Add-Content -Path $env:GITHUB_STEP_SUMMARY
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '```'
-
           if ($failed) { exit 1 }
 
       - name: Upload focused verifier report
@@ -80,7 +99,6 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: |
-          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
           npm run verify:stable 2>&1 | Tee-Object -FilePath artifacts/stable-regression.log
           $exitCode = $LASTEXITCODE
           if ($exitCode -ne 0) { exit $exitCode }
@@ -94,8 +112,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
-      - name: Build production renderer
-        shell: pwsh
+      - name: Build production renderer again after regression
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: npm run build

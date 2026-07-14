@@ -35,6 +35,7 @@ import { MpvPlaybackBackend, type MpvPlaybackCommand } from './mpvPlaybackBacken
 import { MpvSettingsStore } from './mpvSettingsStore.js';
 import { applyLibraryIndexRemovalOperations, buildLibraryIndexRemovalPreview, collectLibraryIndexHealthReferences, type LibraryIndexHealthReference, type LibraryIndexHealthStatus, type LibraryIndexRemovalPreviewOperation } from './libraryIndexHealthService.js';
 import { appendMaintenanceHistory, buildLibraryIndexBackupRetentionPreview, inspectLibraryIndexBackups, readMaintenanceHistory, restoreLibraryIndexFromBackup, type MaintenanceHistoryEntry } from './libraryIndexMaintenanceService.js';
+import { describeLibraryIndexReadError, parseLibraryIndexJsonBuffer } from './libraryIndexJsonReader.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1473,9 +1474,10 @@ async function readLibraryIndex(rootRecord: TokenizedRootRecord, _request: ReadL
   }
 
   try {
-    const jsonText = await fs.readFile(indexPath, 'utf8');
-    const sha256 = crypto.createHash('sha256').update(jsonText).digest('hex');
-    const parsed = JSON.parse(jsonText) as unknown;
+    const sourceBuffer = await fs.readFile(indexPath);
+    const parsedSource = parseLibraryIndexJsonBuffer(sourceBuffer);
+    const sha256 = crypto.createHash('sha256').update(sourceBuffer).digest('hex');
+    const parsed = parsedSource.value;
     const validation = validateWrittenIndexShape(parsed);
     if (validation.ok === false) {
       return {
@@ -1521,24 +1523,25 @@ async function readLibraryIndex(rootRecord: TokenizedRootRecord, _request: ReadL
       fileUrlReturned: false,
       readAt,
       indexRelativePath,
-      bytesRead: Buffer.byteLength(jsonText, 'utf8'),
+      bytesRead: sourceBuffer.byteLength,
       sha256,
       summary: validation.summary,
       index: indexPayload,
-      message: 'library-index.json 已读取并通过结构校验；Renderer 只收到 tokenized index，不包含 absolutePath / file://。',
+      message: `library-index.json 已读取并通过结构校验；文件编码：${parsedSource.encoding}。Renderer 只收到 tokenized index，不包含 absolutePath / file://。`,
       safetyNotes: buildSafetyNotes(),
     } as const;
   } catch (error) {
+    const failure = describeLibraryIndexReadError(error);
     return {
       ok: false,
-      status: 'mvp24-library-index-read-error',
+      status: failure.status,
       rootPathToken: rootRecord.rootPathToken,
       displayName: rootRecord.displayName,
       libraryType: rootRecord.libraryType,
       indexRelativePath,
       absolutePathsReturned: false,
       fileUrlReturned: false,
-      message: `source stat failed: ${getSafeErrorCode(error)}`,
+      message: failure.message,
       safetyNotes: buildSafetyNotes(),
     } as const;
   }
@@ -1560,19 +1563,22 @@ async function readValidatedIndexForHealth(rootRecord: TokenizedRootRecord) {
   const indexPath = path.join(rootRecord.absolutePath, 'library-index.json');
   if (!(await pathExists(indexPath))) return { ok: false as const, status: 'mvp127-index-health-missing-index' as const, message: '未找到 library-index.json。请先读取或重新扫描资源库。' };
   try {
-    const jsonText = await fs.readFile(indexPath, 'utf8');
-    const parsed = JSON.parse(jsonText) as unknown;
+    const sourceBuffer = await fs.readFile(indexPath);
+    const parsedSource = parseLibraryIndexJsonBuffer(sourceBuffer);
+    const parsed = parsedSource.value;
     const validation = validateWrittenIndexShape(parsed);
     if (validation.ok === false) return { ok: false as const, status: 'mvp127-index-health-invalid-index' as const, message: `library-index.json 结构校验失败：${validation.message}` };
-    if (jsonText.includes('file://')) return { ok: false as const, status: 'mvp127-index-health-unsafe-index' as const, message: 'library-index.json 包含不安全的 file:// 内容。' };
+    if (parsedSource.text.includes('file://')) return { ok: false as const, status: 'mvp127-index-health-unsafe-index' as const, message: 'library-index.json 包含不安全的 file:// 内容。' };
     return {
       ok: true as const,
       index: parsed,
-      indexSha256: crypto.createHash('sha256').update(jsonText).digest('hex'),
-      bytesRead: Buffer.byteLength(jsonText, 'utf8'),
+      indexSha256: crypto.createHash('sha256').update(sourceBuffer).digest('hex'),
+      bytesRead: sourceBuffer.byteLength,
+      encoding: parsedSource.encoding,
     };
   } catch (error) {
-    return { ok: false as const, status: 'mvp127-index-health-read-error' as const, message: `资源库记录读取失败：${getSafeErrorCode(error)}` };
+    const failure = describeLibraryIndexReadError(error);
+    return { ok: false as const, status: 'mvp127-index-health-read-error' as const, message: failure.message };
   }
 }
 
@@ -2887,11 +2893,36 @@ function registerDirectoryDialogIpc(mainWindow: BrowserWindow): void {
       } as const;
     }
 
-    const result = await dialog.showOpenDialog(mainWindow, {
-      title: `选择 ${getDefaultDisplayName(libraryType)} 根目录`,
-      buttonLabel: '选择此目录',
-      properties: ['openDirectory', 'dontAddToRecent'],
-    });
+    const e2eRootPath = process.env.YANG_KURA_E2E_MODE === '1'
+      ? process.env.YANG_KURA_E2E_LIBRARY_ROOT?.trim()
+      : undefined;
+    let result: { canceled: boolean; filePaths: string[] };
+    if (e2eRootPath) {
+      try {
+        const resolvedE2eRoot = path.resolve(e2eRootPath);
+        const e2eRootStat = await fs.stat(resolvedE2eRoot);
+        if (!e2eRootStat.isDirectory()) throw Object.assign(new Error('not-directory'), { code: 'ENOTDIR' });
+        result = { canceled: false, filePaths: [resolvedE2eRoot] };
+      } catch (error) {
+        return {
+          ok: false,
+          status: 'u28-e2e-root-invalid',
+          libraryType,
+          permissionState: 'rejected',
+          source: 'u28-electron-e2e-fixture',
+          absolutePathReturned: false,
+          fileUrlReturned: false,
+          message: `E2E 临时资源库不可用：${getSafeErrorCode(error)}`,
+          safetyNotes: buildSafetyNotes(),
+        } as const;
+      }
+    } else {
+      result = await dialog.showOpenDialog(mainWindow, {
+        title: `选择 ${getDefaultDisplayName(libraryType)} 根目录`,
+        buttonLabel: '选择此目录',
+        properties: ['openDirectory', 'dontAddToRecent'],
+      });
+    }
 
     if (result.canceled || result.filePaths.length === 0) {
       return {
