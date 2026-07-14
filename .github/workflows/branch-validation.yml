@@ -4,13 +4,10 @@ on:
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - agent/u28-library-reconciliation
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: branch-validation-${{ github.event.pull_request.number || github.ref }}
@@ -18,16 +15,13 @@ concurrency:
 
 jobs:
   validate:
-    name: Windows U28 full-chain validation
+    name: Windows full-chain regression
     runs-on: windows-latest
     timeout-minutes: 55
 
     steps:
-      - name: Check out U28 branch
+      - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          ref: agent/u28-library-reconciliation
-          fetch-depth: 0
 
       - name: Set up Node 22
         uses: actions/setup-node@v4
@@ -35,22 +29,19 @@ jobs:
           node-version: '22'
           cache: npm
 
-      - name: Prepare and apply deterministic U28 repair
-        run: node scripts/run-u28-patch-with-report.mjs
-
       - name: Install dependencies without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Audit high and critical dependency risk
         run: npm audit --audit-level=high
 
-      - name: Rebuild Electron runtime
+      - name: Rebuild Electron runtime for desktop E2E
         run: npm rebuild electron
 
       - name: TypeScript validation
         run: npm run lint
 
-      - name: Build desktop application
+      - name: Build desktop application for U28 E2E
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: |
@@ -125,16 +116,3 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: npm run build
-
-      - name: Commit validated U28 product repair
-        shell: pwsh
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/components/Dashboard.tsx src/components/SettingsPage.tsx src/components/DiagnosticsPageShell.tsx electron/main.ts scripts/verify-u28-library-reconciliation.mjs scripts/test-u28-electron-e2e.mjs package.json
-          if (git diff --cached --quiet) {
-            Write-Host "No validated product repair changes to commit."
-          } else {
-            git commit -m "fix: validate U28 library state end to end"
-            git push origin HEAD:agent/u28-library-reconciliation
-          }
