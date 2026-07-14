@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   materialize:
-    name: Materialize validated U30 patch
+    name: Materialize validated U30 product patch
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Restore permanent gate and materialize patch
+      - name: Materialize product files
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
@@ -47,6 +47,7 @@ jobs:
             if (Test-Path $file) { Remove-Item -Force $file }
           }
 
+          git checkout origin/${{ github.head_ref }} -- .github/workflows/branch-validation.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
