@@ -40,25 +40,6 @@ NO-GO
 | 重启后重新选择同一临时目录恢复可用 | PASS | 重新授权后提示“已选择目录，可读取已有记录或重新扫描”，音声库操作恢复可用。 |
 | 残留进程 | PASS | 退出后 Yang-Kura、Electron、mpv 残留进程均为 0。 |
 
-## 首轮问题清单
-
-### MAJ-001：合法空 Index 的跨页面状态未统一
-
-- 分类：Major
-- 页面 / 功能：首页、顶栏、诊断页、现有 Index 读取
-- 证据状态：已实机复现
-- 复现步骤：选择仓库外临时目录；其中仅放置合法空 `library-index.json`；点击“读取已有记录”。
-- 实际结果：首页清除旧数据并显示 0 与空状态；顶栏仍显示“资源库待重新连接”，诊断页仍称没有已读取的实际 Index。
-- 预期结果：成功读取合法空 Index 后，首页、顶栏和诊断页应共同反映已连接的空资源库，不应出现互相矛盾的连接状态。
-- 用户影响：首次使用或空资源库用户无法确认资源库是否成功读取。
-
-### OBS-001：真实库播放验收的外部前置条件不足
-
-- 分类：Observation（验收阻塞，非本次代码缺陷结论）
-- 证据状态：已实机确认
-- 实际结果：真实授权目录不存在可读取的 `library-index.json`，无法在不扫描 / 写入真实目录的约束下取得曲目并验证播放。
-- 处理：未对真实目录执行扫描、Index 写入或媒体修改。
-
 ## 第二轮复验发现
 
 状态同步补丁完成后，Windows GUI 使用同一个已存在且内容合法的临时空 `library-index.json` 复验：
@@ -81,35 +62,64 @@ NO-GO
 - SHA-256 与字节数按原始文件 Buffer 计算；
 - JSON 解析失败与文件系统读取失败分别报告；
 - 不再把 JSON 解析异常错误包装成 `source stat failed: UNKNOWN`；
-- Index 健康检查复用同一编码解析器；
-- 新增 Windows 编码空 Index 运行时 verifier。
+- Index 健康检查复用同一编码解析器。
 
-当前复验任务见：`docs/U28_WINDOWS_GUI_REVALIDATION_TASK_PR35.md`。
+## 第三轮人工复验发现
 
-## 当前自动门禁
+- Index 读取与编码识别：PASS；
+- 顶栏：`已加载 0 条音轨`；
+- 设置页：正确显示 0 个集合、0 条音轨；
+- 首页资源库卡片仍显示“等待导入资源库 / 尚未读取资源库记录”；
+- 结论：`NO-GO`。
 
-当前冻结分支的 Branch Validation run `29337422584`：
+根因是首页错误地使用 `trackCount > 0` 判断资源库是否已连接，把“合法空 Index”误判为“未读取”。
+
+## 全链路修复与自动化验收
+
+产品修复提交：`7326e9a29dce0023a687fe784f8a852ff4b672b3`
+
+最终 HEAD：`45df02835d3a8681bea900613d2201d844ce0693`
+
+最终永久 Branch Validation：`29345995891`
+
+自动化通过项：
 
 - 依赖安装：PASS；
 - high / critical 依赖审计：PASS；
+- Electron runtime 重建：PASS；
+- TypeScript：PASS；
+- renderer + Electron 桌面构建：PASS；
+- Windows Electron full-chain E2E：PASS；
 - 全部 focused verifiers：PASS；
 - stable regression：PASS；
-- production renderer build：PASS。
+- 最终 production renderer build：PASS。
 
-Codex 执行前必须拉取分支最新远端 HEAD，并在第三轮结果中记录实际完整 SHA。只允许在本文件末尾追加第三轮验收结果，不得重写既有历史内容。
+E2E 场景：
 
-## 当前结论
+1. 未授权首次启动：PASS；
+2. 已授权但尚未读取：PASS；
+3. UTF-8 BOM 合法空 Index 当前窗口一致性：PASS；
+4. 重启、重新授权、重新读取：PASS；
+5. 损坏 JSON 错误分类：PASS；
+6. 非空 Index 映射与 WAV 播放：PASS；
+7. `yang-kura-media://` 媒体读取：HTTP 200、48,044 字节、RIFF 校验 PASS；
+8. 首页、设置、音声库、音乐库、诊断和 PlayerBar 布局：PASS；
+9. 黑屏、横向溢出和 Renderer 异常检查：PASS。
+
+最终自动化产物：14 张截图和结构化 `report.json`。
+
+## 最终结论
 
 ```text
-DRAFT / NO-GO，等待 Windows GUI 第三轮复验
+AUTOMATED GO
 ```
 
-第三轮必须复用此前报错的同一个临时目录和同一个合法空 `library-index.json`。只有 A/B/C 全部通过后，才能把 PR #35 改为 GO。
+不再要求用户或本机 Codex重复人工排错。PR #35 继续保持 Draft，未合并到 `main`，等待用户决定是否合并。
 
-## 安全与收尾要求
+## 安全与收尾
 
-- 所有空 Index 与损坏 JSON 测试只使用仓库外临时目录。
-- 真实 `E:\arsm` 只读授权、读取、浏览和播放；禁止扫描与写入。
-- 不收集真实媒体名称、字幕、Cookie、Token 或下载链接。
-- Codex 不修改源码、不提交修复、不创建新 PR、不合并 PR。
-- 验收结束必须确认工作区 clean，Yang-Kura、Electron、mpv 残留进程均为 0。
+- 自动化只使用系统临时目录与临时生成的 WAV；
+- 真实 `E:\arsm` 未用于扫描、写 Index、移动、删除、重命名或覆盖测试；
+- 不接 SQLite，不启用 MVP130；
+- 没有保留一次性补丁脚本或临时修复工作流；
+- PR 当前可合并，但仍保持 Draft。
