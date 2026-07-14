@@ -38,7 +38,21 @@ jobs:
         run: node scripts/relax-u30-patch-anchors.mjs
 
       - name: Apply U30 product and test patch
-        run: node scripts/apply-u30-ui-fast-track.mjs
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          node scripts/apply-u30-ui-fast-track.mjs 2>&1 | Tee-Object -FilePath artifacts/u30-patch.log
+          $exitCode = $LASTEXITCODE
+          if ($exitCode -ne 0) { exit $exitCode }
+
+      - name: Upload U30 patch log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u30-patch-log
+          path: artifacts/u30-patch.log
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
