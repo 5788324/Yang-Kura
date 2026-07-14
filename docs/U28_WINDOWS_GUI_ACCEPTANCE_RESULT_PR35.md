@@ -88,15 +88,17 @@ NO-GO
 
 ## 当前自动门禁
 
-最终分支 HEAD：`918e09e63c5a2f968a92f9bfdf0e27a3956b4188`
+最终待复验分支 HEAD：`05dff23b969dad251f94d3347ae6c6701117c07b`
 
-Branch Validation run `29336942910`：
+Branch Validation run `29337190912`：
 
 - 依赖安装：PASS；
 - high / critical 依赖审计：PASS；
 - 全部 focused verifiers：PASS；
 - stable regression：PASS；
 - production renderer build：PASS。
+
+> 注：Codex 执行前必须拉取分支最新远端 HEAD，并在第三轮结果中记录实际完整 SHA；后续仅允许在本文件末尾追加验收结果。
 
 ## 当前结论
 
