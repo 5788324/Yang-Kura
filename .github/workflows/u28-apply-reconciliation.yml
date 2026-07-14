@@ -1,0 +1,64 @@
+name: U28 Apply Reconciliation
+
+on:
+  push:
+    branches:
+      - agent/u28-library-reconciliation
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-validate:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply deterministic U28 patch
+        shell: pwsh
+        run: |
+          if (Test-Path .u28-patch-applied) {
+            Write-Host "U28 patch marker already exists; source patch is already applied."
+          } else {
+            node scripts/apply-u28-library-reconciliation.mjs
+            node scripts/finalize-u28-library-reconciliation.mjs
+          }
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: TypeScript validation
+        run: npm run lint
+
+      - name: Electron build
+        run: npm run build:electron
+
+      - name: Focused U28 verifier
+        run: node scripts/verify-u28-library-reconciliation.mjs
+
+      - name: Stable regression
+        run: npm run verify:stable
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit applied source patch
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/App.tsx src/components/SettingsPage.tsx src/components/DiagnosticsPageShell.tsx scripts/verify-u28-library-reconciliation.mjs docs/U28_LIBRARY_RECONCILIATION_IMPLEMENTATION.md .u28-patch-applied
+          if (git diff --cached --quiet) {
+            Write-Host "No source changes to commit."
+          } else {
+            git commit -m "fix: reconcile native library authorization and real index state"
+            git push origin HEAD:agent/u28-library-reconciliation
+          }
