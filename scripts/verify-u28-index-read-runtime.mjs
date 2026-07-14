@@ -92,14 +92,22 @@ if (readFailure.status !== 'mvp24-library-index-read-error' || readFailure.code 
   throw new Error('文件读取错误码未被正确保留。');
 }
 
+const readStart = mainSource.indexOf('async function readLibraryIndex(');
+const readEnd = mainSource.indexOf('function resolveSafeIndexedEntryPath(', readStart);
+const readBlock = readStart >= 0 && readEnd > readStart ? mainSource.slice(readStart, readEnd) : '';
+const healthStart = mainSource.indexOf('async function readValidatedIndexForHealth(');
+const healthEnd = mainSource.indexOf('async function checkLibraryIndexHealth(', healthStart);
+const healthBlock = healthStart >= 0 && healthEnd > healthStart ? mainSource.slice(healthStart, healthEnd) : '';
+
 const sourceChecks = [
   mainSource.includes("from './libraryIndexJsonReader.js'"),
-  mainSource.includes('parseLibraryIndexJsonBuffer(sourceBuffer)'),
-  mainSource.includes('sourceBuffer.byteLength'),
-  !mainSource.includes('message: `source stat failed: ${getSafeErrorCode(error)}`'),
+  readBlock.includes('parseLibraryIndexJsonBuffer(sourceBuffer)'),
+  readBlock.includes('sourceBuffer.byteLength'),
+  !readBlock.includes('source stat failed'),
+  healthBlock.includes('parseLibraryIndexJsonBuffer(sourceBuffer)'),
 ];
 if (sourceChecks.some((value) => !value)) {
-  throw new Error('electron/main.ts 尚未接入 Windows-safe Index reader。');
+  throw new Error('electron/main.ts 尚未完整接入 Windows-safe Index reader。');
 }
 
 console.log('PASS\tUTF-8 empty Index');
