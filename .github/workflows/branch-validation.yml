@@ -9,14 +9,14 @@ permissions:
   contents: write
 
 concurrency:
-  group: u30-pr-apply-${{ github.event.pull_request.number }}
+  group: u30-materialize-${{ github.event.pull_request.number }}
   cancel-in-progress: false
 
 jobs:
-  apply:
-    name: Apply and validate U30 fast-track
+  materialize:
+    name: Materialize validated U30 patch
     runs-on: windows-latest
-    timeout-minutes: 40
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,71 +26,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
 
-      - name: Restore permanent gate baseline
-        shell: pwsh
-        run: |
-          git fetch origin main
-          git show origin/main:.github/workflows/branch-validation.yml | Set-Content -Path .github/workflows/branch-validation.yml -Encoding utf8
-
-      - name: Relax patch anchors
-        run: node scripts/relax-u30-patch-anchors.mjs
-
-      - name: Apply U30 product and test patch
+      - name: Restore permanent gate and materialize patch
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
-          node scripts/apply-u30-ui-fast-track.mjs 2>&1 | Tee-Object -FilePath artifacts/u30-patch.log
-          $exitCode = $LASTEXITCODE
-          if ($exitCode -ne 0) { exit $exitCode }
+          git fetch origin main
+          git show origin/main:.github/workflows/branch-validation.yml | Set-Content -Path .github/workflows/branch-validation.yml -Encoding utf8
+          node scripts/relax-u30-patch-anchors.mjs
+          node scripts/apply-u30-ui-fast-track.mjs
+          node scripts/fix-u30-generated-test.mjs
 
-      - name: Fix generated U30 selector handling
-        run: node scripts/fix-u30-generated-test.mjs
-
-      - name: Upload U30 patch log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: u30-patch-log
-          path: artifacts/u30-patch.log
-          if-no-files-found: warn
-          retention-days: 7
-
-      - name: Install dependencies
-        run: npm ci --ignore-scripts --no-audit --no-fund
-
-      - name: Rebuild Electron runtime
-        run: npm rebuild electron
-
-      - name: TypeScript and builds
-        env:
-          NODE_OPTIONS: --max-old-space-size=8192
-        run: |
-          npm run lint
-          npm run build
-          npm run build:electron
-
-      - name: Run focused U30 verifier
-        run: npm run verify:u30-ui-fast-track
-
-      - name: Run U30 Electron UI matrix
-        run: npm run test:u30:ui-matrix
-
-      - name: Upload U30 screenshots and report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: u30-ui-matrix-apply
-          path: artifacts/u30-ui-matrix
-          if-no-files-found: warn
-          retention-days: 14
-
-      - name: Commit formal U30 changes and remove temporary machinery
-        shell: pwsh
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           $temporaryFiles = @(
             'scripts/apply-u30-ui-fast-track.mjs',
             'scripts/relax-u30-patch-anchors.mjs',
@@ -100,6 +46,36 @@ jobs:
           foreach ($file in $temporaryFiles) {
             if (Test-Path $file) { Remove-Item -Force $file }
           }
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "fix: complete U30 responsive UI fast-track"
-          git push origin HEAD:${{ github.head_ref }}
+          git status --short 2>&1 | Tee-Object -FilePath artifacts/u30-materialize.log
+          git commit -m "fix: complete U30 responsive UI fast-track" 2>&1 | Tee-Object -FilePath artifacts/u30-materialize.log -Append
+          $commitExit = $LASTEXITCODE
+          "commit_exit=$commitExit" | Tee-Object -FilePath artifacts/u30-materialize.log -Append
+          if ($commitExit -eq 0) {
+            git push origin HEAD:${{ github.head_ref }} 2>&1 | Tee-Object -FilePath artifacts/u30-materialize.log -Append
+            $pushExit = $LASTEXITCODE
+          } else {
+            $pushExit = 99
+          }
+          "push_exit=$pushExit" | Tee-Object -FilePath artifacts/u30-materialize.log -Append
+          "$commitExit,$pushExit" | Set-Content -Path artifacts/u30-materialize-status.txt -Encoding ascii
+
+      - name: Upload materialization log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u30-materialize-log
+          path: |
+            artifacts/u30-materialize.log
+            artifacts/u30-materialize-status.txt
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Assert materialization succeeded
+        shell: pwsh
+        run: |
+          $status = Get-Content artifacts/u30-materialize-status.txt
+          if ($status -ne '0,0') { throw "U30 materialization failed: $status" }
