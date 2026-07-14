@@ -11,8 +11,8 @@ if (!source.includes(readerImport)) {
 }
 
 const readStart = source.indexOf('async function readLibraryIndex(');
-const readEndMarker = '\n\n\nfunction resolveSafeIndexedEntryPath(';
-const readEnd = source.indexOf(readEndMarker, readStart);
+const readEndToken = 'function resolveSafeIndexedEntryPath(';
+const readEnd = source.indexOf(readEndToken, readStart);
 if (readStart < 0 || readEnd < 0) throw new Error('readLibraryIndex function boundary not found.');
 
 const readReplacement = `async function readLibraryIndex(rootRecord: TokenizedRootRecord, _request: ReadLibraryIndexRequest) {
@@ -38,7 +38,6 @@ const readReplacement = `async function readLibraryIndex(rootRecord: TokenizedRo
   try {
     const sourceBuffer = await fs.readFile(indexPath);
     const parsedSource = parseLibraryIndexJsonBuffer(sourceBuffer);
-    const jsonText = parsedSource.text;
     const sha256 = crypto.createHash('sha256').update(sourceBuffer).digest('hex');
     const parsed = parsedSource.value;
     const validation = validateWrittenIndexShape(parsed);
@@ -109,11 +108,11 @@ const readReplacement = `async function readLibraryIndex(rootRecord: TokenizedRo
     } as const;
   }
 }`;
-source = source.slice(0, readStart) + readReplacement + source.slice(readEnd);
+source = source.slice(0, readStart) + readReplacement + '\n\n\n' + source.slice(readEnd);
 
 const healthStart = source.indexOf('async function readValidatedIndexForHealth(');
-const healthEndMarker = '\n\nasync function checkLibraryIndexHealth(';
-const healthEnd = source.indexOf(healthEndMarker, healthStart);
+const healthEndToken = 'async function checkLibraryIndexHealth(';
+const healthEnd = source.indexOf(healthEndToken, healthStart);
 if (healthStart < 0 || healthEnd < 0) throw new Error('readValidatedIndexForHealth function boundary not found.');
 
 const healthReplacement = `async function readValidatedIndexForHealth(rootRecord: TokenizedRootRecord) {
@@ -138,7 +137,7 @@ const healthReplacement = `async function readValidatedIndexForHealth(rootRecord
     return { ok: false as const, status: 'mvp127-index-health-read-error' as const, message: failure.message };
   }
 }`;
-source = source.slice(0, healthStart) + healthReplacement + source.slice(healthEnd);
+source = source.slice(0, healthStart) + healthReplacement + '\n\n' + source.slice(healthEnd);
 
 fs.writeFileSync(mainPath, source, 'utf8');
 console.log('U28 Windows index read fix applied.');
