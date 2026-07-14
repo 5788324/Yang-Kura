@@ -5,10 +5,10 @@
 ```text
 核心版本：0.167.0-mvp129
 代码事实来源：GitHub main
-已合入主线：U02～U28
-当前完成候选：U29 播放器、队列、续播与字幕全流程
-下一任务：U30 日常 UI、三主题、窗口、DPI 与键盘验收
-剩余主线：U30～U33
+已合入主线：U02～U29
+当前完成候选：U30 日常 UI、三主题、窗口、DPI 与键盘验收
+下一任务：U31 导入器与数据安全
+剩余主线：U31～U33
 MVP130：独立实验下载器，继续冻结，禁止合入
 ```
 
@@ -20,12 +20,11 @@ GitHub `main` 是唯一代码事实来源。长期文档不固定未来基线 SH
 
 默认分工：
 
-1. ChatGPT 负责需求拆解、架构、代码、自动测试、Windows CI、Electron UI 自动化、截图审查、回归、Git、PR、文档、合并建议与最终交付。
+1. ChatGPT 负责需求拆解、架构、代码、自动测试、Windows CI、Electron UI 自动化、截图审查、回归、Git、PR、文档、合并与最终交付。
 2. 能通过代码、临时样本、GitHub Actions、Electron/CDP 或其他自动化完成的验证，必须由 ChatGPT 自己闭环，不得转交用户。
-3. 只有确实依赖用户本机、真实硬件、物理设备、受限账号或无法自动化的系统对话框时，才交给 Codex 执行实机步骤。
-4. Codex 只执行明确的实机任务，不修改产品源码；测试结果回传后仍由 ChatGPT 诊断、修复、复测和管理 Git。
-5. 不要求用户运行命令、制作样本、截图、判断 PASS/FAIL 或手工整理报告。
-6. 自动测试未覆盖的视觉问题必须由 AI 审查截图并补充永久回归门禁。
+3. 只有确实依赖用户本机、真实硬件、物理设备、受限账号或无法自动化的系统集成时，才交给 Codex 执行实机步骤。
+4. 个人自用项目按实际风险选择测试强度；简单、低风险且相关的任务允许合并处理。
+5. 不要求用户运行命令、制作样本、截图、判断 PASS/FAIL 或整理报告。
 
 详细规则见 `AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md`。
 
@@ -71,17 +70,25 @@ U28 已完成并合入 `main`：
 
 U29 已完成实现和自动化验收：
 
-- HTMLAudio 与 mpv 使用同一真实续播起点；重启后不再只恢复 UI、后端却从 0 秒播放。
-- Seek 限制在真实音轨时长范围内。
-- 队列、播放历史和歌单不持久化当前窗口 `rootPathToken`、媒体 URL 或 tokenized 封面 URL。
-- 重新授权并读取 Index 后，持久化队列与歌单自动换用本窗口的新 token。
-- 未重新授权的本地音轨明确阻止播放，不再回退为示例播放。
-- 播放历史使用与音轨时长相关的完成阈值，短音轨中途进度不再误判“已听完”；旧记录加载时自动重算。
-- 首页区分正在播放、已暂停和等待重新授权，不再显示互相矛盾的文案。
-- Windows Electron E2E 覆盖播放、暂停、Seek、上一首/下一首、队列、完成策略、退出重启、实际续播、LRC/SRT/VTT/ASS、双语字幕和无字幕状态。
-- U28 Electron 全链路继续作为强制回归。
+- HTMLAudio 与 mpv 使用同一真实续播起点。
+- Seek、队列、重启恢复、新授权 token 对账和完成状态统一。
+- 播放历史、首页状态和 LRC/SRT/VTT/ASS/双语/无字幕通过 Windows Electron E2E。
 
 详细证据见 `docs/U29_PLAYER_RELIABILITY_ACCEPTANCE.md`。
+
+### U30：日常 UI、三主题、窗口、DPI 与键盘
+
+U30 已完成实现和自动化验收：
+
+- 1040×680、1280×800、1600×900 三档窗口/DPI 矩阵无横向溢出或 PlayerBar 遮挡。
+- dark、acrylic-mist、ocean-drops 三主题通过截图与 DOM 布局检查。
+- 现代队列恢复时不再重复显示旧版续播提示。
+- 队列支持 Escape 关闭并把焦点返回触发按钮；全屏歌词继续支持 Escape。
+- reduced-motion 和全局 focus-visible 合同完成。
+- 窄窗口保留真实资源库状态文本，只做截断，不隐藏状态。
+- U28、U29、U30 Electron E2E、全部 verifier、稳定回归和最终生产构建同时通过。
+
+详细证据见 `docs/U30_UI_FAST_TRACK_ACCEPTANCE.md`。
 
 ## 历史质量事实与 verifier 兼容合同
 
@@ -110,24 +117,12 @@ U29 已完成实现和自动化验收：
 
 > 日常层只展示用户实际会使用的功能；诊断、回归、工程状态、测试入口、命令行说明、MVP/版本收口信息和检修工具统一进入 AI 维护或隐藏兼容层，不得长期污染主界面。
 
-这些历史事实只用于稳定合同和回归，不代表应把工程信息重新显示到日常 UI。
-
-## 项目级 UI 硬规则
-
-> 日常层只展示用户实际使用的功能；诊断、回归、工程状态、测试入口、命令行说明、MVP/版本收口信息和检修工具统一进入 AI 维护或隐藏兼容层。
-
-补充要求：
-
-- Demo、静态回归或历史状态不得冒充真实用户状态。
-- 播放器、首页、资源库、诊断和持久化记录必须使用一致、可解释的状态语义。
-- 自动断言通过后仍必须审查关键截图，发现视觉真实性问题时补充永久测试。
-
 ## 当前阶段
 
 ```text
 U28 资源库闭环：完成
 → U29 播放器与字幕全流程：完成
-→ U30 日常 UI、三主题、窗口、DPI、键盘
+→ U30 日常 UI、三主题、窗口、DPI、键盘：完成
 → U31 导入器与数据安全
 → U32 Windows 发布候选验收
 → U33 版本与 Beta 发布
@@ -135,10 +130,9 @@ U28 资源库闭环：完成
 
 ## 后续仍需完成
 
-1. **U30**：首页、资源库、详情、歌单、设置、PlayerBar、全屏播放器和 AI 维护；三主题；1040×680；常规/最大化；100%/125%/150% DPI；键盘、Escape、焦点返回和 reduced-motion。
-2. **U31**：copy-only、仅临时副本上的 move-only、冲突与不覆盖、OperationLog、Index 备份恢复和数据安全。
-3. **U32**：strict smoke、实际 mpv Windows acceptance、portable、NSIS、安装升级卸载、中文/空格路径、用户数据保留、残留进程和 SHA-256。
-4. **U33**：关闭或记录 Blocker/Major、版本号、Release Notes、tag、产物 SHA-256 和新 Beta 发布。
+1. **U31**：copy-only、临时副本上的 move-only、冲突与不覆盖、OperationLog、Index 备份恢复和失败回滚。
+2. **U32**：strict smoke、实际 mpv Windows acceptance、portable、NSIS、安装升级卸载、中文/空格路径、用户数据保留、残留进程和 SHA-256。
+3. **U33**：关闭或记录 Blocker/Major、版本号、Release Notes、tag、产物 SHA-256 和新 Beta 发布。
 
 ## 自动验证与冻结项
 
@@ -148,7 +142,7 @@ U28 资源库闭环：完成
 npm ci --ignore-scripts --no-audit --no-fund
 npm audit --audit-level=high
 TypeScript 与 Electron 构建
-U28/U29 Electron E2E
+U28/U29/U30 Electron E2E
 全部 scripts/verify-u*.mjs
 npm run verify:stable
 最终生产构建
