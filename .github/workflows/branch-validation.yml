@@ -38,6 +38,9 @@ jobs:
           node scripts/apply-u31-importer-transaction-hardening.mjs 2>&1 | Tee-Object -FilePath artifacts/u31-patch.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      - name: Normalize U31 transaction type narrowing
+        run: node scripts/fix-u31-transaction-narrowing.mjs
+
       - name: Upload U31 patch log
         if: always()
         uses: actions/upload-artifact@v4
@@ -101,7 +104,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add electron/main.ts src/types/electron-api.d.ts package.json scripts/run-stable-regression.mjs
-          git rm scripts/apply-u31-importer-transaction-hardening.mjs
+          git add electron/main.ts electron/importerTransactionService.ts src/types/electron-api.d.ts package.json scripts/run-stable-regression.mjs
+          git rm scripts/apply-u31-importer-transaction-hardening.mjs scripts/fix-u31-transaction-narrowing.mjs
           git commit -m "fix: make importer file operations transactional"
           git push origin HEAD:${{ github.head_ref }}
