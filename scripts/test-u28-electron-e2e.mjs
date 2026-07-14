@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
+import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { _electron as electron } from 'playwright-core';
 
 const cwd = process.cwd();
 const artifactDir = path.join(cwd, 'artifacts', 'u28-electron-e2e');
@@ -15,7 +16,9 @@ const POPULATED_INDEX_NAME = 'populated-index';
 const WORK_TITLE = 'U28 E2E 音声作品';
 const TRACK_TITLE = 'U28 E2E 测试音轨';
 const ROOT_SESSION_KEY = 'yang_kura_u28_authorized_roots_v1';
-const report = { status: 'running', scenarios: [], screenshots: [] };
+const report = { status: 'running', driver: 'electron-chromium-cdp', scenarios: [], screenshots: [] };
+
+const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 function writeJsonWithBom(filePath, value) {
   const body = Buffer.from(JSON.stringify(value, null, 2), 'utf8');
@@ -122,12 +125,128 @@ function writeSilentWav(filePath, seconds = 3) {
   return buffer.length;
 }
 
+async function reservePort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      const port = typeof address === 'object' && address ? address.port : 0;
+      server.close((error) => error ? reject(error) : resolve(port));
+    });
+  });
+}
+
+class CdpClient {
+  constructor(url) {
+    this.url = url;
+    this.socket = null;
+    this.nextId = 1;
+    this.pending = new Map();
+    this.pageErrors = [];
+    this.consoleErrors = [];
+  }
+
+  async connect() {
+    this.socket = new WebSocket(this.url);
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('CDP WebSocket connection timeout')), 15_000);
+      this.socket.addEventListener('open', () => {
+        clearTimeout(timer);
+        resolve();
+      }, { once: true });
+      this.socket.addEventListener('error', (event) => {
+        clearTimeout(timer);
+        reject(new Error(`CDP WebSocket error: ${event.message ?? 'unknown'}`));
+      }, { once: true });
+    });
+    this.socket.addEventListener('message', (event) => {
+      const payload = JSON.parse(String(event.data));
+      if (payload.id) {
+        const pending = this.pending.get(payload.id);
+        if (!pending) return;
+        this.pending.delete(payload.id);
+        if (payload.error) pending.reject(new Error(`${payload.error.code}: ${payload.error.message}`));
+        else pending.resolve(payload.result);
+        return;
+      }
+      if (payload.method === 'Runtime.exceptionThrown') {
+        this.pageErrors.push(payload.params?.exceptionDetails?.text ?? 'Runtime exception');
+      }
+      if (payload.method === 'Runtime.consoleAPICalled' && payload.params?.type === 'error') {
+        this.consoleErrors.push((payload.params.args ?? []).map((item) => item.value ?? item.description ?? '').join(' '));
+      }
+    });
+    await this.send('Runtime.enable');
+    await this.send('Page.enable');
+  }
+
+  send(method, params = {}) {
+    const id = this.nextId++;
+    return new Promise((resolve, reject) => {
+      this.pending.set(id, { resolve, reject });
+      this.socket.send(JSON.stringify({ id, method, params }));
+    });
+  }
+
+  async evaluate(expression, awaitPromise = false) {
+    const response = await this.send('Runtime.evaluate', {
+      expression,
+      awaitPromise,
+      returnByValue: true,
+      userGesture: true,
+    });
+    if (response.exceptionDetails) {
+      throw new Error(response.exceptionDetails.exception?.description ?? response.exceptionDetails.text ?? 'Renderer evaluation failed');
+    }
+    return response.result?.value;
+  }
+
+  async close() {
+    try {
+      this.socket?.close();
+    } catch {}
+  }
+}
+
+function electronExecutable() {
+  const candidates = process.platform === 'win32'
+    ? [path.join(cwd, 'node_modules', 'electron', 'dist', 'electron.exe')]
+    : [path.join(cwd, 'node_modules', 'electron', 'dist', 'electron')];
+  const executable = candidates.find((candidate) => fs.existsSync(candidate));
+  if (!executable) throw new Error(`Electron binary missing: ${candidates.join(' | ')}`);
+  return executable;
+}
+
+async function waitForCdpTarget(port, child) {
+  const deadline = Date.now() + 30_000;
+  let lastError = '';
+  while (Date.now() < deadline) {
+    if (child.exitCode !== null) throw new Error(`Electron exited before CDP attached: ${child.exitCode}`);
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/json/list`);
+      if (response.ok) {
+        const targets = await response.json();
+        const target = targets.find((item) => item.type === 'page' && item.webSocketDebuggerUrl);
+        if (target) return target.webSocketDebuggerUrl;
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
+    await delay(200);
+  }
+  throw new Error(`Electron CDP target timeout${lastError ? `: ${lastError}` : ''}`);
+}
+
 async function launchApp(fixtureDir, profileDir) {
-  const pageErrors = [];
-  const consoleErrors = [];
-  const app = await electron.launch({
+  const port = await reservePort();
+  const stdout = [];
+  const stderr = [];
+  const child = spawn(electronExecutable(), [
+    `--remote-debugging-port=${port}`,
+    path.join(cwd, 'dist-electron', 'main.js'),
+  ], {
     cwd,
-    args: [path.join(cwd, 'dist-electron', 'main.js')],
     env: {
       ...process.env,
       APPDATA: profileDir,
@@ -137,93 +256,142 @@ async function launchApp(fixtureDir, profileDir) {
       YANG_KURA_E2E_LIBRARY_ROOT: fixtureDir,
       ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
     },
-    timeout: 45_000,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    windowsHide: false,
   });
-  const page = await app.firstWindow({ timeout: 30_000 });
-  page.on('pageerror', (error) => pageErrors.push(error.message));
-  page.on('console', (message) => {
-    if (message.type() === 'error') consoleErrors.push(message.text());
-  });
-  await page.waitForSelector('#windows-app-bar', { timeout: 30_000 });
-  return { app, page, pageErrors, consoleErrors };
+  child.stdout.on('data', (chunk) => stdout.push(String(chunk)));
+  child.stderr.on('data', (chunk) => stderr.push(String(chunk)));
+  const webSocketUrl = await waitForCdpTarget(port, child);
+  const cdp = new CdpClient(webSocketUrl);
+  await cdp.connect();
+  await waitForSelector(cdp, '#windows-app-bar', 30_000);
+  return { child, cdp, stdout, stderr };
 }
 
-async function waitForBodyText(page, expected, timeout = 15_000) {
-  await page.waitForFunction(
-    (text) => document.body?.innerText.includes(text),
-    expected,
-    { timeout },
-  );
+async function waitForCondition(cdp, expression, timeout = 15_000, label = expression) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    if (await cdp.evaluate(`Boolean(${expression})`)) return;
+    await delay(100);
+  }
+  throw new Error(`Timed out waiting for ${label}`);
 }
 
-async function expectBodyContains(page, expected) {
-  const body = await page.locator('body').innerText();
-  assert.ok(body.includes(expected), `页面应包含：${expected}`);
+async function waitForSelector(cdp, selector, timeout = 15_000) {
+  return waitForCondition(cdp, `document.querySelector(${JSON.stringify(selector)})`, timeout, selector);
+}
+
+async function waitForBodyText(cdp, text, timeout = 15_000) {
+  return waitForCondition(cdp, `document.body?.innerText.includes(${JSON.stringify(text)})`, timeout, `text ${text}`);
+}
+
+async function bodyText(cdp) {
+  return cdp.evaluate('document.body?.innerText ?? ""');
+}
+
+async function expectBodyContains(cdp, text) {
+  const body = await bodyText(cdp);
+  assert.ok(body.includes(text), `页面应包含：${text}`);
   return body;
 }
 
-async function expectBodyExcludes(page, unexpected) {
-  const body = await page.locator('body').innerText();
-  assert.ok(!body.includes(unexpected), `页面不应包含：${unexpected}`);
+async function expectBodyExcludes(cdp, text) {
+  const body = await bodyText(cdp);
+  assert.ok(!body.includes(text), `页面不应包含：${text}`);
 }
 
-async function navigate(page, pageId) {
-  await page.locator(`#nav-${pageId}`).click();
-  await page.waitForTimeout(150);
+async function clickSelector(cdp, selector) {
+  await cdp.evaluate(`(() => { const element = document.querySelector(${JSON.stringify(selector)}); if (!element) throw new Error('Missing selector: ${selector}'); element.click(); return true; })()`);
+  await delay(120);
 }
 
-async function openSettingsPaths(page) {
-  await navigate(page, 'settings');
-  const pathTab = page.getByRole('button', { name: /资源库目录/ }).first();
-  await pathTab.click();
-  await waitForBodyText(page, '选择本地资源库目录');
+async function clickVisibleText(cdp, text, tagName = '*', exact = true) {
+  const expression = `(() => {
+    const expected = ${JSON.stringify(text)};
+    const elements = [...document.querySelectorAll(${JSON.stringify(tagName)})];
+    const element = elements.find((item) => item.offsetParent !== null && (${exact ? 'item.textContent?.trim() === expected' : 'item.textContent?.includes(expected)'}));
+    if (!element) throw new Error('Missing visible text: ' + expected);
+    element.click();
+    return true;
+  })()`;
+  await cdp.evaluate(expression);
+  await delay(120);
 }
 
-async function selectAsmrRoot(page) {
-  await openSettingsPaths(page);
-  await page.getByRole('button', { name: '选择音声库目录' }).click();
-  await waitForBodyText(page, '已选择目录，可读取已有记录或重新扫描');
-  const readButton = page.getByRole('button', { name: '读取已有记录' }).first();
-  assert.equal(await readButton.isDisabled(), false, '目录授权后读取按钮必须启用');
+async function navigate(cdp, pageId) {
+  await clickSelector(cdp, `#nav-${pageId}`);
 }
 
-async function readAsmrIndex(page) {
-  const readButton = page.getByRole('button', { name: '读取已有记录' }).first();
-  await readButton.click();
-  await page.waitForFunction(() => ![...document.querySelectorAll('button')].some((button) => button.textContent?.includes('读取中')), null, { timeout: 15_000 });
+async function openSettingsPaths(cdp) {
+  await navigate(cdp, 'settings');
+  await clickVisibleText(cdp, '资源库目录', 'button', false);
+  await waitForBodyText(cdp, '选择本地资源库目录');
 }
 
-async function screenshot(page, name) {
+async function selectAsmrRoot(cdp) {
+  await openSettingsPaths(cdp);
+  await clickVisibleText(cdp, '选择音声库目录', 'button');
+  await waitForBodyText(cdp, '已选择目录，可读取已有记录或重新扫描');
+  const enabled = await cdp.evaluate(`(() => [...document.querySelectorAll('button')].some((button) => button.offsetParent !== null && button.textContent?.trim() === '读取已有记录' && !button.disabled))()`);
+  assert.equal(enabled, true, '目录授权后读取按钮必须启用');
+}
+
+async function readAsmrIndex(cdp) {
+  await cdp.evaluate(`(() => {
+    const button = [...document.querySelectorAll('button')].find((item) => item.offsetParent !== null && item.textContent?.trim() === '读取已有记录' && !item.disabled);
+    if (!button) throw new Error('读取已有记录按钮不可用');
+    button.click();
+    return true;
+  })()`);
+  await waitForCondition(cdp, `![...document.querySelectorAll('button')].some((button) => button.textContent?.includes('读取中'))`, 15_000, 'index read completion');
+}
+
+async function screenshot(cdp, name) {
   const relative = `${name}.png`;
-  await page.screenshot({ path: path.join(artifactDir, relative), fullPage: true });
+  const result = await cdp.send('Page.captureScreenshot', { format: 'png', fromSurface: true, captureBeyondViewport: true });
+  fs.writeFileSync(path.join(artifactDir, relative), Buffer.from(result.data, 'base64'));
   report.screenshots.push(relative);
 }
 
-async function assertLayout(page, label) {
-  const result = await page.evaluate(() => {
-    const sidebar = document.querySelector('#app-sidebar')?.getBoundingClientRect();
-    const player = document.querySelector('#app-player-bar')?.getBoundingClientRect();
-    const main = document.querySelector('main')?.getBoundingClientRect();
+async function assertLayout(cdp, label) {
+  const result = await cdp.evaluate(`(() => {
+    const box = (selector) => {
+      const element = document.querySelector(selector);
+      if (!element) return null;
+      const rect = element.getBoundingClientRect();
+      return { width: rect.width, height: rect.height, left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
+    };
     return {
       viewportWidth: window.innerWidth,
       viewportHeight: window.innerHeight,
       scrollWidth: document.documentElement.scrollWidth,
-      sidebar: sidebar ? { width: sidebar.width, height: sidebar.height, left: sidebar.left, right: sidebar.right } : null,
-      player: player ? { width: player.width, height: player.height, top: player.top, bottom: player.bottom } : null,
-      main: main ? { width: main.width, height: main.height, left: main.left, right: main.right } : null,
+      sidebar: box('#app-sidebar'),
+      player: box('#app-player-bar'),
+      main: box('main'),
       bodyTextLength: document.body?.innerText.length ?? 0,
     };
-  });
-  assert.ok(result.sidebar && result.sidebar.width > 150 && result.sidebar.height > 300, `${label}: sidebar 布局异常`);
-  assert.ok(result.player && result.player.width > 500 && result.player.height >= 60, `${label}: PlayerBar 布局异常`);
-  assert.ok(result.main && result.main.width > 400 && result.main.height > 300, `${label}: 主内容布局异常`);
+  })()`);
+  assert.ok(result.sidebar?.width > 150 && result.sidebar?.height > 300, `${label}: sidebar 布局异常`);
+  assert.ok(result.player?.width > 500 && result.player?.height >= 60, `${label}: PlayerBar 布局异常`);
+  assert.ok(result.main?.width > 400 && result.main?.height > 300, `${label}: 主内容布局异常`);
   assert.ok(result.scrollWidth <= result.viewportWidth + 2, `${label}: 页面发生横向溢出`);
-  assert.ok(result.bodyTextLength > 100, `${label}: 页面疑似空白/黑屏`);
+  assert.ok(result.bodyTextLength > 100, `${label}: 页面疑似空白或黑屏`);
   return result;
 }
 
-async function closeAndAssertClean(app) {
-  await app.close();
+async function closeApp(runtime) {
+  await runtime.cdp.close();
+  if (runtime.child.exitCode === null) runtime.child.kill();
+  const deadline = Date.now() + 10_000;
+  while (runtime.child.exitCode === null && Date.now() < deadline) await delay(100);
+  if (runtime.child.exitCode === null) {
+    runtime.child.kill('SIGKILL');
+    throw new Error('Electron process did not exit cleanly');
+  }
+}
+
+async function assertNoRendererExceptions(runtime, label) {
+  assert.deepEqual(runtime.cdp.pageErrors, [], `${label} Renderer exceptions: ${runtime.cdp.pageErrors.join(' | ')}`);
 }
 
 async function runEmptyAndRestartScenario(root) {
@@ -235,80 +403,79 @@ async function runEmptyAndRestartScenario(root) {
 
   let runtime = await launchApp(fixtureDir, profileDir);
   try {
-    await expectBodyContains(runtime.page, '尚未选择资源库');
-    await assertLayout(runtime.page, '首次启动');
-    await screenshot(runtime.page, '01-startup-unselected');
+    await expectBodyContains(runtime.cdp, '尚未选择资源库');
+    await assertLayout(runtime.cdp, '首次启动');
+    await screenshot(runtime.cdp, '01-startup-unselected');
 
-    await selectAsmrRoot(runtime.page);
-    await navigate(runtime.page, 'dashboard');
-    await waitForBodyText(runtime.page, '等待读取资源库');
-    await expectBodyContains(runtime.page, '目录已授权');
-    await expectBodyExcludes(runtime.page, '已连接空资源库');
-    await screenshot(runtime.page, '02-authorized-unread-home');
+    await selectAsmrRoot(runtime.cdp);
+    await navigate(runtime.cdp, 'dashboard');
+    await waitForBodyText(runtime.cdp, '等待读取资源库');
+    await expectBodyContains(runtime.cdp, '目录已授权');
+    await expectBodyExcludes(runtime.cdp, '已连接空资源库');
+    await screenshot(runtime.cdp, '02-authorized-unread-home');
 
-    await openSettingsPaths(runtime.page);
-    await readAsmrIndex(runtime.page);
-    await waitForBodyText(runtime.page, '文件编码：utf8-bom');
-    await expectBodyContains(runtime.page, '上次已读取「empty-index」：0 个集合，0 条音轨');
-    await screenshot(runtime.page, '03-empty-index-settings');
+    await openSettingsPaths(runtime.cdp);
+    await readAsmrIndex(runtime.cdp);
+    await waitForBodyText(runtime.cdp, '文件编码：utf8-bom');
+    await expectBodyContains(runtime.cdp, '上次已读取「empty-index」：0 个集合，0 条音轨');
+    await screenshot(runtime.cdp, '03-empty-index-settings');
 
-    await navigate(runtime.page, 'dashboard');
-    await waitForBodyText(runtime.page, '已连接空资源库');
-    await expectBodyContains(runtime.page, '资源库已连接，当前没有音轨');
-    await expectBodyContains(runtime.page, '已加载 0 条音轨');
-    await expectBodyExcludes(runtime.page, '尚未读取资源库记录');
-    await expectBodyExcludes(runtime.page, '等待导入资源库');
-    await assertLayout(runtime.page, '空 Index 首页');
-    await screenshot(runtime.page, '04-empty-index-home');
+    await navigate(runtime.cdp, 'dashboard');
+    await waitForBodyText(runtime.cdp, '已连接空资源库');
+    await expectBodyContains(runtime.cdp, '资源库已连接，当前没有音轨');
+    await expectBodyContains(runtime.cdp, '已加载 0 条音轨');
+    await expectBodyExcludes(runtime.cdp, '尚未读取资源库记录');
+    await expectBodyExcludes(runtime.cdp, '等待导入资源库');
+    await assertLayout(runtime.cdp, '空 Index 首页');
+    await screenshot(runtime.cdp, '04-empty-index-home');
 
-    await navigate(runtime.page, 'asmr-lib');
-    await expectBodyContains(runtime.page, '音声库');
-    await assertLayout(runtime.page, '空 Index 音声库');
-    await screenshot(runtime.page, '05-empty-index-asmr');
+    await navigate(runtime.cdp, 'asmr-lib');
+    await expectBodyContains(runtime.cdp, '音声库');
+    await assertLayout(runtime.cdp, '空 Index 音声库');
+    await screenshot(runtime.cdp, '05-empty-index-asmr');
 
-    await navigate(runtime.page, 'music-lib');
-    await expectBodyContains(runtime.page, '音乐库');
-    await assertLayout(runtime.page, '空 Index 音乐库');
-    await screenshot(runtime.page, '06-empty-index-music');
+    await navigate(runtime.cdp, 'music-lib');
+    await expectBodyContains(runtime.cdp, '音乐库');
+    await assertLayout(runtime.cdp, '空 Index 音乐库');
+    await screenshot(runtime.cdp, '06-empty-index-music');
 
-    await runtime.page.locator('#sidebar-ai-maintenance-toggle').click();
-    await navigate(runtime.page, 'diagnostics');
-    await waitForBodyText(runtime.page, '已从真实 Index 映射 0 个音声作品、0 个音乐专辑');
-    await expectBodyContains(runtime.page, '音声作品\n0');
-    await expectBodyContains(runtime.page, '音乐专辑\n0');
-    await expectBodyExcludes(runtime.page, 'Demo 扫描演示');
-    await assertLayout(runtime.page, '空 Index 诊断');
-    await screenshot(runtime.page, '07-empty-index-diagnostics');
-
-    assert.deepEqual(runtime.pageErrors, [], `空 Index 页面错误：${runtime.pageErrors.join(' | ')}`);
+    await clickSelector(runtime.cdp, '#sidebar-ai-maintenance-toggle');
+    await navigate(runtime.cdp, 'diagnostics');
+    await waitForBodyText(runtime.cdp, '已从真实 Index 映射 0 个音声作品、0 个音乐专辑');
+    await expectBodyContains(runtime.cdp, '音声作品\n0');
+    await expectBodyContains(runtime.cdp, '音乐专辑\n0');
+    await expectBodyExcludes(runtime.cdp, 'Demo 扫描演示');
+    await assertLayout(runtime.cdp, '空 Index 诊断');
+    await screenshot(runtime.cdp, '07-empty-index-diagnostics');
+    await assertNoRendererExceptions(runtime, 'empty index');
     report.scenarios.push({ name: 'empty-index-current-window', status: 'PASS' });
   } finally {
-    await closeAndAssertClean(runtime.app);
+    await closeApp(runtime);
   }
 
   runtime = await launchApp(fixtureDir, profileDir);
   try {
-    await waitForBodyText(runtime.page, '资源库待重新连接');
-    await expectBodyExcludes(runtime.page, '已加载 0 条音轨');
-    await expectBodyExcludes(runtime.page, '已连接空资源库');
-    await screenshot(runtime.page, '08-restart-reauthorization-required');
+    await waitForBodyText(runtime.cdp, '资源库待重新连接');
+    await expectBodyExcludes(runtime.cdp, '已加载 0 条音轨');
+    await expectBodyExcludes(runtime.cdp, '已连接空资源库');
+    await screenshot(runtime.cdp, '08-restart-reauthorization-required');
 
-    await selectAsmrRoot(runtime.page);
-    await navigate(runtime.page, 'dashboard');
-    await waitForBodyText(runtime.page, '等待读取资源库');
-    await expectBodyExcludes(runtime.page, '已连接空资源库');
+    await selectAsmrRoot(runtime.cdp);
+    await navigate(runtime.cdp, 'dashboard');
+    await waitForBodyText(runtime.cdp, '等待读取资源库');
+    await expectBodyExcludes(runtime.cdp, '已连接空资源库');
 
-    await openSettingsPaths(runtime.page);
-    await readAsmrIndex(runtime.page);
-    await waitForBodyText(runtime.page, '文件编码：utf8-bom');
-    await navigate(runtime.page, 'dashboard');
-    await waitForBodyText(runtime.page, '已连接空资源库');
-    await expectBodyContains(runtime.page, '已加载 0 条音轨');
-    await screenshot(runtime.page, '09-restart-reread-empty-index');
-    assert.deepEqual(runtime.pageErrors, [], `重启页面错误：${runtime.pageErrors.join(' | ')}`);
+    await openSettingsPaths(runtime.cdp);
+    await readAsmrIndex(runtime.cdp);
+    await waitForBodyText(runtime.cdp, '文件编码：utf8-bom');
+    await navigate(runtime.cdp, 'dashboard');
+    await waitForBodyText(runtime.cdp, '已连接空资源库');
+    await expectBodyContains(runtime.cdp, '已加载 0 条音轨');
+    await screenshot(runtime.cdp, '09-restart-reread-empty-index');
+    await assertNoRendererExceptions(runtime, 'restart');
     report.scenarios.push({ name: 'restart-reauthorize-reread', status: 'PASS' });
   } finally {
-    await closeAndAssertClean(runtime.app);
+    await closeApp(runtime);
   }
 }
 
@@ -317,27 +484,24 @@ async function runBrokenJsonScenario(root) {
   const profileDir = path.join(root, 'profile-broken');
   fs.mkdirSync(fixtureDir, { recursive: true });
   fs.mkdirSync(profileDir, { recursive: true });
-  fs.writeFileSync(path.join(fixtureDir, 'library-index.json'), Buffer.concat([
-    Buffer.from([0xef, 0xbb, 0xbf]),
-    Buffer.from('{ broken json', 'utf8'),
-  ]));
+  fs.writeFileSync(path.join(fixtureDir, 'library-index.json'), Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), Buffer.from('{ broken json', 'utf8')]));
 
   const runtime = await launchApp(fixtureDir, profileDir);
   try {
-    await selectAsmrRoot(runtime.page);
-    await readAsmrIndex(runtime.page);
-    await waitForBodyText(runtime.page, 'JSON 解析失败');
-    await expectBodyExcludes(runtime.page, 'source stat failed: UNKNOWN');
-    await navigate(runtime.page, 'dashboard');
-    await expectBodyExcludes(runtime.page, '已连接空资源库');
-    await expectBodyExcludes(runtime.page, '已加载 0 条音轨');
-    await screenshot(runtime.page, '10-broken-json-home');
-    await openSettingsPaths(runtime.page);
-    await screenshot(runtime.page, '11-broken-json-settings');
-    assert.deepEqual(runtime.pageErrors, [], `损坏 JSON 页面错误：${runtime.pageErrors.join(' | ')}`);
+    await selectAsmrRoot(runtime.cdp);
+    await readAsmrIndex(runtime.cdp);
+    await waitForBodyText(runtime.cdp, 'JSON 解析失败');
+    await expectBodyExcludes(runtime.cdp, 'source stat failed: UNKNOWN');
+    await navigate(runtime.cdp, 'dashboard');
+    await expectBodyExcludes(runtime.cdp, '已连接空资源库');
+    await expectBodyExcludes(runtime.cdp, '已加载 0 条音轨');
+    await screenshot(runtime.cdp, '10-broken-json-home');
+    await openSettingsPaths(runtime.cdp);
+    await screenshot(runtime.cdp, '11-broken-json-settings');
+    await assertNoRendererExceptions(runtime, 'broken JSON');
     report.scenarios.push({ name: 'broken-json-classification', status: 'PASS' });
   } finally {
-    await closeAndAssertClean(runtime.app);
+    await closeApp(runtime);
   }
 }
 
@@ -351,63 +515,55 @@ async function runPopulatedPlaybackScenario(root) {
 
   const runtime = await launchApp(fixtureDir, profileDir);
   try {
-    await selectAsmrRoot(runtime.page);
-    const rootPathToken = await runtime.page.evaluate((key) => {
-      const value = JSON.parse(sessionStorage.getItem(key) ?? '{}');
-      return value.asmr?.rootPathToken ?? '';
-    }, ROOT_SESSION_KEY);
+    await selectAsmrRoot(runtime.cdp);
+    const rootPathToken = await runtime.cdp.evaluate(`(() => { const value = JSON.parse(sessionStorage.getItem(${JSON.stringify(ROOT_SESSION_KEY)}) ?? '{}'); return value.asmr?.rootPathToken ?? ''; })()`);
     assert.ok(rootPathToken.startsWith('yk-root-'), 'E2E 未取得主进程生成的 rootPathToken');
     writeJsonWithBom(path.join(fixtureDir, 'library-index.json'), populatedIndex(rootPathToken, wavSize));
 
-    await readAsmrIndex(runtime.page);
-    await waitForBodyText(runtime.page, '文件编码：utf8-bom');
-    await expectBodyContains(runtime.page, '1 个集合，1 条音轨');
+    await readAsmrIndex(runtime.cdp);
+    await waitForBodyText(runtime.cdp, '文件编码：utf8-bom');
+    await expectBodyContains(runtime.cdp, '1 个集合，1 条音轨');
 
-    await navigate(runtime.page, 'dashboard');
-    await waitForBodyText(runtime.page, '已连接本地资源库');
-    await expectBodyContains(runtime.page, '已加载 1 条音轨');
-    await expectBodyExcludes(runtime.page, '等待导入资源库');
-    await screenshot(runtime.page, '12-populated-home');
+    await navigate(runtime.cdp, 'dashboard');
+    await waitForBodyText(runtime.cdp, '已连接本地资源库');
+    await expectBodyContains(runtime.cdp, '已加载 1 条音轨');
+    await expectBodyExcludes(runtime.cdp, '等待导入资源库');
+    await screenshot(runtime.cdp, '12-populated-home');
 
-    const mediaProbe = await runtime.page.evaluate(async ({ token }) => {
-      const url = `yang-kura-media://track/${encodeURIComponent(token)}/${encodeURIComponent('sample.wav')}`;
+    const mediaProbe = await runtime.cdp.evaluate(`(async () => {
+      const url = 'yang-kura-media://track/' + encodeURIComponent(${JSON.stringify(rootPathToken)}) + '/' + encodeURIComponent('sample.wav');
       const response = await fetch(url);
       const body = new Uint8Array(await response.arrayBuffer());
-      return {
-        ok: response.ok,
-        status: response.status,
-        byteLength: body.byteLength,
-        riff: String.fromCharCode(...body.slice(0, 4)),
-      };
-    }, { token: rootPathToken });
+      return { ok: response.ok, status: response.status, byteLength: body.byteLength, riff: String.fromCharCode(...body.slice(0, 4)) };
+    })()`, true);
     assert.equal(mediaProbe.ok, true, '受控媒体协议读取失败');
     assert.equal(mediaProbe.status, 200, '受控媒体协议状态码异常');
     assert.equal(mediaProbe.byteLength, wavSize, '受控媒体协议字节数不一致');
     assert.equal(mediaProbe.riff, 'RIFF', '受控媒体协议未返回 WAV');
 
-    await navigate(runtime.page, 'asmr-lib');
-    await waitForBodyText(runtime.page, WORK_TITLE);
-    await runtime.page.getByText(WORK_TITLE, { exact: true }).first().click();
-    await waitForBodyText(runtime.page, '播放全部音声');
-    await runtime.page.locator('#play-all-asmr').click();
-    await waitForBodyText(runtime.page, TRACK_TITLE);
-    await runtime.page.waitForTimeout(900);
-    const playerText = await runtime.page.locator('#app-player-bar').innerText();
+    await navigate(runtime.cdp, 'asmr-lib');
+    await waitForBodyText(runtime.cdp, WORK_TITLE);
+    await clickVisibleText(runtime.cdp, WORK_TITLE, '*');
+    await waitForBodyText(runtime.cdp, '播放全部音声');
+    await clickSelector(runtime.cdp, '#play-all-asmr');
+    await waitForBodyText(runtime.cdp, TRACK_TITLE);
+    await delay(900);
+    const playerText = await runtime.cdp.evaluate(`document.querySelector('#app-player-bar')?.innerText ?? ''`);
     assert.ok(playerText.includes(TRACK_TITLE), 'PlayerBar 未显示真实 Index 音轨');
     assert.ok(!playerText.includes('播放失败：'), `真实 WAV 播放失败：${playerText}`);
-    const playButton = runtime.page.locator('#app-player-bar button[aria-label="暂停"], #app-player-bar button[aria-label="播放"]');
-    assert.ok(await playButton.count() > 0, 'PlayerBar 播放控制不可用');
-    await assertLayout(runtime.page, '真实音轨播放');
-    await screenshot(runtime.page, '13-populated-playback');
+    const hasPlaybackControl = await runtime.cdp.evaluate(`Boolean(document.querySelector('#app-player-bar button[aria-label="暂停"], #app-player-bar button[aria-label="播放"]'))`);
+    assert.equal(hasPlaybackControl, true, 'PlayerBar 播放控制不可用');
+    await assertLayout(runtime.cdp, '真实音轨播放');
+    await screenshot(runtime.cdp, '13-populated-playback');
 
-    await runtime.page.locator('#sidebar-ai-maintenance-toggle').click();
-    await navigate(runtime.page, 'diagnostics');
-    await waitForBodyText(runtime.page, '已从真实 Index 映射 1 个音声作品、0 个音乐专辑');
-    await screenshot(runtime.page, '14-populated-diagnostics');
-    assert.deepEqual(runtime.pageErrors, [], `非空 Index 页面错误：${runtime.pageErrors.join(' | ')}`);
+    await clickSelector(runtime.cdp, '#sidebar-ai-maintenance-toggle');
+    await navigate(runtime.cdp, 'diagnostics');
+    await waitForBodyText(runtime.cdp, '已从真实 Index 映射 1 个音声作品、0 个音乐专辑');
+    await screenshot(runtime.cdp, '14-populated-diagnostics');
+    await assertNoRendererExceptions(runtime, 'populated playback');
     report.scenarios.push({ name: 'populated-index-media-playback', status: 'PASS', mediaProbe });
   } finally {
-    await closeAndAssertClean(runtime.app);
+    await closeApp(runtime);
   }
 }
 
