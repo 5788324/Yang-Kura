@@ -1,12 +1,12 @@
 # U28 Windows GUI 实机验收结果（Draft PR #35）
 
-- 验收日期：2026-07-14
+- 首轮验收日期：2026-07-14
 - 代码来源：GitHub `5788324/Yang-Kura` Draft PR #35
 - 测试分支：`agent/u28-library-reconciliation`
-- 被测提交：`b78ed26e183dcb1e20138c5abcb01e8bc4e53374`
+- 首轮被测提交：`b78ed26e183dcb1e20138c5abcb01e8bc4e53374`
 - 验收性质：只读测试；未修改产品源码、未创建修复分支、未合并 PR。
 
-## 最终结论
+## 首轮最终结论
 
 ```text
 NO-GO
@@ -14,7 +14,7 @@ NO-GO
 
 自动门禁均通过，但合法空 Index 在各页面的“已连接”状态不一致；同时，真实授权目录中没有现有 Index，导致在不扫描、不写入真实目录的约束下，无法完成真实曲目浏览与播放验收。
 
-## 自动门禁
+## 首轮自动门禁
 
 | 项目 | 结果 |
 |---|---|
@@ -25,7 +25,7 @@ NO-GO
 | `npm run verify:stable` | PASS |
 | `npm run build` | PASS |
 
-## Windows GUI 验收
+## 首轮 Windows GUI 验收
 
 | 验收项 | 结果 | 实机证据 / 说明 |
 |---|---|---|
@@ -40,7 +40,7 @@ NO-GO
 | 重启后重新选择同一临时目录恢复可用 | PASS | 重新授权后提示“已选择目录，可读取已有记录或重新扫描”，音声库操作恢复可用。 |
 | 残留进程 | PASS | 退出后 Yang-Kura、Electron、mpv 残留进程均为 0。 |
 
-## 最小问题清单
+## 首轮问题清单
 
 ### MAJ-001：合法空 Index 的跨页面状态未统一
 
@@ -51,7 +51,6 @@ NO-GO
 - 实际结果：首页清除旧数据并显示 0 与空状态；顶栏仍显示“资源库待重新连接”，诊断页仍称没有已读取的实际 Index。
 - 预期结果：成功读取合法空 Index 后，首页、顶栏和诊断页应共同反映已连接的空资源库，不应出现互相矛盾的连接状态。
 - 用户影响：首次使用或空资源库用户无法确认资源库是否成功读取。
-- 最小修复范围：只修正读取合法空 Index 后的资源库连接状态同步；不涉及扫描真实媒体、播放器、导入器或 Index 写入机制。
 
 ### OBS-001：真实库播放验收的外部前置条件不足
 
@@ -60,11 +59,57 @@ NO-GO
 - 实际结果：真实授权目录不存在可读取的 `library-index.json`，无法在不扫描 / 写入真实目录的约束下取得曲目并验证播放。
 - 处理：未对真实目录执行扫描、Index 写入或媒体修改。
 
-## 安全与收尾
+## 第二轮复验发现
 
-- 空 Index 测试只使用仓库外临时目录。
-- 未收集真实媒体名称、字幕、Cookie、Token 或下载链接。
-- `HEAD` 与推送前的远端分支基线均为 `b78ed26e183dcb1e20138c5abcb01e8bc4e53374`。
-- 验收结束时工作区 clean，残留进程为 0。
+状态同步补丁完成后，Windows GUI 使用同一个已存在且内容合法的临时空 `library-index.json` 复验：
 
-在修复 MAJ-001 并提供可只读加载的真实 Index 前，不建议进入 U28 后续阶段。
+- 目录授权：PASS；
+- 空 Index 实际读取：FAIL；
+- 失败状态与空库成功状态区分：PASS；
+- 诊断页正确显示 0 / 0，但明确报告 `source stat failed: UNKNOWN`；
+- 当前窗口跨页面一致性：FAIL；
+- 结论仍为 `NO-GO`。
+
+该现象证明阻断点位于 Electron 实际 Index 读取/解析层，而不是测试样本缺失或 Renderer 状态同步。
+
+## 针对第二轮 NO-GO 的修复
+
+关键产品修复提交：`aea3802fb5789cde0d0f8e0b002efef166759fd8`
+
+- `readLibraryIndex()` 改为读取原始 Buffer，不再强制按无 BOM UTF-8 字符串读取；
+- 支持 UTF-8、UTF-8 BOM、UTF-16 LE BOM、UTF-16 BE BOM；
+- SHA-256 与字节数按原始文件 Buffer 计算；
+- JSON 解析失败与文件系统读取失败分别报告；
+- 不再把 JSON 解析异常错误包装成 `source stat failed: UNKNOWN`；
+- Index 健康检查复用同一编码解析器；
+- 新增 Windows 编码空 Index 运行时 verifier。
+
+当前复验任务见：`docs/U28_WINDOWS_GUI_REVALIDATION_TASK_PR35.md`。
+
+## 当前自动门禁
+
+最终分支 HEAD：`918e09e63c5a2f968a92f9bfdf0e27a3956b4188`
+
+Branch Validation run `29336942910`：
+
+- 依赖安装：PASS；
+- high / critical 依赖审计：PASS；
+- 全部 focused verifiers：PASS；
+- stable regression：PASS；
+- production renderer build：PASS。
+
+## 当前结论
+
+```text
+DRAFT / NO-GO，等待 Windows GUI 第三轮复验
+```
+
+第三轮必须复用此前报错的同一个临时目录和同一个合法空 `library-index.json`。只有 A/B/C 全部通过后，才能把 PR #35 改为 GO。
+
+## 安全与收尾要求
+
+- 所有空 Index 与损坏 JSON 测试只使用仓库外临时目录。
+- 真实 `E:\arsm` 只读授权、读取、浏览和播放；禁止扫描与写入。
+- 不收集真实媒体名称、字幕、Cookie、Token 或下载链接。
+- Codex 不修改源码、不提交修复、不创建新 PR、不合并 PR。
+- 验收结束必须确认工作区 clean，Yang-Kura、Electron、mpv 残留进程均为 0。
