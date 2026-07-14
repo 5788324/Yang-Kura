@@ -56,7 +56,7 @@
 
 ## 输出
 
-请更新或新增 GitHub `docs/` 验收报告，包含：
+请更新 `docs/U28_WINDOWS_GUI_ACCEPTANCE_RESULT_PR35.md`，在文件末尾追加第三轮复验结果，包含：
 
 - 实际完整 HEAD；
 - A/B/C 每项 PASS/FAIL；
@@ -67,4 +67,4 @@
 - 残留进程数量；
 - 最终 `GO` 或 `NO-GO`。
 
-在全部通过前保持 PR Draft，不合并。
+只允许修改这一份 `docs/` 验收报告。不得修改产品源码、测试脚本、工作流或其他文档。在全部通过前保持 PR Draft，不合并。
