@@ -58,8 +58,14 @@ function getSafeErrorCode(error: unknown): string {
   return typeof code === 'string' && code.trim() ? code : 'UNKNOWN';
 }
 
+function isJsonSyntaxError(error: unknown): boolean {
+  if (error instanceof SyntaxError) return true;
+  if (!error || typeof error !== 'object') return false;
+  return (error as { name?: unknown }).name === 'SyntaxError';
+}
+
 export function describeLibraryIndexReadError(error: unknown): LibraryIndexReadFailureDescriptor {
-  if (error instanceof SyntaxError) {
+  if (isJsonSyntaxError(error)) {
     return {
       status: 'mvp24-library-index-read-parse-failed',
       code: 'INVALID_JSON',
