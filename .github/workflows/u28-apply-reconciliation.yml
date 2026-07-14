@@ -4,17 +4,23 @@ on:
   push:
     branches:
       - agent/u28-library-reconciliation
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
+  pull-requests: read
 
 jobs:
   apply-and-validate:
+    if: github.head_ref == '' || github.head_ref == 'agent/u28-library-reconciliation'
     runs-on: windows-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: agent/u28-library-reconciliation
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
@@ -51,6 +57,7 @@ jobs:
         run: npm run build
 
       - name: Commit applied source patch
+        if: github.event_name == 'push'
         shell: pwsh
         run: |
           git config user.name "github-actions[bot]"
