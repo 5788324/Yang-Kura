@@ -91,7 +91,15 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/App.tsx src/index.css src/components/Sidebar.tsx src/components/PlayerBar.tsx src/components/PlayerBarPrimarySections.tsx src/components/PlayerBarAuxiliaryControls.tsx package.json .github/workflows/branch-validation.yml scripts/test-u30-ui-matrix.mjs scripts/verify-u30-ui-fast-track.mjs
-          git rm scripts/apply-u30-ui-fast-track.mjs scripts/relax-u30-patch-anchors.mjs scripts/fix-u30-generated-test.mjs .github/workflows/u30-apply.yml
+          $temporaryFiles = @(
+            'scripts/apply-u30-ui-fast-track.mjs',
+            'scripts/relax-u30-patch-anchors.mjs',
+            'scripts/fix-u30-generated-test.mjs',
+            '.github/workflows/u30-apply.yml'
+          )
+          foreach ($file in $temporaryFiles) {
+            if (Test-Path $file) { Remove-Item -Force $file }
+          }
+          git add -A
           git commit -m "fix: complete U30 responsive UI fast-track"
           git push origin HEAD:${{ github.head_ref }}
