@@ -4,10 +4,13 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - agent/u29-player-reliability
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: branch-validation-${{ github.event.pull_request.number || github.ref }}
@@ -15,13 +18,16 @@ concurrency:
 
 jobs:
   validate:
-    name: Windows full-chain regression
+    name: Windows U29 full-chain validation
     runs-on: windows-latest
-    timeout-minutes: 55
+    timeout-minutes: 65
 
     steps:
-      - name: Check out repository
+      - name: Check out U29 branch
         uses: actions/checkout@v4
+        with:
+          ref: agent/u29-player-reliability
+          fetch-depth: 0
 
       - name: Set up Node 22
         uses: actions/setup-node@v4
@@ -29,60 +35,61 @@ jobs:
           node-version: '22'
           cache: npm
 
+      - name: Apply deterministic U29 repair
+        run: node scripts/run-u29-patch.mjs
+
       - name: Install dependencies without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Audit high and critical dependency risk
         run: npm audit --audit-level=high
 
-      - name: Rebuild Electron runtime for desktop E2E
+      - name: Rebuild Electron runtime
         run: npm rebuild electron
 
       - name: TypeScript validation
         run: npm run lint
 
-      - name: Build desktop application for U28 E2E
+      - name: Build desktop application
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: |
           npm run build
           npm run build:electron
 
-      - name: Run U28 Electron full-chain UI acceptance
+      - name: Run U28 library Electron E2E regression
         run: npm run test:u28:electron-e2e
 
-      - name: Upload U28 Electron screenshots and report
+      - name: Run U29 player Electron E2E
+        run: npm run test:u29:electron-e2e
+
+      - name: Upload Electron E2E artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: u28-electron-e2e
-          path: artifacts/u28-electron-e2e
+          name: u28-u29-electron-e2e
+          path: |
+            artifacts/u28-electron-e2e
+            artifacts/u29-electron-e2e
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Run focused UI verifiers
-        id: focused-verifiers
+      - name: Run focused U verifiers
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
           $results = [System.Collections.Generic.List[string]]::new()
           $results.Add("verifier`tstatus`texit_code")
           $failed = $false
-
-          Get-ChildItem -Path scripts -Filter 'verify-u*.mjs' |
-            Sort-Object Name |
-            ForEach-Object {
-              Write-Host "Running $($_.Name)"
-              node $_.FullName
-              $exitCode = $LASTEXITCODE
-              $status = if ($exitCode -eq 0) { 'PASS' } else { 'FAIL' }
-              $results.Add("$($_.Name)`t$status`t$exitCode")
-              if ($exitCode -ne 0) { $failed = $true }
-            }
-
-          $reportPath = 'artifacts/focused-verifier-results.tsv'
-          $results | Set-Content -Path $reportPath -Encoding utf8
-          $results | ForEach-Object { Write-Host $_ }
+          Get-ChildItem -Path scripts -Filter 'verify-u*.mjs' | Sort-Object Name | ForEach-Object {
+            Write-Host "Running $($_.Name)"
+            node $_.FullName
+            $exitCode = $LASTEXITCODE
+            $status = if ($exitCode -eq 0) { 'PASS' } else { 'FAIL' }
+            $results.Add("$($_.Name)`t$status`t$exitCode")
+            if ($exitCode -ne 0) { $failed = $true }
+          }
+          $results | Set-Content -Path artifacts/focused-verifier-results.tsv -Encoding utf8
           if ($failed) { exit 1 }
 
       - name: Upload focused verifier report
@@ -116,3 +123,17 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: npm run build
+
+      - name: Commit validated U29 product repair
+        if: github.event_name == 'push'
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/hooks/useAudioPlayer.ts src/services/playerQueuePersistenceService.ts src/services/playbackHistoryService.ts src/services/playlistPersistenceService.ts src/App.tsx src/components/PlayerBar.tsx src/components/LyricsPanel.tsx package.json
+          if (git diff --cached --quiet) {
+            Write-Host "No validated U29 product changes to commit."
+          } else {
+            git commit -m "fix: harden player resume and token reconciliation"
+            git push origin HEAD:agent/u29-player-reliability
+          }
