@@ -29,15 +29,39 @@ jobs:
           cache: npm
 
       - name: Apply deterministic U28 patch
+        id: apply_patch
+        continue-on-error: true
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Continue'
           if (Test-Path .u28-patch-applied) {
-            Write-Host "U28 patch marker already exists; source patch is already applied."
-          } else {
-            node scripts/prepare-u28-patch-runner.mjs
-            node scripts/apply-u28-library-reconciliation.mjs
-            node scripts/finalize-u28-library-reconciliation.mjs
+            'U28 patch marker already exists; source patch is already applied.' | Tee-Object -FilePath u28-patch.log
+            exit 0
           }
+          node scripts/prepare-u28-patch-runner.mjs 2>&1 | Tee-Object -FilePath u28-patch.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node --check scripts/apply-u28-library-reconciliation.mjs 2>&1 | Tee-Object -FilePath u28-patch.log -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/apply-u28-library-reconciliation.mjs 2>&1 | Tee-Object -FilePath u28-patch.log -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/finalize-u28-library-reconciliation.mjs 2>&1 | Tee-Object -FilePath u28-patch.log -Append
+          exit $LASTEXITCODE
+
+      - name: Upload patch diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u28-patch-diagnostics
+          path: u28-patch.log
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Fail when patch application failed
+        if: steps.apply_patch.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Get-Content u28-patch.log
+          exit 1
 
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
