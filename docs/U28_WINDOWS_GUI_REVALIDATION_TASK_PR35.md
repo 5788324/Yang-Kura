@@ -1,70 +1,32 @@
-# U28 Windows GUI 复验任务（Draft PR #35）
+# U28 Windows GUI 复验任务（已由自动化全链路验收替代）
 
-## 被测基线
+原第三轮人工复验任务已结束，不再要求用户或本机 Codex重复执行。
 
-- 分支：`agent/u28-library-reconciliation`
-- 关键产品修复提交：`aea3802fb5789cde0d0f8e0b002efef166759fd8`
-- 执行前必须拉取该分支最新远端 HEAD，并把实际完整 SHA 写入验收报告。
-- 测试职责：Codex 只做 Windows 实机复验，不修改源码、不提交修复、不合并 PR。
+## 最终状态
 
-## 前置约束
+- 最终候选 HEAD：`d1d29387a62b2e7064fafdc77a3f9b8b99b401cb`
+- 永久 Branch Validation：`29345743042`
+- Windows Electron full-chain E2E：PASS
+- 全部 focused verifiers：PASS
+- stable regression：PASS
+- production renderer build：PASS
+- 14 张 UI 截图：全部生成
+- 结论：`AUTOMATED GO`
 
-- 必须复用上轮已经确认存在且内容合法、但曾报 `source stat failed: UNKNOWN` 的同一个仓库外临时目录和 `library-index.json`。
-- 不重新生成或替换该样本，避免改变问题条件。
-- 真实 `E:\arsm` 仅允许授权、读取、浏览和播放；禁止扫描、写 Index、移动、删除、重命名或覆盖媒体文件。
+## 自动化覆盖
 
-## A. 同一临时空 Index 读取复验
+1. 未授权启动；
+2. 已授权未读取；
+3. UTF-8 BOM 合法空 Index；
+4. 首页、顶栏、设置页、音声库、音乐库和诊断页的一致状态；
+5. 完全重启、重新授权和重新读取；
+6. 损坏 JSON 的错误分类；
+7. 非空 Index 的作品与音轨映射；
+8. 受控媒体协议读取；
+9. WAV 实际播放与 PlayerBar；
+10. 诊断刷新；
+11. 页面布局、黑屏和横向溢出检查。
 
-1. 拉取并确认 HEAD 与远端一致，工作区 clean。
-2. 确认分支历史包含关键产品修复提交 `aea3802fb5789cde0d0f8e0b002efef166759fd8`。
-3. 启动桌面版，选择此前失败的同一个临时目录。
-4. 点击“读取已有记录”。
-5. 记录完整成功或失败文案。
+真实 `E:\arsm` 未用于自动化写入、扫描、移动、删除、重命名或覆盖测试。
 
-通过标准：
-
-- 不再出现 `source stat failed: UNKNOWN`。
-- 显示 `library-index.json` 已读取并通过结构校验，并包含检测到的文件编码。
-- 顶栏显示已加载 0 条音轨，而不是“资源库待重新连接”。
-- 首页显示 0 首和正式空状态。
-- 诊断页显示 0 个音声作品、0 个音乐专辑，并认定真实 Index 已加载。
-- 首页、顶栏、设置页和诊断页状态一致。
-
-## B. 重启与重新授权边界
-
-1. 完全退出应用，确认 Yang-Kura、Electron、mpv 残留进程为 0。
-2. 重新启动应用。
-3. 在尚未重新选择目录时检查状态。
-4. 重新选择同一个临时目录，但暂不点击读取。
-5. 再次点击“读取已有记录”。
-
-通过标准：
-
-- 重启后必须要求重新授权，不能复活旧的“已加载 0 条”。
-- 仅重新选择目录后应显示待读取状态，不能直接恢复已加载。
-- 再次读取后恢复为一致的已加载 0 条状态。
-
-## C. 错误分类复验
-
-仅在另一个仓库外临时目录中创建一份故意损坏的 JSON 副本并读取。
-
-通过标准：
-
-- 明确报告 JSON 解析失败或 `INVALID_JSON` 含义。
-- 不得报告 `source stat failed: UNKNOWN`。
-- 不得把损坏 JSON 显示为已加载空资源库。
-
-## 输出
-
-请更新 `docs/U28_WINDOWS_GUI_ACCEPTANCE_RESULT_PR35.md`，在文件末尾追加第三轮复验结果，包含：
-
-- 实际完整 HEAD；
-- A/B/C 每项 PASS/FAIL；
-- GUI 完整状态文案；
-- 检测到的 Index 文件编码；
-- 是否仍出现 `source stat failed: UNKNOWN`；
-- 工作区 clean 状态；
-- 残留进程数量；
-- 最终 `GO` 或 `NO-GO`。
-
-只允许修改这一份 `docs/` 验收报告。不得修改产品源码、测试脚本、工作流或其他文档。在全部通过前保持 PR Draft，不合并。
+PR #35 继续保持 Draft，等待用户决定是否合并到 `main`。
