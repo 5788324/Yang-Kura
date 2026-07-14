@@ -57,7 +57,6 @@ jobs:
         run: npm run build
 
       - name: Commit applied source patch
-        if: github.event_name == 'push'
         shell: pwsh
         run: |
           git config user.name "github-actions[bot]"
