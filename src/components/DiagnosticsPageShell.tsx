@@ -38,9 +38,9 @@ export default function DiagnosticsPageShell(props: DiagnosticsPageShellProps) {
         <h2 className="mt-1 text-xl font-black text-text-primary">日常状态</h2>
         <p className="mt-2 max-w-3xl text-xs leading-relaxed text-text-muted">这里仅显示当前真实 Index 映射出的资源状态。没有完成目录授权或 Index 读取时，会明确显示不可用，不再使用 Demo 扫描冒充真实状态。</p>
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="rounded-2xl border border-border-color/50 bg-card-bg/40 p-4"><p className="text-[10px] text-text-muted">音声作品</p><p className="mt-1 text-xl font-black text-text-primary">{workCount}</p></div>
-          <div className="rounded-2xl border border-border-color/50 bg-card-bg/40 p-4"><p className="text-[10px] text-text-muted">音乐专辑</p><p className="mt-1 text-xl font-black text-text-primary">{albumCount}</p></div>
-          <div className="rounded-2xl border border-border-color/50 bg-card-bg/40 p-4"><p className="text-[10px] text-text-muted">当前状态</p><p className="mt-1 text-sm font-bold text-emerald-300">{props.scanStatus || '尚未读取真实资源状态'}</p></div>
+          <div className="rounded-2xl border border-border-color/50 bg-card-bg/40 p-4"><p className="text-[10px] text-text-muted">音声作品</p><p id="u28-diagnostics-asmr-count" className="mt-1 text-xl font-black text-text-primary">{workCount}</p></div>
+          <div className="rounded-2xl border border-border-color/50 bg-card-bg/40 p-4"><p className="text-[10px] text-text-muted">音乐专辑</p><p id="u28-diagnostics-music-count" className="mt-1 text-xl font-black text-text-primary">{albumCount}</p></div>
+          <div className="rounded-2xl border border-border-color/50 bg-card-bg/40 p-4"><p className="text-[10px] text-text-muted">当前状态</p><p id="u28-diagnostics-index-status" className="mt-1 text-sm font-bold text-emerald-300">{props.scanStatus || '尚未读取真实资源状态'}</p></div>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           <button type="button" onClick={props.onScanLibrary} className="rounded-xl bg-brand-color px-4 py-2 text-xs font-bold text-white hover:opacity-90 flex items-center gap-1.5"><Activity className="w-3.5 h-3.5" />刷新真实资源状态</button>

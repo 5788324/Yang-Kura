@@ -69,11 +69,25 @@ export default function Dashboard({
   const fallbackTrack = rjWorks[0]?.tracks[0] || musicAlbums[0]?.tracks[0] || null;
   const continueTrack = recentTracks[0] || fallbackTrack;
   const lastIndex = librarySessionSnapshot.lastIndex;
-  const hasRealLibrary = Boolean(lastIndex && lastIndex.trackCount > 0);
-  const libraryStatusText = hasRealLibrary
-    ? `已连接「${lastIndex?.displayName}」：${lastIndex?.collectionCount} 个集合，${lastIndex?.trackCount} 条音轨`
-    : '尚未读取资源库记录。先去设置页选择目录，再读取现有记录或一键扫描并应用。';
-  const libraryActionText = hasRealLibrary ? '更新资源库' : '导入资源库';
+  const hasLoadedIndex = Boolean(lastIndex);
+  const hasLibraryTracks = Boolean(lastIndex && lastIndex.trackCount > 0);
+  const hasAuthorizedRoot = Object.keys(librarySessionSnapshot.selectedRoots).length > 0;
+  const isLoadedEmptyLibrary = hasLoadedIndex && !hasLibraryTracks;
+  // Existing downstream home models use hasRealLibrary as a connection flag, not a non-zero track count.
+  const hasRealLibrary = hasLoadedIndex;
+  const libraryStatusText = hasLoadedIndex
+    ? `已连接「${lastIndex?.displayName}」：${lastIndex?.collectionCount} 个集合，${lastIndex?.trackCount} 条音轨${isLoadedEmptyLibrary ? '；Index 已成功读取，当前为空。' : ''}`
+    : hasAuthorizedRoot
+      ? '目录已授权，尚未读取资源库记录。请前往设置页读取已有记录。'
+      : '尚未选择资源库。请前往设置页选择目录，再读取现有记录。';
+  const libraryActionText = hasLoadedIndex ? '更新资源库' : hasAuthorizedRoot ? '读取资源库' : '导入资源库';
+  const libraryCardTitle = hasLibraryTracks
+    ? '已连接本地资源库'
+    : isLoadedEmptyLibrary
+      ? '已连接空资源库'
+      : hasAuthorizedRoot
+        ? '等待读取资源库'
+        : '等待导入资源库';
 
   const mediaOverview = mediaLibraryExperienceService.getDashboardOverview({
     rjWorks,
@@ -127,7 +141,7 @@ export default function Dashboard({
   const mvp72DailySurface = dailySurfaceCleanupService.getModel();
   const mvp74HomeCleanup = playerBarDailyCleanupService.getHomeModel();
   const mvp71MainEntryCards = mvp71Simplification.mainEntryCards;
-  const isCleanLibrary = !hasRealLibrary && rjWorks.length === 0 && musicAlbums.length === 0 && recentTracks.length === 0 && playlists.length === 0;
+  const isInitialEmptyLibrary = !hasLoadedIndex && rjWorks.length === 0 && musicAlbums.length === 0 && recentTracks.length === 0 && playlists.length === 0;
   const handleMvp71EntryClick = (entryId: string) => {
     if (entryId === 'continue-listening' && continueTrack) onPlayTrack(continueTrack);
     if (entryId === 'continue-listening' && !continueTrack) setCurrentPage('asmr-lib');
@@ -232,7 +246,7 @@ export default function Dashboard({
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {isCleanLibrary && (
+      {isInitialEmptyLibrary && (
         <section id="u02-home-empty-state" className="rounded-3xl border border-dashed border-brand-color/40 bg-card-bg/45 p-6 md:p-8 text-center space-y-4">
           <div className="mx-auto w-14 h-14 rounded-2xl bg-brand-color/15 text-brand-color flex items-center justify-center"><Headphones className="w-7 h-7" /></div>
           <div className="space-y-2">
@@ -240,6 +254,16 @@ export default function Dashboard({
             <p className="mx-auto max-w-2xl text-sm text-text-muted leading-relaxed">当前没有已加载的音声、音乐、收藏、最近播放或歌单。前往设置选择一个本地资源库，然后读取已有记录或扫描生成索引。</p>
           </div>
           <button id="u02-home-empty-state-action" onClick={() => setCurrentPage('settings')} className="px-5 py-2.5 rounded-xl bg-brand-color hover:bg-brand-color-hover text-white text-sm font-semibold transition-colors">选择资源库</button>
+        </section>
+      )}
+      {isLoadedEmptyLibrary && (
+        <section id="u28-home-loaded-empty-state" className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-6 md:p-8 text-center space-y-4">
+          <div className="mx-auto w-14 h-14 rounded-2xl bg-emerald-500/15 text-emerald-300 flex items-center justify-center"><Headphones className="w-7 h-7" /></div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-extrabold text-text-primary">资源库已连接，当前没有音轨</h2>
+            <p className="mx-auto max-w-2xl text-sm text-text-muted leading-relaxed">已成功读取「{lastIndex?.displayName}」的 library-index.json：0 个集合，0 条音轨。这是一个有效的空资源库，不是读取失败。</p>
+          </div>
+          <button id="u28-home-loaded-empty-state-action" onClick={() => setCurrentPage('settings')} className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-colors">重新读取资源库</button>
         </section>
       )}
       <section id="mvp45-home-continue-listening" className="relative overflow-hidden rounded-3xl border border-border-color bg-gradient-to-br from-indigo-950/75 via-purple-950/35 to-card-bg p-5 md:p-7 shadow-xl">
@@ -280,7 +304,7 @@ export default function Dashboard({
                 onClick={() => setCurrentPage('settings')}
                 className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/5 text-text-primary hover:text-white text-xs font-semibold transition-all cursor-pointer"
               >
-                导入资源库
+                {libraryActionText}
               </button>
             </div>
           </div>
@@ -394,7 +418,7 @@ export default function Dashboard({
           <div className="space-y-1">
             <p className="text-[10px] font-bold text-brand-color tracking-wider">资源库</p>
             <h3 className="text-sm font-bold text-text-primary">
-              {hasRealLibrary ? '已连接本地资源库' : '等待导入资源库'}
+              {libraryCardTitle}
             </h3>
             <p className="text-xs text-text-muted leading-relaxed">{libraryStatusText}</p>
             {lastIndex?.readAt && (

@@ -324,7 +324,8 @@ async function navigate(cdp, pageId) {
 
 async function openSettingsPaths(cdp) {
   await navigate(cdp, 'settings');
-  await clickVisibleText(cdp, '资源库目录', 'button', false);
+  await waitForBodyText(cdp, '应用设置');
+  await clickSelector(cdp, '[data-settings-tab="paths"]');
   await waitForBodyText(cdp, '选择本地资源库目录');
 }
 
@@ -379,15 +380,31 @@ async function assertLayout(cdp, label) {
   return result;
 }
 
+async function waitForChildExit(child, timeout) {
+  if (child.exitCode !== null) return true;
+  return Promise.race([
+    new Promise((resolve) => child.once('exit', () => resolve(true))),
+    delay(timeout).then(() => false),
+  ]);
+}
+
 async function closeApp(runtime) {
-  await runtime.cdp.close();
-  if (runtime.child.exitCode === null) runtime.child.kill();
-  const deadline = Date.now() + 10_000;
-  while (runtime.child.exitCode === null && Date.now() < deadline) await delay(100);
-  if (runtime.child.exitCode === null) {
-    runtime.child.kill('SIGKILL');
-    throw new Error('Electron process did not exit cleanly');
+  const gracefulExit = waitForChildExit(runtime.child, 5_000);
+  try {
+    await Promise.race([runtime.cdp.send('Browser.close'), delay(750)]);
+  } catch {}
+  let exited = await gracefulExit;
+  if (!exited && runtime.child.exitCode === null) {
+    if (process.platform === 'win32') {
+      const { spawnSync } = await import('node:child_process');
+      spawnSync('taskkill', ['/PID', String(runtime.child.pid), '/T', '/F'], { stdio: 'ignore' });
+    } else {
+      runtime.child.kill('SIGKILL');
+    }
+    exited = await waitForChildExit(runtime.child, 5_000);
   }
+  await runtime.cdp.close();
+  if (!exited && runtime.child.exitCode === null) throw new Error('Electron process tree did not exit after graceful close and forced cleanup');
 }
 
 async function assertNoRendererExceptions(runtime, label) {
@@ -430,20 +447,25 @@ async function runEmptyAndRestartScenario(root) {
     await screenshot(runtime.cdp, '04-empty-index-home');
 
     await navigate(runtime.cdp, 'asmr-lib');
+    await waitForBodyText(runtime.cdp, '音声库');
     await expectBodyContains(runtime.cdp, '音声库');
     await assertLayout(runtime.cdp, '空 Index 音声库');
     await screenshot(runtime.cdp, '05-empty-index-asmr');
 
     await navigate(runtime.cdp, 'music-lib');
+    await waitForBodyText(runtime.cdp, '音乐库');
     await expectBodyContains(runtime.cdp, '音乐库');
     await assertLayout(runtime.cdp, '空 Index 音乐库');
     await screenshot(runtime.cdp, '06-empty-index-music');
 
     await clickSelector(runtime.cdp, '#sidebar-ai-maintenance-toggle');
     await navigate(runtime.cdp, 'diagnostics');
-    await waitForBodyText(runtime.cdp, '已从真实 Index 映射 0 个音声作品、0 个音乐专辑');
-    await expectBodyContains(runtime.cdp, '音声作品\n0');
-    await expectBodyContains(runtime.cdp, '音乐专辑\n0');
+    await waitForBodyText(runtime.cdp, '日常状态');
+    await waitForBodyText(runtime.cdp, '已加载真实 library-index.json：0 个音声集合，0 个音乐集合，0 条轨道。');
+    assert.equal(await runtime.cdp.evaluate(`document.querySelector('#u28-diagnostics-asmr-count')?.textContent?.trim()`), '0', '诊断页音声作品计数应为 0');
+    assert.equal(await runtime.cdp.evaluate(`document.querySelector('#u28-diagnostics-music-count')?.textContent?.trim()`), '0', '诊断页音乐专辑计数应为 0');
+    await clickVisibleText(runtime.cdp, '刷新真实资源状态', 'button');
+    await waitForBodyText(runtime.cdp, '已加载真实 library-index.json：0 个音声集合，0 个音乐集合，0 条轨道。');
     await expectBodyExcludes(runtime.cdp, 'Demo 扫描演示');
     await assertLayout(runtime.cdp, '空 Index 诊断');
     await screenshot(runtime.cdp, '07-empty-index-diagnostics');
@@ -558,7 +580,10 @@ async function runPopulatedPlaybackScenario(root) {
 
     await clickSelector(runtime.cdp, '#sidebar-ai-maintenance-toggle');
     await navigate(runtime.cdp, 'diagnostics');
-    await waitForBodyText(runtime.cdp, '已从真实 Index 映射 1 个音声作品、0 个音乐专辑');
+    await waitForBodyText(runtime.cdp, '日常状态');
+    await waitForBodyText(runtime.cdp, '已加载真实 library-index.json：1 个音声集合，0 个音乐集合，1 条轨道。');
+    await clickVisibleText(runtime.cdp, '刷新真实资源状态', 'button');
+    await waitForBodyText(runtime.cdp, '已加载真实 library-index.json：1 个音声集合，0 个音乐集合，1 条轨道。');
     await screenshot(runtime.cdp, '14-populated-diagnostics');
     await assertNoRendererExceptions(runtime, 'populated playback');
     report.scenarios.push({ name: 'populated-index-media-playback', status: 'PASS', mediaProbe });

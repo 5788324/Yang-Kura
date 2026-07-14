@@ -4,6 +4,7 @@ import ts from 'typescript';
 
 const settings = fs.readFileSync('src/components/SettingsPage.tsx', 'utf8');
 const app = fs.readFileSync('src/App.tsx', 'utf8');
+const dashboard = fs.readFileSync('src/components/Dashboard.tsx', 'utf8');
 const shell = fs.readFileSync('src/components/DiagnosticsPageShell.tsx', 'utf8');
 const sessionServiceSource = fs.readFileSync('src/services/librarySessionService.ts', 'utf8');
 
@@ -15,6 +16,9 @@ const checks = [
   ['stale music state is replaced', app.includes('musicBase = mapped.musicAlbums')],
   ['real index refresh replaces both libraries', app.includes('setRjWorks(metadataOverrideService.applyAsmrOverrides(mapped.rjWorks))') && app.includes('setMusicAlbums(metadataOverrideService.applyMusicAlbumOverrides(mapped.musicAlbums))')],
   ['header reads explicit session index state', app.includes('librarySessionSnapshot.lastIndex')],
+  ['dashboard separates connection from content count', dashboard.includes('const hasLoadedIndex = Boolean(lastIndex)') && dashboard.includes('const hasLibraryTracks = Boolean(lastIndex && lastIndex.trackCount > 0)') && !dashboard.includes('const hasRealLibrary = Boolean(lastIndex && lastIndex.trackCount > 0)')],
+  ['dashboard renders valid loaded-empty state', dashboard.includes('id="u28-home-loaded-empty-state"') && dashboard.includes('资源库已连接，当前没有音轨') && dashboard.includes('已连接空资源库')],
+  ['dashboard distinguishes authorized unread state', dashboard.includes("hasAuthorizedRoot ? '读取资源库'") && dashboard.includes('等待读取资源库')],
   ['session service records explicit read attempts', sessionServiceSource.includes("status: 'loaded'") && sessionServiceSource.includes("status: 'failed'")],
   ['session service owns cross-page index event', sessionServiceSource.includes("const INDEX_READ_EVENT_NAME = 'yang-kura-library-index-loaded'") && sessionServiceSource.includes('emitIndexReadUpdated()')],
   ['session service enforces current-window authorization', sessionServiceSource.includes("const CURRENT_WINDOW_ROOT_SESSION_KEY = 'yang_kura_u28_authorized_roots_v1'") && sessionServiceSource.includes('applyCurrentWindowAuthorizationBoundary')],

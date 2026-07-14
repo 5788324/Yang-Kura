@@ -2893,11 +2893,36 @@ function registerDirectoryDialogIpc(mainWindow: BrowserWindow): void {
       } as const;
     }
 
-    const result = await dialog.showOpenDialog(mainWindow, {
-      title: `选择 ${getDefaultDisplayName(libraryType)} 根目录`,
-      buttonLabel: '选择此目录',
-      properties: ['openDirectory', 'dontAddToRecent'],
-    });
+    const e2eRootPath = process.env.YANG_KURA_E2E_MODE === '1'
+      ? process.env.YANG_KURA_E2E_LIBRARY_ROOT?.trim()
+      : undefined;
+    let result: { canceled: boolean; filePaths: string[] };
+    if (e2eRootPath) {
+      try {
+        const resolvedE2eRoot = path.resolve(e2eRootPath);
+        const e2eRootStat = await fs.stat(resolvedE2eRoot);
+        if (!e2eRootStat.isDirectory()) throw Object.assign(new Error('not-directory'), { code: 'ENOTDIR' });
+        result = { canceled: false, filePaths: [resolvedE2eRoot] };
+      } catch (error) {
+        return {
+          ok: false,
+          status: 'u28-e2e-root-invalid',
+          libraryType,
+          permissionState: 'rejected',
+          source: 'u28-electron-e2e-fixture',
+          absolutePathReturned: false,
+          fileUrlReturned: false,
+          message: `E2E 临时资源库不可用：${getSafeErrorCode(error)}`,
+          safetyNotes: buildSafetyNotes(),
+        } as const;
+      }
+    } else {
+      result = await dialog.showOpenDialog(mainWindow, {
+        title: `选择 ${getDefaultDisplayName(libraryType)} 根目录`,
+        buttonLabel: '选择此目录',
+        properties: ['openDirectory', 'dontAddToRecent'],
+      });
+    }
 
     if (result.canceled || result.filePaths.length === 0) {
       return {

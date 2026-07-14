@@ -986,6 +986,7 @@ export default function SettingsPage({
             return (
               <button
                 key={tab.id}
+                data-settings-tab={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer text-left border ${
                   isActive
