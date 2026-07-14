@@ -113,7 +113,7 @@ export default function PlayerBar({
   return (
     <div
       id="app-player-bar"
-      className="h-20 bg-zinc-950 border-t border-zinc-800/80 px-8 flex items-center justify-between select-none relative z-50 text-white"
+       className="h-20 min-w-0 bg-zinc-950 border-t border-zinc-800/80 px-3 lg:px-5 xl:px-8 gap-2 flex items-center justify-between select-none relative z-50 text-white"
       data-mvp79-player-ui-bugfix="true"
       data-u29-playback-mode={playerState.playbackMode ?? 'idle'}
       data-u29-track-id={currentTrack?.id ?? ''}
@@ -142,7 +142,7 @@ export default function PlayerBar({
       />
 
       <div
-        className="w-1/3 flex items-center space-x-4 pr-4"
+         className="u30-player-track w-[30%] min-w-0 flex items-center space-x-2 xl:space-x-4 pr-2 xl:pr-4"
         onClick={(event) => event.stopPropagation()}
       >
         {currentTrack ? (
