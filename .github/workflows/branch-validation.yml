@@ -35,8 +35,10 @@ jobs:
           node-version: '22'
           cache: npm
 
-      - name: Apply deterministic U28 repair
-        run: node scripts/apply-u28-full-chain-fix.mjs
+      - name: Prepare and apply deterministic U28 repair
+        run: |
+          node scripts/prepare-u28-branch-validation-anchor.mjs
+          node scripts/apply-u28-full-chain-fix.mjs
 
       - name: Install dependencies without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
