@@ -43,6 +43,7 @@ export interface LibrarySessionSnapshot {
 const STORAGE_KEY = 'yang_kura_library_session_v1';
 const UPDATE_EVENT_NAME = 'yang-kura-library-session-updated';
 const INDEX_READ_EVENT_NAME = 'yang-kura-library-index-loaded';
+const CURRENT_WINDOW_ROOT_SESSION_KEY = 'yang_kura_u28_authorized_roots_v1';
 let indexReadEventDispatchDepth = 0;
 
 const emptySnapshot = (): LibrarySessionSnapshot => ({
@@ -69,6 +70,32 @@ const safeJsonParse = (value: string | null): LibrarySessionSnapshot => {
   } catch {
     return emptySnapshot();
   }
+};
+
+const hasCurrentWindowAuthorization = (): boolean => {
+  if (typeof sessionStorage === 'undefined') return false;
+  try {
+    const parsed = JSON.parse(sessionStorage.getItem(CURRENT_WINDOW_ROOT_SESSION_KEY) ?? '{}') as Record<string, unknown>;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return false;
+    return Object.values(parsed).some((value) => {
+      if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+      const rootPathToken = (value as { rootPathToken?: unknown }).rootPathToken;
+      return typeof rootPathToken === 'string' && rootPathToken.trim().length > 0;
+    });
+  } catch {
+    return false;
+  }
+};
+
+const applyCurrentWindowAuthorizationBoundary = (
+  snapshot: LibrarySessionSnapshot,
+): LibrarySessionSnapshot => {
+  if (hasCurrentWindowAuthorization()) return snapshot;
+  return {
+    ...snapshot,
+    lastIndex: undefined,
+    lastReadAttempt: undefined,
+  };
 };
 
 const emitUpdated = () => {
@@ -130,10 +157,17 @@ export const librarySessionService = {
   storageKey: STORAGE_KEY,
   updateEventName: UPDATE_EVENT_NAME,
   indexReadEventName: INDEX_READ_EVENT_NAME,
+  currentWindowRootSessionKey: CURRENT_WINDOW_ROOT_SESSION_KEY,
+
+  hasCurrentWindowAuthorization(): boolean {
+    return hasCurrentWindowAuthorization();
+  },
 
   getSnapshot(): LibrarySessionSnapshot {
     if (typeof localStorage === 'undefined') return emptySnapshot();
-    return safeJsonParse(localStorage.getItem(STORAGE_KEY));
+    return applyCurrentWindowAuthorizationBoundary(
+      safeJsonParse(localStorage.getItem(STORAGE_KEY)),
+    );
   },
 
   recordRootSelected(result: YangKuraSelectLibraryRootResult): void {
@@ -144,6 +178,8 @@ export const librarySessionService = {
       ...previous,
       version: 1,
       updatedAt: now,
+      lastIndex: undefined,
+      lastReadAttempt: undefined,
       selectedRoots: {
         ...previous.selectedRoots,
         [result.libraryType]: {
