@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 
+// U29 persistence trigger: product changes are committed only after the full Windows gate passes.
 const hook = fs.readFileSync('src/hooks/useAudioPlayer.ts', 'utf8');
 if (hook.includes("from '../player/playerRuntimePolicy'")) {
   console.log('U29 player reliability patch already applied.');
