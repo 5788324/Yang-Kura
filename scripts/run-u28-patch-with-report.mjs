@@ -26,5 +26,6 @@ function run(label, script) {
 run('prepare branch validation anchor', 'scripts/prepare-u28-branch-validation-anchor.mjs');
 run('normalize patch target line endings', 'scripts/normalize-u28-patch-targets.mjs');
 run('apply U28 full-chain patch', 'scripts/apply-u28-full-chain-fix.mjs');
+run('add stable Settings navigation marker', 'scripts/patch-u28-settings-selector.mjs');
 run('patch Electron CDP shutdown', 'scripts/patch-u28-cdp-close.mjs');
 console.log('U28 patch preparation completed.');
