@@ -28,4 +28,5 @@ run('normalize patch target line endings', 'scripts/normalize-u28-patch-targets.
 run('apply U28 full-chain patch', 'scripts/apply-u28-full-chain-fix.mjs');
 run('add stable Settings navigation marker', 'scripts/patch-u28-settings-selector.mjs');
 run('patch Electron CDP shutdown', 'scripts/patch-u28-cdp-close.mjs');
+run('add routed page waits', 'scripts/patch-u28-navigation-waits.mjs');
 console.log('U28 patch preparation completed.');
