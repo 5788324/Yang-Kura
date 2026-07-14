@@ -4,8 +4,8 @@
 
 ## 最终状态
 
-- 最终候选 HEAD：`d1d29387a62b2e7064fafdc77a3f9b8b99b401cb`
-- 永久 Branch Validation：`29345743042`
+- 最终 HEAD：`2970dc163821e3f9936370ab18102355a158d242`
+- 永久 Branch Validation：`29346299093`
 - Windows Electron full-chain E2E：PASS
 - 全部 focused verifiers：PASS
 - stable regression：PASS
