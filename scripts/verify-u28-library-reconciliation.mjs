@@ -17,6 +17,8 @@ const checks = [
   ['header reads explicit session index state', app.includes('librarySessionSnapshot.lastIndex')],
   ['session service records explicit read attempts', sessionServiceSource.includes("status: 'loaded'") && sessionServiceSource.includes("status: 'failed'")],
   ['session service owns cross-page index event', sessionServiceSource.includes("const INDEX_READ_EVENT_NAME = 'yang-kura-library-index-loaded'") && sessionServiceSource.includes('emitIndexReadUpdated()')],
+  ['session service enforces current-window authorization', sessionServiceSource.includes("const CURRENT_WINDOW_ROOT_SESSION_KEY = 'yang_kura_u28_authorized_roots_v1'") && sessionServiceSource.includes('applyCurrentWindowAuthorizationBoundary')],
+  ['root reselection clears stale loaded state', sessionServiceSource.includes('lastIndex: undefined') && sessionServiceSource.includes('lastReadAttempt: undefined')],
   ['demo scanner removed from active handler', !app.includes('Demo 扫描演示：不会读取真实磁盘')],
   ['diagnostics names real state', shell.includes('刷新真实资源状态') && shell.includes('不再使用 Demo 扫描冒充真实状态')],
   ['privacy boundary retained', settings.includes('真实路径不会展示') && !settings.includes('absolutePath: result')],
@@ -33,7 +35,8 @@ const compiledService = ts.transpileModule(sessionServiceSource, {
   },
 }).outputText;
 
-const storage = new Map();
+const localStorageValues = new Map();
+const sessionStorageValues = new Map();
 const listeners = new Map();
 
 class MockEvent {
@@ -42,20 +45,23 @@ class MockEvent {
   }
 }
 
-const localStorage = {
+const makeStorage = (values) => ({
   getItem(key) {
-    return storage.has(key) ? storage.get(key) : null;
+    return values.has(key) ? values.get(key) : null;
   },
   setItem(key, value) {
-    storage.set(key, String(value));
+    values.set(key, String(value));
   },
   removeItem(key) {
-    storage.delete(key);
+    values.delete(key);
   },
   clear() {
-    storage.clear();
+    values.clear();
   },
-};
+});
+
+const localStorage = makeStorage(localStorageValues);
+const sessionStorage = makeStorage(sessionStorageValues);
 
 const window = {
   addEventListener(type, listener) {
@@ -77,6 +83,7 @@ vm.runInNewContext(compiledService, {
   module: runtimeModule,
   exports: runtimeModule.exports,
   localStorage,
+  sessionStorage,
   window,
   Event: MockEvent,
   console,
@@ -96,18 +103,29 @@ let indexReadEventCount = 0;
 
 window.addEventListener(librarySessionService.indexReadEventName, () => {
   indexReadEventCount += 1;
-  // Mirrors App's event listener. The service must prevent recursive event loops.
+  // Mirrors App's synchronous event listener. The service must prevent recursive event loops.
   librarySessionService.recordIndexRead(currentReadResult);
 });
 
-librarySessionService.recordRootSelected({
+const selectedRoot = {
   ok: true,
   libraryType: 'asmr',
   displayName: 'U28 空资源库',
   rootPathToken: 'session-only-token',
-});
+};
 
-currentReadResult = {
+const authorizeCurrentWindow = () => {
+  sessionStorage.setItem(librarySessionService.currentWindowRootSessionKey, JSON.stringify({
+    asmr: {
+      rootPathToken: selectedRoot.rootPathToken,
+      displayName: selectedRoot.displayName,
+      libraryType: selectedRoot.libraryType,
+      selectedAt: '2026-07-14T11:58:00.000Z',
+    },
+  }));
+};
+
+const emptyIndexResult = {
   ok: true,
   libraryType: 'asmr',
   displayName: 'U28 空资源库',
@@ -127,9 +145,15 @@ currentReadResult = {
   sha256: 'u28-empty-index',
 };
 
+librarySessionService.recordRootSelected(selectedRoot);
+authorizeCurrentWindow();
+currentReadResult = emptyIndexResult;
 librarySessionService.recordIndexRead(currentReadResult);
 let snapshot = librarySessionService.getSnapshot();
 
+if (!librarySessionService.hasCurrentWindowAuthorization()) {
+  throw new Error('当前窗口授权未被会话服务识别。');
+}
 if (!snapshot.lastIndex) throw new Error('合法空 Index 被错误视为未读取。');
 if (snapshot.lastIndex.trackCount !== 0 || snapshot.lastIndex.collectionCount !== 0) {
   throw new Error('合法空 Index 的零计数未被保留。');
@@ -139,6 +163,34 @@ if (snapshot.lastReadAttempt?.status !== 'loaded') {
 }
 if (indexReadEventCount !== 1) {
   throw new Error(`空 Index 跨页面事件应触发一次，实际为 ${indexReadEventCount} 次。`);
+}
+
+// Simulate a full application restart: localStorage persists, sessionStorage authorization does not.
+sessionStorage.clear();
+snapshot = librarySessionService.getSnapshot();
+if (librarySessionService.hasCurrentWindowAuthorization()) {
+  throw new Error('重启后仍错误保留当前窗口目录授权。');
+}
+if (snapshot.lastIndex !== undefined || snapshot.lastReadAttempt !== undefined) {
+  throw new Error('重启后旧 Index 仍被冒充为当前已连接资源库。');
+}
+
+// The real UI records root selection before writing the new session token.
+librarySessionService.recordRootSelected(selectedRoot);
+authorizeCurrentWindow();
+snapshot = librarySessionService.getSnapshot();
+if (snapshot.lastIndex !== undefined) {
+  throw new Error('重新授权后未重新读取 Index，却恢复了上一次成功状态。');
+}
+
+currentReadResult = emptyIndexResult;
+librarySessionService.recordIndexRead(currentReadResult);
+snapshot = librarySessionService.getSnapshot();
+if (!snapshot.lastIndex || snapshot.lastReadAttempt?.status !== 'loaded') {
+  throw new Error('重新授权并读取后，空 Index 未恢复为 loaded。');
+}
+if (indexReadEventCount !== 2) {
+  throw new Error(`第二次空 Index 读取后事件累计应为两次，实际为 ${indexReadEventCount} 次。`);
 }
 
 currentReadResult = {
@@ -154,11 +206,13 @@ if (snapshot.lastIndex !== undefined) {
 if (snapshot.lastReadAttempt?.status !== 'failed') {
   throw new Error('读取失败未与合法空 Index 明确区分。');
 }
-if (indexReadEventCount !== 2) {
-  throw new Error(`失败状态跨页面事件累计应为两次，实际为 ${indexReadEventCount} 次。`);
+if (indexReadEventCount !== 3) {
+  throw new Error(`失败状态跨页面事件累计应为三次，实际为 ${indexReadEventCount} 次。`);
 }
 
 console.log('PASS\tempty index is a loaded resource library');
 console.log('PASS\tfailed read is distinct from an empty index');
 console.log('PASS\tcross-page event is recursion-safe');
+console.log('PASS\trestart requires current-window reauthorization');
+console.log('PASS\treauthorization does not resurrect stale index state');
 console.log('U28 library reconciliation verifier passed.');
