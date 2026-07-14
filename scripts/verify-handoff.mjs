@@ -27,7 +27,7 @@ const tokens = [
   ['RUN_ME_FIRST.md', 'git pull --ff-only origin main'],
   ['RUN_ME_FIRST.md', 'npm run verify:stable'],
   ['AI_HANDOFF/00_READ_THIS_FIRST.md', 'CURRENT_PROJECT_HANDOFF.md'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '用户反馈该问题可能已经修复并推送到 Git'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '好像已经修了，并推送到 Git'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'MAJ-001'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'MAJ-002'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U29：播放器、Seek、队列、续播与 LRC/SRT/VTT/ASS 全流程'],
