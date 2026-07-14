@@ -127,7 +127,6 @@ jobs:
         run: npm run build
 
       - name: Commit validated U28 repair
-        if: github.event_name == 'push'
         shell: pwsh
         run: |
           git config user.name "github-actions[bot]"
