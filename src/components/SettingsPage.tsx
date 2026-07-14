@@ -66,6 +66,44 @@ interface SettingsPageProps {
   updateSettings: (updates: Partial<LibrarySettings>) => void;
 }
 
+const U28_ROOT_SESSION_KEY = 'yang_kura_u28_authorized_roots_v1';
+
+type U28RootSessionEntry = {
+  rootPathToken: string;
+  displayName: string;
+  libraryType: YangKuraLibraryType;
+  selectedAt: string;
+};
+
+type U28RootSessionState = Partial<Record<YangKuraLibraryType, U28RootSessionEntry>>;
+
+const readU28RootSession = (): U28RootSessionState => {
+  if (typeof sessionStorage === 'undefined') return {};
+  try {
+    const parsed = JSON.parse(sessionStorage.getItem(U28_ROOT_SESSION_KEY) ?? '{}') as U28RootSessionState;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeU28RootSession = (result: YangKuraSelectLibraryRootSuccessResult): void => {
+  if (typeof sessionStorage === 'undefined') return;
+  const previous = readU28RootSession();
+  sessionStorage.setItem(U28_ROOT_SESSION_KEY, JSON.stringify({
+    ...previous,
+    [result.libraryType]: {
+      rootPathToken: result.rootPathToken,
+      displayName: result.displayName,
+      libraryType: result.libraryType,
+      selectedAt: new Date().toISOString(),
+    },
+  }));
+};
+
+const getU28RootSessionEntry = (libraryType: YangKuraLibraryType): U28RootSessionEntry | undefined =>
+  readU28RootSession()[libraryType];
+
 export default function SettingsPage({
   settings,
   updateSettings,
@@ -78,15 +116,21 @@ export default function SettingsPage({
   const [newAsmrType, setNewAsmrType] = useState<
     "local" | "openlist" | "webdav"
   >("local");
-  const [newAsmrLabel, setNewAsmrLabel] = useState("");
-  const [newAsmrPath, setNewAsmrPath] = useState("");
+  const [newAsmrLabel, setNewAsmrLabel] = useState(() => getU28RootSessionEntry("asmr")?.displayName ?? "");
+  const [newAsmrPath, setNewAsmrPath] = useState(() => {
+    const token = getU28RootSessionEntry("asmr")?.rootPathToken;
+    return token ? `rootPathToken:${token}` : "";
+  });
 
   // Form states for Pop Music paths
   const [newMusicType, setNewMusicType] = useState<
     "local" | "openlist" | "webdav"
   >("local");
-  const [newMusicLabel, setNewMusicLabel] = useState("");
-  const [newMusicPath, setNewMusicPath] = useState("");
+  const [newMusicLabel, setNewMusicLabel] = useState(() => getU28RootSessionEntry("music")?.displayName ?? "");
+  const [newMusicPath, setNewMusicPath] = useState(() => {
+    const token = getU28RootSessionEntry("music")?.rootPathToken;
+    return token ? `rootPathToken:${token}` : "";
+  });
 
   const themes: {
     id: ThemeType;
@@ -275,6 +319,7 @@ export default function SettingsPage({
     if (result.ok) {
       const tokenValue = `rootPathToken:${result.rootPathToken}`;
       librarySessionService.recordRootSelected(result);
+      writeU28RootSession(result);
       if (libraryType === "music") {
         setNewMusicType("local");
         setNewMusicLabel((prev) => prev.trim() || result.displayName);
@@ -298,8 +343,8 @@ export default function SettingsPage({
   ): string | null => {
     const value = libraryType === "music" ? newMusicPath : newAsmrPath;
     const prefix = "rootPathToken:";
-    if (!value.startsWith(prefix)) return null;
-    return value.slice(prefix.length).trim() || null;
+    if (value.startsWith(prefix)) return value.slice(prefix.length).trim() || null;
+    return getU28RootSessionEntry(libraryType)?.rootPathToken ?? null;
   };
 
   const hasSelectedRootToken = (libraryType: YangKuraLibraryType): boolean =>

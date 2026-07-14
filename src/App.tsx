@@ -121,22 +121,24 @@ export default function App() {
 
   useEffect(() => {
     let asmrBase = rjWorks;
+    let musicBase = musicAlbums;
     try {
       const cached = localStorage.getItem('yang_kura_last_read_library_index_result');
       if (cached) {
         const result = JSON.parse(cached) as YangKuraReadLibraryIndexResult;
         if (result.ok) {
           const mapped = libraryIndexAdapter.fromLocalJsonIndexToAppData(result.index as LocalJsonIndex);
-          if (mapped.rjWorks.length > 0) asmrBase = mapped.rjWorks;
+          asmrBase = mapped.rjWorks;
+          musicBase = mapped.musicAlbums;
         }
       }
     } catch {
-      // Keep the current local base when no readable index cache exists.
+      // Keep the current local bases when no readable real index cache exists.
     }
     rjWorksBaseRef.current = asmrBase;
+    musicAlbumsBaseRef.current = musicBase;
     setRjWorks(metadataOverrideService.applyAsmrOverrides(asmrBase));
-    musicAlbumsBaseRef.current = musicAlbums;
-    setMusicAlbums(metadataOverrideService.applyMusicAlbumOverrides(musicAlbums));
+    setMusicAlbums(metadataOverrideService.applyMusicAlbumOverrides(musicBase));
   }, []);
 
   useEffect(() => {
@@ -147,30 +149,34 @@ export default function App() {
 
   // Diagnostic Scan Logs Simulation State
   const [scanStatus, setScanStatus] = useState<string>(
-    '当前已支持真实 index 读取、HTMLAudio 本地音频播放、LRC 字幕读取、视频/图片外部打开；仍未接 SQLite / 下载器。'
+    '尚未读取真实资源库记录。请先在设置中选择目录并读取现有记录，或执行安全扫描。'
   );
 
-  const applyStoredLibraryIndexToUi = () => {
+  const applyStoredLibraryIndexToUi = (): boolean => {
     try {
       const raw = localStorage.getItem('yang_kura_last_read_library_index_result');
-      if (!raw) return;
+      if (!raw) {
+        setScanStatus('当前没有已读取的真实 library-index.json。请先在设置中完成目录授权和读取。');
+        return false;
+      }
       const result = JSON.parse(raw) as YangKuraReadLibraryIndexResult;
-      if (!result.ok) return;
+      if (!result.ok) {
+        setScanStatus(`最近一次真实 index 读取未成功：${result.message}`);
+        return false;
+      }
       librarySessionService.recordIndexRead(result);
       const mapped = libraryIndexAdapter.fromLocalJsonIndexToAppData(result.index as LocalJsonIndex);
-      if (mapped.rjWorks.length > 0) {
-        rjWorksBaseRef.current = mapped.rjWorks;
-        setRjWorks(metadataOverrideService.applyAsmrOverrides(mapped.rjWorks));
-      }
-      if (mapped.musicAlbums.length > 0) {
-        musicAlbumsBaseRef.current = mapped.musicAlbums;
-        setMusicAlbums(metadataOverrideService.applyMusicAlbumOverrides(mapped.musicAlbums));
-      }
+      rjWorksBaseRef.current = mapped.rjWorks;
+      musicAlbumsBaseRef.current = mapped.musicAlbums;
+      setRjWorks(metadataOverrideService.applyAsmrOverrides(mapped.rjWorks));
+      setMusicAlbums(metadataOverrideService.applyMusicAlbumOverrides(mapped.musicAlbums));
       setScanStatus(
-        `已加载真实 library-index.json：${mapped.rjWorks.length} 个音声集合，${mapped.musicAlbums.length} 个音乐集合，${result.summary.trackCount} 条轨道。`
+        `已加载真实 library-index.json：${mapped.rjWorks.length} 个音声集合，${mapped.musicAlbums.length} 个音乐集合，${result.summary.trackCount} 条轨道。`,
       );
+      return true;
     } catch (error) {
       setScanStatus(`读取本地 index 缓存失败：${error instanceof Error ? error.message : String(error)}`);
+      return false;
     }
   };
 
@@ -229,14 +235,9 @@ export default function App() {
   const [isQueueOpen, setIsQueueOpen] = useState<boolean>(false);
   const [isLyricsOpen, setIsLyricsOpen] = useState<boolean>(false);
 
-  // Handler: Scan local physical library mock animation
+  // Diagnostics refresh only reconciles the latest real index snapshot.
   const handleScanLibrary = () => {
-    setScanStatus('Demo 扫描演示：不会读取真实磁盘，只模拟未来 Local JSON Index 的状态提示。');
-    setTimeout(() => {
-      setScanStatus(
-        `Demo 扫描演示完成。[${new Date().toLocaleTimeString()}] 当前没有读取真实目录，也没有写入 library-index.json。`
-      );
-    }, 2000);
+    applyStoredLibraryIndexToUi();
   };
 
   // Toggle user liked state
