@@ -1,0 +1,70 @@
+name: U30 Apply
+
+on:
+  push:
+    branches:
+      - agent/u30-ui-fast-track
+
+permissions:
+  contents: write
+
+concurrency:
+  group: u30-apply
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/u30-ui-fast-track
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Apply U30 product and test patch
+        run: node scripts/apply-u30-ui-fast-track.mjs
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Rebuild Electron runtime
+        run: npm rebuild electron
+
+      - name: TypeScript and builds
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run lint
+          npm run build
+          npm run build:electron
+
+      - name: Run focused U30 verifier
+        run: npm run verify:u30-ui-fast-track
+
+      - name: Run U30 Electron UI matrix
+        run: npm run test:u30:ui-matrix
+
+      - name: Upload U30 screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u30-ui-matrix-apply
+          path: artifacts/u30-ui-matrix
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Commit formal U30 changes and remove temporary machinery
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/App.tsx src/index.css src/components/Sidebar.tsx src/components/PlayerBar.tsx src/components/PlayerBarPrimarySections.tsx src/components/PlayerBarAuxiliaryControls.tsx package.json .github/workflows/branch-validation.yml scripts/test-u30-ui-matrix.mjs scripts/verify-u30-ui-fast-track.mjs
+          git rm scripts/apply-u30-ui-fast-track.mjs .github/workflows/u30-apply.yml
+          git commit -m "fix: complete U30 responsive UI fast-track"
+          git push origin HEAD:agent/u30-ui-fast-track
