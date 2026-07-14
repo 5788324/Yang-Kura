@@ -4,13 +4,10 @@ on:
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - agent/u29-player-reliability
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: branch-validation-${{ github.event.pull_request.number || github.ref }}
@@ -18,15 +15,14 @@ concurrency:
 
 jobs:
   validate:
-    name: Windows U29 full-chain validation
+    name: Windows full-chain regression
     runs-on: windows-latest
     timeout-minutes: 65
 
     steps:
-      - name: Check out U29 branch
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
-          ref: agent/u29-player-reliability
           fetch-depth: 0
 
       - name: Set up Node 22
@@ -35,16 +31,13 @@ jobs:
           node-version: '22'
           cache: npm
 
-      - name: Apply deterministic U29 repair
-        run: node scripts/run-u29-patch.mjs
-
       - name: Install dependencies without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Audit high and critical dependency risk
         run: npm audit --audit-level=high
 
-      - name: Rebuild Electron runtime
+      - name: Rebuild Electron runtime for desktop E2E
         run: npm rebuild electron
 
       - name: TypeScript validation
@@ -57,7 +50,7 @@ jobs:
           npm run build
           npm run build:electron
 
-      - name: Run U28 library Electron E2E regression
+      - name: Run U28 resource-library Electron E2E
         run: npm run test:u28:electron-e2e
 
       - name: Run U29 player Electron E2E
@@ -81,14 +74,18 @@ jobs:
           $results = [System.Collections.Generic.List[string]]::new()
           $results.Add("verifier`tstatus`texit_code")
           $failed = $false
-          Get-ChildItem -Path scripts -Filter 'verify-u*.mjs' | Sort-Object Name | ForEach-Object {
-            Write-Host "Running $($_.Name)"
-            node $_.FullName
-            $exitCode = $LASTEXITCODE
-            $status = if ($exitCode -eq 0) { 'PASS' } else { 'FAIL' }
-            $results.Add("$($_.Name)`t$status`t$exitCode")
-            if ($exitCode -ne 0) { $failed = $true }
-          }
+
+          Get-ChildItem -Path scripts -Filter 'verify-u*.mjs' |
+            Sort-Object Name |
+            ForEach-Object {
+              Write-Host "Running $($_.Name)"
+              node $_.FullName
+              $exitCode = $LASTEXITCODE
+              $status = if ($exitCode -eq 0) { 'PASS' } else { 'FAIL' }
+              $results.Add("$($_.Name)`t$status`t$exitCode")
+              if ($exitCode -ne 0) { $failed = $true }
+            }
+
           $results | Set-Content -Path artifacts/focused-verifier-results.tsv -Encoding utf8
           if ($failed) { exit 1 }
 
@@ -123,17 +120,3 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: npm run build
-
-      - name: Commit validated U29 product repair
-        if: github.event_name == 'push'
-        shell: pwsh
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/hooks/useAudioPlayer.ts src/player/playerRuntimePolicy.ts src/services/playerQueuePersistenceService.ts src/services/playbackHistoryService.ts src/services/playlistPersistenceService.ts src/services/homeRecentListeningService.ts src/App.tsx src/components/PlayerBar.tsx src/components/LyricsPanel.tsx scripts/test-u29-electron-e2e.mjs scripts/verify-u29-player-reliability.mjs package.json
-          if (git diff --cached --quiet) {
-            Write-Host "No validated U29 product changes to commit."
-          } else {
-            git commit -m "fix: align player state and playback history truthfully"
-            git push origin HEAD:agent/u29-player-reliability
-          }
