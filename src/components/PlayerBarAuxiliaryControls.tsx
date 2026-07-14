@@ -61,7 +61,7 @@ export function PlayerAuxiliaryControls({
 }: PlayerAuxiliaryControlsProps) {
   return (
     <div
-      className="w-1/3 flex items-center justify-end space-x-4 pl-4"
+      className="u30-player-aux w-[30%] min-w-0 flex items-center justify-end space-x-1 xl:space-x-4 pl-1 xl:pl-4"
       onClick={(event) => event.stopPropagation()}
       role="group"
       aria-label="辅助播放控制"
@@ -70,7 +70,7 @@ export function PlayerAuxiliaryControls({
         type="button"
         onClick={onToggleCompletion}
         disabled={!hasTrack || !canToggleCompletion}
-        className="text-[10px] border border-zinc-800 bg-zinc-900/60 text-zinc-300 px-2.5 py-1 rounded-full font-bold flex-shrink-0 hover:border-sky-500/40 hover:text-sky-300 disabled:opacity-40 disabled:hover:border-zinc-800 disabled:hover:text-zinc-300 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400"
+        className="u30-completion-control text-[10px] border border-zinc-800 bg-zinc-900/60 text-zinc-300 px-2.5 py-1 rounded-full font-bold flex-shrink-0 hover:border-sky-500/40 hover:text-sky-300 disabled:opacity-40 disabled:hover:border-zinc-800 disabled:hover:text-zinc-300 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400"
         title={completionHint}
         aria-label={`播放完成策略：${completionLabel}`}
       >
@@ -161,7 +161,7 @@ export function PlayerAuxiliaryControls({
       <button
         type="button"
         onClick={onMoreActions}
-        className="text-zinc-500 hover:text-white p-1 rounded transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400"
+        className="u30-more-control text-zinc-500 hover:text-white p-1 rounded transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400"
         title="更多播放操作（后续开放）"
         aria-label="更多播放操作（后续开放）"
       >

@@ -9,6 +9,7 @@ import { playbackHistoryService } from './services/playbackHistoryService';
 import { librarySessionService, type LibrarySessionSnapshot } from './services/librarySessionService';
 import { dailyListeningSurfaceService } from './services/dailyListeningSurfaceService';
 import { playlistPersistenceService } from './services/playlistPersistenceService';
+import { playerQueuePersistenceService } from './services/playerQueuePersistenceService';
 import { Headphones, Sparkles, CheckCircle2, ChevronRight, X, Play } from 'lucide-react';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
@@ -97,8 +98,9 @@ export default function App() {
     progress: number;
   } | null>(null);
 
-  // On initial mount: Check if there's any second-level resume point stored
+  // The modern persisted queue is authoritative. The legacy toast is only a fallback.
   useEffect(() => {
+    if (playerQueuePersistenceService.load()) return;
     const lastTrackId = localStorage.getItem('last_played_track_id');
     const lastProgressStr = localStorage.getItem('last_played_progress');
     const lastTrackJson = localStorage.getItem('last_played_track_json');
@@ -252,6 +254,18 @@ export default function App() {
   // Player sidebar drawer (Right side)
   const [isQueueOpen, setIsQueueOpen] = useState<boolean>(false);
   const [isLyricsOpen, setIsLyricsOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isQueueOpen) return;
+    const handleQueueEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      setIsQueueOpen(false);
+      window.requestAnimationFrame(() => document.getElementById('player-queue-toggle')?.focus({ preventScroll: true }));
+    };
+    window.addEventListener('keydown', handleQueueEscape);
+    return () => window.removeEventListener('keydown', handleQueueEscape);
+  }, [isQueueOpen]);
 
   // Diagnostics refresh only reconciles the latest real index snapshot.
   const handleScanLibrary = () => {
@@ -497,10 +511,10 @@ export default function App() {
       : 'bg-zinc-500';
 
   return (
-    <div className={`h-screen w-screen flex flex-col theme-${settings.currentTheme} transition-all duration-300 overflow-hidden`}>
+    <div data-u30-theme={settings.currentTheme} className={`h-screen w-screen min-w-0 flex flex-col theme-${settings.currentTheme} transition-all duration-300 overflow-hidden`}>
       
       {/* Top Windows Native-Style Custom Header Bar */}
-      <header id="windows-app-bar" className="h-9 flex items-center justify-between px-4 bg-sidebar-bg/60 border-b border-border-color/60 text-xs text-text-secondary select-none z-50">
+      <header id="windows-app-bar" className="h-9 min-w-0 flex items-center justify-between gap-3 px-3 sm:px-4 bg-sidebar-bg/60 border-b border-border-color/60 text-xs text-text-secondary select-none z-50">
         <div className="flex items-center space-x-2 font-mono">
           <span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
           <span className="font-semibold text-[11px]">Yang-Kura 本地音频媒体库</span>
@@ -509,7 +523,7 @@ export default function App() {
           <span className="text-[10px] text-text-muted bg-border-color/40 px-2 py-0.5 rounded">
             本地媒体库
           </span>
-          <span className={`${libraryRuntimeTone} flex items-center space-x-1 font-semibold text-[10px]`}>
+          <span data-u30-runtime-status className={`${libraryRuntimeTone} u30-runtime-label flex min-w-0 items-center space-x-1 font-semibold text-[10px]`}>
             <span className={`inline-block w-1.5 h-1.5 rounded-full ${libraryRuntimeDot}`}></span>
             <span>{libraryRuntimeStatus}</span>
           </span>
@@ -531,7 +545,7 @@ export default function App() {
         />
 
         {/* Central Scrollable Content Area */}
-        <main ref={mainContentRef} className="flex-1 h-full overflow-y-auto scrollbar-thin px-6 md:px-10 py-6 bg-bg-primary">
+        <main ref={mainContentRef} className="flex-1 min-w-0 h-full overflow-y-auto overflow-x-hidden scrollbar-thin px-4 md:px-6 xl:px-10 py-4 md:py-6 pb-24 bg-bg-primary">
           <Suspense fallback={<div className="min-h-[240px] rounded-2xl border border-border-color/50 bg-card-bg/30 p-6 text-sm text-text-muted">正在打开页面…</div>}>
           
           {/* Page Router with Drilldowns */}
@@ -650,7 +664,7 @@ export default function App() {
         {/* MVP-35 verifier anchor: 队列会在本机保存；不保存真实路径或媒体链接。 */}
         {/* Dynamic sliding side drawer for playing Queue */}
         {isQueueOpen && (
-          <div id="u29-queue-drawer" className="absolute right-0 top-0 bottom-0 w-80 bg-sidebar-bg/95 backdrop-blur-xl border-l border-border-color z-40 p-4 shadow-2xl flex flex-col justify-between animate-fade-in">
+          <div id="u29-queue-drawer" role="dialog" aria-modal="true" aria-label="当前播放队列" className="absolute right-0 top-0 bottom-0 w-[min(20rem,calc(100vw-3rem))] bg-sidebar-bg/95 backdrop-blur-xl border-l border-border-color z-40 p-4 shadow-2xl flex flex-col justify-between animate-fade-in">
             <div className="flex-1 overflow-hidden flex flex-col">
               <div id="mvp42-queue-drawer-surface" className="border-b border-border-color pb-3 mb-4 space-y-3">
                 <div className="flex items-center justify-between">
@@ -659,8 +673,11 @@ export default function App() {
                     <p className="text-[10px] text-text-muted leading-relaxed">{queueSurface.description}</p>
                   </div>
                   <button 
+                    id="queue-close-button"
+                    type="button"
+                    aria-label="关闭播放队列"
                     onClick={() => setIsQueueOpen(false)}
-                    className="p-1 rounded hover:bg-hover-bg text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+                    className="p-1 rounded hover:bg-hover-bg text-text-secondary hover:text-text-primary transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-color"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -787,7 +804,7 @@ export default function App() {
 
       {/* Floating Second-level Playback Resume Toast */}
       {resumeToast && resumeToast.show && (
-        <div className="fixed bottom-24 left-6 z-50 max-w-sm p-4 rounded-xl bg-card-bg/95 backdrop-blur-xl border border-brand-color/50 shadow-2xl flex flex-col space-y-3">
+        <div id="legacy-resume-toast" className="fixed bottom-24 left-6 z-50 max-w-[calc(100vw-3rem)] sm:max-w-sm p-4 rounded-xl bg-card-bg/95 backdrop-blur-xl border border-brand-color/50 shadow-2xl flex flex-col space-y-3">
           <div className="flex items-start space-x-3">
             <div className="p-2 rounded-lg bg-brand-color/10 text-brand-color flex-shrink-0">
               <Headphones className="w-5 h-5" />

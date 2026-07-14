@@ -125,9 +125,9 @@ export default function Sidebar({
     <aside
       id="app-sidebar"
       aria-label="主导航"
-      className="w-64 h-full flex flex-col border-r border-border-color bg-sidebar-bg/95 backdrop-blur-lg select-none"
+      className="w-56 xl:w-64 min-w-0 h-full flex flex-col border-r border-border-color bg-sidebar-bg/95 backdrop-blur-lg select-none"
     >
-      <div className="p-6 flex items-center space-x-3">
+      <div className="p-4 xl:p-6 flex items-center space-x-3">
         <div
           className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20"
           aria-hidden="true"
@@ -144,7 +144,7 @@ export default function Sidebar({
         </div>
       </div>
 
-      <div className="px-4 mb-4">
+      <div className="px-3 xl:px-4 mb-4">
         <div className="relative group">
           <Search
             className="absolute left-3 top-2.5 w-4 h-4 text-text-secondary group-focus-within:text-brand-color transition-colors"

@@ -204,9 +204,9 @@ export function PlayerTransportControls({
   const playLabel = playbackMode === 'resolving-local-media' ? '正在解析本地音频' : isPlaying ? '暂停' : '播放';
 
   return (
-    <div className="flex-1 flex items-center justify-center" onClick={(event) => event.stopPropagation()}>
+    <div className="u30-player-transport flex-1 min-w-0 flex items-center justify-center" onClick={(event) => event.stopPropagation()}>
       <div
-        className="flex items-center bg-zinc-900/40 border border-zinc-900 px-5 py-2.5 rounded-full shadow-inner space-x-5"
+        className="flex min-w-0 items-center bg-zinc-900/40 border border-zinc-900 px-3 xl:px-5 py-2.5 rounded-full shadow-inner space-x-2 xl:space-x-5"
         role="group"
         aria-label="播放控制"
       >
@@ -268,6 +268,7 @@ export function PlayerTransportControls({
         </button>
 
         <button
+          id="player-queue-toggle"
           type="button"
           onClick={onToggleQueue}
           disabled={!hasTrack}
@@ -286,7 +287,7 @@ export function PlayerTransportControls({
           <span className="text-[9px] font-mono font-bold ml-1 text-zinc-500">{queueCount}</span>
         </button>
 
-        <div className="text-[10px] text-zinc-400 font-mono flex items-center space-x-1 pl-3.5 border-l border-zinc-800" aria-label={`播放时间 ${currentTimeLabel}，总时长 ${durationLabel}`}>
+        <div className="u30-player-time text-[10px] text-zinc-400 font-mono flex items-center space-x-1 pl-3.5 border-l border-zinc-800" aria-label={`播放时间 ${currentTimeLabel}，总时长 ${durationLabel}`}>
           <span className="text-sky-400 font-bold">{currentTimeLabel}</span>
           <span className="text-zinc-600">/</span>
           <span>{durationLabel}</span>
