@@ -34,6 +34,9 @@ jobs:
           git fetch origin main
           git show origin/main:.github/workflows/branch-validation.yml | Set-Content -Path .github/workflows/branch-validation.yml -Encoding utf8
 
+      - name: Relax patch anchors
+        run: node scripts/relax-u30-patch-anchors.mjs
+
       - name: Apply U30 product and test patch
         run: node scripts/apply-u30-ui-fast-track.mjs
 
@@ -72,6 +75,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/App.tsx src/index.css src/components/Sidebar.tsx src/components/PlayerBar.tsx src/components/PlayerBarPrimarySections.tsx src/components/PlayerBarAuxiliaryControls.tsx package.json .github/workflows/branch-validation.yml scripts/test-u30-ui-matrix.mjs scripts/verify-u30-ui-fast-track.mjs
-          git rm scripts/apply-u30-ui-fast-track.mjs .github/workflows/u30-apply.yml
+          git rm scripts/apply-u30-ui-fast-track.mjs scripts/relax-u30-patch-anchors.mjs .github/workflows/u30-apply.yml
           git commit -m "fix: complete U30 responsive UI fast-track"
           git push origin HEAD:${{ github.head_ref }}
