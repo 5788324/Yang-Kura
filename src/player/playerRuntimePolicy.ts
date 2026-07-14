@@ -21,6 +21,17 @@ export function resolvePlaybackStart(
   return clampPlaybackPosition(requested, track.duration);
 }
 
+export function getPlaybackEndGuard(duration: number): number {
+  if (!Number.isFinite(duration) || duration <= 0) return 0;
+  return Math.min(10, duration * 0.05);
+}
+
+export function isPlaybackComplete(progress: number, duration: number): boolean {
+  if (!Number.isFinite(duration) || duration <= 0) return false;
+  const normalized = clampPlaybackPosition(progress, duration);
+  return normalized >= duration - getPlaybackEndGuard(duration);
+}
+
 export function isLocalTrackAwaitingAuthorization(track: AudioTrack | null | undefined): boolean {
   return Boolean(
     track?.playbackSourceKind === 'tokenized-local-file' &&
