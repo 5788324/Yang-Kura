@@ -14,6 +14,7 @@ const lyricsPanelSource = fs.readFileSync('src/components/LyricsPanel.tsx', 'utf
 const queueSource = fs.readFileSync('src/services/playerQueuePersistenceService.ts', 'utf8');
 const historySource = fs.readFileSync('src/services/playbackHistoryService.ts', 'utf8');
 const playlistSource = fs.readFileSync('src/services/playlistPersistenceService.ts', 'utf8');
+const homeSource = fs.readFileSync('src/services/homeRecentListeningService.ts', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
 for (const [label, ok] of [
@@ -27,6 +28,9 @@ for (const [label, ok] of [
   ['persistent queue strips current-window token', queueSource.includes('sanitizePersistedPlayerTrack(track)')],
   ['playback history strips current-window token', historySource.includes('sanitizePersistedPlayerTrack(track)')],
   ['playlists strip current-window token', playlistSource.includes('sanitizePersistedPlayerTrack(track)')],
+  ['history completion uses duration-relative policy', historySource.includes('isPlaybackComplete(progress, duration)') && !historySource.includes('END_GUARD_SECONDS')],
+  ['stored history completion is migrated on load', historySource.includes('completed: isPlaybackComplete(progress, duration)')],
+  ['home distinguishes playing paused and unauthorized', homeSource.includes('input.playerState.isPlaying') && homeSource.includes('currentTrackNeedsAuthorization') && homeSource.includes('当前已暂停') && homeSource.includes('需要重新授权资源库并读取 Index 后，才能从当前进度继续。')],
   ['PlayerBar exposes stable non-path runtime state', playerBarSource.includes('data-u29-playback-mode') && playerBarSource.includes('data-u29-source-ready') && !playerBarSource.includes('data-u29-root-path-token')],
   ['queue drawer has stable item selectors', appSource.includes('id="u29-queue-drawer"') && appSource.includes('data-queue-track-id={track.id}')],
   ['lyrics panel exposes stable status only', lyricsPanelSource.includes('data-u29-lyrics-status') && lyricsPanelSource.includes('data-u29-lyrics-path')],
@@ -55,6 +59,10 @@ assert.equal(policy.clampPlaybackPosition(6, 10), 6);
 assert.equal(policy.resolvePlaybackStart({ id: 't1', duration: 20 }, { trackId: 't1', progress: 7 }, 2), 7);
 assert.equal(policy.resolvePlaybackStart({ id: 't1', duration: 20 }, { trackId: 'other', progress: 7 }, 4), 4);
 assert.equal(policy.resolvePlaybackStart({ id: 't1', duration: 5 }, null, 9), 5);
+assert.equal(policy.isPlaybackComplete(6, 12), false);
+assert.equal(policy.isPlaybackComplete(11.5, 12), true);
+assert.equal(policy.isPlaybackComplete(190, 200), true);
+assert.equal(policy.isPlaybackComplete(180, 200), false);
 
 const persisted = policy.sanitizePersistedPlayerTrack({
   id: 't1', title: 'Track', artist: 'Artist', album: 'Album', duration: 20,
