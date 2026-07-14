@@ -130,10 +130,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/hooks/useAudioPlayer.ts src/services/playerQueuePersistenceService.ts src/services/playbackHistoryService.ts src/services/playlistPersistenceService.ts src/App.tsx src/components/PlayerBar.tsx src/components/LyricsPanel.tsx package.json
+          git add src/hooks/useAudioPlayer.ts src/player/playerRuntimePolicy.ts src/services/playerQueuePersistenceService.ts src/services/playbackHistoryService.ts src/services/playlistPersistenceService.ts src/services/homeRecentListeningService.ts src/App.tsx src/components/PlayerBar.tsx src/components/LyricsPanel.tsx scripts/test-u29-electron-e2e.mjs scripts/verify-u29-player-reliability.mjs package.json
           if (git diff --cached --quiet) {
             Write-Host "No validated U29 product changes to commit."
           } else {
-            git commit -m "fix: harden player resume and token reconciliation"
+            git commit -m "fix: align player state and playback history truthfully"
             git push origin HEAD:agent/u29-player-reliability
           }
