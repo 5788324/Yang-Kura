@@ -1,10 +1,9 @@
 import type { AudioTrack } from '../types';
-import { sanitizePersistedPlayerTrack } from '../player/playerRuntimePolicy';
+import { isPlaybackComplete, sanitizePersistedPlayerTrack } from '../player/playerRuntimePolicy';
 
 const STORAGE_KEY = 'yang_kura_playback_history_v1';
 const MAX_HISTORY_ITEMS = 50;
 const MIN_RESUME_SECONDS = 5;
-const END_GUARD_SECONDS = 10;
 
 export interface PlaybackHistoryEntry {
   trackId: string;
@@ -39,7 +38,21 @@ function parseHistory(raw: string | null): PlaybackHistoryEntry[] {
   try {
     const parsed = JSON.parse(raw) as PlaybackHistoryEntry[];
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((entry) => entry && typeof entry.trackId === 'string' && entry.track);
+    return parsed
+      .filter((entry) => entry && typeof entry.trackId === 'string' && entry.track)
+      .map((entry) => {
+        const duration = safeNumber(entry.duration) || safeNumber(entry.track.duration);
+        const progress = clampProgress(entry.progress, duration);
+        const percent = duration > 0 ? Math.min(100, Math.max(0, (progress / duration) * 100)) : 0;
+        return {
+          ...entry,
+          progress,
+          duration,
+          percent,
+          completed: isPlaybackComplete(progress, duration),
+          track: sanitizeTrack(entry.track),
+        };
+      });
   } catch {
     return [];
   }
@@ -73,11 +86,11 @@ export const playbackHistoryService = {
 
   getResumeProgress(trackId: string, durationHint?: number): number {
     const entry = this.load().find((item) => item.trackId === trackId);
-    if (!entry || entry.completed) return 0;
+    if (!entry) return 0;
     const duration = safeNumber(durationHint) || entry.duration;
     const progress = clampProgress(entry.progress, duration);
     if (progress < MIN_RESUME_SECONDS) return 0;
-    if (duration > 0 && progress >= Math.max(0, duration - END_GUARD_SECONDS)) return 0;
+    if (isPlaybackComplete(progress, duration)) return 0;
     return progress;
   },
 
@@ -85,7 +98,7 @@ export const playbackHistoryService = {
     const duration = safeNumber(durationInput) || safeNumber(track.duration);
     const progress = clampProgress(progressInput, duration);
     const percent = duration > 0 ? Math.min(100, Math.max(0, (progress / duration) * 100)) : 0;
-    const completed = duration > 0 && (percent >= 95 || progress >= Math.max(0, duration - END_GUARD_SECONDS));
+    const completed = isPlaybackComplete(progress, duration);
     const existing = this.load();
     const previous = existing.find((entry) => entry.trackId === track.id);
     const nextEntry: PlaybackHistoryEntry = {
