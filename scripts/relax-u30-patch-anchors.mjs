@@ -15,7 +15,7 @@ const after = `function replaceOnce(source, before, after, label) {
     if (first !== source.lastIndexOf(before)) throw new Error(\`${'${label}'}: anchor not unique\`);
     return source.replace(before, after);
   }
-  const escape = (value) => value.replace(/[.*+?^\${}()|[\\]\\]/g, '\\\\$&');
+  const escape = (value) => [...value].map((char) => (char.charCodeAt(0) === 92 || '^$.*+?()[]{}|'.includes(char)) ? String.fromCharCode(92) + char : char).join('');
   const patternText = before.trim().split(/\\s+/).map(escape).join('\\\\s+');
   const pattern = new RegExp('[ \\t]*' + patternText);
   const matches = source.match(new RegExp(pattern.source, 'g')) ?? [];
