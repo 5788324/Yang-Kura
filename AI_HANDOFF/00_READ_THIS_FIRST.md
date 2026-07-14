@@ -1,62 +1,37 @@
 # AI_HANDOFF / 00_READ_THIS_FIRST
 
-这是 Yang-Kura 当前 GitHub 主线的接手入口。
+这是 Yang-Kura 当前 GitHub 主线的 AI 接手入口。
 
-## 当前唯一可信基线
+## 先做什么
+
+1. 读取 `AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md`。
+2. 读取根目录 `PROJECT_STATE.md`。
+3. 读取根目录 `PROJECT_ROADMAP.md`。
+4. 从最新 `origin/main` 核对实际 HEAD、最近提交、开放 PR 和远端修复分支。
+5. 在工作区 clean 前提下，先确认 U28 修复是否已经存在，再决定验收、审查或实现。
+
+## 当前已知状态
 
 ```text
 核心版本：0.167.0-mvp129
-GitHub branch：main
-产品化增量：U02～U08 已合入
-当前质量任务：U09 渐进式播放器视图结构优化
-MVP130：独立实验下载器，禁止自动合入
+U02～U26：已完成
+U27 最终结论：NO-GO
+当前路线：U28 资源库授权、真实 Index、浏览与播放闭环
+阻断项：MAJ-001、MAJ-002
+MVP130：继续冻结，禁止合入
 ```
 
-不要再依赖旧文档中的固定 Git SHA。每次接手先读取 GitHub `main` 最新提交和已合并 PR，再以 `PROJECT_STATE.md` 校对阶段状态。
+用户反馈 MAJ 问题“可能已经修复并推送到 Git”，但本入口更新时 GitHub `main` 仍只显示 U27 NO-GO / U28 范围文档提交，没有可见的产品修复 PR。因此接手者必须先核对最新 Git 事实，不得直接重复开发，也不得直接宣布问题已解决。
 
-## 必读顺序
+## 当前硬边界
 
-1. 根目录 `PROJECT_STATE.md`
-2. 根目录 `PROJECT_ROADMAP.md`
-3. 根目录 `README.md`
-4. `docs/U09_PLAYER_HOOKS_PROGRESS_BASELINE.md`
-5. `01_CURRENT_STABLE_BASELINE.md`
-6. `03_PROMPT_POLICY.md`
-7. 根目录 `MVP130_EXPERIMENTAL_DO_NOT_MERGE.md`
+- GitHub `main` 是唯一代码事实来源；不要依赖旧 ZIP 或旧固定 SHA。
+- 工作区有未提交改动时立即停止，不要 stash、reset 或覆盖。
+- 真实 `E:\arsm` 只允许授权、读取、浏览和播放验证，不执行破坏性写入。
+- 可写测试只使用仓库外临时样本和副本。
+- 不暴露绝对路径或 `file://` 到 Renderer 日常界面。
+- 不为了代码整齐进行全项目重构。
+- 日常 UI 不显示工程、回归、Demo 或诊断内部状态。
+- U33 完成前不启动下载器、完整 AI Agent、SQLite、远程资源库或 Player Core v2。
 
-## 当前开发原则
-
-- 核心功能主线已经完成，不根据历史 MVP 待办自动扩展新模块。
-- UI、结构和质量采用小范围、可验证、可回退的增量修改。
-- 只拆当前正在修改且职责明显拥挤的文件。
-- 不为了“代码更漂亮”重写播放、导入、索引和文件操作稳定链。
-- 每个 PR 必须通过 Windows 自动门禁后再合并。
-- Windows GUI 完整用户流程与发布链仍需在新 Beta 前重新验收。
-
-## 当前 U09 边界
-
-允许：
-
-- 抽离全屏播放器键盘/焦点生命周期 Hook；
-- 抽离黑胶与唱臂的 reduced-motion 动画 Hook；
-- 更新过期项目状态和路线文档；
-- 增加专项 verifier。
-
-禁止：
-
-- 修改播放、Seek、队列、字幕、书签或存储行为；
-- 修改 mpv、HTMLAudio、Electron main、Importer 或 Index 写入；
-- 合入下载器或启动 SQLite；
-- 大规模拆分 `LyricsPanel.tsx` 的全部 UI。
-
-## 当前剩余路线
-
-```text
-渐进式结构/质量优化
-→ Windows GUI 全流程验收
-→ 定向缺陷修复
-→ Electron / portable / NSIS 发布链复验
-→ 新 Beta 版本和最终交接
-```
-
-归档的旧 MVP 文档只用于历史追溯，不作为自动任务来源。
+详细执行、验收和分支策略见 `AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md`。
