@@ -4,6 +4,12 @@ import { playerExperienceService } from '../services/playerExperienceService';
 import { playerQueuePersistenceService } from '../services/playerQueuePersistenceService';
 import { playbackHistoryService } from '../services/playbackHistoryService';
 import { mpvPlaybackPreferenceService, type MpvPlaybackPreference } from '../services/mpvPlaybackPreferenceService';
+import {
+  clampPlaybackPosition,
+  isLocalTrackAwaitingAuthorization,
+  reconcilePlayerStateWithLibrary,
+  resolvePlaybackStart,
+} from '../player/playerRuntimePolicy';
 
 function isTokenizedLocalTrack(track: AudioTrack | null | undefined): track is AudioTrack & { rootPathToken: string; sourceRelativePath: string } {
   return Boolean(track?.rootPathToken && track?.sourceRelativePath && track.playbackSourceKind === 'tokenized-local-file');
@@ -35,7 +41,11 @@ export function useAudioPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const mpvPreferenceRef = useRef<MpvPlaybackPreference>(mpvPlaybackPreferenceService.getPreference());
   const forceHtmlFallbackTrackRef = useRef<{ trackId: string; reason: string } | null>(null);
-  const pendingInitialSeekRef = useRef<{ trackId: string; progress: number } | null>(null);
+  const pendingInitialSeekRef = useRef<{ trackId: string; progress: number } | null>(
+    restoredQueueState?.currentTrack
+      ? { trackId: restoredQueueState.currentTrack.id, progress: restoredQueueState.progress }
+      : null,
+  );
   const lastHistorySaveRef = useRef<{ trackId: string; progress: number; savedAt: number } | null>(null);
   const lastQueueSaveRef = useRef<{ signature: string; progress: number; savedAt: number } | null>(null);
   const stateRef = useRef(playerState);
@@ -54,6 +64,12 @@ export function useAudioPlayer() {
     };
 
     const handleLoadedMetadata = () => {
+      const current = stateRef.current.currentTrack;
+      if (current) {
+        const target = resolvePlaybackStart(current, pendingInitialSeekRef.current, stateRef.current.progress);
+        if (target > 0 && Math.abs(audio.currentTime - target) > 0.1) audio.currentTime = target;
+        if (pendingInitialSeekRef.current?.trackId === current.id) pendingInitialSeekRef.current = null;
+      }
       setPlayerState((prev) => {
         if (!prev.currentTrack || prev.playbackMode !== 'html-audio') return prev;
         const duration = safeDuration(audio.duration);
@@ -252,6 +268,21 @@ export function useAudioPlayer() {
     setPlayerState(prev => {
       if (!prev.currentTrack) return prev;
       const willPlay = !prev.isPlaying;
+      if (willPlay && isLocalTrackAwaitingAuthorization(prev.currentTrack)) {
+        return {
+          ...prev,
+          isPlaying: false,
+          playbackMode: 'idle',
+          playbackError: '当前音轨需要重新授权资源库并读取 Index 后才能播放。',
+          playbackNotice: null,
+        };
+      }
+      if (willPlay && prev.playbackMode === 'idle') {
+        pendingInitialSeekRef.current = {
+          trackId: prev.currentTrack.id,
+          progress: clampPlaybackPosition(prev.progress, prev.currentTrack.duration),
+        };
+      }
       const nextPlaybackMode = willPlay && prev.playbackMode === 'idle'
         ? (isTokenizedLocalTrack(prev.currentTrack) ? 'resolving-local-media' : 'mock-simulated')
         : prev.playbackMode;
@@ -260,7 +291,7 @@ export function useAudioPlayer() {
   }, []);
 
   const handleSeek = useCallback((seconds: number) => {
-    const normalized = Math.max(0, seconds);
+    const normalized = clampPlaybackPosition(seconds, stateRef.current.currentTrack?.duration);
     const audio = audioRef.current;
     if (stateRef.current.playbackMode === 'mpv' && window.yangKura?.requestMpvPlaybackCommand) {
       void window.yangKura.requestMpvPlaybackCommand({ mode: 'mpv-playback-command', command: 'seek', seconds: normalized });
@@ -379,11 +410,27 @@ export function useAudioPlayer() {
       if (cancelled || !audioRef.current) return;
 
       audioRef.current.src = result.mediaUrl;
-      const initialSeek = pendingInitialSeekRef.current?.trackId === currentTrack.id ? pendingInitialSeekRef.current.progress : 0;
-      audioRef.current.currentTime = Math.max(0, initialSeek);
       audioRef.current.volume = stateRef.current.volume;
       audioRef.current.muted = stateRef.current.isMuted;
+      const initialSeek = resolvePlaybackStart(currentTrack, pendingInitialSeekRef.current, stateRef.current.progress);
       audioRef.current.load();
+      if (audioRef.current.readyState < 1) {
+        await new Promise<void>((resolve, reject) => {
+          const target = audioRef.current;
+          if (!target) return reject(new Error('HTMLAudio 实例已释放。'));
+          const cleanup = () => {
+            target.removeEventListener('loadedmetadata', handleReady);
+            target.removeEventListener('error', handleFailure);
+          };
+          const handleReady = () => { cleanup(); resolve(); };
+          const handleFailure = () => { cleanup(); reject(new Error('HTMLAudio 无法读取音频元数据。')); };
+          target.addEventListener('loadedmetadata', handleReady, { once: true });
+          target.addEventListener('error', handleFailure, { once: true });
+        });
+      }
+      if (cancelled || !audioRef.current) return;
+      audioRef.current.currentTime = initialSeek;
+      if (pendingInitialSeekRef.current?.trackId === currentTrack.id) pendingInitialSeekRef.current = null;
       setPlayerState((prev) => ({
         ...prev,
         playbackMode: 'html-audio',
@@ -434,7 +481,7 @@ export function useAudioPlayer() {
             relativePath: currentTrack.sourceRelativePath,
             trackId: currentTrack.id,
             mode: 'mpv-playback-start',
-            startSeconds: pendingInitialSeekRef.current?.trackId === currentTrack.id ? pendingInitialSeekRef.current.progress : 0,
+            startSeconds: resolvePlaybackStart(currentTrack, pendingInitialSeekRef.current, stateRef.current.progress),
             volume: stateRef.current.volume,
             muted: stateRef.current.isMuted,
           });
@@ -444,6 +491,7 @@ export function useAudioPlayer() {
           }
           if (mpvResult.ok) {
             forceHtmlFallbackTrackRef.current = null;
+            if (pendingInitialSeekRef.current?.trackId === currentTrack.id) pendingInitialSeekRef.current = null;
             clearHtmlAudio();
             setPlayerState((prev) => ({ ...prev, playbackMode: 'mpv', playbackError: null, playbackNotice: null, resolvedMediaUrl: null }));
             return;
@@ -689,6 +737,16 @@ export function useAudioPlayer() {
   ]);
 
 
+  const handleReconcileQueueWithLibrary = useCallback((currentLibraryTracks: AudioTrack[]) => {
+    setPlayerState((previous) => {
+      const next = reconcilePlayerStateWithLibrary(previous, currentLibraryTracks);
+      if (next.currentTrack && next.currentTrack !== previous.currentTrack && next.progress > 0) {
+        pendingInitialSeekRef.current = { trackId: next.currentTrack.id, progress: next.progress };
+      }
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     const track = playerState.currentTrack;
     if (!track) return;
@@ -719,5 +777,6 @@ export function useAudioPlayer() {
     handleToggleMute,
     handleToggleLoopMode,
     handleToggleCompletionMode,
+    handleReconcileQueueWithLibrary,
   };
 }

@@ -17,11 +17,13 @@ jobs:
   validate:
     name: Windows full-chain regression
     runs-on: windows-latest
-    timeout-minutes: 55
+    timeout-minutes: 65
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node 22
         uses: actions/setup-node@v4
@@ -41,27 +43,31 @@ jobs:
       - name: TypeScript validation
         run: npm run lint
 
-      - name: Build desktop application for U28 E2E
+      - name: Build desktop application
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: |
           npm run build
           npm run build:electron
 
-      - name: Run U28 Electron full-chain UI acceptance
+      - name: Run U28 resource-library Electron E2E
         run: npm run test:u28:electron-e2e
 
-      - name: Upload U28 Electron screenshots and report
+      - name: Run U29 player Electron E2E
+        run: npm run test:u29:electron-e2e
+
+      - name: Upload Electron E2E artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: u28-electron-e2e
-          path: artifacts/u28-electron-e2e
+          name: u28-u29-electron-e2e
+          path: |
+            artifacts/u28-electron-e2e
+            artifacts/u29-electron-e2e
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Run focused UI verifiers
-        id: focused-verifiers
+      - name: Run focused U verifiers
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
@@ -80,9 +86,7 @@ jobs:
               if ($exitCode -ne 0) { $failed = $true }
             }
 
-          $reportPath = 'artifacts/focused-verifier-results.tsv'
-          $results | Set-Content -Path $reportPath -Encoding utf8
-          $results | ForEach-Object { Write-Host $_ }
+          $results | Set-Content -Path artifacts/focused-verifier-results.tsv -Encoding utf8
           if ($failed) { exit 1 }
 
       - name: Upload focused verifier report

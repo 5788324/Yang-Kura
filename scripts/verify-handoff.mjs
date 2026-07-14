@@ -11,9 +11,11 @@ const required = [
   'MVP130_EXPERIMENTAL_DO_NOT_MERGE.md',
   'AI_HANDOFF/00_READ_THIS_FIRST.md',
   'AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md',
+  'AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md',
   'docs/NEXT_CHAT_HANDOFF.md',
   'docs/RUN_ME_FIRST.md',
   'docs/PROJECT_STATE.md',
+  'docs/U29_PLAYER_RELIABILITY_ACCEPTANCE.md',
   'archive/legacy-mvp-history/README.md',
 ];
 
@@ -27,16 +29,21 @@ const tokens = [
   ['RUN_ME_FIRST.md', 'git pull --ff-only origin main'],
   ['RUN_ME_FIRST.md', 'npm run verify:stable'],
   ['AI_HANDOFF/00_READ_THIS_FIRST.md', 'CURRENT_PROJECT_HANDOFF.md'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '好像已经修了，并推送到 Git'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'MAJ-001'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'MAJ-002'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U29：播放器、Seek、队列、续播与 LRC/SRT/VTT/ASS 全流程'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'AUTONOMOUS_DELIVERY_RULES.md'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '用户只接收最终成果'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U29：播放器、Seek、队列、续播与字幕全流程'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：U30'],
+  ['AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md', '用户只接收最终成果'],
+  ['AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md', 'Codex 只处理自动化无法替代的实机环节'],
   ['PROJECT_STATE.md', '核心版本：0.167.0-mvp129'],
-  ['PROJECT_STATE.md', 'U27 已完成，最终结论 NO-GO'],
-  ['PROJECT_ROADMAP.md', 'U28 修复资源库授权、真实 Index 与浏览状态闭环'],
+  ['PROJECT_STATE.md', 'U29 已完成实现和自动化验收'],
+  ['PROJECT_STATE.md', '下一任务：U30'],
+  ['PROJECT_ROADMAP.md', '当前主线：U30 日常 UI、三主题、窗口、DPI 与键盘'],
   ['PROJECT_ROADMAP.md', 'MVP130'],
   ['PROJECT_ROADMAP.md', '冻结'],
   ['PROJECT_ROADMAP.md', '禁止合入'],
+  ['docs/U29_PLAYER_RELIABILITY_ACCEPTANCE.md', 'AUTOMATED GO'],
+  ['docs/U29_PLAYER_RELIABILITY_ACCEPTANCE.md', 'Windows Electron 全链路场景'],
   ['MVP130_EXPERIMENTAL_DO_NOT_MERGE.md', '824c914f844b1ac57391df8ebb5c1f30c8b40903145b3a66e6a13e95e5413efe'],
 ];
 
@@ -48,6 +55,7 @@ const activeHandoffFiles = [
   'RUN_ME_FIRST.md',
   'AI_HANDOFF/00_READ_THIS_FIRST.md',
   'AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md',
+  'AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md',
   'docs/NEXT_CHAT_HANDOFF.md',
   'docs/RUN_ME_FIRST.md',
   'docs/PROJECT_STATE.md',
@@ -84,4 +92,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('[verify-handoff] current U28 Git reconciliation handoff PASS');
+console.log('[verify-handoff] current U29 completion and U30 autonomous handoff PASS');

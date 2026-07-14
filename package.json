@@ -58,7 +58,9 @@
     "verify:mvp129-stabilization-round4": "node scripts/verify-mvp129-stabilization-round4.mjs",
     "verify:mvp129-stabilization-round5": "node scripts/verify-mvp129-stabilization-round5.mjs",
     "verify:stable": "node scripts/run-stable-regression.mjs",
-    "test:u28:electron-e2e": "node scripts/test-u28-electron-e2e.mjs"
+    "test:u28:electron-e2e": "node scripts/test-u28-electron-e2e.mjs",
+    "test:u29:electron-e2e": "node scripts/test-u29-electron-e2e.mjs",
+    "verify:u29-player-reliability": "node scripts/verify-u29-player-reliability.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.546.0",

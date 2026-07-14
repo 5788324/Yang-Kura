@@ -1,4 +1,5 @@
 import type { AudioTrack, MusicAlbum, PlayerState, Playlist, RJWork } from '../types';
+import { isLocalTrackAwaitingAuthorization } from '../player/playerRuntimePolicy';
 import { playbackHistoryService, type PlaybackHistoryEntry } from './playbackHistoryService';
 
 export type HomeRecentListeningTone = 'brand' | 'purple' | 'green' | 'amber' | 'muted';
@@ -137,6 +138,7 @@ export const homeRecentListeningService = {
     const firstRecent = input.recentTracks[0];
     const continueTrack = currentTrack || firstRecent || input.fallbackTrack || null;
     const continueEntry = continueTrack ? entryMap.get(continueTrack.id) : undefined;
+    const currentTrackNeedsAuthorization = isLocalTrackAwaitingAuthorization(currentTrack);
     const recentItems = input.recentTracks.slice(0, 6).map((track) => {
       const entry = entryMap.get(track.id);
       const progressPercent = getProgressPercent(track, entry);
@@ -171,7 +173,15 @@ export const homeRecentListeningService = {
         track: continueTrack,
         title: continueTrack?.title ?? '暂无继续播放记录',
         subtitle: continueTrack ? (continueTrack.rjId ? `${continueTrack.rjId} · ${continueTrack.artist}` : `${continueTrack.artist} · ${continueTrack.album}`) : '播放任意本地音频后会出现在这里',
-        helper: currentTrack ? '当前正在播放，可继续控制队列。' : continueTrack ? '从最近播放或历史进度恢复。' : '先去音声库或音乐库选择一首音频。',
+        helper: currentTrack
+          ? input.playerState.isPlaying
+            ? '当前正在播放，可继续控制队列。'
+            : currentTrackNeedsAuthorization
+              ? '需要重新授权资源库并读取 Index 后，才能从当前进度继续。'
+              : '当前已暂停，可从当前进度继续。'
+          : continueTrack
+            ? '从最近播放或历史进度恢复。'
+            : '先去音声库或音乐库选择一首音频。',
         progressPercent: continueTrack ? getProgressPercent(continueTrack, continueEntry) : 0,
         progressLabel: continueTrack ? getProgressLabel(continueTrack, continueEntry) : '等待播放',
         sourceLabel: continueTrack ? getSourceLabel(continueTrack) : '本地记录',
