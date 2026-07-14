@@ -34,6 +34,7 @@ jobs:
           if (Test-Path .u28-patch-applied) {
             Write-Host "U28 patch marker already exists; source patch is already applied."
           } else {
+            node scripts/prepare-u28-patch-runner.mjs
             node scripts/apply-u28-library-reconciliation.mjs
             node scripts/finalize-u28-library-reconciliation.mjs
           }
