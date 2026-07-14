@@ -189,7 +189,12 @@ body {
 }
 
 @media (max-width: 1120px) {
-  #windows-app-bar .u30-runtime-label { display: none; }
+  #windows-app-bar .u30-runtime-label {
+    max-width: 11rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   #app-player-bar .u30-player-track { width: 28%; }
   #app-player-bar .u30-player-aux { width: auto; }
   #app-player-bar .u30-player-time,
