@@ -132,7 +132,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/components/Dashboard.tsx electron/main.ts scripts/verify-u28-library-reconciliation.mjs scripts/test-u28-electron-e2e.mjs package.json .github/workflows/branch-validation.yml
+          git add src/components/Dashboard.tsx src/components/SettingsPage.tsx electron/main.ts scripts/verify-u28-library-reconciliation.mjs scripts/test-u28-electron-e2e.mjs package.json .github/workflows/branch-validation.yml
           if (git diff --cached --quiet) {
             Write-Host "No validated repair changes to commit."
           } else {
