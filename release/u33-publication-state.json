@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "published",
+  "tag": "v0.168.0-beta.1",
+  "releaseId": 354560465,
+  "targetCommitish": "47f3cfc0e6fbf4dd4616add1ef8675160f90d04d",
+  "title": "Yang-Kura 0.168.0 Beta 1",
+  "prerelease": true,
+  "draft": false,
+  "publishedAt": "2026-07-15T16:11:13Z",
+  "publishedAssetNames": [
+    "Yang.Kura-0.168.0-beta.1-portable-x64.exe",
+    "Yang.Kura-0.168.0-beta.1-setup-x64.exe",
+    "SHA256SUMS.txt"
+  ]
+}
