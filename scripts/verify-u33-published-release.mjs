@@ -5,9 +5,39 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const [releaseJsonPath, assetDirectory, expectedTarget] = process.argv.slice(2);
-assert.ok(releaseJsonPath && assetDirectory && expectedTarget, 'usage: verify-u33-published-release <release.json> <asset-dir> <expected-target>');
-
 const plan = JSON.parse(fs.readFileSync('release/u33-release-plan.json', 'utf8'));
+const workflow = fs.readFileSync('.github/workflows/u33-beta-release.yml', 'utf8');
+
+assert.equal(plan.version, '0.168.0-beta.1');
+assert.equal(plan.tag, 'v0.168.0-beta.1');
+assert.equal(plan.title, 'Yang-Kura 0.168.0 Beta 1');
+assert.equal(plan.prerelease, true);
+assert.equal(plan.draft, false);
+assert.deepEqual(plan.assets, [
+  'Yang Kura-0.168.0-beta.1-portable-x64.exe',
+  'Yang Kura-0.168.0-beta.1-setup-x64.exe',
+  'SHA256SUMS.txt',
+]);
+
+for (const marker of [
+  "github.event_name == 'push' && github.ref == 'refs/heads/main'",
+  'permissions:\n      contents: write',
+  'sha256sum -c SHA256SUMS.txt',
+  'gh release create "$RELEASE_TAG"',
+  '--target "$GITHUB_SHA"',
+  '--title "$RELEASE_TITLE"',
+  '--notes-file docs/RELEASE_NOTES_0.168.0-beta.1.md',
+  '--prerelease',
+  'gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG"',
+  'node scripts/verify-u33-published-release.mjs publish/release.json publish "$GITHUB_SHA"',
+]) assert.ok(workflow.includes(marker), `published release workflow missing: ${marker}`);
+
+if (!releaseJsonPath && !assetDirectory && !expectedTarget) {
+  console.log('U33 published release static contract PASS');
+  process.exit(0);
+}
+
+assert.ok(releaseJsonPath && assetDirectory && expectedTarget, 'usage: verify-u33-published-release <release.json> <asset-dir> <expected-target>');
 const release = JSON.parse(fs.readFileSync(releaseJsonPath, 'utf8'));
 const hashFile = (filePath) => {
   const hash = crypto.createHash('sha256');
@@ -63,4 +93,4 @@ const report = {
 };
 
 fs.writeFileSync(path.join(assetDirectory, 'published-release-report.json'), JSON.stringify(report, null, 2), 'utf8');
-console.log(`U33 published release verifier PASS: ${release.tag_name}`);
+console.log(`U33 published release live verifier PASS: ${release.tag_name}`);
