@@ -19,6 +19,12 @@ const required = [
   'docs/U30_UI_FAST_TRACK_ACCEPTANCE.md',
   'docs/U31_IMPORTER_TRANSACTION_ACCEPTANCE.md',
   'docs/U32_RELEASE_CANDIDATE_PACKAGING.md',
+  'docs/RELEASE_NOTES_0.168.0-beta.1.md',
+  'release/u33-release-plan.json',
+  '.github/workflows/u33-release-preflight.yml',
+  '.github/workflows/u33-beta-release.yml',
+  'scripts/verify-u33-release-preflight.mjs',
+  'scripts/verify-u33-published-release.mjs',
   'archive/legacy-mvp-history/README.md',
 ];
 
@@ -38,16 +44,19 @@ const tokens = [
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U30：日常 UI、三主题、窗口、DPI、键盘与可访问性'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U31：导入器事务、失败回滚、OperationLog 与数据安全'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U32-A：发布候选 UI 整理'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：U32-B'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U32-B：Windows 发布物验收'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：U33'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '目标 tag：v0.168.0-beta.1'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'main-only 受控发布'],
   ['AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md', '用户只接收最终成果'],
   ['AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md', 'Codex 只处理自动化无法替代的实机环节'],
-  ['PROJECT_STATE.md', '核心版本：0.167.0-mvp129'],
-  ['PROJECT_STATE.md', 'U29 已完成实现和自动化验收'],
-  ['PROJECT_STATE.md', 'U30 已完成实现和自动化验收'],
-  ['PROJECT_STATE.md', 'U31 已完成实现和自动化验收'],
-  ['PROJECT_STATE.md', '当前任务：U32 Windows portable / NSIS 打包与系统集成验收'],
-  ['PROJECT_STATE.md', '下一任务：U33'],
-  ['PROJECT_ROADMAP.md', '当前主线：U32 Windows portable / NSIS 打包与系统集成验收'],
+  ['PROJECT_STATE.md', '核心版本：0.168.0-beta.1'],
+  ['PROJECT_STATE.md', '已合入主线：U02～U32'],
+  ['PROJECT_STATE.md', '当前任务：U33'],
+  ['PROJECT_STATE.md', '目标 tag：v0.168.0-beta.1'],
+  ['PROJECT_STATE.md', 'U33 Release Preflight：29389036701 — PASS'],
+  ['PROJECT_ROADMAP.md', '当前主线：U33 Beta'],
+  ['PROJECT_ROADMAP.md', 'main-only 发布门槛'],
   ['PROJECT_ROADMAP.md', 'MVP130'],
   ['PROJECT_ROADMAP.md', '冻结'],
   ['PROJECT_ROADMAP.md', '禁止合入'],
@@ -57,9 +66,16 @@ const tokens = [
   ['docs/U30_UI_FAST_TRACK_ACCEPTANCE.md', '自动窗口与主题矩阵'],
   ['docs/U31_IMPORTER_TRANSACTION_ACCEPTANCE.md', 'AUTOMATED GO'],
   ['docs/U31_IMPORTER_TRANSACTION_ACCEPTANCE.md', 'test:u31:importer-transactions'],
+  ['docs/U32_RELEASE_CANDIDATE_PACKAGING.md', 'AUTOMATED GO'],
   ['docs/U32_RELEASE_CANDIDATE_PACKAGING.md', 'portable'],
   ['docs/U32_RELEASE_CANDIDATE_PACKAGING.md', 'NSIS'],
   ['docs/U32_RELEASE_CANDIDATE_PACKAGING.md', 'SHA256SUMS.txt'],
+  ['docs/RELEASE_NOTES_0.168.0-beta.1.md', 'Yang-Kura 0.168.0 Beta 1'],
+  ['docs/RELEASE_NOTES_0.168.0-beta.1.md', '已知限制'],
+  ['release/u33-release-plan.json', '0.168.0-beta.1'],
+  ['release/u33-release-plan.json', 'v0.168.0-beta.1'],
+  ['.github/workflows/u33-beta-release.yml', "github.event_name == 'push' && github.ref == 'refs/heads/main'"],
+  ['.github/workflows/u33-beta-release.yml', 'contents: write'],
   ['MVP130_EXPERIMENTAL_DO_NOT_MERGE.md', '824c914f844b1ac57391df8ebb5c1f30c8b40903145b3a66e6a13e95e5413efe'],
 ];
 
@@ -103,9 +119,13 @@ for (const file of activeHandoffFiles) {
   }
 }
 
+for (const temporary of ['scripts/apply-u33-version.mjs', '.github/workflows/u33-version-sync.yml']) {
+  if (fs.existsSync(temporary)) failures.push(`temporary U33 version-sync file remains: ${temporary}`);
+}
+
 if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
 
-console.log('[verify-handoff] current U32 packaging and U33 handoff PASS');
+console.log('[verify-handoff] current U33 Beta release handoff PASS');
