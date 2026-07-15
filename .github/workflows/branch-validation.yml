@@ -149,7 +149,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/App.tsx src/components/Dashboard.tsx src/components/AsmrLibrary.tsx src/components/MusicLibrary.tsx src/components/PlaylistPage.tsx src/components/ImporterPage.tsx src/components/SettingsPage.tsx src/index.css scripts/test-u32-ui-audit.mjs
+          git add src/App.tsx src/components/Dashboard.tsx src/components/AsmrLibrary.tsx src/components/MusicLibrary.tsx src/components/PlaylistPage.tsx src/components/ImporterPage.tsx src/components/SettingsPage.tsx src/index.css scripts/test-u30-ui-matrix.mjs scripts/test-u32-ui-audit.mjs
           if (git diff --cached --quiet) {
             Write-Host 'No U32 product changes to commit.'
             exit 0
