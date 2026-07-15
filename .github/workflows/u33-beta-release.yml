@@ -140,7 +140,9 @@ jobs:
           $exitCode = 1
           for ($attempt = 1; $attempt -le 3; $attempt++) {
             "=== electron-builder attempt $attempt of 3 ===" | Tee-Object -FilePath $logPath -Append
-            Remove-Item release -Recurse -Force -ErrorAction SilentlyContinue
+            if (Test-Path release) {
+              Get-ChildItem release -Force | Where-Object { $_.Name -ne 'u33-release-plan.json' } | Remove-Item -Recurse -Force
+            }
             & node node_modules/electron-builder/cli.js --win portable nsis --config electron-builder.config.cjs 2>&1 | Tee-Object -FilePath $logPath -Append
             $exitCode = $LASTEXITCODE
             "=== attempt $attempt exit code: $exitCode ===" | Tee-Object -FilePath $logPath -Append
