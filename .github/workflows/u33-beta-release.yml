@@ -80,7 +80,20 @@ jobs:
       - name: Verify version, tag and release plan
         env:
           U33_ALLOW_EXISTING_TARGET: ${{ github.event_name == 'push' && '1' || '0' }}
-        run: node scripts/verify-u33-release-preflight.mjs
+        shell: pwsh
+        run: |
+          node scripts/verify-u33-release-preflight.mjs 2>&1 | Tee-Object -FilePath artifacts/u33-release-preflight/live-preflight.log
+          $exitCode = $LASTEXITCODE
+          if ($exitCode -ne 0) { exit $exitCode }
+
+      - name: Upload live preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u33-beta-live-preflight-${{ github.sha }}
+          path: artifacts/u33-release-preflight
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Install dependencies without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
