@@ -5,7 +5,10 @@ const required = (text, token, label) => { if (!text.includes(token)) throw new 
 const forbidden = (text, token, label) => { if (text.includes(token)) throw new Error(`Forbidden ${label}: ${token}`); };
 
 const pkg = JSON.parse(read("package.json"));
-if (!['0.150.0-mvp112', '0.151.0-mvp113', '0.152.0-mvp114', '0.153.0-mvp115', '0.154.0-mvp116', '0.155.0-mvp117', '0.156.0-mvp118', '0.157.0-mvp119', '0.158.0-mvp120', '0.159.0-mvp121', '0.160.0-mvp122', '0.161.0-mvp123', '0.162.0-mvp124', '0.163.0-mvp125', '0.164.0-mvp126', '0.165.0-mvp127', '0.166.0-mvp128', '0.167.0-mvp129'].includes(pkg.version)) throw new Error(`Unexpected version: ${pkg.version}`);
+const versionMatch = /^(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.exec(pkg.version);
+if (!versionMatch) throw new Error(`Invalid semantic version: ${pkg.version}`);
+const [major, minor] = versionMatch.slice(1, 3).map(Number);
+if (major === 0 && minor < 150) throw new Error(`Version predates MVP112: ${pkg.version}`);
 required(read('scripts/run-stable-regression.mjs'), 'verify:mvp112-ui-audit-bugfix', 'verify:stable chain');
 
 const app = read("src/App.tsx");

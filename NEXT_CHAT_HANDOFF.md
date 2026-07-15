@@ -4,26 +4,25 @@
 
 ```text
 项目：Yang-Kura
-核心版本：0.167.0-mvp129
 代码事实来源：最新 origin/main
-U02～U26：已完成
-U27 最终结论：NO-GO
-当前任务：U28 修复并复验资源库授权、真实 Index、浏览与播放闭环
-阻断问题：MAJ-001、MAJ-002
-MVP130：继续冻结，禁止合入
+核心版本：0.168.0-beta.1
+U02～U32：已完成
+当前任务：U33 Beta 发布
+目标 tag：v0.168.0-beta.1
+目标发布：Yang-Kura 0.168.0 Beta 1
+MVP130：继续冻结，禁止自动合入
 ```
 
 完整交接见：
 
 ```text
 AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md
+PROJECT_STATE.md
+PROJECT_ROADMAP.md
+AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md
 ```
 
 ## 接手第一步
-
-用户反馈上述 Major“可能已经修复并推送到 Git”，但交接时 GitHub `main` 未发现可验证的产品修复提交或开放修复 PR。
-
-因此新对话必须先：
 
 ```powershell
 git status --short
@@ -34,37 +33,24 @@ git rev-parse HEAD
 git log -15 --oneline --decorate
 ```
 
+随后核对开放 PR、Actions、tags 和 Releases：
+
 - 工作区不干净时停止，不要 stash、reset 或覆盖。
-- 检查最近提交、远端分支和 PR，确认修复是否已在 main、其他分支或尚未存在。
-- 不以提交标题代替源码审查和实机验证。
+- 不以提交标题代替源码、测试和发布证据。
+- U27 的历史 `NO-GO`、MAJ-001 和 MAJ-002 已在 U28 关闭，不得重新当作当前阻断项。
+- 当前发布参数以 `release/u33-release-plan.json` 为唯一计划来源。
 
-## U28 决策
-
-1. 修复已在 main：不重复开发，直接跑门禁和真实 GUI 闭环。
-2. 修复在分支/PR：审查 diff、运行门禁、复验后正式合并。
-3. 没有修复：从最新 main 建独立 U28 分支，只修 MAJ-001/MAJ-002。
-
-## U28 完成条件
-
-- 原生目录选择后设置页授权状态一致。
-- 读取已有记录/一键扫描按真实能力启用。
-- Index 可读取或安全生成。
-- 顶栏、设置、浏览页和播放器使用同一数据快照。
-- 诊断页不再以 Demo 状态冒充真实资源状态。
-- 临时样本可写测试通过。
-- 真实 `E:\arsm` 只读授权、浏览和播放通过。
-- U02～U28 verifier、`verify:stable` 和生产构建通过。
-- 用户配置恢复、Git clean、无残留进程。
-
-## 后续主线
+## U33 当前顺序
 
 ```text
-U28 资源库真实闭环
-→ U29 播放器与字幕
-→ U30 UI、三主题、窗口与 DPI
-→ U31 导入器与数据安全
-→ U32 Windows 发布候选
-→ U33 新 Beta 发布收口
+PR 版本与文档一致
+→ Branch Validation、U33 Preflight、Windows 打包与安装验收
+→ squash merge 到 main
+→ main-only 工作流创建 tag 与 prerelease
+→ 回读资产名、体积、SHA-256、下载 URL 和目标提交
+→ 更新 PROJECT_STATE 与最终交接
 ```
 
-不得跳过 U28 启动下载器、AI Agent、SQLite、远程资源库、Player Core v2 或全项目重构。
+用户不测试、不排错、不运行命令、不维护 Git。ChatGPT 负责代码、自动测试、Git、PR、合并和发布；Codex 默认只负责自动化无法替代的真实本机测试，不修改产品源码。
+
+U33 发布成功前，不启动 MVP130 下载器、完整 AI Agent、SQLite、OpenList/WebDAV、Player Core v2 或全项目重构。发布后先进入个人 Beta 观察期，只处理真实使用中可复现的 Blocker/Major，再重新评估下一条主线。

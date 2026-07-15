@@ -1,0 +1,57 @@
+name: U33 Release Preflight
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'release/u33-release-plan.json'
+      - 'docs/RELEASE_NOTES_0.168.0-beta.1.md'
+      - 'scripts/verify-u33-release-preflight.mjs'
+      - '.github/workflows/u33-release-preflight.yml'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: u33-release-preflight-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    name: Check version, tag and release availability
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Query current tags and releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          mkdir -p artifacts/u33-release-preflight
+          gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/tags?per_page=100" > artifacts/u33-release-preflight/tags-pages.json
+          gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/releases?per_page=100" > artifacts/u33-release-preflight/releases-pages.json
+
+      - name: Verify proposed Beta release
+        run: node scripts/verify-u33-release-preflight.mjs
+
+      - name: Upload preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u33-release-preflight
+          path: artifacts/u33-release-preflight
+          if-no-files-found: error
+          retention-days: 14

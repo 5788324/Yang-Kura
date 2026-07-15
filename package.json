@@ -1,7 +1,7 @@
 {
   "name": "yang-kura-audio-library-ui-prototype",
   "private": true,
-  "version": "0.167.0-mvp129",
+  "version": "0.168.0-beta.1",
   "type": "module",
   "scripts": {
     "build": "vite build",
@@ -81,7 +81,7 @@
     "typescript": "~5.8.2",
     "vite": "^6.2.3"
   },
-  "description": "Yang-Kura local audio media library: React/Vite/TypeScript/Electron, importer closed at MVP108, local metadata and DLsite single-RJ flow through MVP121, mpv minimal playback in MVP122, and privacy-safe mpv settings/detection in MVP123.",
+  "description": "Yang-Kura Windows local audio media library Beta: ASMR/RJ and music library, Local JSON Index, HTMLAudio/mpv fallback, subtitles, transactional importer, portable and NSIS.",
   "packageManager": "npm@10.9.2",
   "engines": {
     "node": ">=22 <23",
@@ -163,5 +163,6 @@
   "mvp120DlsiteTotalDeadline": "0.158.0-mvp120 enforces one total timeout budget across all DLsite candidate URLs so a 12-second query cannot expand to six sequential 12-second attempts.",
   "mvp123MpvSettingsDetection": "0.161.0-mvp123 adds main-side mpv executable selection, persisted private path configuration, installation/version detection, Settings status UI, HTMLAudio fallback visibility, and a read-only Windows sample validation command.",
   "mvp125PlayerAcceptance": "0.163.0-mvp125 adds a read-only real-mpv acceptance command for progress restore, pause/seek, optional queue switching, and process cleanup without scanning libraries or exposing paths.",
-  "mvp126LargeLibraryPerformance": "0.164.0-mvp126 adds synthetic 50k-track benchmarks, deferred indexed search, bounded DOM rendering, route-level code splitting, and two-stage diagnostics loading without reading the real library."
+  "mvp126LargeLibraryPerformance": "0.164.0-mvp126 adds synthetic 50k-track benchmarks, deferred indexed search, bounded DOM rendering, route-level code splitting, and two-stage diagnostics loading without reading the real library.",
+  "u33BetaRelease": "0.168.0-beta.1 / v0.168.0-beta.1 / Yang-Kura 0.168.0 Beta 1"
 }

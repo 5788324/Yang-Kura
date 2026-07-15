@@ -9,7 +9,7 @@ const runtime = fs.readFileSync('scripts/test-u32-release-candidate-packaging.mj
 const readiness = fs.readFileSync('scripts/test-u32-packaged-page-readiness.mjs', 'utf8');
 const state = fs.readFileSync('PROJECT_STATE.md', 'utf8');
 const roadmap = fs.readFileSync('PROJECT_ROADMAP.md', 'utf8');
-const plan = fs.readFileSync('docs/U32_RELEASE_CANDIDATE_PACKAGING.md', 'utf8');
+const evidence = fs.readFileSync('docs/U32_RELEASE_CANDIDATE_PACKAGING.md', 'utf8');
 
 const failures = [];
 const requireMarkers = (label, text, markers) => {
@@ -18,7 +18,7 @@ const requireMarkers = (label, text, markers) => {
   }
 };
 
-if (pkg.version !== '0.167.0-mvp129') failures.push('U32 must not perform the U33 version bump');
+if (pkg.version !== '0.168.0-beta.1') failures.push(`current package version must be U33 Beta: ${pkg.version}`);
 
 requireMarkers('electron-builder', builder, [
   "target: 'portable'",
@@ -31,7 +31,7 @@ requireMarkers('electron-builder', builder, [
   "output: 'release'",
 ]);
 
-requireMarkers('workflow', workflow, [
+requireMarkers('U32 workflow', workflow, [
   'name: U32 Release Candidate Packaging',
   'runs-on: windows-latest',
   'contents: read',
@@ -80,31 +80,35 @@ requireMarkers('packaged page readiness', readiness, [
 ]);
 
 requireMarkers('PROJECT_STATE', state, [
-  '当前任务：U32 Windows portable / NSIS 打包与系统集成验收',
-  '### U32-A：发布候选 UI 整理',
-  'U32-B portable / NSIS / 安装升级卸载验收：当前',
+  '已合入主线：U02～U32',
+  '### U32：发布候选 UI 与 Windows 发布物',
+  '当前任务：U33',
+  '目标 tag：v0.168.0-beta.1',
   'MVP130',
   '用户不承担测试',
 ]);
 
 requireMarkers('PROJECT_ROADMAP', roadmap, [
-  '当前主线：U32 Windows portable / NSIS 打包与系统集成验收',
-  '## 5. 当前主线：U32-B Windows 发布候选打包验收',
-  'portable + NSIS build',
-  'repeat install / uninstall',
-  'user data preservation',
-  'SHA-256 manifest',
-  'U33 才允许正式调整版本号',
+  '### U32：发布候选 UI 与 Windows 发布物',
+  'portable 与安装版都必须退出加载占位',
+  '用户数据保留，残留进程为零',
+  '正式证据见 `docs/U32_RELEASE_CANDIDATE_PACKAGING.md`',
+  '当前主线：U33 Beta',
   'MVP130 正式下载器',
 ]);
 
-requireMarkers('U32 plan', plan, [
+requireMarkers('U32 historical evidence', evidence, [
   '# U32 Windows 发布候选打包与系统集成验收',
+  '结论：AUTOMATED GO',
+  '核心版本：0.167.0-mvp129（U32 不改版本号）',
+  'Branch Validation：29388203409 — PASS',
+  'U32 Release Candidate Packaging：29388203405 — PASS',
   'GitHub runner 临时目录',
   'HTMLAudio fallback',
   '静默卸载',
   'SHA256SUMS.txt',
   '真实 mpv、声卡和驱动',
+  'U32 可以关闭，项目下一任务为 U33',
 ]);
 
 if (failures.length) {
@@ -113,4 +117,4 @@ if (failures.length) {
 }
 
 assert.ok(true);
-console.log('U32 release-candidate packaging verifier PASS');
+console.log('U32 release-candidate packaging historical verifier PASS');

@@ -1,8 +1,9 @@
 # Yang-Kura
 
-> 核心版本：`0.167.0-mvp129`  
+> 核心版本：`0.168.0-beta.1`  
+> 历史功能基线：`0.167.0-mvp129`  
 > 代码事实来源：GitHub `main`  
-> 当前阶段：U02～U08 产品化增量已合入，继续进行渐进式 UI / 结构 / 质量优化
+> 当前阶段：U33 Beta 发布候选；目标 tag `v0.168.0-beta.1`
 
 Yang-Kura 是个人使用的 Windows 本地音频媒体库，支持 ASMR/RJ 音声与普通音乐。技术栈为 React、Vite、TypeScript 和 Electron；当前数据路线为 Local JSON Index，SQLite 后置。
 
@@ -31,7 +32,7 @@ U02～U08 已完成：
 - 播放器底栏开始使用现有主题 token。
 - Pull Request 自动在 Windows runner 上执行 UI verifier、稳定回归和生产构建。
 
-当前 U09 从全屏播放器中抽离键盘/焦点生命周期与黑胶 reduced-motion 动画 Hook，保持播放器行为不变。
+U02～U32 已完成产品化、播放器可靠性、三主题与窗口矩阵、导入事务、发布候选 UI、portable 和 NSIS 安装链验收；当前进入 U33 Beta 发布。
 
 ## 当前冻结决策
 
