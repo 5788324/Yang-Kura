@@ -11,6 +11,7 @@ const tagsPages = JSON.parse(fs.readFileSync(path.join(artifactDir, 'tags-pages.
 const releasesPages = JSON.parse(fs.readFileSync(path.join(artifactDir, 'releases-pages.json'), 'utf8'));
 const tags = tagsPages.flatMap((page) => Array.isArray(page) ? page : []);
 const releases = releasesPages.flatMap((page) => Array.isArray(page) ? page : []);
+const allowExistingTarget = process.env.U33_ALLOW_EXISTING_TARGET === '1';
 
 const parseCore = (value) => {
   const match = String(value).match(/^(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z.-]+)?$/);
@@ -44,16 +45,36 @@ assert.deepEqual(plan.assets, [
 const tagNames = tags.map((item) => item?.name).filter(Boolean);
 const releaseTags = releases.map((item) => item?.tag_name).filter(Boolean);
 const releaseTitles = releases.map((item) => item?.name).filter(Boolean);
-assert.ok(!tagNames.includes(plan.tag), `target tag already exists: ${plan.tag}`);
-assert.ok(!releaseTags.includes(plan.tag), `target release already exists: ${plan.tag}`);
-assert.ok(!releaseTitles.includes(plan.title), `target release title already exists: ${plan.title}`);
+const existingRelease = releases.find((item) => item?.tag_name === plan.tag) ?? null;
+const existingTag = tags.find((item) => item?.name === plan.tag) ?? null;
+
+if (!allowExistingTarget) {
+  assert.equal(existingTag, null, `target tag already exists: ${plan.tag}`);
+  assert.equal(existingRelease, null, `target release already exists: ${plan.tag}`);
+  assert.ok(!releaseTitles.includes(plan.title), `target release title already exists: ${plan.title}`);
+} else if (existingRelease) {
+  assert.equal(existingRelease.name, plan.title, 'existing release title mismatch');
+  assert.equal(Boolean(existingRelease.prerelease), true, 'existing release must remain prerelease');
+  assert.equal(Boolean(existingRelease.draft), false, 'existing release must not be draft');
+}
 
 const report = {
   status: 'pass',
   plan,
   packageVersion: pkg.version,
+  allowExistingTarget,
   existingTagCount: tagNames.length,
   existingReleaseCount: releases.length,
+  targetAlreadyExists: Boolean(existingTag || existingRelease),
+  targetRelease: existingRelease ? {
+    id: existingRelease.id ?? null,
+    tag: existingRelease.tag_name ?? null,
+    name: existingRelease.name ?? null,
+    targetCommitish: existingRelease.target_commitish ?? null,
+    prerelease: Boolean(existingRelease.prerelease),
+    draft: Boolean(existingRelease.draft),
+    publishedAt: existingRelease.published_at ?? null,
+  } : null,
   latestTags: tagNames.slice(0, 20),
   latestReleases: releases.slice(0, 20).map((item) => ({
     tag: item?.tag_name ?? null,
@@ -66,4 +87,4 @@ const report = {
 };
 
 fs.writeFileSync(path.join(artifactDir, 'preflight-report.json'), JSON.stringify(report, null, 2), 'utf8');
-console.log(`U33 release preflight PASS: ${plan.tag} is available`);
+console.log(`U33 release preflight PASS: ${plan.tag} ${report.targetAlreadyExists ? 'already exists and is compatible' : 'is available'}`);
