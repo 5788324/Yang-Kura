@@ -5,10 +5,10 @@
 ```text
 核心版本：0.167.0-mvp129
 代码事实来源：GitHub main
-已合入主线：U02～U30
-当前完成候选：U31 导入器事务与数据安全
-下一任务：U32 Windows 发布候选验收
-剩余主线：U32～U33
+已合入主线：U02～U31 + U32 发布候选 UI 整理
+当前任务：U32 Windows portable / NSIS 打包与系统集成验收
+下一任务：U33 版本与 Beta 发布
+剩余主线：U32 发布物验收 → U33
 MVP130：独立实验下载器，继续冻结，禁止合入
 ```
 
@@ -105,6 +105,34 @@ U31 已完成实现和自动化验收：
 
 详细证据见 `docs/U31_IMPORTER_TRANSACTION_ACCEPTANCE.md`。
 
+### U32-A：发布候选 UI 整理
+
+U32 的 UI 收口已完成并合入 `main`：
+
+- Windows Electron 使用本地生成样本实际运行、截图并逐页人工复核。
+- 日常侧栏只保留首页、音声库、音乐库、歌单、导入和设置。
+- 下载规划与诊断路由保留在隐藏兼容层，不再污染日常导航。
+- 首页最近媒体进入首屏；音声库、音乐库、歌单、导入器和设置页移除可见历史工程卡。
+- 设置页改为统一 44px 横向页签；按钮、卡片、圆角和间距完成发布候选对齐。
+- U28～U32 Electron E2E、全部 verifier、稳定回归和二次生产构建通过。
+
+合并提交：`d37932c140ec59d858645c083fe2bffcf9c87823`。
+
+## 当前主线：U32-B Windows 发布物验收
+
+当前分支必须完成：
+
+- portable 与 NSIS 构建和实际启动；
+- 中文/空格路径；
+- 静默安装、重复安装、卸载；
+- 用户数据保留；
+- 进程退出和文件锁；
+- 打包态 mpv 不可用时 HTMLAudio fallback；
+- 产物文件清单、大小与 SHA-256；
+- 包内禁止混入 Index、日志、缓存、备份和用户数据。
+
+详细范围见 `docs/U32_RELEASE_CANDIDATE_PACKAGING.md`。
+
 ## 历史质量事实与 verifier 兼容合同
 
 以下已完成事实继续保留，防止后续文档更新误删历史质量合同：
@@ -139,13 +167,14 @@ U28 资源库闭环：完成
 → U29 播放器与字幕全流程：完成
 → U30 日常 UI、三主题、窗口、DPI、键盘：完成
 → U31 导入器事务与数据安全：完成
-→ U32 Windows 发布候选验收
+→ U32-A 发布候选 UI 整理：完成
+→ U32-B portable / NSIS / 安装升级卸载验收：当前
 → U33 版本与 Beta 发布
 ```
 
 ## 后续仍需完成
 
-1. **U32**：strict smoke、实际 mpv Windows acceptance、portable、NSIS、安装升级卸载、中文/空格路径、用户数据保留、残留进程和 SHA-256。
+1. **U32-B**：strict smoke、portable、NSIS、打包态 mpv/fallback、安装升级卸载、中文/空格路径、用户数据保留、残留进程和 SHA-256。
 2. **U33**：关闭或记录 Blocker/Major、版本号、Release Notes、tag、产物 SHA-256 和新 Beta 发布。
 
 ## 自动验证与冻结项
@@ -162,6 +191,8 @@ U31 importer transaction matrix
 npm run verify:stable
 最终生产构建
 ```
+
+U32 发布物 PR 额外执行 `.github/workflows/u32-release-candidate.yml`，生成并实际运行 portable 与 NSIS，上传报告、截图和 SHA-256。
 
 冻结项：
 
