@@ -104,7 +104,7 @@ requireMarkers('release workflow', releaseWorkflow, [
   'name: Build and validate Beta release assets',
   'name: Publish GitHub prerelease after main merge',
   'permissions:\n      contents: write',
-  'electron-builder/cli.js --win portable nsis',
+  'electron-builder/cli.js --win portable nsis --config electron-builder.config.cjs --publish never',
   'node scripts/test-u32-release-candidate-packaging.mjs',
   'node scripts/test-u32-packaged-page-readiness.mjs',
   'sha256sum -c SHA256SUMS.txt',
