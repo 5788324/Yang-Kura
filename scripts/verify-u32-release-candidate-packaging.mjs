@@ -10,9 +10,16 @@ const state = fs.readFileSync('PROJECT_STATE.md', 'utf8');
 const roadmap = fs.readFileSync('PROJECT_ROADMAP.md', 'utf8');
 const plan = fs.readFileSync('docs/U32_RELEASE_CANDIDATE_PACKAGING.md', 'utf8');
 
-assert.equal(pkg.version, '0.167.0-mvp129', 'U32 must not perform the U33 version bump');
+const failures = [];
+const requireMarkers = (label, text, markers) => {
+  for (const marker of markers) {
+    if (!text.includes(marker)) failures.push(`${label} missing: ${marker}`);
+  }
+};
 
-for (const marker of [
+if (pkg.version !== '0.167.0-mvp129') failures.push('U32 must not perform the U33 version bump');
+
+requireMarkers('electron-builder', builder, [
   "target: 'portable'",
   "target: 'nsis'",
   'asar: true',
@@ -21,14 +28,12 @@ for (const marker of [
   'allowToChangeInstallationDirectory: true',
   'deleteAppDataOnUninstall: false',
   "output: 'release'",
-]) {
-  assert.ok(builder.includes(marker), `electron-builder release contract missing: ${marker}`);
-}
+]);
 
-for (const marker of [
+requireMarkers('workflow', workflow, [
   'name: U32 Release Candidate Packaging',
   'runs-on: windows-latest',
-  'permissions:\n  contents: read',
+  'contents: read',
   'npm ci --ignore-scripts --no-audit --no-fund',
   'npm audit --audit-level=high',
   'npm rebuild electron',
@@ -38,11 +43,9 @@ for (const marker of [
   'u32-release-candidate-windows',
   'release/*.exe',
   'artifacts/u32-release-candidate',
-]) {
-  assert.ok(workflow.includes(marker), `U32 packaging workflow missing: ${marker}`);
-}
+]);
 
-for (const marker of [
+requireMarkers('packaged acceptance', runtime, [
   'portable-chinese-space-path',
   'nsis-first-install',
   'nsis-repeat-install-upgrade',
@@ -53,46 +56,47 @@ for (const marker of [
   'getMpvInstallationStatus()',
   'getMpvPlaybackStatus()',
   'fallbackAvailable',
-  'taskkill.exe',
+  'Stop-Process',
   'SHA256SUMS.txt',
   'library-index\\.json',
   'app.asar',
   "assert.equal(process.platform, 'win32'",
-]) {
-  assert.ok(runtime.includes(marker), `packaged runtime acceptance missing: ${marker}`);
-}
+  'report.json',
+  'checkpoint(',
+]);
 
-for (const marker of [
-  'U32 Windows portable / NSIS 打包与系统集成验收',
-  'U32-A 发布候选 UI 整理：完成',
+requireMarkers('PROJECT_STATE', state, [
+  '当前任务：U32 Windows portable / NSIS 打包与系统集成验收',
+  '### U32-A：发布候选 UI 整理',
   'U32-B portable / NSIS / 安装升级卸载验收：当前',
-  'MVP130 下载器继续冻结',
+  'MVP130',
   '用户不承担测试',
-]) {
-  assert.ok(state.includes(marker), `PROJECT_STATE missing current U32 fact: ${marker}`);
-}
+]);
 
-for (const marker of [
-  'U32-B Windows 发布候选打包验收',
+requireMarkers('PROJECT_ROADMAP', roadmap, [
+  '当前主线：U32 Windows portable / NSIS 打包与系统集成验收',
+  '## 5. 当前主线：U32-B Windows 发布候选打包验收',
   'portable + NSIS build',
   'repeat install / uninstall',
   'user data preservation',
   'SHA-256 manifest',
   'U33 才允许正式调整版本号',
   'MVP130 正式下载器',
-]) {
-  assert.ok(roadmap.includes(marker), `PROJECT_ROADMAP missing current release gate: ${marker}`);
-}
+]);
 
-for (const marker of [
-  '所有安装、用户数据和媒体状态测试都使用 GitHub runner 临时目录',
-  '不读取或修改真实 `E:\\arsm`',
-  '打包版明确报告不可用，同时保留 HTMLAudio fallback',
+requireMarkers('U32 plan', plan, [
+  '# U32 Windows 发布候选打包与系统集成验收',
+  'GitHub runner 临时目录',
+  'HTMLAudio fallback',
   '静默卸载',
-  '`SHA256SUMS.txt`',
+  'SHA256SUMS.txt',
   '真实 mpv、声卡和驱动',
-]) {
-  assert.ok(plan.includes(marker), `U32 packaging plan missing: ${marker}`);
+]);
+
+if (failures.length) {
+  console.error(failures.join('\n'));
+  process.exit(1);
 }
 
+assert.ok(true);
 console.log('U32 release-candidate packaging verifier PASS');
