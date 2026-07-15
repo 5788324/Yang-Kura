@@ -143,7 +143,7 @@ jobs:
             if (Test-Path release) {
               Get-ChildItem release -Force | Where-Object { $_.Name -ne 'u33-release-plan.json' } | Remove-Item -Recurse -Force
             }
-            & node node_modules/electron-builder/cli.js --win portable nsis --config electron-builder.config.cjs 2>&1 | Tee-Object -FilePath $logPath -Append
+            & node node_modules/electron-builder/cli.js --win portable nsis --config electron-builder.config.cjs --publish never 2>&1 | Tee-Object -FilePath $logPath -Append
             $exitCode = $LASTEXITCODE
             "=== attempt $attempt exit code: $exitCode ===" | Tee-Object -FilePath $logPath -Append
             if ($exitCode -eq 0) {
