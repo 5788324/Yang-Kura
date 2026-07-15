@@ -9,6 +9,7 @@ for (const forbidden of ['导入器预览 / 详情导航 / 媒体库体验', '<s
 for (const status of ['尚未选择资源库', '资源库待重新连接', '已加载 ${librarySessionSnapshot.lastIndex.trackCount} 条音轨']) if (!app.includes(status)) failures.push('missing runtime library status: '+status);
 if (!dashboard.includes('id="u02-home-empty-state"')) failures.push('clean-profile home empty state missing');
 for (const forbidden of ['id="mvp110-dashboard-daily-surface"', 'id="mvp111-ui-cleanup-closeout"', 'MVP111 收口包', '>界面收口<']) if (dashboard.includes(forbidden)) failures.push('visible development section remains: '+forbidden);
-for (const marker of ['const DAILY_NAV_ITEMS', 'const MAINTENANCE_NAV_ITEMS', 'SidebarNavSection', '日常使用', 'AI 维护', 'sidebar-ai-maintenance-toggle']) if (!sidebar.includes(marker)) failures.push('sidebar grouping contract missing: '+marker);
+for (const marker of ['const DAILY_NAV_ITEMS', 'id="app-sidebar"', "{ id: 'dashboard', label: '首页'", "{ id: 'asmr-lib', label: '音声库'", "{ id: 'music-lib', label: '音乐库'", "{ id: 'playlists', label: '歌单'", "{ id: 'importer', label: '导入'", "{ id: 'settings', label: '设置'", '<div hidden aria-hidden="true">', 'id="sidebar-ai-maintenance-toggle"', 'id="nav-diagnostics"', 'id="nav-downloader"']) if (!sidebar.includes(marker)) failures.push('release sidebar contract missing: '+marker);
+for (const forbidden of ['const MAINTENANCE_NAV_ITEMS', 'id="sidebar-ai-maintenance-panel"', 'showAiMaintenance && (']) if (sidebar.includes(forbidden)) failures.push('visible maintenance navigation remains: '+forbidden);
 if (failures.length) { console.error(failures.join('\n')); process.exit(1); }
 console.log('U02 minimal UI productization verifier PASS');
