@@ -28,8 +28,13 @@ const archiveCount = fs.existsSync(archiveRoot)
   ? fs.readdirSync(path.join(archiveRoot, 'root')).length + fs.readdirSync(path.join(archiveRoot, 'docs')).length + fs.readdirSync(path.join(archiveRoot, 'scripts')).length
   : 0;
 if (archiveCount < 300) failures.push(`legacy archive unexpectedly small: ${archiveCount}`);
-for (const file of ['README.md','PROJECT_STATE.md','PROJECT_ROADMAP.md','RUN_ME_FIRST.md','NEXT_CHAT_HANDOFF.md','00_NEW_CHAT_START_HERE.md']) {
-  if (!fs.readFileSync(file,'utf8').includes('0.167.0-mvp129')) failures.push(`${file} does not identify MVP129`);
+for (const file of ['README.md', 'PROJECT_STATE.md', 'PROJECT_ROADMAP.md']) {
+  if (!fs.readFileSync(file, 'utf8').includes('0.167.0-mvp129')) failures.push(`${file} does not retain the MVP129 historical baseline`);
+}
+for (const file of ['RUN_ME_FIRST.md', 'NEXT_CHAT_HANDOFF.md', '00_NEW_CHAT_START_HERE.md']) {
+  const source = fs.readFileSync(file, 'utf8');
+  if (!source.includes('0.168.0-beta.1')) failures.push(`${file} does not identify the current Beta version`);
+  if (source.includes('核心版本：0.167.0-mvp129')) failures.push(`${file} still presents MVP129 as the current version`);
 }
 if (failures.length) {
   console.error(failures.join('\n'));
