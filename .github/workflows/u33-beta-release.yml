@@ -1,0 +1,204 @@
+name: U33 Beta Release
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'release/u33-release-plan.json'
+      - 'docs/RELEASE_NOTES_0.168.0-beta.1.md'
+      - 'scripts/verify-u33-release-preflight.mjs'
+      - 'scripts/verify-u33-published-release.mjs'
+      - 'scripts/verify-u33-beta-release.mjs'
+      - '.github/workflows/u33-beta-release.yml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'electron-builder.config.cjs'
+  push:
+    branches:
+      - main
+    paths:
+      - 'release/u33-release-plan.json'
+      - 'docs/RELEASE_NOTES_0.168.0-beta.1.md'
+      - 'scripts/verify-u33-release-preflight.mjs'
+      - 'scripts/verify-u33-published-release.mjs'
+      - 'scripts/verify-u33-beta-release.mjs'
+      - '.github/workflows/u33-beta-release.yml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'electron-builder.config.cjs'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: u33-beta-release-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and validate Beta release assets
+    runs-on: windows-latest
+    timeout-minutes: 120
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      tag: ${{ steps.plan.outputs.tag }}
+      title: ${{ steps.plan.outputs.title }}
+      portable: ${{ steps.plan.outputs.portable }}
+      setup: ${{ steps.plan.outputs.setup }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Read release plan
+        id: plan
+        shell: pwsh
+        run: |
+          $plan = Get-Content release/u33-release-plan.json -Raw | ConvertFrom-Json
+          "version=$($plan.version)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "tag=$($plan.tag)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "title=$($plan.title)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "portable=$($plan.assets[0])" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "setup=$($plan.assets[1])" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Query current tags and releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts/u33-release-preflight | Out-Null
+          gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/tags?per_page=100" | Set-Content -Path artifacts/u33-release-preflight/tags-pages.json -Encoding utf8
+          gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/releases?per_page=100" | Set-Content -Path artifacts/u33-release-preflight/releases-pages.json -Encoding utf8
+
+      - name: Verify version, tag and release plan
+        env:
+          U33_ALLOW_EXISTING_TARGET: ${{ github.event_name == 'push' && '1' || '0' }}
+        run: node scripts/verify-u33-release-preflight.mjs
+
+      - name: Install dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Audit high and critical dependency risk
+        run: npm audit --audit-level=high
+
+      - name: Rebuild Electron and apply builder compatibility patch
+        shell: pwsh
+        run: |
+          npm rebuild electron
+          npm run patch:electron-builder
+
+      - name: Validate TypeScript and desktop sources
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run lint
+          npm run build
+          npm run build:electron
+
+      - name: Build portable and NSIS Beta assets
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: node node_modules/electron-builder/cli.js --win portable nsis --config electron-builder.config.cjs
+
+      - name: Run packaged install and fallback acceptance
+        run: node scripts/test-u32-release-candidate-packaging.mjs
+
+      - name: Require complete packaged home content
+        run: node scripts/test-u32-packaged-page-readiness.mjs
+
+      - name: Assemble release bundle
+        shell: pwsh
+        run: |
+          $plan = Get-Content release/u33-release-plan.json -Raw | ConvertFrom-Json
+          New-Item -ItemType Directory -Force -Path artifacts/u33-release-bundle | Out-Null
+          Copy-Item (Join-Path release $plan.assets[0]) artifacts/u33-release-bundle/
+          Copy-Item (Join-Path release $plan.assets[1]) artifacts/u33-release-bundle/
+          Copy-Item artifacts/u32-release-candidate/SHA256SUMS.txt artifacts/u33-release-bundle/
+          Copy-Item artifacts/u32-release-candidate/report.json artifacts/u33-release-bundle/packaging-report.json
+          Copy-Item artifacts/u32-release-candidate/page-readiness-report.json artifacts/u33-release-bundle/page-readiness-report.json
+          Copy-Item artifacts/u33-release-preflight/preflight-report.json artifacts/u33-release-bundle/preflight-report.json
+          Get-ChildItem artifacts/u33-release-bundle | Format-Table Name,Length
+
+      - name: Upload validated Beta bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: u33-beta-windows-${{ github.sha }}
+          path: artifacts/u33-release-bundle
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    name: Publish GitHub prerelease after main merge
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out published commit
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Download validated Beta bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: u33-beta-windows-${{ github.sha }}
+          path: publish
+
+      - name: Verify local release checksums
+        shell: bash
+        run: |
+          cd publish
+          sha256sum -c SHA256SUMS.txt
+
+      - name: Create or verify GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.build.outputs.tag }}
+          RELEASE_TITLE: ${{ needs.build.outputs.title }}
+          PORTABLE_ASSET: ${{ needs.build.outputs.portable }}
+          SETUP_ASSET: ${{ needs.build.outputs.setup }}
+        shell: bash
+        run: |
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists; verifying without overwriting."
+          else
+            gh release create "$RELEASE_TAG" \
+              "publish/$PORTABLE_ASSET" \
+              "publish/$SETUP_ASSET" \
+              "publish/SHA256SUMS.txt" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "$RELEASE_TITLE" \
+              --notes-file docs/RELEASE_NOTES_0.168.0-beta.1.md \
+              --prerelease
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" > publish/release.json
+
+      - name: Verify published release and assets
+        run: node scripts/verify-u33-published-release.mjs publish/release.json publish "$GITHUB_SHA"
+
+      - name: Upload publication evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u33-published-release-${{ github.sha }}
+          path: |
+            publish/release.json
+            publish/published-release-report.json
+          if-no-files-found: warn
+          retention-days: 30
