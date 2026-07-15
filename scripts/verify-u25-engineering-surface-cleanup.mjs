@@ -57,9 +57,7 @@ for (const marker of [
   '打包版快速导入',
   '关于本品',
   'id="mvp58-about-personal-privacy"',
-]) {
-  if (!settings.includes(marker)) failures.push(`daily setting capability missing: ${marker}`);
-}
+]) if (!settings.includes(marker)) failures.push(`daily setting capability missing: ${marker}`);
 
 const allowedVisibleSections = [
   settings.match(/<section id="mvp123-mpv-settings-status"([^>]*)>/)?.[0],
@@ -72,9 +70,15 @@ for (const opening of allowedVisibleSections) {
 for (const marker of [
   'AI 维护',
   '工程与检修工具',
-  "{ id: 'downloader', label: '下载规划'",
-  "{ id: 'diagnostics', label: '诊断工具'",
-]) if (!sidebar.includes(marker)) failures.push(`AI maintenance boundary missing: ${marker}`);
+  '<div hidden aria-hidden="true">',
+  'id="sidebar-ai-maintenance-toggle"',
+  'id="nav-downloader"',
+  'id="nav-diagnostics"',
+]) if (!sidebar.includes(marker)) failures.push(`hidden maintenance boundary missing: ${marker}`);
+
+for (const forbidden of ['id="sidebar-ai-maintenance-panel"', 'aria-expanded={showAiMaintenance}', 'showAiMaintenance && (']) {
+  if (sidebar.includes(forbidden)) failures.push(`maintenance UI remains visible: ${forbidden}`);
+}
 
 for (const marker of [
   "currentPage === 'downloader'",
@@ -92,9 +96,5 @@ for (const marker of [
   'U25',
 ]) if (!policyText.includes(marker)) failures.push(`project UI hard rule missing: ${marker}`);
 
-if (failures.length) {
-  console.error(failures.join('\n'));
-  process.exit(1);
-}
-
+if (failures.length) { console.error(failures.join('\n')); process.exit(1); }
 console.log('U25 engineering surface cleanup verifier PASS');
