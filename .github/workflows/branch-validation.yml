@@ -4,25 +4,25 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: u31-apply-${{ github.event.pull_request.number }}
-  cancel-in-progress: false
+  group: branch-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  apply:
-    name: Apply and validate U31 importer transactions
+  validate:
+    name: Windows full-chain regression
     runs-on: windows-latest
     timeout-minutes: 70
 
     steps:
-      - name: Check out U31 branch
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: Set up Node 22
@@ -31,80 +31,99 @@ jobs:
           node-version: '22'
           cache: npm
 
-      - name: Apply U31 integration patch
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
-          node scripts/apply-u31-importer-transaction-hardening.mjs 2>&1 | Tee-Object -FilePath artifacts/u31-patch.log
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-      - name: Normalize U31 transaction type narrowing
-        run: node scripts/fix-u31-transaction-narrowing.mjs
-
-      - name: Upload U31 patch log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: u31-patch-log
-          path: artifacts/u31-patch.log
-          if-no-files-found: warn
-          retention-days: 7
-
-      - name: Install dependencies
+      - name: Install dependencies without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
 
-      - name: Rebuild Electron runtime
+      - name: Audit high and critical dependency risk
+        run: npm audit --audit-level=high
+
+      - name: Rebuild Electron runtime for desktop E2E
         run: npm rebuild electron
 
-      - name: TypeScript and desktop builds
-        shell: pwsh
+      - name: TypeScript validation
+        run: npm run lint
+
+      - name: Build desktop application
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: |
-          npm run lint 2>&1 | Tee-Object -FilePath artifacts/u31-build.log
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          npm run build 2>&1 | Tee-Object -FilePath artifacts/u31-build.log -Append
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          npm run build:electron 2>&1 | Tee-Object -FilePath artifacts/u31-build.log -Append
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run build
+          npm run build:electron
 
-      - name: Upload U31 build diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: u31-build-log
-          path: artifacts/u31-build.log
-          if-no-files-found: warn
-          retention-days: 7
+      - name: Run U28 resource-library Electron E2E
+        run: npm run test:u28:electron-e2e
+
+      - name: Run U29 player Electron E2E
+        run: npm run test:u29:electron-e2e
+
+      - name: Run U30 UI and accessibility matrix
+        run: npm run test:u30:ui-matrix
 
       - name: Run U31 importer transaction matrix
         run: npm run test:u31:importer-transactions
 
-      - name: Run U31 focused verifier
-        run: npm run verify:u31-importer-transaction-hardening
+      - name: Upload Electron E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u28-u30-electron-e2e
+          path: |
+            artifacts/u28-electron-e2e
+            artifacts/u29-electron-e2e
+            artifacts/u30-ui-matrix
+          if-no-files-found: warn
+          retention-days: 14
 
-      - name: Run existing importer and index tests
-        run: |
-          npm run test:importer:smoke
-          npm run test:mvp129-index-maintenance
-
-      - name: Run U28-U30 Electron regressions
-        run: |
-          npm run test:u28:electron-e2e
-          npm run test:u29:electron-e2e
-          npm run test:u30:ui-matrix
-
-      - name: Run stable regression
-        env:
-          NODE_OPTIONS: --max-old-space-size=8192
-        run: npm run verify:stable
-
-      - name: Commit validated U31 product changes
+      - name: Run focused U verifiers
         shell: pwsh
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add electron/main.ts electron/importerTransactionService.ts src/types/electron-api.d.ts package.json scripts/run-stable-regression.mjs
-          git rm scripts/apply-u31-importer-transaction-hardening.mjs scripts/fix-u31-transaction-narrowing.mjs
-          git commit -m "fix: make importer file operations transactional"
-          git push origin HEAD:${{ github.head_ref }}
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          $results = [System.Collections.Generic.List[string]]::new()
+          $results.Add("verifier`tstatus`texit_code")
+          $failed = $false
+
+          Get-ChildItem -Path scripts -Filter 'verify-u*.mjs' |
+            Sort-Object Name |
+            ForEach-Object {
+              Write-Host "Running $($_.Name)"
+              node $_.FullName
+              $exitCode = $LASTEXITCODE
+              $status = if ($exitCode -eq 0) { 'PASS' } else { 'FAIL' }
+              $results.Add("$($_.Name)`t$status`t$exitCode")
+              if ($exitCode -ne 0) { $failed = $true }
+            }
+
+          $results | Set-Content -Path artifacts/focused-verifier-results.tsv -Encoding utf8
+          if ($failed) { exit 1 }
+
+      - name: Upload focused verifier report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: focused-verifier-results
+          path: artifacts/focused-verifier-results.tsv
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Run stable regression
+        shell: pwsh
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run verify:stable 2>&1 | Tee-Object -FilePath artifacts/stable-regression.log
+          $exitCode = $LASTEXITCODE
+          if ($exitCode -ne 0) { exit $exitCode }
+
+      - name: Upload stable regression log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stable-regression-log
+          path: artifacts/stable-regression.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Build production renderer again after regression
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: npm run build
