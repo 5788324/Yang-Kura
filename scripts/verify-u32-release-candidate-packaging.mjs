@@ -6,6 +6,7 @@ const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const builder = fs.readFileSync('electron-builder.config.cjs', 'utf8');
 const workflow = fs.readFileSync('.github/workflows/u32-release-candidate.yml', 'utf8');
 const runtime = fs.readFileSync('scripts/test-u32-release-candidate-packaging.mjs', 'utf8');
+const readiness = fs.readFileSync('scripts/test-u32-packaged-page-readiness.mjs', 'utf8');
 const state = fs.readFileSync('PROJECT_STATE.md', 'utf8');
 const roadmap = fs.readFileSync('PROJECT_ROADMAP.md', 'utf8');
 const plan = fs.readFileSync('docs/U32_RELEASE_CANDIDATE_PACKAGING.md', 'utf8');
@@ -40,6 +41,8 @@ requireMarkers('workflow', workflow, [
   'npm run patch:electron-builder',
   'electron-builder/cli.js --win portable nsis',
   'node scripts/test-u32-release-candidate-packaging.mjs',
+  'node scripts/test-u32-packaged-page-readiness.mjs',
+  'Require complete packaged home content',
   'u32-release-candidate-windows',
   'release/*.exe',
   'artifacts/u32-release-candidate',
@@ -63,6 +66,17 @@ requireMarkers('packaged acceptance', runtime, [
   "assert.equal(process.platform, 'win32'",
   'report.json',
   'checkpoint(',
+]);
+
+requireMarkers('packaged page readiness', readiness, [
+  'portable-complete-home',
+  'nsis-complete-home',
+  '正在打开页面',
+  '开始建立你的本地媒体库',
+  'page-readiness-report.json',
+  'complete home content',
+  '中文 空格',
+  'Stop-Process',
 ]);
 
 requireMarkers('PROJECT_STATE', state, [
