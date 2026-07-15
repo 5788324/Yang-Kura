@@ -39,6 +39,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'electron-builder.config.cjs'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -91,7 +92,7 @@ jobs:
 
       - name: Verify version, tag and release plan
         env:
-          U33_ALLOW_EXISTING_TARGET: ${{ github.event_name == 'push' && '1' || '0' }}
+          U33_ALLOW_EXISTING_TARGET: ${{ github.event_name != 'pull_request' && '1' || '0' }}
         shell: pwsh
         run: |
           node scripts/verify-u33-release-preflight.mjs 2>&1 | Tee-Object -FilePath artifacts/u33-release-preflight/live-preflight.log
@@ -162,7 +163,7 @@ jobs:
 
   publish:
     name: Publish GitHub prerelease after main merge
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -227,3 +228,45 @@ jobs:
             publish/published-release-report.json
           if-no-files-found: warn
           retention-days: 30
+
+  report-failure:
+    name: Report main publication failure
+    if: >-
+      always() &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) &&
+      (needs.build.result == 'failure' || needs.publish.result == 'failure')
+    needs:
+      - build
+      - publish
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Create or update U33 publication failure issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+        shell: bash
+        run: |
+          title="U33 Beta 发布失败：${GITHUB_SHA}"
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          body=$(cat <<EOF
+          U33 Beta main 发布作业失败。
+
+          - commit: \`${GITHUB_SHA}\`
+          - build: \`${BUILD_RESULT}\`
+          - publish: \`${PUBLISH_RESULT}\`
+          - workflow: ${run_url}
+
+          该 Issue 由发布工作流自动创建，用于让 ChatGPT 读取失败入口并继续诊断。请勿手工修改产品源码。
+          EOF
+          )
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body"
+          fi
