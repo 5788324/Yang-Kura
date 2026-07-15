@@ -17,6 +17,7 @@ const required = [
   'docs/PROJECT_STATE.md',
   'docs/U29_PLAYER_RELIABILITY_ACCEPTANCE.md',
   'docs/U30_UI_FAST_TRACK_ACCEPTANCE.md',
+  'docs/U31_IMPORTER_TRANSACTION_ACCEPTANCE.md',
   'archive/legacy-mvp-history/README.md',
 ];
 
@@ -34,14 +35,16 @@ const tokens = [
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '用户只接收最终成果'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U29：播放器、Seek、队列、续播与字幕全流程'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U30：日常 UI、三主题、窗口、DPI、键盘与可访问性'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：U31'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U31：导入器事务、失败回滚、OperationLog 与数据安全'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：U32'],
   ['AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md', '用户只接收最终成果'],
   ['AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md', 'Codex 只处理自动化无法替代的实机环节'],
   ['PROJECT_STATE.md', '核心版本：0.167.0-mvp129'],
   ['PROJECT_STATE.md', 'U29 已完成实现和自动化验收'],
   ['PROJECT_STATE.md', 'U30 已完成实现和自动化验收'],
-  ['PROJECT_STATE.md', '下一任务：U31'],
-  ['PROJECT_ROADMAP.md', '当前主线：U31 导入器与数据安全'],
+  ['PROJECT_STATE.md', 'U31 已完成实现和自动化验收'],
+  ['PROJECT_STATE.md', '下一任务：U32'],
+  ['PROJECT_ROADMAP.md', '当前主线：U32 Windows 发布候选验收'],
   ['PROJECT_ROADMAP.md', 'MVP130'],
   ['PROJECT_ROADMAP.md', '冻结'],
   ['PROJECT_ROADMAP.md', '禁止合入'],
@@ -49,6 +52,8 @@ const tokens = [
   ['docs/U29_PLAYER_RELIABILITY_ACCEPTANCE.md', 'Windows Electron 全链路场景'],
   ['docs/U30_UI_FAST_TRACK_ACCEPTANCE.md', 'AUTOMATED GO'],
   ['docs/U30_UI_FAST_TRACK_ACCEPTANCE.md', '自动窗口与主题矩阵'],
+  ['docs/U31_IMPORTER_TRANSACTION_ACCEPTANCE.md', 'AUTOMATED GO'],
+  ['docs/U31_IMPORTER_TRANSACTION_ACCEPTANCE.md', 'test:u31:importer-transactions'],
   ['MVP130_EXPERIMENTAL_DO_NOT_MERGE.md', '824c914f844b1ac57391df8ebb5c1f30c8b40903145b3a66e6a13e95e5413efe'],
 ];
 
@@ -97,4 +102,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('[verify-handoff] current U30 completion and U31 autonomous handoff PASS');
+console.log('[verify-handoff] current U31 completion and U32 autonomous handoff PASS');

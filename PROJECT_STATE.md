@@ -5,10 +5,10 @@
 ```text
 核心版本：0.167.0-mvp129
 代码事实来源：GitHub main
-已合入主线：U02～U29
-当前完成候选：U30 日常 UI、三主题、窗口、DPI 与键盘验收
-下一任务：U31 导入器与数据安全
-剩余主线：U31～U33
+已合入主线：U02～U30
+当前完成候选：U31 导入器事务与数据安全
+下一任务：U32 Windows 发布候选验收
+剩余主线：U32～U33
 MVP130：独立实验下载器，继续冻结，禁止合入
 ```
 
@@ -90,6 +90,21 @@ U30 已完成实现和自动化验收：
 
 详细证据见 `docs/U30_UI_FAST_TRACK_ACCEPTANCE.md`。
 
+### U31：导入器事务与数据安全
+
+U31 已完成实现和自动化验收：
+
+- copy-only 与 move-only 接入 `u31-import-transaction-v1` 文件事务服务。
+- copy-only 保留源文件并固定不覆盖目标；move-only 继续限制为最多 20 项、明确确认和不覆盖目标。
+- copy 批次部分失败时删除本轮新复制文件；move 批次部分失败时逆向恢复本轮已移动文件。
+- 仅清理本轮创建且仍为空的目标目录，不触碰既有目录或其他文件。
+- OperationLog 增加事务版本、回滚是否执行、回滚是否成功、已回滚项和回滚失败项；仍只记录相对路径。
+- Index 备份、恢复和维护历史沿用 MVP128/MVP129 已验证实现。
+- Windows 临时目录覆盖复制成功、冲突跳过、路径越界阻断、复制回滚、移动成功、移动冲突和移动逆向回滚。
+- U28～U31 专项测试、原有 importer/index 测试、全部 verifier、稳定回归和桌面构建通过。
+
+详细证据见 `docs/U31_IMPORTER_TRANSACTION_ACCEPTANCE.md`。
+
 ## 历史质量事实与 verifier 兼容合同
 
 以下已完成事实继续保留，防止后续文档更新误删历史质量合同：
@@ -123,16 +138,15 @@ U30 已完成实现和自动化验收：
 U28 资源库闭环：完成
 → U29 播放器与字幕全流程：完成
 → U30 日常 UI、三主题、窗口、DPI、键盘：完成
-→ U31 导入器与数据安全
+→ U31 导入器事务与数据安全：完成
 → U32 Windows 发布候选验收
 → U33 版本与 Beta 发布
 ```
 
 ## 后续仍需完成
 
-1. **U31**：copy-only、临时副本上的 move-only、冲突与不覆盖、OperationLog、Index 备份恢复和失败回滚。
-2. **U32**：strict smoke、实际 mpv Windows acceptance、portable、NSIS、安装升级卸载、中文/空格路径、用户数据保留、残留进程和 SHA-256。
-3. **U33**：关闭或记录 Blocker/Major、版本号、Release Notes、tag、产物 SHA-256 和新 Beta 发布。
+1. **U32**：strict smoke、实际 mpv Windows acceptance、portable、NSIS、安装升级卸载、中文/空格路径、用户数据保留、残留进程和 SHA-256。
+2. **U33**：关闭或记录 Blocker/Major、版本号、Release Notes、tag、产物 SHA-256 和新 Beta 发布。
 
 ## 自动验证与冻结项
 
@@ -143,6 +157,7 @@ npm ci --ignore-scripts --no-audit --no-fund
 npm audit --audit-level=high
 TypeScript 与 Electron 构建
 U28/U29/U30 Electron E2E
+U31 importer transaction matrix
 全部 scripts/verify-u*.mjs
 npm run verify:stable
 最终生产构建

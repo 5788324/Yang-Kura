@@ -1085,9 +1085,29 @@ declare global {
     fileUrl?: never;
   }
 
+  interface YangKuraImportRolledBackFile {
+    id: string;
+    sourceRelativePath: string;
+    targetRelativePath: string;
+    rollbackMethod: 'unlink-copy-target' | 'rename-back' | 'copy-verify-unlink-back' | 'already-absent';
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
+  interface YangKuraImportRollbackFailure {
+    id: string;
+    sourceRelativePath: string;
+    targetRelativePath: string;
+    reasonCode: string;
+    message: string;
+    absolutePath?: never;
+    fileUrl?: never;
+  }
+
   interface YangKuraImportCopyOnlyOperationLogPersistedSummary {
     schemaVersion: 1;
     operationLogVersion: 'mvp96-copy-only-operation-log-v1';
+    transactionVersion?: 'u31-import-transaction-v1';
     operationId: string;
     operationPlanId: string;
     eventType: 'copy-only-execute';
@@ -1102,7 +1122,7 @@ declare global {
 
   interface YangKuraImportCopyOnlyExecuteResult {
     ok: boolean;
-    status: 'mvp95-copy-only-execute-complete' | 'mvp96-copy-only-execute-complete-with-operation-log' | 'mvp96-copy-only-execute-log-write-failed';
+    status: 'mvp95-copy-only-execute-complete' | 'mvp96-copy-only-execute-complete-with-operation-log' | 'mvp96-copy-only-execute-log-write-failed' | 'u31-copy-only-execute-rolled-back' | 'u31-copy-only-execute-rollback-incomplete';
     operationPlanId: string;
     rootPathToken: string;
     targetRootPathToken: string;
@@ -1124,6 +1144,14 @@ declare global {
     failedCount: number;
     createdDirectoryCount: number;
     createdDirectoryRelativePaths: string[];
+    removedDirectoryRelativePaths?: string[];
+    transactionVersion?: 'u31-import-transaction-v1';
+    rollbackAttempted: boolean;
+    rollbackSucceeded: boolean;
+    rolledBackCount: number;
+    rollbackFailureCount: number;
+    rolledBackFiles: YangKuraImportRolledBackFile[];
+    rollbackFailureList: YangKuraImportRollbackFailure[];
     copiedFiles: YangKuraImportCopyOnlyCopiedFile[];
     skippedList: YangKuraImportCopyOnlySkippedItem[];
     failureList: YangKuraImportCopyOnlyFailureItem[];
@@ -1506,7 +1534,9 @@ interface YangKuraImportMoveOnlyExecuteResult {
     | 'mvp105-move-only-execute-overwrite-blocked'
     | 'mvp105-move-only-execute-invalid-root-token'
     | 'mvp105-move-only-execute-empty-file-list'
-    | 'mvp105-move-only-execute-too-many-files';
+    | 'mvp105-move-only-execute-too-many-files'
+    | 'u31-move-only-execute-rolled-back'
+    | 'u31-move-only-execute-rollback-incomplete';
   executorVersion: 'mvp105-small-sample-move-only-executor-v1';
   operationPlanId: string;
   rootPathToken?: string;
@@ -1527,6 +1557,15 @@ interface YangKuraImportMoveOnlyExecuteResult {
   failedCount: number;
   createdDirectoryCount?: number;
   failureStopTriggered?: boolean;
+  transactionVersion?: 'u31-import-transaction-v1';
+  createdDirectoryRelativePaths?: string[];
+  removedDirectoryRelativePaths?: string[];
+  rollbackAttempted?: boolean;
+  rollbackSucceeded?: boolean;
+  rolledBackCount?: number;
+  rollbackFailureCount?: number;
+  rolledBackFiles?: YangKuraImportRolledBackFile[];
+  rollbackFailureList?: YangKuraImportRollbackFailure[];
   movedFiles?: YangKuraImportMoveOnlyMovedFile[];
   skippedList?: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string; absolutePathReturned: false; fileUrlReturned: false; absolutePath?: never; fileUrl?: never }>;
   failureList?: Array<{ id: string; sourceRelativePath: string; targetRelativePath: string; reasonCode: string; message: string; absolutePathReturned: false; fileUrlReturned: false; absolutePath?: never; fileUrl?: never }>;

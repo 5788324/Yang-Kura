@@ -32,6 +32,7 @@ const stableScripts = [
   'test:mpv:settings-runtime',
   'test:mpv:stability-runtime',
   'test:importer:smoke',
+  'test:u31:importer-transactions',
   'test:library:performance',
   'test:mvp129-index-maintenance',
   'build',

@@ -11,15 +11,14 @@
 3. `PROJECT_ROADMAP.md`：长期顺序、轮次预算、冻结项和启动条件。
 4. `AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md`：AI、Codex 与用户的固定分工。
 5. `docs/U*.md`：单轮实现、验收、问题和证据。
-6. `docs/UI_DAILY_SURFACE_RULES.md`：长期 UI 规则。
 
 ## 2. 当前冻结点
 
 ```text
 核心版本：0.167.0-mvp129
-已完成：U02～U30
-当前主线：U31 导入器与数据安全
-后续：U32 Windows 发布候选 → U33 Beta 发布
+已完成：U02～U31
+当前主线：U32 Windows 发布候选验收
+后续：U33 Beta 发布
 MVP130 下载器：继续冻结，禁止合入
 ```
 
@@ -31,14 +30,14 @@ MVP130 下载器：继续冻结，禁止合入
 最新 main
 → ChatGPT 合并相关低风险任务
 → 产品实现与专项验证
-→ Windows Electron/CDP 与截图审查
+→ Windows CI / Electron / 文件系统自动测试
 → PR 收口时完整回归
-→ 只有不可自动化的真实本机步骤交给 Codex
+→ 只有 CI 无法替代的真实安装器或系统集成交给 Codex
 → squash merge
 → 向用户交付结果
 ```
 
-个人自用项目不采用企业级冗余流程。文案、局部 UI、状态显示、测试和文档可合并处理；删除、移动、覆盖、迁移、安装发布等高影响操作仍独立验收。
+个人自用项目不采用企业级冗余流程。文案、局部 UI、状态显示、测试和文档可合并处理；删除、移动、覆盖、迁移、安装发布等高影响操作仍验证回滚或数据保留。
 
 ## 4. 已完成阶段
 
@@ -49,7 +48,7 @@ MVP130 下载器：继续冻结，禁止合入
 - ASMR/RJ、普通音乐、首页、详情、收藏、歌单、队列和历史。
 - HTMLAudio、mpv、fallback、Seek 和进程回收。
 - LRC、SRT、VTT、ASS 字幕。
-- copy-only 导入、受控 move-only 样本、本地元数据覆盖和 DLsite Provider。
+- copy-only 导入、受控 move-only、本地元数据覆盖和 DLsite Provider。
 - 50,000 曲目性能基准、portable 和 NSIS 构建基础链。
 
 ### U02～U08：产品化与真实性
@@ -61,8 +60,7 @@ MVP130 下载器：继续冻结，禁止合入
 ### U09～U23：渐进式结构与质量
 
 - 播放器生命周期、歌词时间线、依赖门禁、侧栏导航和主题合同。
-- PlayerBar 纯逻辑、展示组件、Seek、辅助控制和展示模型拆分。
-- PlayerBar 结构优化已经结束，除非明确缺陷，不再为了拆分而拆分。
+- PlayerBar 渐进拆分完成，除非明确缺陷不再为了拆分而拆分。
 
 ### U24～U26：日常 UI 去工程化
 
@@ -75,71 +73,71 @@ MVP130 下载器：继续冻结，禁止合入
 
 ### U28：资源库授权与真实 Index 闭环
 
-- 原生目录授权、当前窗口 token、设置页、Index、首页、资源库、PlayerBar 和诊断统一。
-- 合法空 Index、失败、损坏 JSON 和多编码明确分类。
-- Windows Electron E2E 覆盖授权、读取、浏览、媒体协议、播放和重启。
+- 原生目录授权、当前窗口 token、设置、Index、首页、资源库、PlayerBar 和诊断统一。
+- 合法空 Index、损坏 JSON、多编码、媒体协议和重启边界通过 Electron E2E。
 - MAJ-001、MAJ-002 关闭。
 
 ### U29：播放器与字幕全流程
 
 - HTMLAudio/mpv 真实续播起点一致。
-- Seek、上一首/下一首、队列、完成策略和重启恢复。
-- 队列、历史、歌单安全持久化；新授权 token 自动对账。
-- 正在播放、暂停、等待授权和完成状态语义一致。
+- Seek、队列、完成策略、重启恢复和 token 对账完成。
 - LRC、SRT、VTT、ASS、双语和无字幕自动验收。
 
 ### U30：日常 UI、三主题、窗口、DPI 与键盘
 
-- 1040×680、1280×800、1600×900 窗口/DPI 矩阵通过。
-- dark、acrylic-mist、ocean-drops 三主题通过截图和布局断言。
-- 首页、音声库、音乐库、歌单和设置页无横向溢出。
-- PlayerBar 与侧栏完成紧凑适配。
-- 队列 Escape、焦点返回、全屏歌词 Escape、focus-visible 和 reduced-motion 完成。
-- 重复旧续播提示关闭；窄窗口仍保留真实资源状态。
+- 三档窗口/DPI 与三主题矩阵通过。
+- PlayerBar、侧栏、Escape、焦点返回、reduced-motion 和 focus-visible 完成。
 - U28～U30 Electron E2E 成为永久门禁。
 
 详细证据见 `docs/U30_UI_FAST_TRACK_ACCEPTANCE.md`。
 
-## 5. 当前主线：U31 导入器与数据安全
+### U31：导入器事务与数据安全
 
-**预计：1 个合并轮次，必要时拆出高风险修复。**
+- copy-only 与 move-only 接入统一事务服务。
+- 默认不覆盖目标；冲突保留源文件和既有目标。
+- copy 批次部分失败时删除本轮新复制文件。
+- move 批次部分失败时逆向恢复本轮已移动文件。
+- 只删除本轮创建且为空的目录。
+- OperationLog 保存事务和回滚结果，仍不保存绝对路径。
+- Index 备份、恢复和维护历史沿用既有 MVP128/MVP129 实现。
+- Windows 临时目录事务矩阵、原有 importer/index 测试和稳定回归通过。
 
-### U31 合并范围
+详细证据见 `docs/U31_IMPORTER_TRANSACTION_ACCEPTANCE.md`。
 
-- copy-only 完整导入流程。
-- move-only 只在仓库外临时副本验证。
-- 同名冲突、目标已存在和默认不覆盖。
-- 中途失败、取消和部分完成状态。
-- OperationLog 可追踪输入、输出、跳过、失败和回滚结果。
-- Index 写入前备份、失败恢复和损坏恢复。
-- 中文、日文、空格和特殊字符路径。
-- 导入完成后的资源库刷新与页面状态一致。
+## 5. 当前主线：U32 Windows 发布候选验收
 
-### U31 数据边界
+**预计：1～2 个合并轮次。**
 
-- 不对用户真实媒体库执行测试性删除、移动、覆盖或重命名。
-- 产品正常 copy-only 行为可在临时样本中完整执行。
-- move-only、回滚、冲突和恢复使用自动生成的临时目录与副本。
-- 不为普通读取、浏览和本地元数据修改增加企业级审批流程。
+### U32-A：自动化发布候选
 
-### U31 完成门槛
+- strict smoke 与生产构建。
+- portable 与 NSIS 产物生成。
+- 打包内 mpv 文件、启动路径和回退策略核对。
+- 中文路径、空格路径和普通用户目录自动测试。
+- 产物大小、文件清单和 SHA-256。
+- 安装前后用户数据目录与默认配置合同。
 
-- 纯逻辑、文件系统集成和 Electron 导入链通过。
-- 失败路径不会静默丢失文件或覆盖目标。
-- OperationLog、Index 备份和恢复结果可验证。
-- U28～U30 Electron E2E、全部 verifier、稳定回归和最终构建通过。
+### U32-B：真实 Windows 系统集成
 
-## 6. U32～U33 Beta 主线
+GitHub runner 能覆盖的内容继续由 ChatGPT 自动完成。以下只有在自动化确实无法替代时才交给 Codex：
 
-### U32：Windows 发布候选验收
+- 真实安装向导和系统确认对话框；
+- 安装、升级、卸载后的开始菜单/卸载项；
+- 打包 mpv 在用户本机驱动与音频设备上的实际播放；
+- 残留进程、文件锁和重启后的系统集成。
 
-- strict smoke 和真实打包 mpv Windows acceptance。
-- portable、NSIS、安装、升级、卸载。
-- 中文路径、空格路径、无管理员权限方案。
-- 用户数据保留、残留进程、产物大小和 SHA-256。
-- CI 无法覆盖的真实安装器/驱动集成交给 Codex；用户不测试。
+用户不测试、不运行命令、不判断 PASS/FAIL。
 
-### U33：版本和 Beta 发布
+### U32 完成门槛
+
+- portable 与 NSIS 均能启动。
+- 安装、升级、卸载不破坏用户数据。
+- 中文/空格路径和非管理员使用场景可解释。
+- 实际 mpv 或 fallback 行为有证据。
+- 产物 SHA-256、大小和已知限制完整。
+- U28～U31 永久门禁、全部 verifier、稳定回归和最终构建通过。
+
+## 6. U33：版本和 Beta 发布
 
 - 关闭或记录所有 Blocker/Major。
 - 版本号、Release Notes、已知限制和升级说明。
@@ -149,11 +147,10 @@ MVP130 下载器：继续冻结，禁止合入
 ## 7. 轮次预算
 
 ```text
-U31：1～2 轮
 U32：1～2 轮
 U33：1 轮
-正常剩余：3～5 轮
-风险储备：6～8 轮
+正常剩余：2～3 轮
+风险储备：4～6 轮
 ```
 
 ## 8. 自动验证合同
@@ -168,12 +165,13 @@ Electron build
 U28 resource-library Electron E2E
 U29 player Electron E2E
 U30 UI and accessibility matrix
+U31 importer transaction matrix
 全部 scripts/verify-u*.mjs
 npm run verify:stable
 最终生产构建
 ```
 
-高影响文件操作任务还必须使用临时副本验证失败回滚。
+发布任务还必须验证产物文件清单、哈希、用户数据保留和进程退出。
 
 ## 9. 冻结项
 
@@ -185,4 +183,4 @@ U33 完成前禁止启动或自动合入：
 - OpenList/WebDAV；
 - Player Core v2；
 - 全局 CSS 或全项目架构重写；
-- 与 U31～U33 无关的大功能。
+- 与 U32～U33 无关的大功能。
