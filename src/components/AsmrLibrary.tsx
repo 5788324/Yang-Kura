@@ -359,7 +359,7 @@ export default function AsmrLibrary({
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-5 animate-fade-in">
       
       {/* Header and statistics */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -375,9 +375,9 @@ export default function AsmrLibrary({
       </div>
 
       {/* mvp46-asmr-browse-cleanup: cleaner browse controls, media-first copy; modes: 封面浏览 / 列表浏览 */}
-      <div className="bg-card-bg/20 border border-border-color/50 rounded-xl p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div id="u32-asmr-toolbar" className="rounded-2xl border border-border-color/60 bg-card-bg/25 p-3 flex flex-col gap-3">
         {/* Search fields input group */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1 max-w-4xl">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1">
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-text-muted" />
             <input
@@ -426,7 +426,7 @@ export default function AsmrLibrary({
                 setQuickFilterType('circle');
                 setQuickFilterSearch('');
               }}
-              className="bg-zinc-900 hover:bg-zinc-800 text-text-primary hover:text-brand-color border border-border-color hover:border-brand-color rounded-xl px-3.5 py-2 text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border-color bg-card-bg px-3 text-xs font-semibold text-text-secondary hover:border-brand-color/50 hover:text-text-primary"
             >
               <Building2 className="w-3.5 h-3.5" />
               <span>社团</span>
@@ -436,7 +436,7 @@ export default function AsmrLibrary({
                 setQuickFilterType('cv');
                 setQuickFilterSearch('');
               }}
-              className="bg-zinc-900 hover:bg-zinc-800 text-text-primary hover:text-brand-color border border-border-color hover:border-brand-color rounded-xl px-3.5 py-2 text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border-color bg-card-bg px-3 text-xs font-semibold text-text-secondary hover:border-brand-color/50 hover:text-text-primary"
             >
               <Mic className="w-3.5 h-3.5" />
               <span>声优</span>
@@ -446,7 +446,7 @@ export default function AsmrLibrary({
                 setQuickFilterType('tag');
                 setQuickFilterSearch('');
               }}
-              className="bg-zinc-900 hover:bg-zinc-800 text-text-primary hover:text-brand-color border border-border-color hover:border-brand-color rounded-xl px-3.5 py-2 text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border-color bg-card-bg px-3 text-xs font-semibold text-text-secondary hover:border-brand-color/50 hover:text-text-primary"
             >
               <Tag className="w-3.5 h-3.5" />
               <span>标签</span>
@@ -455,7 +455,7 @@ export default function AsmrLibrary({
         </div>
 
         {/* View Mode & Sorting Row */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           {/* View Mode Toggle */}
           <div className="flex bg-zinc-950/50 border border-border-color/60 rounded-xl p-0.5">
             <button

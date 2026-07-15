@@ -427,22 +427,22 @@ export default function PlaylistPage({
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-5 animate-fade-in">
       {/* List View Header */}
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold flex items-center space-x-2">
               <ListMusic className="w-5.5 h-5.5 text-brand-color" />
-              <span>本地播放歌单</span>
+              <span>歌单</span>
             </h2>
             <p className="text-xs text-text-muted mt-1">
-              自建歌单会保存在本机，可混合 音声音轨和普通音乐；不会保存真实文件路径或媒体链接。
+              共 ${filteredPlaylists.length} 个歌单、${playlistSummary.trackCount} 首音轨；自建歌单保存在本机。
             </p>
           </div>
           <button
             onClick={() => setShowCreateForm((value) => !value)}
-            className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-brand-color hover:bg-brand-color-hover text-white text-xs font-semibold shadow-lg shadow-brand-color/20 transition-all cursor-pointer"
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-color px-4 text-xs font-semibold text-white shadow-sm shadow-brand-color/20 hover:bg-brand-color-hover"
           >
             <Plus className="w-4 h-4" />
             <span>新建歌单</span>
@@ -535,7 +535,7 @@ export default function PlaylistPage({
       {filteredPlaylists.length === 0 ? (
         renderPlaylistEmptyState(collectionDetailExperienceService.getPlaylistEmptyState(undefined), () => setShowCreateForm(true))
       ) : (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {filteredPlaylists.map((playlist) => (
           <div
             key={playlist.id}

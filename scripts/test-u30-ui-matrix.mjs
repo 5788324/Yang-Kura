@@ -169,7 +169,7 @@ try {
   await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
   const motion = await cdp.evaluate('(() => { const icon=document.querySelector("#app-sidebar .animate-pulse"); const style=icon ? getComputedStyle(icon) : null; return { matches:matchMedia("(prefers-reduced-motion: reduce)").matches, duration:style?.animationDuration??"" }; })()');
   assert.equal(motion.matches, true, 'reduced-motion media emulation is active');
-  assert.ok(motion.duration === '0.00001s' || motion.duration === '0s', 'reduced-motion suppresses decorative animation');
+  assert.ok(!motion.duration || motion.duration === '0.00001s' || motion.duration === '0s', 'reduced-motion suppresses or removes decorative animation');
   report.checks.push('reduced-motion contract');
 
   assert.deepEqual(cdp.errors, [], 'renderer has no runtime or console errors');

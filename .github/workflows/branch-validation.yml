@@ -17,7 +17,7 @@ jobs:
   validate:
     name: Windows full-chain regression
     runs-on: windows-latest
-    timeout-minutes: 70
+    timeout-minutes: 80
 
     steps:
       - name: Check out repository
@@ -62,15 +62,20 @@ jobs:
       - name: Run U31 importer transaction matrix
         run: npm run test:u31:importer-transactions
 
+      - name: Run U32 release-candidate visual audit
+        run: node scripts/test-u32-ui-audit.mjs
+
       - name: Upload Electron E2E artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: u28-u30-electron-e2e
+          name: u28-u32-electron-e2e
           path: |
             artifacts/u28-electron-e2e
             artifacts/u29-electron-e2e
             artifacts/u30-ui-matrix
+            artifacts/u31-importer-transactions
+            artifacts/u32-ui-audit
           if-no-files-found: warn
           retention-days: 14
 

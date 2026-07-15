@@ -199,9 +199,9 @@ export default function ImporterPage() {
   return (
     <div
       id="mvp86-importer-ui-shell"
-      className="space-y-6 pb-24 animate-fade-in"
+      className="space-y-5 pb-24 animate-fade-in"
     >
-      <section className="rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-sky-500/5 to-violet-500/10 p-6 shadow-sm overflow-hidden relative">
+      <section className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-sky-500/5 to-violet-500/10 p-5 shadow-sm overflow-hidden relative">
         <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-emerald-500/10 blur-3xl" />
         <div className="absolute -bottom-20 left-16 h-48 w-48 rounded-full bg-sky-500/10 blur-3xl" />
         <div className="relative flex flex-col xl:flex-row xl:items-end xl:justify-between gap-5">
@@ -210,10 +210,10 @@ export default function ImporterPage() {
               <ArchiveRestore className="h-3.5 w-3.5" />
               <span>导入器</span>
             </div>
-            <h2 className="mt-4 text-2xl font-black text-text-primary tracking-tight">
+            <h2 className="mt-3 text-xl font-black text-text-primary tracking-tight">
               导入已有音频资源
             </h2>
-            <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+            <p className="mt-2 max-w-3xl text-xs leading-relaxed text-text-secondary">
               把已有的 RJ / ASMR 专辑、普通音乐专辑或零散音频整理进本地媒体库。先看预览和冲突，再选择复制或移动。
             </p>
             <p className="mt-2 text-[11px] leading-relaxed text-text-muted">
@@ -266,7 +266,7 @@ export default function ImporterPage() {
 
       <section
         id="mvp86-import-source-options"
-        className="grid grid-cols-1 lg:grid-cols-3 gap-4"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-3"
       >
         {model.sourceOptions.map((option) => {
           const Icon = option.id.includes("music") ? Music : FolderInput;
