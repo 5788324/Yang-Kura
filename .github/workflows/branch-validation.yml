@@ -30,7 +30,7 @@ jobs:
         shell: pwsh
         run: |
           if (-not (Select-String -Path src/App.tsx -Pattern 'u32-release-ui' -Quiet)) {
-            node scripts/apply-u32-ui-cleanup.mjs
+            node scripts/run-u32-ui-cleanup-patch.mjs
           } else {
             Write-Host 'U32 UI cleanup already applied.'
           }
