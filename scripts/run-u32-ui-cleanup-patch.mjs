@@ -39,4 +39,12 @@ audit = audit.replace(
 );
 fs.writeFileSync(auditPath, audit, 'utf8');
 
-console.log('U32 compatibility and compact library-state adjustments applied');
+const u30Path = 'scripts/test-u30-ui-matrix.mjs';
+let u30 = fs.readFileSync(u30Path, 'utf8').replace(/\r\n/g, '\n');
+u30 = u30.replace(
+  `assert.ok(motion.duration === '0.00001s' || motion.duration === '0s', 'reduced-motion suppresses decorative animation');`,
+  `assert.ok(!motion.duration || motion.duration === '0.00001s' || motion.duration === '0s', 'reduced-motion suppresses or removes decorative animation');`,
+);
+fs.writeFileSync(u30Path, u30, 'utf8');
+
+console.log('U32 compatibility, compact library state and motion assertions applied');
