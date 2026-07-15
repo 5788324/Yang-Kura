@@ -51,6 +51,6 @@ PR 版本与文档一致
 → 更新 PROJECT_STATE 与最终交接
 ```
 
-用户不测试、不排错、不运行命令、不维护 Git。ChatGPT 负责代码、自动测试、Git、PR、合并和发布；Codex 默认只处理自动化无法替代的真实本机测试，不修改产品源码。
+用户不测试、不排错、不运行命令、不维护 Git。ChatGPT 负责代码、自动测试、Git、PR、合并和发布；Codex 默认只负责自动化无法替代的真实本机测试，不修改产品源码。
 
 U33 发布成功前，不启动 MVP130 下载器、完整 AI Agent、SQLite、OpenList/WebDAV、Player Core v2 或全项目重构。发布后先进入个人 Beta 观察期，只处理真实使用中可复现的 Blocker/Major，再重新评估下一条主线。
