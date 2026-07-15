@@ -71,12 +71,14 @@
 
 ## 安装与升级
 
+GitHub 会将发布资产文件名中的空格规范化为点号；以下名称与 Release 页面实际下载名一致。
+
 ### Portable
 
 直接运行：
 
 ```text
-Yang Kura-0.168.0-beta.1-portable-x64.exe
+Yang.Kura-0.168.0-beta.1-portable-x64.exe
 ```
 
 ### 安装版
@@ -84,7 +86,7 @@ Yang Kura-0.168.0-beta.1-portable-x64.exe
 运行：
 
 ```text
-Yang Kura-0.168.0-beta.1-setup-x64.exe
+Yang.Kura-0.168.0-beta.1-setup-x64.exe
 ```
 
 可覆盖安装到同一目录。U32 自动化已验证重复安装和卸载均保留用户数据。首次启动或应用重启后，出于安全边界，需要重新授权资源库目录并读取已有 Index。
@@ -94,8 +96,8 @@ Yang Kura-0.168.0-beta.1-setup-x64.exe
 Release 同时提供 `SHA256SUMS.txt`。下载后可在 PowerShell 中运行：
 
 ```powershell
-Get-FileHash '.\Yang Kura-0.168.0-beta.1-portable-x64.exe' -Algorithm SHA256
-Get-FileHash '.\Yang Kura-0.168.0-beta.1-setup-x64.exe' -Algorithm SHA256
+Get-FileHash '.\Yang.Kura-0.168.0-beta.1-portable-x64.exe' -Algorithm SHA256
+Get-FileHash '.\Yang.Kura-0.168.0-beta.1-setup-x64.exe' -Algorithm SHA256
 ```
 
 将输出与 `SHA256SUMS.txt` 对照。
