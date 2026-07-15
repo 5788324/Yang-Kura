@@ -6,26 +6,26 @@
 
 - 仓库：`https://github.com/5788324/Yang-Kura.git`
 - 代码：最新 `origin/main`
-- 路线：`PROJECT_ROADMAP.md`
 - 当前状态：`PROJECT_STATE.md`
+- 长期路线：`PROJECT_ROADMAP.md`
 - 完整交接：`AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md`
+- 固定分工：`AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md`
 
 不要使用旧 ZIP、旧工作区、旧 Round 文档或固定 SHA 作为当前代码事实。
 
 ## 当前状态
 
 ```text
-核心版本：0.167.0-mvp129
-U02～U26：已完成
-U27 最终结论：NO-GO
-当前主线：U28 资源库授权、真实 Index、浏览与播放闭环
-阻断问题：MAJ-001、MAJ-002
-MVP130：继续冻结，禁止合入
+核心版本：0.168.0-beta.1
+U02～U32：已完成
+当前阶段：U33 Beta 发布
+目标 tag：v0.168.0-beta.1
+目标发布：Yang-Kura 0.168.0 Beta 1
+发布后：个人 Beta 观察与定向修复
+MVP130：继续冻结，禁止自动合入
 ```
 
-U27 真实 `E:\arsm` 补测发现：原生目录选择后，Settings、读取/扫描按钮、浏览页、顶栏和播放器没有使用同一真实状态；AI 维护诊断仍显示 Demo 扫描，不能反映真实授权或 Index。
-
-用户反馈该问题可能已经修复并推送到 Git，但本交接编写时 GitHub `main` 仅看到 U27 NO-GO / U28 范围文档提交，没有可验证的产品修复 PR。你的第一任务是核对最新 Git 事实，而不是直接开发。
+U27 的历史 `NO-GO`、MAJ-001 和 MAJ-002 已在 U28 关闭。U29 完成播放器、队列、续播和字幕；U30 完成三主题、窗口、DPI、键盘和可访问性；U31 完成导入事务与失败回滚；U32 完成发布候选 UI、portable、NSIS、安装、重复安装、卸载、用户数据保留、fallback 和 SHA-256 验收。
 
 ## 开始步骤
 
@@ -40,56 +40,50 @@ git rev-parse HEAD
 git log -15 --oneline --decorate
 ```
 
-工作区存在未提交改动时立即停止，不要 stash、reset 或覆盖。
+工作区存在未提交改动时立即停止，不要 stash、reset 或覆盖。随后核对开放 PR、Actions、tags 和 Releases，以判断 U33 位于以下哪个状态：
 
-检查最新提交、远端分支和 PR，确定修复是否：
+1. 发布 PR 仍开放：审查 diff 和门禁，修复后完成 squash merge；
+2. PR 已合并、发布工作流运行中：检查 main-only publish 结果；
+3. prerelease 已创建：回读 tag、目标提交、资产名、体积、SHA-256 和下载 URL；
+4. U33 已完成：更新状态和交接，进入个人 Beta 观察期。
 
-1. 已合入 main；
-2. 位于未合并分支/PR；
-3. 尚未存在。
+## U33 发布合同
 
-重点审查 Settings 目录授权、Electron 安全 token/root snapshot、读取 Index 与扫描按钮启用条件、App 资源库水合、顶栏/浏览页/PlayerBar 数据快照、Diagnostics 真实状态来源。
+发布参数以 `release/u33-release-plan.json` 为唯一计划来源：
 
-## 决策规则
+```text
+version：0.168.0-beta.1
+tag：v0.168.0-beta.1
+title：Yang-Kura 0.168.0 Beta 1
+prerelease：true
+assets：portable / setup / SHA256SUMS.txt
+```
 
-- 修复已在 main：不重复写代码，直接跑门禁与真实 U28 GUI 复验。
-- 修复在分支/PR：审查 diff 和数据安全，跑完整门禁与临时/真实库复验，通过后正式合并。
-- 没有修复：从最新 main 创建独立 U28 分支，只修 MAJ-001/MAJ-002。
+PR 阶段必须通过 Branch Validation、U33 Release Preflight、U33 Beta Release build、U32 打包与安装验收。PR 阶段不得创建 tag 或 Release。只有 squash 合入 `main` 后的 main-only publish job 可以创建 prerelease，并必须回读验证发布结果。
 
-## U28 完成条件
+## 固定分工
 
-- 原生目录选择后 Settings 立即识别授权 root。
-- “读取已有记录”和“一键扫描并应用”按真实能力启用。
-- Index 可读取，或在无 Index 时安全扫描生成。
-- 顶栏、Settings、首页、音声库、音乐库和 PlayerBar 使用同一数据快照。
-- Diagnostics 读取真实授权/Index 状态，或明确禁用；不得展示 Demo 为当前状态。
-- 临时样本完成可写测试与重启恢复。
-- 真实 `E:\arsm` 只读完成授权、浏览和播放至少一个音轨。
-- U02～U28 verifier、`npm run verify:stable`、`npm run build` 通过。
-- 用户配置恢复、Git clean、无残留 Yang Kura/Electron/mpv 进程。
+用户只接收最终成果，不测试、不排错、不运行命令、不维护 Git、不创建 tag 或 Release。
+
+ChatGPT 负责计划、产品代码、自动测试、Windows CI、Electron/CDP、文件系统临时样本、截图审查、Git、PR、合并、发布、回读验收和最终交付。
+
+Codex 默认只负责 GitHub runner 无法替代的真实本机、硬件、驱动、系统权限或安装集成测试，不修改产品源码。后续诊断、修复和 Git 管理仍由 ChatGPT 负责。
 
 ## 安全与 UI 硬规则
 
-- 真实媒体库不执行删除、清理、移动、覆盖、批量写入或元数据改写。
-- copy-only 优先；move-only 仅限临时副本并二次确认。
-- 不向 Renderer 日常界面暴露绝对路径或 `file://`。
-- 日常层只展示用户实际使用的功能；工程、诊断、回归和测试入口集中到 AI 维护。
-- 诊断不能用 Demo/静态状态冒充真实用户资源状态。
-- 不为了代码整齐重写播放器、Importer、Index 或 Electron 架构。
+- 真实媒体库可读取、浏览和播放；测试性删除、移动、覆盖和批量写入只使用临时目录或副本。
+- Renderer 不接收真实绝对路径或 `file://`。
+- 日常层只展示用户实际使用的功能；工程、诊断、回归和测试入口集中到 AI 维护或隐藏兼容层。
+- 不为了代码整齐重写播放器、Importer、Index、Electron 或全项目架构。
+- 安装、卸载、数据保留和发布资产必须保留专项验收。
 
-## 后续路线
+## 发布后路线
 
 ```text
-U28 资源库闭环
-→ U29 播放器与字幕
-→ U30 UI、三主题、窗口与 DPI
-→ U31 导入器与数据安全
-→ U32 Windows 发布候选
-→ U33 新 Beta 发布收口
+U33 完成
+→ 个人 Beta 观察期
+→ 只处理真实使用中可复现的 Blocker/Major
+→ 重新评估下一条主线
 ```
 
-U33 完成前禁止启动 MVP130、完整 AI Agent、SQLite 全面迁移、OpenList/WebDAV、Player Core v2 或全局重构。
-
-标准流程：最新 main → 状态核对 → 独立分支 → 有限实现/验收 → 专项 verifier → 完整稳定回归 → Windows 构建与 GUI 证据 → PR → squash merge → 更新状态文档。
-
-用户希望你自主推进，不要反复询问已经明确的事项；但当前明确要求暂停开发，因此先完成接手核对和状态报告，再继续路线任务。
+MVP130 下载器、完整 AI Agent、SQLite 全面迁移、OpenList/WebDAV、Player Core v2 和全局架构重写在发布成功前继续冻结；发布后也不得自动启动。
