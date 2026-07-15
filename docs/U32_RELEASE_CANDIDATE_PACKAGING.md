@@ -1,24 +1,34 @@
 # U32 Windows 发布候选打包与系统集成验收
 
-## 状态
+## 最终结论
 
 ```text
+结论：AUTOMATED GO
 基线 main：d37932c140ec59d858645c083fe2bffcf9c87823
-分支：agent/u32-rc-packaging-acceptance
-当前阶段：U32 自动化打包验收进行中
-后续：仅把自动化无法替代的真实声卡、驱动、系统确认对话交给 Codex
+被测 HEAD：5eaaa99c4504b57b82cb19d83b61c3464c8088ef
+Branch Validation：29388203409 — PASS
+U32 Release Candidate Packaging：29388203405 — PASS
+Actions artifact：u32-release-candidate-windows / 8332293131
+核心版本：0.167.0-mvp129（U32 不改版本号）
+后续：U33 版本、Release Notes、tag 与 Beta 发布
 MVP130 下载器：继续冻结
 ```
 
-## 背景
+U32-A 的发布候选 UI 整理已先行合入 `main`。本轮 U32-B 完成 Windows 发布物、安装、重复安装、卸载、用户数据保留、进程退出、包内文件审计、SHA-256 以及 packaged 页面完整加载验收。
 
-U28～U31 已完成资源库、播放器、字幕、窗口/DPI/键盘和导入器事务闭环。U32 第一部分已经完成日常 UI 发布候选整理：工程入口退出可见侧栏，媒体内容进入首屏，卡片、按钮与设置页签完成对齐。
+## 发布物
 
-U32 尚未完成的部分是 Windows 发布物本身：portable、NSIS、中文/空格路径、安装与重复安装、卸载、用户数据保留、进程退出、包内文件清单和 SHA-256。
+| 发布物 | 字节数 | SHA-256 |
+|---|---:|---|
+| `Yang Kura-0.167.0-mvp129-portable-x64.exe` | 85,257,977 | `45b69c2db54b2ffd606cfbd8e39dd605d66fc8af6e49ffe1b3c6f2c1e1cca331` |
+| `Yang Kura-0.167.0-mvp129-setup-x64.exe` | 85,488,218 | `6752567771d6b9cdf2ba3751e8edb58cf80deebdaa4e63a90ea931de10e4f278` |
+| `app.asar` | 2,056,038 | `590d5b08df768731f548a38dc70c40148fd65fe97c8cb4f60b43366413fbde77` |
 
-## 本轮自动化范围
+Actions 产物中同时包含 `SHA256SUMS.txt`、`report.json`、`page-readiness-report.json` 和打包版截图。
 
-永久工作流 `.github/workflows/u32-release-candidate.yml` 在 Windows runner 上执行：
+## 自动化验收结果
+
+永久工作流 `.github/workflows/u32-release-candidate.yml` 在 Windows runner 上实际执行并通过：
 
 1. Node 22 / npm 10 依赖安装与 high/critical 审计。
 2. Electron rebuild 与 electron-builder 兼容补丁。
@@ -31,7 +41,41 @@ U32 尚未完成的部分是 Windows 发布物本身：portable、NSIS、中文/
 9. 静默安装 NSIS 到中文和空格目录，启动安装版。
 10. 对同一目录重复安装，作为升级式覆盖验证，再次启动。
 11. 静默卸载，确认应用主体移除、用户数据标记保留、无 Yang Kura 残留进程。
-12. 上传 portable、NSIS、截图、报告和 `SHA256SUMS.txt`。
+12. 对 portable 和 NSIS 安装版分别等待正式首页加载完成；必须退出“正在打开页面…”占位并显示“开始建立你的本地媒体库”后才截图和通过。
+13. 上传 portable、NSIS、截图、报告和 `SHA256SUMS.txt`。
+
+`report.json` 最终记录：
+
+- `status: pass`；
+- portable 中文/空格路径启动通过；
+- NSIS 首次安装启动通过；
+- 同目录重复安装启动通过；
+- 安装、重复安装和卸载均保留用户数据标记；
+- 卸载后应用主体移除；
+- `residualProcesses: []`；
+- packaged mpv 不可用时 `fallbackAvailable: true`。
+
+`page-readiness-report.json` 最终记录：
+
+- portable 正式首页内容长度 378；
+- NSIS 安装版正式首页内容长度 378；
+- 两种发布物均完成正式首页截图；
+- `residualProcesses: []`。
+
+## 常规全链回归
+
+Branch Validation `29388203409` 同时通过：
+
+- high/critical 依赖审计；
+- TypeScript、Renderer、Electron 构建；
+- U28 资源库 Electron E2E；
+- U29 播放器 Electron E2E；
+- U30 三主题、窗口、键盘与可访问性矩阵；
+- U31 导入器事务矩阵；
+- U32 发布候选视觉审查；
+- 全部 `scripts/verify-u*.mjs`；
+- 完整稳定回归；
+- 二次生产构建。
 
 ## 数据与安全边界
 
@@ -43,22 +87,26 @@ U32 尚未完成的部分是 Windows 发布物本身：portable、NSIS、中文/
 - 本轮不修改版本号、不打 tag、不发布 Release；这些属于 U33。
 - MVP130 正式下载器、SQLite 全面迁移、OpenList/WebDAV、Player Core v2 和大规模架构调整继续冻结。
 
-## U32 完成门槛
+## 未作为 U32 阻断项的真实机器差异
 
-自动化部分必须全部通过：
-
-- portable 与 NSIS 构建成功；
-- 两种发布物都能实际启动；
-- 中文/空格路径通过；
-- 重复安装不破坏用户数据；
-- 卸载保留用户数据且不残留应用进程；
-- 打包态 mpv 不可用时 fallback 行为真实可见；
-- 产物名称、体积、SHA-256 和包内文件审计完整；
-- U28～U31 永久门禁、全部 verifier、稳定回归和最终生产构建继续通过。
-
-只有以下事项在 CI 无法给出等价证据时才交给 Codex：
+以下事项不能由 GitHub runner 完整模拟，但不再阻断 U32，因为 portable/NSIS、安装链、完整页面和明确 fallback 已有实际 packaged 证据：
 
 - 真实 Windows 安装向导和系统确认对话框外观；
-- 开始菜单与系统卸载项显示；
+- 开始菜单与系统卸载项的视觉显示；
 - 用户本机真实 mpv、声卡和驱动上的播放；
-- 用户机器上的文件锁、杀毒软件或特殊权限行为。
+- 用户机器上的杀毒软件、特殊权限或厂商驱动差异。
+
+真实 mpv、声卡和驱动可在 Beta 后按用户机器环境补充观察；本轮没有声称真实硬件 mpv 播放已经验证。
+
+## U32 完成判定
+
+- portable 与 NSIS 构建成功：PASS。
+- 两种发布物实际启动并完整加载首页：PASS。
+- 中文/空格路径：PASS。
+- 重复安装与用户数据保留：PASS。
+- 静默卸载、数据保留和无残留进程：PASS。
+- packaged mpv 不可用时 HTMLAudio fallback：PASS。
+- 产物名称、体积、SHA-256 和包内文件审计：PASS。
+- U28～U32 永久门禁、全部 verifier、稳定回归和最终生产构建：PASS。
+
+**U32 可以关闭，项目下一任务为 U33。**
