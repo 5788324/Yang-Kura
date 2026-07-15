@@ -8,9 +8,24 @@
   "prerelease": true,
   "draft": false,
   "publishedAt": "2026-07-15T16:11:13Z",
-  "publishedAssetNames": [
-    "Yang.Kura-0.168.0-beta.1-portable-x64.exe",
-    "Yang.Kura-0.168.0-beta.1-setup-x64.exe",
-    "SHA256SUMS.txt"
+  "assets": [
+    {
+      "localName": "Yang Kura-0.168.0-beta.1-portable-x64.exe",
+      "publishedName": "Yang.Kura-0.168.0-beta.1-portable-x64.exe",
+      "sizeBytes": 85258927,
+      "sha256": "90c6913749c52ac88aa4c1e32a144c092f7f263d5f198ae912f0c0184170b0b9"
+    },
+    {
+      "localName": "Yang Kura-0.168.0-beta.1-setup-x64.exe",
+      "publishedName": "Yang.Kura-0.168.0-beta.1-setup-x64.exe",
+      "sizeBytes": 85489497,
+      "sha256": "a83e2e07e018dbedfd955928ba9ef6c2de42b08b748066d8bbe6ad2cdbde15a0"
+    },
+    {
+      "localName": "SHA256SUMS.txt",
+      "publishedName": "SHA256SUMS.txt",
+      "sizeBytes": 213,
+      "sha256": "121a882b101ad585e0207d2aa2e0ac821ae5f3c6b88dee045bdcd74274c6a14d"
+    }
   ]
 }
