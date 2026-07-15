@@ -6,7 +6,7 @@ import path from 'node:path';
 
 const [releaseJsonPath, assetDirectory, expectedTarget] = process.argv.slice(2);
 const plan = JSON.parse(fs.readFileSync('release/u33-release-plan.json', 'utf8'));
-const workflow = fs.readFileSync('.github/workflows/u33-beta-release.yml', 'utf8');
+const workflow = fs.readFileSync('.github/workflows/u33-beta-release.yml', 'utf8').replace(/\r\n/g, '\n');
 
 assert.equal(plan.version, '0.168.0-beta.1');
 assert.equal(plan.tag, 'v0.168.0-beta.1');
