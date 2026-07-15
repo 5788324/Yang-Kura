@@ -118,7 +118,7 @@ prerelease：true
 existing tags：0
 existing releases：0
 target collision：false
-preflight run：29389036701 — PASS
+U33 Release Preflight：29389036701 — PASS
 ```
 
 U33 必须完成：
