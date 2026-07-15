@@ -52,6 +52,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write
+      issues: write
 
     steps:
       - name: Check out repository
@@ -135,3 +136,69 @@ jobs:
             publish/published-release-report.json
           if-no-files-found: warn
           retention-days: 30
+
+      - name: Record verified publication success
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: '47'
+          RELEASE_TAG: v0.168.0-beta.1
+          TARGET_COMMIT: ${{ steps.prepare.outputs.target }}
+        shell: bash
+        run: |
+          body=$(cat <<EOF
+          U33 Beta 发布恢复已完成并通过远端校验。
+
+          - tag: \`${RELEASE_TAG}\`
+          - target: \`${TARGET_COMMIT}\`
+          - prerelease: \`true\`
+          - assets:
+            - \`Yang.Kura-0.168.0-beta.1-portable-x64.exe\`
+            - \`Yang.Kura-0.168.0-beta.1-setup-x64.exe\`
+            - \`SHA256SUMS.txt\`
+          - 校验：Release 元数据、tag target、资产数量、大小、远端 SHA-256 digest 与校验清单全部一致
+          - evidence artifact: \`u33-published-asset-recovery-${GITHUB_SHA}\`
+          - workflow: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+
+          此 Issue 按已完成关闭。后续开发保持暂停，进入项目规划讨论。
+          EOF
+          )
+          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$body"
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER" \
+            -f state=closed \
+            -f state_reason=completed >/dev/null
+
+  report-recovery-failure:
+    name: Report U33 publication recovery failure
+    if: >-
+      always() &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) &&
+      (needs.validate.result == 'failure' || needs.recover.result == 'failure')
+    needs:
+      - validate
+      - recover
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Reopen and update U33 publication issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: '47'
+          VALIDATE_RESULT: ${{ needs.validate.result }}
+          RECOVER_RESULT: ${{ needs.recover.result }}
+        shell: bash
+        run: |
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER" -f state=open >/dev/null
+          body=$(cat <<EOF
+          U33 发布恢复未通过。
+
+          - commit: \`${GITHUB_SHA}\`
+          - validate: \`${VALIDATE_RESULT}\`
+          - recover: \`${RECOVER_RESULT}\`
+          - workflow: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          EOF
+          )
+          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$body"
