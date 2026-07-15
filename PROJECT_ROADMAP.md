@@ -16,8 +16,8 @@
 
 ```text
 核心版本：0.167.0-mvp129
-已完成：U02～U31
-当前主线：U32 Windows 发布候选验收
+已完成：U02～U31 + U32 发布候选 UI 整理
+当前主线：U32 Windows portable / NSIS 打包与系统集成验收
 后续：U33 Beta 发布
 MVP130 下载器：继续冻结，禁止合入
 ```
@@ -104,37 +104,55 @@ MVP130 下载器：继续冻结，禁止合入
 
 详细证据见 `docs/U31_IMPORTER_TRANSACTION_ACCEPTANCE.md`。
 
-## 5. 当前主线：U32 Windows 发布候选验收
+### U32-A：发布候选 UI 整理
+
+- Windows Electron 使用生成的本地媒体样本实际运行和截图。
+- 日常侧栏只保留首页、音声库、音乐库、歌单、导入和设置。
+- 下载规划与诊断路由留在隐藏兼容层，不再显示工程入口。
+- 首页、资源库、歌单、导入器和设置页完成卡片、按钮、页签与间距对齐。
+- U28～U32 Electron E2E、全部 verifier、稳定回归和二次生产构建通过。
+
+合并提交：`d37932c140ec59d858645c083fe2bffcf9c87823`。
+
+## 5. 当前主线：U32-B Windows 发布候选打包验收
 
 **预计：1～2 个合并轮次。**
 
-### U32-A：自动化发布候选
+### U32-B1：自动化发布候选
 
 - strict smoke 与生产构建。
 - portable 与 NSIS 产物生成。
-- 打包内 mpv 文件、启动路径和回退策略核对。
-- 中文路径、空格路径和普通用户目录自动测试。
-- 产物大小、文件清单和 SHA-256。
-- 安装前后用户数据目录与默认配置合同。
+- portable 从中文/空格路径实际启动。
+- NSIS 静默安装到中文/空格路径并实际启动。
+- 重复安装模拟升级，验证用户数据保留。
+- 静默卸载，验证应用主体移除、用户数据保留和无残留进程。
+- 打包态 mpv 不可用时明确报告，并保留 HTMLAudio fallback。
+- 包内禁止混入 Index、日志、缓存、备份和用户数据。
+- 产物大小、文件清单、截图、报告与 SHA-256。
 
-### U32-B：真实 Windows 系统集成
+永久工作流：`.github/workflows/u32-release-candidate.yml`。
+
+详细范围：`docs/U32_RELEASE_CANDIDATE_PACKAGING.md`。
+
+### U32-B2：真实 Windows 系统集成
 
 GitHub runner 能覆盖的内容继续由 ChatGPT 自动完成。以下只有在自动化确实无法替代时才交给 Codex：
 
 - 真实安装向导和系统确认对话框；
-- 安装、升级、卸载后的开始菜单/卸载项；
+- 开始菜单与系统卸载项显示；
 - 打包 mpv 在用户本机驱动与音频设备上的实际播放；
-- 残留进程、文件锁和重启后的系统集成。
+- 用户机器上的残留进程、文件锁、杀毒软件和特殊权限行为。
 
 用户不测试、不运行命令、不判断 PASS/FAIL。
 
 ### U32 完成门槛
 
-- portable 与 NSIS 均能启动。
-- 安装、升级、卸载不破坏用户数据。
-- 中文/空格路径和非管理员使用场景可解释。
-- 实际 mpv 或 fallback 行为有证据。
-- 产物 SHA-256、大小和已知限制完整。
+- portable 与 NSIS 均能构建并实际启动。
+- 中文/空格路径通过。
+- 重复安装和卸载不破坏用户数据。
+- 应用退出与卸载不残留进程。
+- 实际 mpv 或明确 fallback 行为有证据。
+- 产物 SHA-256、大小、截图、文件清单和已知限制完整。
 - U28～U31 永久门禁、全部 verifier、稳定回归和最终构建通过。
 
 ## 6. U33：版本和 Beta 发布
@@ -144,10 +162,12 @@ GitHub runner 能覆盖的内容继续由 ChatGPT 自动完成。以下只有在
 - tag、发布产物和 SHA-256。
 - 新 Beta 发布与回滚说明。
 
+U33 才允许正式调整版本号、创建 tag 和发布 GitHub Release；U32 不提前做这些动作。
+
 ## 7. 轮次预算
 
 ```text
-U32：1～2 轮
+U32-B：1～2 轮
 U33：1 轮
 正常剩余：2～3 轮
 风险储备：4～6 轮
@@ -171,7 +191,18 @@ npm run verify:stable
 最终生产构建
 ```
 
-发布任务还必须验证产物文件清单、哈希、用户数据保留和进程退出。
+U32 发布任务还必须执行：
+
+```text
+portable + NSIS build
+packaged app launch
+Chinese / space path
+repeat install / uninstall
+user data preservation
+process cleanup
+package file audit
+SHA-256 manifest
+```
 
 ## 9. 冻结项
 
