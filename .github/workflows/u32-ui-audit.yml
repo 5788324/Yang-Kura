@@ -1,0 +1,55 @@
+name: U32 UI Audit
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: u32-ui-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    name: Windows Electron visual audit
+    runs-on: windows-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Rebuild Electron runtime
+        run: npm rebuild electron
+
+      - name: Build desktop application
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run build
+          npm run build:electron
+
+      - name: Capture U32 UI audit
+        run: node scripts/test-u32-ui-audit.mjs
+
+      - name: Upload U32 UI audit screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u32-ui-audit
+          path: artifacts/u32-ui-audit
+          if-no-files-found: error
+          retention-days: 14
