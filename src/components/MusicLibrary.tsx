@@ -407,7 +407,7 @@ export default function MusicLibrary({
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-5 animate-fade-in">
       {externalOpenMessage && (
         <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-bold">
           {externalOpenMessage}
@@ -427,31 +427,31 @@ export default function MusicLibrary({
         </div>
 
         {/* View togglers as requested */}
-        <div className="flex bg-card-bg/50 border border-border-color p-1 rounded-xl text-xs font-semibold self-start">
+        <div className="flex flex-wrap gap-1 rounded-xl border border-border-color/70 bg-card-bg/40 p-1 text-xs font-semibold self-start">
           <button
             onClick={() => handleSubViewChange("tracks")}
-            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center space-x-1.5 ${activeSubView === "tracks" ? "bg-brand-active text-white shadow-sm" : "text-text-secondary hover:text-text-primary"}`}
+            className={`inline-flex h-8 items-center gap-1.5 rounded-lg px-3 transition-colors ${activeSubView === "tracks" ? "bg-brand-active text-white shadow-sm" : "text-text-secondary hover:text-text-primary"}`}
           >
             <List className="w-3.5 h-3.5" />
             <span>歌曲列表</span>
           </button>
           <button
             onClick={() => handleSubViewChange("albums")}
-            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center space-x-1.5 ${activeSubView === "albums" ? "bg-brand-active text-white shadow-sm" : "text-text-secondary hover:text-text-primary"}`}
+            className={`inline-flex h-8 items-center gap-1.5 rounded-lg px-3 transition-colors ${activeSubView === "albums" ? "bg-brand-active text-white shadow-sm" : "text-text-secondary hover:text-text-primary"}`}
           >
             <Disc className="w-3.5 h-3.5" />
             <span>专辑视图</span>
           </button>
           <button
             onClick={() => handleSubViewChange("artists")}
-            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center space-x-1.5 ${activeSubView === "artists" ? "bg-brand-active text-white shadow-sm" : "text-text-secondary hover:text-text-primary"}`}
+            className={`inline-flex h-8 items-center gap-1.5 rounded-lg px-3 transition-colors ${activeSubView === "artists" ? "bg-brand-active text-white shadow-sm" : "text-text-secondary hover:text-text-primary"}`}
           >
             <User className="w-3.5 h-3.5" />
             <span>艺术家</span>
           </button>
           <button
             onClick={() => handleSubViewChange("folders")}
-            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center space-x-1.5 ${activeSubView === "folders" ? "bg-brand-active text-white shadow-sm" : "text-text-secondary hover:text-text-primary"}`}
+            className={`inline-flex h-8 items-center gap-1.5 rounded-lg px-3 transition-colors ${activeSubView === "folders" ? "bg-brand-active text-white shadow-sm" : "text-text-secondary hover:text-text-primary"}`}
           >
             <Folder className="w-3.5 h-3.5" />
             <span>文件夹视图</span>

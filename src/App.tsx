@@ -511,18 +511,15 @@ export default function App() {
       : 'bg-zinc-500';
 
   return (
-    <div data-u30-theme={settings.currentTheme} className={`h-screen w-screen min-w-0 flex flex-col theme-${settings.currentTheme} transition-all duration-300 overflow-hidden`}>
+    <div data-u30-theme={settings.currentTheme} className={`u32-release-ui h-screen w-screen min-w-0 flex flex-col theme-${settings.currentTheme} transition-all duration-300 overflow-hidden`}>
       
       {/* Top Windows Native-Style Custom Header Bar */}
       <header id="windows-app-bar" className="h-9 min-w-0 flex items-center justify-between gap-3 px-3 sm:px-4 bg-sidebar-bg/60 border-b border-border-color/60 text-xs text-text-secondary select-none z-50">
-        <div className="flex items-center space-x-2 font-mono">
-          <span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
-          <span className="font-semibold text-[11px]">Yang-Kura 本地音频媒体库</span>
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="h-2 w-2 flex-shrink-0 rounded-full bg-brand-color"></span>
+          <span className="truncate font-semibold text-[11px] text-text-primary">Yang-Kura</span>
         </div>
-        <div className="flex items-center space-x-2 font-sans">
-          <span className="text-[10px] text-text-muted bg-border-color/40 px-2 py-0.5 rounded">
-            本地媒体库
-          </span>
+        <div className="flex min-w-0 items-center gap-2 font-sans">
           <span data-u30-runtime-status className={`${libraryRuntimeTone} u30-runtime-label flex min-w-0 items-center space-x-1 font-semibold text-[10px]`}>
             <span className={`inline-block w-1.5 h-1.5 rounded-full ${libraryRuntimeDot}`}></span>
             <span>{libraryRuntimeStatus}</span>
@@ -545,7 +542,7 @@ export default function App() {
         />
 
         {/* Central Scrollable Content Area */}
-        <main ref={mainContentRef} className="flex-1 min-w-0 h-full overflow-y-auto overflow-x-hidden scrollbar-thin px-4 md:px-6 xl:px-10 py-4 md:py-6 pb-24 bg-bg-primary">
+        <main ref={mainContentRef} className="flex-1 min-w-0 h-full overflow-y-auto overflow-x-hidden scrollbar-thin px-4 md:px-6 xl:px-8 py-4 md:py-5 pb-24 bg-bg-primary">
           <Suspense fallback={<div className="min-h-[240px] rounded-2xl border border-border-color/50 bg-card-bg/30 p-6 text-sm text-text-muted">正在打开页面…</div>}>
           
           {/* Page Router with Drilldowns */}

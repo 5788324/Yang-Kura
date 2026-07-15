@@ -211,3 +211,90 @@ body {
     transition-delay: 0ms !important;
   }
 }
+
+
+/* U32 release-candidate UI cleanup */
+.u32-release-ui main > .animate-fade-in {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+}
+
+/* Historical engineering summaries stay in the DOM for compatibility, but no longer occupy daily UI. */
+.u32-release-ui #mvp40-playlist-overview,
+.u32-release-ui #mvp53-playlist-visual-unity,
+.u32-release-ui #mvp86-importer-task-summary,
+.u32-release-ui #mvp112-importer-primary-flow {
+  display: none !important;
+}
+
+.u32-release-ui #mvp46-asmr-browse-summary,
+.u32-release-ui #mvp40-music-library-overview {
+  padding: 0.75rem;
+  border-radius: 0.875rem;
+  background: color-mix(in srgb, var(--card-bg) 28%, transparent);
+}
+
+.u32-release-ui #mvp46-asmr-browse-summary > .grid,
+.u32-release-ui #mvp46-asmr-browse-summary > #mvp52-asmr-beta-regression,
+.u32-release-ui #mvp46-asmr-browse-summary > #mvp53-asmr-visual-unity,
+.u32-release-ui #mvp40-music-library-overview > .grid,
+.u32-release-ui #mvp40-music-library-overview > #mvp52-music-beta-regression,
+.u32-release-ui #mvp40-music-library-overview > #mvp53-music-visual-unity {
+  display: none !important;
+}
+
+.u32-release-ui #mvp126-asmr-render-window,
+.u32-release-ui #mvp126-music-render-window {
+  min-height: 1.75rem;
+  border: 0;
+  background: transparent;
+  padding: 0 0.25rem;
+}
+
+.u32-release-ui #u32-asmr-toolbar select,
+.u32-release-ui #u32-asmr-toolbar input {
+  min-height: 2.25rem;
+}
+
+.u32-release-ui main button:not(:disabled) {
+  cursor: pointer;
+}
+
+@media (max-width: 1120px) {
+  .u32-release-ui #windows-app-bar { padding-inline: 0.75rem; }
+  .u32-release-ui main { padding-inline: 1rem; }
+}
+
+
+/* U32 compact library state */
+.u32-release-ui #mvp45-home-quick-entry {
+  display: block;
+}
+
+.u32-release-ui #mvp42-daily-listening-surface {
+  display: none !important;
+}
+
+.u32-release-ui #mvp45-home-quick-entry > div:last-child {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.u32-release-ui #mvp45-home-quick-entry > div:last-child button {
+  width: auto;
+  min-width: 7rem;
+  height: 2.25rem;
+}
+
+@media (max-width: 720px) {
+  .u32-release-ui #mvp45-home-quick-entry > div:last-child {
+    grid-template-columns: 1fr;
+  }
+  .u32-release-ui #mvp45-home-quick-entry > div:last-child button {
+    width: 100%;
+  }
+}

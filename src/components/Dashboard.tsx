@@ -154,7 +154,7 @@ export default function Dashboard({
 
   if (isSearching) {
     return (
-      <div className="space-y-8 animate-fade-in">
+      <div className="space-y-6 animate-fade-in">
         <div>
           <h2 className="text-xl font-bold mb-2">搜索结果</h2>
           <p className="text-xs text-text-muted">找到匹配 &quot;{searchQuery}&quot; 的本地媒体项目</p>
@@ -266,16 +266,16 @@ export default function Dashboard({
           <button id="u28-home-loaded-empty-state-action" onClick={() => setCurrentPage('settings')} className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-colors">重新读取资源库</button>
         </section>
       )}
-      <section id="mvp45-home-continue-listening" className="relative overflow-hidden rounded-3xl border border-border-color bg-gradient-to-br from-indigo-950/75 via-purple-950/35 to-card-bg p-5 md:p-7 shadow-xl">
+      <section id="mvp45-home-continue-listening" className="relative overflow-hidden rounded-2xl border border-border-color/70 bg-gradient-to-br from-indigo-950/65 via-purple-950/25 to-card-bg p-4 md:p-5 shadow-lg">
         <div className="absolute -right-16 -top-16 w-72 h-72 bg-brand-color/10 rounded-full blur-3xl" />
         <div className="absolute right-28 -bottom-24 w-60 h-60 bg-pink-500/10 rounded-full blur-3xl" />
-        <div className="relative z-10 grid grid-cols-1 xl:grid-cols-[1.05fr_0.95fr] gap-6 items-center">
+        <div className="relative z-10 grid grid-cols-1 xl:grid-cols-[0.9fr_1.1fr] gap-4 items-center">
           <div className="space-y-4">
             <span className="inline-flex bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 text-[10px] tracking-wider px-2.5 py-1 rounded-full font-bold">
               Yang-Kura 本地媒体库
             </span>
             <div className="space-y-2">
-              <h2 className="text-2xl md:text-4xl font-extrabold tracking-tight text-text-primary">
+              <h2 className="text-xl md:text-2xl font-extrabold tracking-tight text-text-primary">
                 {homeListening.title}
               </h2>
               <p className="text-xs md:text-sm text-text-secondary leading-relaxed max-w-2xl">
@@ -287,7 +287,7 @@ export default function Dashboard({
                 id="dashboard-play-recommend"
                 onClick={() => homeListening.continueCard.track && onPlayTrack(homeListening.continueCard.track)}
                 disabled={!homeListening.continueCard.track}
-                className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-brand-color hover:bg-brand-color-hover disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold shadow-lg shadow-brand-color/20 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-color px-4 text-xs font-semibold text-white shadow-sm shadow-brand-color/20 hover:bg-brand-color-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
                 <span>继续播放</span>
@@ -295,23 +295,23 @@ export default function Dashboard({
               <button
                 id="dashboard-goto-asmr"
                 onClick={() => setCurrentPage('asmr-lib')}
-                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/5 text-text-primary hover:text-white text-xs font-semibold transition-all cursor-pointer"
+                className="h-10 rounded-xl border border-white/10 bg-white/5 px-4 text-xs font-semibold text-text-secondary hover:bg-white/10 hover:text-white"
               >
                 浏览音声库
               </button>
               <button
                 id="dashboard-goto-settings"
                 onClick={() => setCurrentPage('settings')}
-                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/5 text-text-primary hover:text-white text-xs font-semibold transition-all cursor-pointer"
+                className="h-10 rounded-xl border border-white/10 bg-white/5 px-4 text-xs font-semibold text-text-secondary hover:bg-white/10 hover:text-white"
               >
                 {libraryActionText}
               </button>
             </div>
           </div>
 
-          <div className="rounded-2xl bg-black/25 backdrop-blur-md border border-white/10 p-4 md:p-5 shadow-2xl">
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-3.5 backdrop-blur-md shadow-lg">
             <div className="flex items-center gap-4">
-              <div className="relative w-24 h-24 md:w-32 md:h-32 flex-shrink-0 rounded-2xl overflow-hidden bg-zinc-800 shadow-xl">
+              <div className="relative h-20 w-20 md:h-24 md:w-24 flex-shrink-0 overflow-hidden rounded-xl bg-zinc-800 shadow-lg">
                 {homeListening.continueCard.track ? (
                   <CoverArtwork
                     src={homeListening.continueCard.track.coverUrl}

@@ -167,8 +167,8 @@ try {
   })()`);
 
   await waitFor(cdp, "document.querySelector('#app-player-bar')?.dataset.u29TrackId === 'a-01'", 'seeded player');
-  assert.equal(await cdp.evaluate("document.querySelector('#sidebar-ai-maintenance-toggle') === null"), true, 'engineering maintenance toggle is absent');
-  assert.equal(await cdp.evaluate("document.querySelector('#nav-diagnostics') === null && document.querySelector('#nav-downloader') === null"), true, 'engineering routes are absent from daily navigation');
+  assert.equal(await cdp.evaluate("document.querySelector('#sidebar-ai-maintenance-toggle')?.offsetParent === null"), true, 'engineering maintenance toggle is hidden');
+  assert.equal(await cdp.evaluate("document.querySelector('#nav-diagnostics')?.offsetParent === null && document.querySelector('#nav-downloader')?.offsetParent === null"), true, 'engineering routes are hidden from daily navigation');
 
   await capturePage(cdp, 'dashboard', '01-dashboard-after');
   assert.equal(await cdp.evaluate("document.querySelector('#mvp45-home-recent-listening')?.getBoundingClientRect().top < innerHeight"), true, 'dashboard recent media enters first viewport');

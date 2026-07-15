@@ -964,9 +964,9 @@ export default function SettingsPage({
   ] as const;
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-5xl pb-12">
+    <div className="mx-auto max-w-6xl space-y-5 pb-12 animate-fade-in">
       {/* Header */}
-      <div className="border-b border-border-color pb-4">
+      <div className="border-b border-border-color/70 pb-3">
         <h2 className="text-xl font-bold flex items-center space-x-2.5">
           <Settings className="w-5.5 h-5.5 text-brand-color" />
           <span>应用设置</span>
@@ -977,9 +977,9 @@ export default function SettingsPage({
       </div>
 
       {/* Main Grid with Left Navigation & Right Content */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+      <div className="space-y-4">
         {/* Left Side Sub-Navigation */}
-        <div className="md:col-span-3 space-y-1.5">
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
           {subTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -988,7 +988,7 @@ export default function SettingsPage({
                 key={tab.id}
                 data-settings-tab={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer text-left border ${
+                className={`h-11 w-full flex items-center justify-center gap-2 px-3 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-left border ${
                   isActive
                     ? "bg-brand-color/10 border-brand-color/30 text-brand-color shadow-sm font-bold"
                     : "bg-card-bg/20 border-transparent text-text-secondary hover:text-text-primary hover:bg-card-bg/40"
@@ -997,23 +997,19 @@ export default function SettingsPage({
                 <Icon
                   className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-brand-color" : "text-text-muted"}`}
                 />
-                <div className="min-w-0">
-                  <span className="block truncate">{tab.label}</span>
-                  <span className="block text-[9px] text-text-muted truncate mt-0.5 font-normal">
-                    {tab.desc}
-                  </span>
-                </div>
+                <span className="truncate">{tab.label}</span>
+                <span className="sr-only">{tab.desc}</span>
               </button>
             );
           })}
         </div>
 
         {/* Right Side Content Area */}
-        <div className="md:col-span-9">
+        <div className="min-w-0">
           {/* TAB 1: 个性主题 */}
           {activeTab === "theme" && (
             <div className="space-y-5 animate-fade-in">
-              <div className="bg-card-bg/40 border border-border-color p-5 rounded-2xl space-y-4">
+              <div className="rounded-2xl border border-border-color/70 bg-card-bg/35 p-4 space-y-4">
                 <div className="flex items-center space-x-2">
                   <Palette className="w-4.5 h-4.5 text-pink-400" />
                   <h3 className="text-xs font-bold text-text-primary">
