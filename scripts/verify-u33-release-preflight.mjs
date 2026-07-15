@@ -7,10 +7,11 @@ const root = process.cwd();
 const artifactDir = path.join(root, 'artifacts', 'u33-release-preflight');
 const plan = JSON.parse(fs.readFileSync(path.join(root, 'release', 'u33-release-plan.json'), 'utf8'));
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-const tagsPages = JSON.parse(fs.readFileSync(path.join(artifactDir, 'tags-pages.json'), 'utf8'));
-const releasesPages = JSON.parse(fs.readFileSync(path.join(artifactDir, 'releases-pages.json'), 'utf8'));
-const tags = tagsPages.flatMap((page) => Array.isArray(page) ? page : []);
-const releases = releasesPages.flatMap((page) => Array.isArray(page) ? page : []);
+const notes = fs.readFileSync(path.join(root, plan.releaseNotesPath), 'utf8');
+const preflightWorkflow = fs.readFileSync('.github/workflows/u33-release-preflight.yml', 'utf8');
+const releaseWorkflow = fs.readFileSync('.github/workflows/u33-beta-release.yml', 'utf8');
+const tagsPath = path.join(artifactDir, 'tags-pages.json');
+const releasesPath = path.join(artifactDir, 'releases-pages.json');
 const allowExistingTarget = process.env.U33_ALLOW_EXISTING_TARGET === '1';
 
 const parseCore = (value) => {
@@ -35,15 +36,36 @@ assert.equal(plan.tag, `v${plan.version}`);
 assert.equal(plan.previousVersion, '0.167.0-mvp129');
 assert.ok(compareCore(parseCore(plan.version), parseCore(plan.previousVersion)) > 0, 'target version core must advance');
 assert.ok([plan.previousVersion, plan.version].includes(pkg.version), `package version must be previous or target during U33: ${pkg.version}`);
-assert.ok(fs.existsSync(path.join(root, plan.releaseNotesPath)), `release notes missing: ${plan.releaseNotesPath}`);
+assert.ok(notes.includes('# Yang-Kura 0.168.0 Beta 1'), 'release notes title mismatch');
 assert.deepEqual(plan.assets, [
   `Yang Kura-${plan.version}-portable-x64.exe`,
   `Yang Kura-${plan.version}-setup-x64.exe`,
   'SHA256SUMS.txt',
 ]);
 
+for (const marker of [
+  'permissions:\n  contents: read',
+  'gh api --paginate --slurp',
+  'node scripts/verify-u33-release-preflight.mjs',
+]) assert.ok(preflightWorkflow.includes(marker), `preflight workflow missing: ${marker}`);
+for (const marker of [
+  "github.event_name == 'push' && github.ref == 'refs/heads/main'",
+  'permissions:\n      contents: write',
+  'gh release create "$RELEASE_TAG"',
+  '--target "$GITHUB_SHA"',
+  '--prerelease',
+]) assert.ok(releaseWorkflow.includes(marker), `release workflow missing: ${marker}`);
+
+if (!fs.existsSync(tagsPath) || !fs.existsSync(releasesPath)) {
+  console.log(`U33 release preflight static contract PASS: ${plan.tag}`);
+  process.exit(0);
+}
+
+const tagsPages = JSON.parse(fs.readFileSync(tagsPath, 'utf8'));
+const releasesPages = JSON.parse(fs.readFileSync(releasesPath, 'utf8'));
+const tags = tagsPages.flatMap((page) => Array.isArray(page) ? page : []);
+const releases = releasesPages.flatMap((page) => Array.isArray(page) ? page : []);
 const tagNames = tags.map((item) => item?.name).filter(Boolean);
-const releaseTags = releases.map((item) => item?.tag_name).filter(Boolean);
 const releaseTitles = releases.map((item) => item?.name).filter(Boolean);
 const existingRelease = releases.find((item) => item?.tag_name === plan.tag) ?? null;
 const existingTag = tags.find((item) => item?.name === plan.tag) ?? null;
@@ -86,5 +108,6 @@ const report = {
   collision: false,
 };
 
+fs.mkdirSync(artifactDir, { recursive: true });
 fs.writeFileSync(path.join(artifactDir, 'preflight-report.json'), JSON.stringify(report, null, 2), 'utf8');
-console.log(`U33 release preflight PASS: ${plan.tag} ${report.targetAlreadyExists ? 'already exists and is compatible' : 'is available'}`);
+console.log(`U33 release preflight live PASS: ${plan.tag} ${report.targetAlreadyExists ? 'already exists and is compatible' : 'is available'}`);
