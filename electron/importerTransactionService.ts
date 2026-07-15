@@ -185,11 +185,11 @@ export async function executeCopyOnlyTransaction(input: {
   for (const item of input.items) {
     const source = resolveWithinRoot(input.sourceRootAbsolutePath, item.sourceRelativePath);
     const target = resolveWithinRoot(input.targetRootAbsolutePath, item.targetRelativePath);
-    if (!source.ok) {
+    if (source.ok === false) {
       failureList.push({ ...item, reasonCode: source.code, message: source.message });
       continue;
     }
-    if (!target.ok) {
+    if (target.ok === false) {
       failureList.push({ ...item, reasonCode: target.code, message: target.message });
       continue;
     }
@@ -228,7 +228,7 @@ export async function executeCopyOnlyTransaction(input: {
   if (rollbackAttempted) {
     for (const file of [...attemptedFiles].reverse()) {
       const target = resolveWithinRoot(input.targetRootAbsolutePath, file.targetRelativePath);
-      if (!target.ok) {
+      if (target.ok === false) {
         rollbackFailureList.push({ ...file, reasonCode: target.code, message: target.message });
         continue;
       }
@@ -285,11 +285,11 @@ export async function executeMoveOnlyTransaction(input: {
       failureList.push({ ...item, reasonCode, message });
       failureStopTriggered = true;
     };
-    if (!source.ok) {
+    if (source.ok === false) {
       failAndStop(source.code, source.message);
       continue;
     }
-    if (!target.ok) {
+    if (target.ok === false) {
       failAndStop(target.code, target.message);
       continue;
     }
@@ -349,8 +349,8 @@ export async function executeMoveOnlyTransaction(input: {
     for (const file of [...attemptedFiles].reverse()) {
       const source = resolveWithinRoot(input.sourceRootAbsolutePath, file.sourceRelativePath);
       const target = resolveWithinRoot(input.targetRootAbsolutePath, file.targetRelativePath);
-      if (!source.ok || !target.ok) {
-        rollbackFailureList.push({ ...file, reasonCode: !source.ok ? source.code : (target as { ok: false; code: string }).code, message: !source.ok ? source.message : (target as { ok: false; message: string }).message });
+      if (source.ok === false || target.ok === false) {
+        rollbackFailureList.push({ ...file, reasonCode: source.ok === false ? source.code : (target as { ok: false; code: string }).code, message: source.ok === false ? source.message : (target as { ok: false; message: string }).message });
         continue;
       }
       try {

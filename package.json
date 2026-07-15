@@ -62,7 +62,9 @@
     "test:u29:electron-e2e": "node scripts/test-u29-electron-e2e.mjs",
     "verify:u29-player-reliability": "node scripts/verify-u29-player-reliability.mjs",
     "test:u30:ui-matrix": "node scripts/test-u30-ui-matrix.mjs",
-    "verify:u30-ui-fast-track": "node scripts/verify-u30-ui-fast-track.mjs"
+    "verify:u30-ui-fast-track": "node scripts/verify-u30-ui-fast-track.mjs",
+    "test:u31:importer-transactions": "node scripts/test-u31-importer-transactions.mjs",
+    "verify:u31-importer-transaction-hardening": "node scripts/verify-u31-importer-transaction-hardening.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.546.0",
