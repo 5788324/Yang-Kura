@@ -1,0 +1,86 @@
+name: U32 Release Candidate Packaging
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'electron/**'
+      - 'src/**'
+      - 'scripts/test-u32-release-candidate-packaging.mjs'
+      - 'scripts/test-u32-packaged-page-readiness.mjs'
+      - 'scripts/verify-u32-release-candidate-packaging.mjs'
+      - 'electron-builder.config.cjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/u32-release-candidate.yml'
+      - 'PROJECT_STATE.md'
+      - 'PROJECT_ROADMAP.md'
+      - 'docs/U32_RELEASE_CANDIDATE_PACKAGING.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: u32-release-candidate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package-and-accept:
+    name: Windows portable and NSIS acceptance
+    runs-on: windows-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Audit high and critical dependency risk
+        run: npm audit --audit-level=high
+
+      - name: Rebuild Electron and apply builder compatibility patch
+        shell: pwsh
+        run: |
+          npm rebuild electron
+          npm run patch:electron-builder
+
+      - name: Validate TypeScript and build desktop sources
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run lint
+          npm run build
+          npm run build:electron
+
+      - name: Build portable and NSIS release candidates
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: node node_modules/electron-builder/cli.js --win portable nsis --config electron-builder.config.cjs
+
+      - name: Run packaged release-candidate acceptance
+        run: node scripts/test-u32-release-candidate-packaging.mjs
+
+      - name: Require complete packaged home content
+        run: node scripts/test-u32-packaged-page-readiness.mjs
+
+      - name: Upload release candidates and acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u32-release-candidate-windows
+          path: |
+            release/*.exe
+            artifacts/u32-release-candidate
+          if-no-files-found: warn
+          retention-days: 14
