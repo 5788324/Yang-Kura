@@ -4,6 +4,10 @@ import fs from 'node:fs';
 const patchPath = 'scripts/apply-u32-ui-cleanup.mjs';
 let source = fs.readFileSync(patchPath, 'utf8');
 source = source.replace(
+  "function read(path) { return fs.readFileSync(path, 'utf8'); }",
+  "function read(path) { return fs.readFileSync(path, 'utf8').replace(/\\r\\n/g, '\\n'); }",
+);
+source = source.replace(
   "'className={`h-screen w-screen min-w-0 flex flex-col theme-${settings.currentTheme} transition-all duration-300 overflow-hidden`}'",
   "'<div data-u30-theme={settings.currentTheme} className={`h-screen w-screen min-w-0 flex flex-col theme-${settings.currentTheme} transition-all duration-300 overflow-hidden`}>'",
 );
