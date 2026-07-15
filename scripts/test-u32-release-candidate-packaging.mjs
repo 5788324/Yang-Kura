@@ -10,37 +10,46 @@ import { spawn, spawnSync } from 'node:child_process';
 const root = process.cwd();
 const releaseDir = path.join(root, 'release');
 const artifactDir = path.join(root, 'artifacts', 'u32-release-candidate');
-const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const report = {
   status: 'running',
-  version: packageJson.version,
+  progress: 'initializing',
+  version: pkg.version,
   artifacts: [],
   launches: [],
   checks: [],
+  residualProcesses: [],
 };
 
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 fs.mkdirSync(artifactDir, { recursive: true });
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const relative = (filePath) => path.relative(root, filePath).replace(/\\/g, '/');
+
+function flushReport() {
+  fs.writeFileSync(path.join(artifactDir, 'report.json'), JSON.stringify(report, null, 2), 'utf8');
+}
+
+function checkpoint(progress) {
+  report.progress = progress;
+  flushReport();
+  console.log(`[U32] ${progress}`);
+}
 
 function walkFiles(directory) {
   if (!fs.existsSync(directory)) return [];
-  const result = [];
+  const files = [];
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     const absolute = path.join(directory, entry.name);
-    if (entry.isDirectory()) result.push(...walkFiles(absolute));
-    else result.push(absolute);
+    if (entry.isDirectory()) files.push(...walkFiles(absolute));
+    else files.push(absolute);
   }
-  return result;
+  return files;
 }
 
-function sha256(filePath) {
+function hashFile(filePath) {
   const hash = crypto.createHash('sha256');
   hash.update(fs.readFileSync(filePath));
   return hash.digest('hex');
-}
-
-function relative(filePath) {
-  return path.relative(root, filePath).replace(/\\/g, '/');
 }
 
 function findSingle(files, predicate, label) {
@@ -148,7 +157,15 @@ async function waitForCondition(cdp, expression, label, timeout = 20_000) {
   throw new Error(`Timed out waiting for ${label}`);
 }
 
-async function waitForFile(filePath, shouldExist, timeout = 45_000) {
+async function waitForChildExit(child, timeout = 8_000) {
+  if (child.exitCode !== null || child.signalCode !== null) return true;
+  return Promise.race([
+    new Promise((resolve) => child.once('exit', () => resolve(true))),
+    delay(timeout).then(() => false),
+  ]);
+}
+
+async function waitForPath(filePath, shouldExist, timeout = 60_000) {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     if (fs.existsSync(filePath) === shouldExist) return;
@@ -158,34 +175,46 @@ async function waitForFile(filePath, shouldExist, timeout = 45_000) {
 }
 
 function productProcessIds() {
-  const script = "$items=@(Get-CimInstance Win32_Process -Filter \"Name='Yang Kura.exe'\" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty ProcessId); if($items.Count -eq 0){'[]'}else{$items | ConvertTo-Json -Compress}";
-  const result = spawnSync('powershell.exe', ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', script], {
+  const command = "$items=@(Get-CimInstance Win32_Process -Filter \"Name='Yang Kura.exe'\" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty ProcessId); ConvertTo-Json -InputObject $items -Compress";
+  const result = spawnSync('powershell.exe', ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', command], {
     encoding: 'utf8',
     windowsHide: true,
     timeout: 20_000,
   });
-  if (result.status !== 0) return [];
-  const text = `${result.stdout ?? ''}`.trim() || '[]';
-  const parsed = JSON.parse(text);
+  assert.equal(result.status, 0, `process inspection failed: ${result.stderr || result.stdout || ''}`);
+  const parsed = JSON.parse(`${result.stdout ?? ''}`.trim() || '[]');
   return Array.isArray(parsed) ? parsed.map(Number) : [Number(parsed)];
 }
 
-async function waitForNoNewProductProcesses(baseline, timeout = 20_000) {
+function stopProductProcesses(pids) {
+  for (const pid of pids) {
+    spawnSync('powershell.exe', ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', `Stop-Process -Id ${Number(pid)} -Force -ErrorAction SilentlyContinue`], {
+      windowsHide: true,
+      stdio: 'ignore',
+      timeout: 20_000,
+    });
+  }
+}
+
+async function waitForNoNewProductProcesses(baseline, timeout = 15_000) {
   const baselineSet = new Set(baseline);
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     const extra = productProcessIds().filter((pid) => !baselineSet.has(pid));
-    if (extra.length === 0) return;
+    if (extra.length === 0) return [];
     await delay(250);
   }
-  const extra = productProcessIds().filter((pid) => !baselineSet.has(pid));
-  for (const pid of extra) {
-    spawnSync('taskkill.exe', ['/PID', String(pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' });
-  }
-  assert.deepEqual(productProcessIds().filter((pid) => !baselineSet.has(pid)), [], `packaged application left residual processes: ${extra.join(', ')}`);
+  return productProcessIds().filter((pid) => !baselineSet.has(pid));
+}
+
+function appendProcessLog(fileName, label, chunks) {
+  const text = chunks.join('').trim();
+  if (!text) return;
+  fs.appendFileSync(path.join(artifactDir, fileName), `\n[${label}]\n${text}\n`, 'utf8');
 }
 
 async function launchAndInspect(executable, label, profileRoot) {
+  checkpoint(`launch:${label}:starting`);
   const baselinePids = productProcessIds();
   const port = await reservePort();
   const child = spawn(executable, [`--remote-debugging-port=${port}`], {
@@ -207,6 +236,8 @@ async function launchAndInspect(executable, label, profileRoot) {
   child.stdout?.on('data', (chunk) => stdout.push(String(chunk)));
   child.stderr?.on('data', (chunk) => stderr.push(String(chunk)));
   let cdp;
+  let requestedClose = false;
+
   try {
     cdp = new CdpClient(await waitForTarget(port));
     await cdp.connect();
@@ -216,9 +247,10 @@ async function launchAndInspect(executable, label, profileRoot) {
     const mpvRuntime = await cdp.evaluate('window.yangKura.getMpvPlaybackStatus()', true);
     assert.equal(shellStatus?.hasRealElectronRuntime, true, `${label}: packaged preload bridge unavailable`);
     assert.equal(shellStatus?.exposesAbsolutePaths, false, `${label}: packaged shell exposed absolute paths`);
-    assert.equal(mpvInstallation?.available, false, `${label}: nonexistent mpv path must be reported unavailable`);
+    assert.equal(mpvInstallation?.available, false, `${label}: nonexistent mpv path must be unavailable`);
     assert.equal(mpvRuntime?.fallbackAvailable, true, `${label}: HTMLAudio fallback must remain available`);
     assert.deepEqual(cdp.errors, [], `${label}: renderer errors: ${cdp.errors.join(' | ')}`);
+
     const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png', fromSurface: true });
     const screenshotName = `${label.replace(/[^a-z0-9-]+/gi, '-').toLowerCase()}.png`;
     fs.writeFileSync(path.join(artifactDir, screenshotName), Buffer.from(screenshot.data, 'base64'));
@@ -230,21 +262,27 @@ async function launchAndInspect(executable, label, profileRoot) {
       fallbackAvailable: mpvRuntime?.fallbackAvailable ?? null,
       screenshot: screenshotName,
     });
-    try { await cdp.send('Browser.close'); } catch {}
+    checkpoint(`launch:${label}:verified`);
+
+    await cdp.evaluate('window.close(); true');
+    requestedClose = true;
   } finally {
     cdp?.close();
-    await delay(1200);
-    if (child.exitCode === null) {
-      spawnSync('taskkill.exe', ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' });
+    appendProcessLog('packaged-stdout.log', label, stdout);
+    appendProcessLog('packaged-stderr.log', label, stderr);
+
+    const exited = await waitForChildExit(child);
+    if (!exited && child.exitCode === null) child.kill();
+    const residual = await waitForNoNewProductProcesses(baselinePids);
+    if (residual.length) {
+      report.residualProcesses.push({ label, pids: residual });
+      checkpoint(`launch:${label}:residual-processes`);
+      stopProductProcesses(residual);
     }
-    await waitForNoNewProductProcesses(baselinePids);
-    if (stderr.join('').trim()) {
-      fs.appendFileSync(path.join(artifactDir, 'packaged-stderr.log'), `\n[${label}]\n${stderr.join('')}`, 'utf8');
-    }
-    if (stdout.join('').trim()) {
-      fs.appendFileSync(path.join(artifactDir, 'packaged-stdout.log'), `\n[${label}]\n${stdout.join('')}`, 'utf8');
-    }
+    assert.deepEqual(residual, [], `${label}: Yang Kura residual processes remained after ${requestedClose ? 'window close' : 'failed launch'}: ${residual.join(', ')}`);
   }
+
+  checkpoint(`launch:${label}:closed`);
 }
 
 function runInstaller(setupExe, installDir) {
@@ -267,19 +305,22 @@ function findInstalledExecutable(installDir, uninstall = false) {
   return matches[0];
 }
 
+flushReport();
+
 try {
   assert.equal(process.platform, 'win32', 'U32 release-candidate packaging acceptance must run on Windows');
   assert.ok(fs.existsSync(releaseDir), 'release directory missing; build portable and NSIS first');
+  checkpoint('release-artifact-audit');
 
   const releaseFiles = walkFiles(releaseDir);
   const portableExe = findSingle(
     releaseFiles,
-    (file) => path.basename(file) === `Yang Kura-${packageJson.version}-portable-x64.exe`,
+    (file) => path.basename(file) === `Yang Kura-${pkg.version}-portable-x64.exe`,
     'portable artifact',
   );
   const setupExe = findSingle(
     releaseFiles,
-    (file) => path.basename(file) === `Yang Kura-${packageJson.version}-setup-x64.exe`,
+    (file) => path.basename(file) === `Yang Kura-${pkg.version}-setup-x64.exe`,
     'NSIS artifact',
   );
   const appAsar = findSingle(
@@ -291,7 +332,7 @@ try {
   for (const file of [portableExe, setupExe, appAsar]) {
     const stat = fs.statSync(file);
     assert.ok(stat.size > 100_000, `${path.basename(file)} is unexpectedly small`);
-    report.artifacts.push({ name: path.basename(file), sizeBytes: stat.size, sha256: sha256(file) });
+    report.artifacts.push({ name: path.basename(file), sizeBytes: stat.size, sha256: hashFile(file) });
   }
 
   const forbiddenPackagedFiles = releaseFiles
@@ -300,6 +341,7 @@ try {
   assert.deepEqual(forbiddenPackagedFiles, [], `forbidden mutable/user files leaked into package: ${forbiddenPackagedFiles.join(', ')}`);
   report.checks.push('portable, NSIS and app.asar artifacts present with SHA-256');
   report.checks.push('no mutable library/index/cache/log/data path leaked into package');
+  checkpoint('release-artifact-audit-passed');
 
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'yang-kura-u32-发布候选-'));
   const profileRoot = path.join(tempRoot, '用户 数据 保留');
@@ -315,18 +357,21 @@ try {
   await launchAndInspect(portableCopy, 'portable-chinese-space-path', profileRoot);
   assert.ok(fs.existsSync(markerFile), 'portable launch removed existing user data marker');
   report.checks.push('portable starts from Chinese/space path and exits without residue');
+  checkpoint('portable-passed');
 
   const installDir = path.join(tempRoot, '中文 空格 安装目录', 'Yang Kura');
   runInstaller(setupExe, installDir);
   const installedExe = findInstalledExecutable(installDir, false);
   await launchAndInspect(installedExe, 'nsis-first-install', profileRoot);
   assert.ok(fs.existsSync(markerFile), 'first install removed user data marker');
+  checkpoint('nsis-first-install-passed');
 
   runInstaller(setupExe, installDir);
-  await waitForFile(installedExe, true);
+  await waitForPath(installedExe, true);
   await launchAndInspect(installedExe, 'nsis-repeat-install-upgrade', profileRoot);
   assert.ok(fs.existsSync(markerFile), 'repeat install/upgrade removed user data marker');
   report.checks.push('NSIS install and repeat install preserve user data');
+  checkpoint('nsis-repeat-install-passed');
 
   const uninstaller = findInstalledExecutable(installDir, true);
   const uninstallResult = spawnSync(uninstaller, ['/S'], {
@@ -337,11 +382,14 @@ try {
   });
   assert.equal(uninstallResult.error, undefined, `NSIS uninstaller failed to start: ${uninstallResult.error?.message ?? ''}`);
   assert.equal(uninstallResult.status, 0, `NSIS uninstaller exit ${uninstallResult.status}: ${uninstallResult.stderr || uninstallResult.stdout || ''}`);
-  await waitForFile(installedExe, false, 60_000);
+  await waitForPath(installedExe, false);
   assert.ok(fs.existsSync(markerFile), 'uninstall deleted user data despite deleteAppDataOnUninstall=false');
-  await waitForNoNewProductProcesses([]);
+  const uninstallResidual = await waitForNoNewProductProcesses([]);
+  if (uninstallResidual.length) stopProductProcesses(uninstallResidual);
+  assert.deepEqual(uninstallResidual, [], `uninstall left Yang Kura processes: ${uninstallResidual.join(', ')}`);
   report.checks.push('NSIS uninstall removes application but preserves user data and leaves no process');
   report.checks.push('packaged mpv-unavailable state keeps HTMLAudio fallback available');
+  checkpoint('nsis-uninstall-passed');
 
   const checksums = report.artifacts
     .filter((item) => item.name.toLowerCase().endsWith('.exe'))
@@ -349,12 +397,14 @@ try {
     .join('\n') + '\n';
   fs.writeFileSync(path.join(artifactDir, 'SHA256SUMS.txt'), checksums, 'utf8');
   report.status = 'pass';
+  checkpoint('complete');
 } catch (error) {
   report.status = 'fail';
   report.error = error instanceof Error ? error.stack ?? error.message : String(error);
+  flushReport();
   throw error;
 } finally {
-  fs.writeFileSync(path.join(artifactDir, 'report.json'), JSON.stringify(report, null, 2), 'utf8');
+  flushReport();
 }
 
 console.log('U32 release-candidate packaging acceptance PASS');
