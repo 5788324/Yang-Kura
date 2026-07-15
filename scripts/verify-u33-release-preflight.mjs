@@ -8,8 +8,9 @@ const artifactDir = path.join(root, 'artifacts', 'u33-release-preflight');
 const plan = JSON.parse(fs.readFileSync(path.join(root, 'release', 'u33-release-plan.json'), 'utf8'));
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const notes = fs.readFileSync(path.join(root, plan.releaseNotesPath), 'utf8');
-const preflightWorkflow = fs.readFileSync('.github/workflows/u33-release-preflight.yml', 'utf8');
-const releaseWorkflow = fs.readFileSync('.github/workflows/u33-beta-release.yml', 'utf8');
+const normalizeLines = (text) => text.replace(/\r\n/g, '\n');
+const preflightWorkflow = normalizeLines(fs.readFileSync('.github/workflows/u33-release-preflight.yml', 'utf8'));
+const releaseWorkflow = normalizeLines(fs.readFileSync('.github/workflows/u33-beta-release.yml', 'utf8'));
 const tagsPath = path.join(artifactDir, 'tags-pages.json');
 const releasesPath = path.join(artifactDir, 'releases-pages.json');
 const allowExistingTarget = process.env.U33_ALLOW_EXISTING_TARGET === '1';
@@ -44,13 +45,16 @@ assert.deepEqual(plan.assets, [
 ]);
 
 for (const marker of [
-  'permissions:\n  contents: read',
+  'permissions:',
+  'contents: read',
   'gh api --paginate --slurp',
   'node scripts/verify-u33-release-preflight.mjs',
 ]) assert.ok(preflightWorkflow.includes(marker), `preflight workflow missing: ${marker}`);
+assert.ok(!preflightWorkflow.includes('contents: write'), 'preflight workflow must remain read-only');
+
 for (const marker of [
   "github.event_name == 'push' && github.ref == 'refs/heads/main'",
-  'permissions:\n      contents: write',
+  'contents: write',
   'gh release create "$RELEASE_TAG"',
   '--target "$GITHUB_SHA"',
   '--prerelease',
