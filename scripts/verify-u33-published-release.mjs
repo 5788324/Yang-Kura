@@ -7,6 +7,10 @@ import path from 'node:path';
 const [releaseJsonPath, assetDirectory, expectedTarget, mode] = process.argv.slice(2);
 const plan = JSON.parse(fs.readFileSync('release/u33-release-plan.json', 'utf8'));
 const workflow = fs.readFileSync('.github/workflows/u33-beta-release.yml', 'utf8').replace(/\r\n/g, '\n');
+const publicationStatePath = 'release/u33-publication-state.json';
+const publicationState = fs.existsSync(publicationStatePath)
+  ? JSON.parse(fs.readFileSync(publicationStatePath, 'utf8'))
+  : null;
 const remoteOnly = mode === '--remote-only';
 
 assert.equal(plan.version, '0.168.0-beta.1');
@@ -19,6 +23,16 @@ assert.deepEqual(plan.assets, [
   'Yang Kura-0.168.0-beta.1-setup-x64.exe',
   'SHA256SUMS.txt',
 ]);
+
+if (publicationState) {
+  assert.equal(publicationState.schemaVersion, 1, 'published release state schema mismatch');
+  assert.equal(publicationState.status, 'published', 'published release state status mismatch');
+  assert.equal(publicationState.tag, plan.tag, 'published release state tag mismatch');
+  assert.equal(publicationState.title, plan.title, 'published release state title mismatch');
+  assert.equal(Boolean(publicationState.prerelease), true, 'published release state must remain prerelease');
+  assert.equal(Boolean(publicationState.draft), false, 'published release state must not be draft');
+  assert.match(publicationState.targetCommitish ?? '', /^[a-f0-9]{40}$/i, 'published release state target missing');
+}
 
 for (const marker of [
   "github.event_name == 'push' && github.ref == 'refs/heads/main'",
@@ -40,6 +54,7 @@ if (!releaseJsonPath && !assetDirectory && !expectedTarget) {
 
 assert.ok(releaseJsonPath && assetDirectory && expectedTarget, 'usage: verify-u33-published-release <release.json> <asset-dir> <expected-target> [--remote-only]');
 const release = JSON.parse(fs.readFileSync(releaseJsonPath, 'utf8'));
+const effectiveExpectedTarget = publicationState?.targetCommitish ?? expectedTarget;
 const hashFile = (filePath) => {
   const hash = crypto.createHash('sha256');
   hash.update(fs.readFileSync(filePath));
@@ -54,7 +69,7 @@ assert.equal(release.tag_name, plan.tag, 'published release tag mismatch');
 assert.equal(release.name, plan.title, 'published release title mismatch');
 assert.equal(Boolean(release.prerelease), true, 'published release must be prerelease');
 assert.equal(Boolean(release.draft), false, 'published release must not be draft');
-assert.equal(release.target_commitish, expectedTarget, 'published release target commit mismatch');
+assert.equal(release.target_commitish, effectiveExpectedTarget, 'published release target commit mismatch');
 assert.ok(release.published_at, 'published release timestamp missing');
 assert.ok(release.html_url, 'published release URL missing');
 
@@ -108,6 +123,9 @@ for (const localName of plan.assets.filter((name) => name.endsWith('.exe'))) {
 const report = {
   status: 'pass',
   verificationMode: remoteOnly ? 'remote-only' : 'local-bundle',
+  requestedTargetCommitish: expectedTarget,
+  expectedTargetCommitish: effectiveExpectedTarget,
+  publicationStateLocked: Boolean(publicationState),
   tag: release.tag_name,
   title: release.name,
   targetCommitish: release.target_commitish,
@@ -128,4 +146,4 @@ const report = {
 };
 
 fs.writeFileSync(path.join(assetDirectory, 'published-release-report.json'), JSON.stringify(report, null, 2), 'utf8');
-console.log(`U33 published release live verifier PASS: ${release.tag_name} (${report.verificationMode})`);
+console.log(`U33 published release live verifier PASS: ${release.tag_name} (${report.verificationMode}; target ${effectiveExpectedTarget})`);
