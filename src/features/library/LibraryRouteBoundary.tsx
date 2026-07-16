@@ -14,6 +14,9 @@ interface LibraryRouteBoundaryState {
 }
 
 export default class LibraryRouteBoundary extends Component<LibraryRouteBoundaryProps, LibraryRouteBoundaryState> {
+  declare readonly props: Readonly<LibraryRouteBoundaryProps>;
+  declare setState: (nextState: Partial<LibraryRouteBoundaryState>) => void;
+
   state: LibraryRouteBoundaryState = { error: null };
 
   static getDerivedStateFromError(error: Error): LibraryRouteBoundaryState {
