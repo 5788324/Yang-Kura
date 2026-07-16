@@ -19,8 +19,14 @@ const checks = [
     'mvp129-index-backup-restore-complete',
     'mvp129-index-backup-retention-preview-ready',
     'mvp129-index-maintenance-history-ready',
-    'mvp129-index-backup-retention-preview-ready',
     'restoreLibraryIndexBackupForRoot',
+    "registerLibraryHandler('indexBackupRetentionPreview'",
+  ]],
+  ['electron/ipc/contracts.ts', [
+    "indexBackupList: 'yang-kura:index:backup-list-request'",
+    "indexBackupRestore: 'yang-kura:index:backup-restore-request'",
+    "indexBackupRetentionPreview: 'yang-kura:index:backup-retention-preview-request'",
+    "indexMaintenanceHistory: 'yang-kura:index:maintenance-history-request'",
   ]],
   ['electron/preload.ts', [
     'requestLibraryIndexBackupList',
@@ -50,12 +56,12 @@ for (const [file, tokens] of checks) {
 }
 
 const main = fs.readFileSync('electron/main.ts', 'utf8');
+const contracts = fs.readFileSync('electron/ipc/contracts.ts', 'utf8');
 const maintenance = fs.readFileSync('electron/libraryIndexMaintenanceService.ts', 'utf8');
-if (!maintenance.includes("expectedBackupSha256") || !maintenance.includes("BACKUP_SHA_MISMATCH")) throw new Error('backup SHA verification missing');
+if (!maintenance.includes('expectedBackupSha256') || !maintenance.includes('BACKUP_SHA_MISMATCH')) throw new Error('backup SHA verification missing');
 if (!maintenance.includes("flag: 'wx'")) throw new Error('exclusive current-index backup write missing');
 if (/fs\.(rm|unlink)\(/.test(maintenance)) throw new Error('runtime maintenance service must not delete files');
-if (!main.includes("'yang-kura:index:backup-retention-preview-request'")) throw new Error('retention preview IPC missing');
-if (main.includes("yang-kura:index:backup-delete")) throw new Error('MVP129 must not expose backup delete IPC');
+if (main.includes('yang-kura:index:backup-delete') || contracts.includes('yang-kura:index:backup-delete')) throw new Error('MVP129 must not expose backup delete IPC');
 
 const output = execFileSync(process.execPath, ['scripts/test-mvp129-index-maintenance-runtime.mjs'], { encoding: 'utf8' });
 if (!output.includes('PASS')) throw new Error('MVP129 temporary library acceptance failed');

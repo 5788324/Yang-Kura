@@ -77,9 +77,9 @@ if (failures.length === 0) {
   ]) if (!overlays.includes(marker)) failures.push(`PlayerOverlayHost missing contract: ${marker}`);
 
   for (const [file, source, markers] of [
-    ['PROJECT_STATE.md', state, ['U36-B：App Shell、Router 与 Overlay 拆分完成', '当前阶段：U36-C']],
-    ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, ['U36-B：完成', '当前任务：U36-C']],
-    ['AI_HANDOFF/WORKLOG.md', worklog, ['U36-B', '当前任务：U36-C']],
+    ['PROJECT_STATE.md', state, ['U36-B：App Shell、Router 与 Overlay 拆分完成', 'U36-C：Main IPC 分域注册完成']],
+    ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, ['U36-B：完成', 'U36-C：完成']],
+    ['AI_HANDOFF/WORKLOG.md', worklog, ['U36-B', 'U36-C：完成']],
   ]) {
     for (const marker of markers) {
       if (!source.includes(marker)) failures.push(`${file} missing progress marker: ${marker}`);

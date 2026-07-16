@@ -8,7 +8,8 @@ if (!fs.readFileSync('scripts/run-stable-regression.mjs', 'utf8').includes('veri
 
 for (const [file, markers] of [
   ['electron/mpvPlaybackBackend.ts', ['class MpvPlaybackBackend', '--input-ipc-server=', "command: 'seek'", "backend: 'html-audio-fallback'", 'YANG_KURA_MPV_PATH']],
-  ['electron/main.ts', ['registerMpvPlaybackIpc', 'resolveSafeMpvAudioPath', 'yang-kura:player:mpv:start', 'canUseMpvPlayback: true']],
+  ['electron/main.ts', ['registerMpvPlaybackIpc', 'resolveSafeMpvAudioPath', "registerPlayerHandler('mpvStart'", 'canUseMpvPlayback: true']],
+  ['electron/ipc/contracts.ts', ["mpvStart: 'yang-kura:player:mpv:start'", "mpvEvent: 'yang-kura:player:mpv:event'"]],
   ['electron/preload.ts', ['requestMpvPlaybackStart', 'requestMpvPlaybackCommand', 'onMpvPlaybackEvent']],
   ['src/types/electron-api.d.ts', ['YangKuraMpvPlaybackStartRequest', 'YangKuraMpvPlaybackEvent', 'getMpvPlaybackStatus']],
   ['src/hooks/useAudioPlayer.ts', ["playbackMode: 'mpv'", 'requestMpvPlaybackStart', 'HTMLAudio', 'onMpvPlaybackEvent']],

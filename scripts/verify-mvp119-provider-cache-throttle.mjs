@@ -8,7 +8,8 @@ if (!['0.157.0-mvp119', '0.158.0-mvp120', '0.159.0-mvp121', '0.160.0-mvp122', '0
 for (const [file, markers] of [
   ['electron/metadataProviderCache.ts', ['MetadataProviderCache', 'getThrottleState', 'clearAll']],
   ['electron/dlsiteMetadataProvider.ts', ['CACHE_TTL_MS = 10 * 60 * 1000', 'SAME_RJ_THROTTLE_MS = 5_000', "cacheMode === 'force-refresh'", 'mvp119-dlsite-throttled', 'clearDlsiteMetadataCache']],
-  ['electron/main.ts', ['yang-kura:metadata:asmr:single-rj-cache-clear']],
+  ['electron/ipc/contracts.ts', ["asmrSingleRjCacheClear: 'yang-kura:metadata:asmr:single-rj-cache-clear'"]],
+  ['electron/main.ts', ["registerMetadataHandler('asmrSingleRjCacheClear'"]],
   ['electron/preload.ts', ['clearAsmrMetadataProviderCache', 'IPC_CHANNELS.metadata.asmrSingleRjPreview', 'IPC_CHANNELS.metadata.asmrSingleRjCacheClear']],
   ['electron/preload/contracts.ts', ["cacheMode?: 'prefer-cache' | 'force-refresh'", 'AsmrMetadataProviderCacheClearRequest']],
   ['src/types/electron-api.d.ts', ['YangKuraAsmrMetadataProviderCacheInfo', 'clearAsmrMetadataProviderCache']],
