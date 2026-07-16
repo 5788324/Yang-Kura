@@ -31,7 +31,7 @@
 - 历史主题设置与正式主题双向兼容。
 - TypeScript、Electron E2E、UI/可访问性、导入事务、稳定回归、portable/NSIS 全部通过。
 
-### U36-A — 导航与 Preload IPC 统一（当前分支）
+### U36-A — 导航与 Preload IPC 统一
 
 - 分支：`agent/u36-shell-router-ipc`
 - 建立 `src/app/navigation.ts`，统一日常导航和维护路由元数据。
@@ -39,7 +39,7 @@
 - Preload 请求类型拆分到 `electron/preload/contracts.ts`。
 - `electron/preload.ts` 所有 invoke/on/removeListener 改用 `IPC_CHANNELS`。
 - 保持 `window.yangKura` API、路径 token、安全边界和产品业务行为不变。
-- 下一步：完成自动门禁、项目状态同步、完整 CI 后合并。
+- 项目状态与当前交接已推进到 U36-B。
 
 ## 当前结论
 
@@ -47,7 +47,8 @@
 U34：完成
 U35-A：完成
 U35-B：完成
-U36-A：进行中
+U36-A：完成
+当前任务：U36-B
 目标版本：0.169.0-beta.2
 大型功能：继续冻结
 ```
