@@ -87,7 +87,7 @@ export default function AppRouter(props: AppRouterProps) {
         connected={hasConnectedLibrary}
         itemCount={itemCount}
         onOpenSettings={() => props.setCurrentPage('settings')}
-        preserveContentWhenEmpty={kind === 'dashboard'}
+        preserveContentWhenEmpty
       >
         {content}
       </LibraryPageState>
