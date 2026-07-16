@@ -3,6 +3,7 @@ import fs from 'node:fs';
 const dashboard = fs.readFileSync('src/components/Dashboard.tsx', 'utf8');
 const settings = fs.readFileSync('src/components/SettingsPage.tsx', 'utf8');
 const sidebar = fs.readFileSync('src/components/Sidebar.tsx', 'utf8');
+const navigation = fs.readFileSync('src/app/navigation.ts', 'utf8');
 const app = fs.readFileSync('src/App.tsx', 'utf8');
 const state = fs.readFileSync('PROJECT_STATE.md', 'utf8');
 const roadmap = fs.readFileSync('PROJECT_ROADMAP.md', 'utf8');
@@ -21,7 +22,6 @@ const requireHiddenSection = (text, id) => {
 };
 
 requireHiddenSection(dashboard, 'mvp71-home-user-facing-simplification');
-
 for (const id of [
   'mvp124-mpv-stability-diagnostics',
   'mvp125-player-acceptance-checklist',
@@ -68,16 +68,24 @@ for (const opening of allowedVisibleSections) {
 }
 
 for (const marker of [
-  'AI 维护',
-  '工程与检修工具',
+  "import { DAILY_NAVIGATION_ROUTES } from '../app/navigation';",
   '<div hidden aria-hidden="true">',
   'id="sidebar-ai-maintenance-toggle"',
   'id="nav-downloader"',
   'id="nav-diagnostics"',
 ]) if (!sidebar.includes(marker)) failures.push(`hidden maintenance boundary missing: ${marker}`);
 
-for (const forbidden of ['id="sidebar-ai-maintenance-panel"', 'aria-expanded={showAiMaintenance}', 'showAiMaintenance && (']) {
-  if (sidebar.includes(forbidden)) failures.push(`maintenance UI remains visible: ${forbidden}`);
+for (const [id, label] of [['downloader', '下载规划'], ['diagnostics', 'AI 维护']]) {
+  const routeStart = navigation.indexOf(`${id}:`);
+  const routeEnd = navigation.indexOf('\n  },', routeStart);
+  const routeSource = routeStart >= 0 ? navigation.slice(routeStart, routeEnd >= 0 ? routeEnd : undefined) : '';
+  if (!routeSource.includes(`label: '${label}'`)) failures.push(`maintenance route label missing: ${id}`);
+  if (!routeSource.includes("section: 'maintenance'")) failures.push(`maintenance route section missing: ${id}`);
+  if (!routeSource.includes('visibleInSidebar: false')) failures.push(`maintenance route is visible in sidebar: ${id}`);
+}
+
+for (const forbidden of ['const DAILY_NAV_ITEMS', 'const MAINTENANCE_NAV_ITEMS', 'id="sidebar-ai-maintenance-panel"', 'aria-expanded={showAiMaintenance}', 'showAiMaintenance && (']) {
+  if (sidebar.includes(forbidden)) failures.push(`obsolete maintenance UI remains: ${forbidden}`);
 }
 
 for (const marker of [
@@ -96,5 +104,8 @@ for (const marker of [
   'U25',
 ]) if (!policyText.includes(marker)) failures.push(`project UI hard rule missing: ${marker}`);
 
-if (failures.length) { console.error(failures.join('\n')); process.exit(1); }
+if (failures.length) {
+  console.error(failures.join('\n'));
+  process.exit(1);
+}
 console.log('U25 engineering surface cleanup verifier PASS');
