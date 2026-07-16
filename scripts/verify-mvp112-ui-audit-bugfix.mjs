@@ -12,9 +12,11 @@ if (major === 0 && minor < 150) throw new Error(`Version predates MVP112: ${pkg.
 required(read('scripts/run-stable-regression.mjs'), 'verify:mvp112-ui-audit-bugfix', 'verify:stable chain');
 
 const app = read("src/App.tsx");
+const router = read("src/app/AppRouter.tsx");
 required(app, "mainContentRef", "scroll container ref");
 required(app, "scrollTo({ top: 0", "page scroll reset");
-if (!app.includes("lazy(() => import('./components/DiagnosticsPage'))") && !app.includes("lazy(() => import('./components/DiagnosticsPageShell'))")) throw new Error('Missing diagnostics code splitting');
+required(app, "import AppRouter from './app/AppRouter';", "AppRouter composition boundary");
+if (!router.includes("lazy(() => import('../components/DiagnosticsPage'))") && !router.includes("lazy(() => import('../components/DiagnosticsPageShell'))")) throw new Error('Missing diagnostics code splitting in AppRouter');
 required(app, "settingsPathPrivacyService.sanitizeSettings", "settings sanitizer");
 
 const settings = read("src/components/SettingsPage.tsx");
