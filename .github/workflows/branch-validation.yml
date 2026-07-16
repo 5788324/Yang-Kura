@@ -4,6 +4,10 @@ on:
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'AI_HANDOFF/**'
   workflow_dispatch:
 
 permissions:
