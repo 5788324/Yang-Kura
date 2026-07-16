@@ -58,10 +58,11 @@ assert.deepEqual(plan, {
 });
 
 requireMarkers('README', readme, [
-  '> 核心版本：`0.168.0-beta.1`',
-  '> 当前阶段：U33 Beta 发布候选；目标 tag `v0.168.0-beta.1`',
-  'U02～U32 已完成',
-  'MVP130 下载器实验包单独封存',
+  '> 当前版本：`0.168.0-beta.1`',
+  '> 当前阶段：Beta 1 已发布；准备 `0.169.0-beta.2` 架构与 UI 联合整备',
+  '## Beta 1',
+  '## 当前主线：Beta 2',
+  '正式下载器 / MVP130',
 ]);
 
 requireMarkers('Release Notes', notes, [
@@ -139,9 +140,9 @@ requireMarkers('published verifier', publishedVerifier, [
 ]);
 
 for (const [label, text, markers] of [
-  ['PROJECT_STATE', state, ['核心版本：0.168.0-beta.1', '已合入主线：U02～U32', '当前任务：U33', '目标 tag：v0.168.0-beta.1', 'MVP130']],
-  ['PROJECT_ROADMAP', roadmap, ['当前主线：U33 Beta', 'main-only 发布门槛', 'v0.168.0-beta.1', 'MVP130 正式下载器']],
-  ['CURRENT_PROJECT_HANDOFF', handoff, ['核心版本：0.168.0-beta.1', '当前任务：U33', '目标 tag：v0.168.0-beta.1', 'main-only 受控发布', '用户只接收最终成果']],
+  ['PROJECT_STATE', state, ['核心版本：0.168.0-beta.1', 'Beta 1：已发布并完成远端资产回读', '当前主线：Beta 2 联合整备', '目标版本：0.169.0-beta.2', 'MVP130']],
+  ['PROJECT_ROADMAP', roadmap, ['### U33：Beta 1 发布', '当前主线：Beta 2 联合整备', 'v0.168.0-beta.1', 'MVP130']],
+  ['CURRENT_PROJECT_HANDOFF', handoff, ['当前版本：0.168.0-beta.1', 'Beta 1：已发布并完成远端资产校验', '当前任务：Beta 2 代码结构/质量整备 + UI 全面重写', '目标版本：0.169.0-beta.2', '用户只接收最终成果']],
 ]) requireMarkers(label, text, markers);
 
 for (const temporary of ['scripts/apply-u33-version.mjs', '.github/workflows/u33-version-sync.yml']) {
@@ -153,4 +154,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('U33 Beta release contract verifier PASS');
+console.log('U33 completed Beta 1 release contract verifier PASS');
