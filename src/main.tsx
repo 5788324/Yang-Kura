@@ -6,10 +6,10 @@ import {ThemeRuntimeBridge} from './app/ThemeRuntimeBridge';
 import {installRuntimeAccessibility} from './runtimeAccessibility';
 import './styles/design-tokens.css';
 import './styles/design-components.css';
-import './styles/production-shell.css';
 import './index.css';
 import './accessibility.css';
 import './playerThemeBridge.css';
+import './styles/production-shell.css';
 
 installRuntimeAccessibility();
 
