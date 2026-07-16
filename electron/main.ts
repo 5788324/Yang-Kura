@@ -23,7 +23,7 @@
  * MVP-105 adds the first small-sample move-only executor: CONFIRM_MOVE_IMPORT, overwrite=false, failure-stop, sanitized OperationLog, no index write.
  */
 
-import { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } from 'electron';
+import { app, BrowserWindow, dialog, net, protocol, shell } from 'electron';
 // Legacy MVP-19 verifier import token: import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 import crypto from 'node:crypto';
 import fsSync from 'node:fs';
@@ -37,6 +37,12 @@ import { applyLibraryIndexRemovalOperations, buildLibraryIndexRemovalPreview, co
 import { appendMaintenanceHistory, buildLibraryIndexBackupRetentionPreview, inspectLibraryIndexBackups, readMaintenanceHistory, restoreLibraryIndexFromBackup, type MaintenanceHistoryEntry } from './libraryIndexMaintenanceService.js';
 import { describeLibraryIndexReadError, parseLibraryIndexJsonBuffer } from './libraryIndexJsonReader.js';
 import { IMPORT_TRANSACTION_VERSION, executeCopyOnlyTransaction, executeMoveOnlyTransaction } from './importerTransactionService.js';
+import { IPC_CHANNELS } from './ipc/contracts.js';
+import { registerLibraryHandler } from './ipc/domains/library.js';
+import { registerMediaHandler } from './ipc/domains/media.js';
+import { registerPlayerHandler } from './ipc/domains/player.js';
+import { registerMetadataHandler } from './ipc/domains/metadata.js';
+import { registerImporterHandler } from './ipc/domains/importer.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -2633,15 +2639,10 @@ let mpvPlaybackBackend: MpvPlaybackBackend | null = null;
 function registerMpvPlaybackIpc(mainWindow: BrowserWindow): void {
   mpvPlaybackBackend = new MpvPlaybackBackend((event) => {
     if (!mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('yang-kura:player:mpv:event', event);
+      mainWindow.webContents.send(IPC_CHANNELS.player.mpvEvent, event);
     }
   }, () => mpvSettingsStore.getCandidate().executable);
-
-  for (const channel of ['yang-kura:player:mpv:start', 'yang-kura:player:mpv:command', 'yang-kura:player:mpv:status']) {
-    ipcMain.removeHandler(channel);
-  }
-
-  ipcMain.handle('yang-kura:player:mpv:start', async (_event, request: unknown) => {
+registerPlayerHandler('mpvStart', async (_event, request: unknown) => {
     const payload = request as Partial<MpvPlaybackStartRequest> | undefined;
     if (!payload?.rootPathToken || !payload.relativePath || !payload.trackId || payload.mode !== 'mpv-playback-start') {
       return {
@@ -2705,7 +2706,7 @@ function registerMpvPlaybackIpc(mainWindow: BrowserWindow): void {
     });
   });
 
-  ipcMain.handle('yang-kura:player:mpv:command', async (_event, request: unknown) => {
+  registerPlayerHandler('mpvCommand', async (_event, request: unknown) => {
     const payload = request as Partial<MpvPlaybackCommandRequest> | undefined;
     if (!payload || payload.mode !== 'mpv-playback-command' || !payload.command || !mpvPlaybackBackend) {
       return {
@@ -2733,7 +2734,7 @@ function registerMpvPlaybackIpc(mainWindow: BrowserWindow): void {
     } as const;
   });
 
-  ipcMain.handle('yang-kura:player:mpv:status', async () => mpvPlaybackBackend!.getRuntimeStatus());
+  registerPlayerHandler('mpvStatus', async () => mpvPlaybackBackend!.getRuntimeStatus());
 }
 
 
@@ -2755,15 +2756,7 @@ function getMpvRuntimeDetails() {
 }
 
 function registerMpvSettingsIpc(): void {
-  for (const channel of [
-    'yang-kura:player:mpv:installation-status',
-    'yang-kura:player:mpv:select-executable',
-    'yang-kura:player:mpv:clear-executable',
-  ]) {
-    ipcMain.removeHandler(channel);
-  }
-
-  ipcMain.handle('yang-kura:player:mpv:installation-status', async () => {
+registerPlayerHandler('mpvInstallationStatus', async () => {
     const installation = await mpvSettingsStore.getInstallationStatus();
     return {
       ...installation,
@@ -2771,7 +2764,7 @@ function registerMpvSettingsIpc(): void {
     } as const;
   });
 
-  ipcMain.handle('yang-kura:player:mpv:select-executable', async () => {
+  registerPlayerHandler('mpvSelectExecutable', async () => {
     const result = await dialog.showOpenDialog({
       title: '选择 mpv 可执行文件',
       properties: ['openFile'],
@@ -2811,7 +2804,7 @@ function registerMpvSettingsIpc(): void {
     }
   });
 
-  ipcMain.handle('yang-kura:player:mpv:clear-executable', async () => {
+  registerPlayerHandler('mpvClearExecutable', async () => {
     await mpvPlaybackBackend?.dispose();
     const installation = await mpvSettingsStore.clearSelectedExecutable();
     return {
@@ -2891,7 +2884,7 @@ export function getElectronMainShellRuntimeStatus(): ElectronMainShellRuntimeSta
 }
 
 function registerDirectoryDialogIpc(mainWindow: BrowserWindow): void {
-  ipcMain.handle('yang-kura:dialog:select-library-root', async (_event, request: unknown) => {
+  registerLibraryHandler('selectRoot', async (_event, request: unknown) => {
     const payload = request as Partial<SelectLibraryRootRequest> | undefined;
     const libraryType = isValidLibraryType(payload?.libraryType) ? payload.libraryType : 'mixed';
 
@@ -2983,7 +2976,7 @@ function registerDirectoryDialogIpc(mainWindow: BrowserWindow): void {
 }
 
 function registerDryRunScannerIpc(): void {
-  ipcMain.handle('yang-kura:scanner:dry-run:request', async (_event, request: unknown) => {
+  registerLibraryHandler('scanDryRun', async (_event, request: unknown) => {
     const payload = request as Partial<ScannerDryRunRequest> | undefined;
 
     if (!payload?.rootPathToken || payload.mode !== 'dry-run' || payload.previewOnly !== true) {
@@ -3037,7 +3030,7 @@ function registerDryRunScannerIpc(): void {
 
 
 function registerWriteIndexPreviewIpc(): void {
-  ipcMain.handle('yang-kura:index:write-preview-request', async (_event, request: unknown) => {
+  registerLibraryHandler('indexWritePreview', async (_event, request: unknown) => {
     const payload = request as Partial<WriteIndexPreviewRequest> | undefined;
 
     if (!payload?.rootPathToken || payload.mode !== 'preview-only') {
@@ -3091,7 +3084,7 @@ function registerWriteIndexPreviewIpc(): void {
 }
 
 function registerWriteLibraryIndexIpc(): void {
-  ipcMain.handle('yang-kura:index:write-confirmed-request', async (_event, request: unknown) => {
+  registerLibraryHandler('indexWriteConfirmed', async (_event, request: unknown) => {
     const payload = request as Partial<WriteLibraryIndexRequest> | undefined;
 
     if (!payload?.rootPathToken || payload.mode !== 'confirmed-write') {
@@ -3159,7 +3152,7 @@ function registerWriteLibraryIndexIpc(): void {
 }
 
 function registerReadLibraryIndexIpc(): void {
-  ipcMain.handle('yang-kura:index:read-current-request', async (_event, request: unknown) => {
+  registerLibraryHandler('indexReadCurrent', async (_event, request: unknown) => {
     const payload = request as Partial<ReadLibraryIndexRequest> | undefined;
 
     if (!payload?.rootPathToken || payload.mode !== 'read-current-index') {
@@ -3198,7 +3191,7 @@ function registerReadLibraryIndexIpc(): void {
 
 
 function registerLibraryIndexHealthIpc(): void {
-  ipcMain.handle('yang-kura:index:health-check-request', async (_event, request: unknown) => {
+  registerLibraryHandler('indexHealthCheck', async (_event, request: unknown) => {
     const payload = request as Partial<LibraryIndexHealthCheckRequest> | undefined;
     if (!payload?.rootPathToken || payload.mode !== 'read-only-health-check') {
       return {
@@ -3228,7 +3221,7 @@ function registerLibraryIndexHealthIpc(): void {
     });
   });
 
-  ipcMain.handle('yang-kura:index:removal-preview-request', async (_event, request: unknown) => {
+  registerLibraryHandler('indexRemovalPreview', async (_event, request: unknown) => {
     const payload = request as Partial<LibraryIndexRemovalPreviewRequest> | undefined;
     if (!payload?.rootPathToken || payload.mode !== 'remove-missing-preview') {
       return {
@@ -3260,7 +3253,7 @@ function registerLibraryIndexHealthIpc(): void {
     });
   });
 
-  ipcMain.handle('yang-kura:index:removal-write-confirmed-request', async (_event, request: unknown) => {
+  registerLibraryHandler('indexRemovalWrite', async (_event, request: unknown) => {
     const payload = request as Partial<LibraryIndexRemovalWriteRequest> | undefined;
     if (!payload?.rootPathToken || payload.mode !== 'confirmed-index-removal-write') {
       return {
@@ -3300,7 +3293,7 @@ function registerLibraryIndexHealthIpc(): void {
     });
   });
 
-  ipcMain.handle('yang-kura:index:backup-list-request', async (_event, request: unknown) => {
+  registerLibraryHandler('indexBackupList', async (_event, request: unknown) => {
     const payload = request as Partial<LibraryIndexBackupListRequest> | undefined;
     if (!payload?.rootPathToken || payload.mode !== 'list-index-backups') {
       return { ok: false, status: 'mvp129-index-backup-list-invalid-request', absolutePathsReturned: false, fileUrlReturned: false, message: '备份列表请求无效。', safetyNotes: buildSafetyNotes() } as const;
@@ -3310,7 +3303,7 @@ function registerLibraryIndexHealthIpc(): void {
     return listLibraryIndexBackupsForRoot(rootRecord, { rootPathToken: payload.rootPathToken, mode: 'list-index-backups', maxEntries: payload.maxEntries });
   });
 
-  ipcMain.handle('yang-kura:index:backup-retention-preview-request', async (_event, request: unknown) => {
+  registerLibraryHandler('indexBackupRetentionPreview', async (_event, request: unknown) => {
     const payload = request as Partial<LibraryIndexBackupRetentionPreviewRequest> | undefined;
     if (!payload?.rootPathToken || payload.mode !== 'preview-backup-retention') {
       return { ok: false, status: 'mvp129-index-backup-retention-invalid-request', absolutePathsReturned: false, fileUrlReturned: false, deletePerformed: false, message: '备份保留预览请求无效。', safetyNotes: buildSafetyNotes() } as const;
@@ -3320,7 +3313,7 @@ function registerLibraryIndexHealthIpc(): void {
     return previewLibraryIndexBackupRetention(rootRecord, { rootPathToken: payload.rootPathToken, mode: 'preview-backup-retention', maxAgeDays: payload.maxAgeDays, keepNewest: payload.keepNewest });
   });
 
-  ipcMain.handle('yang-kura:index:backup-restore-request', async (_event, request: unknown) => {
+  registerLibraryHandler('indexBackupRestore', async (_event, request: unknown) => {
     const payload = request as Partial<LibraryIndexBackupRestoreRequest> | undefined;
     if (!payload?.rootPathToken || payload.mode !== 'restore-index-backup' || !payload.backupRelativePath || !payload.backupSha256) {
       return { ok: false, status: 'mvp129-index-backup-restore-invalid-request', writePerformed: false, currentBackupCreated: false, mediaFilesDeleted: false, absolutePathsReturned: false, fileUrlReturned: false, message: '备份恢复请求无效。', safetyNotes: buildSafetyNotes() } as const;
@@ -3337,7 +3330,7 @@ function registerLibraryIndexHealthIpc(): void {
     });
   });
 
-  ipcMain.handle('yang-kura:index:maintenance-history-request', async (_event, request: unknown) => {
+  registerLibraryHandler('indexMaintenanceHistory', async (_event, request: unknown) => {
     const payload = request as Partial<LibraryIndexMaintenanceHistoryRequest> | undefined;
     if (!payload?.rootPathToken || payload.mode !== 'read-index-maintenance-history') {
       return { ok: false, status: 'mvp129-index-maintenance-history-invalid-request', absolutePathsReturned: false, fileUrlReturned: false, message: '维护历史请求无效。', safetyNotes: buildSafetyNotes() } as const;
@@ -3347,7 +3340,7 @@ function registerLibraryIndexHealthIpc(): void {
     return readLibraryIndexMaintenanceHistoryForRoot(rootRecord, { rootPathToken: payload.rootPathToken, mode: 'read-index-maintenance-history', maxEntries: payload.maxEntries });
   });
 
-  ipcMain.handle('yang-kura:index:reveal-nearest-parent-request', async (_event, request: unknown) => {
+  registerLibraryHandler('revealNearestParent', async (_event, request: unknown) => {
     const payload = request as Partial<RevealMissingEntryParentRequest> | undefined;
     if (!payload?.rootPathToken || !payload.relativePath || !payload.entryId || payload.mode !== 'reveal-nearest-existing-parent') {
       return {
@@ -3381,7 +3374,7 @@ function registerLibraryIndexHealthIpc(): void {
 
 
 function registerResolveTrackMediaUrlIpc(): void {
-  ipcMain.handle('yang-kura:media:resolve-track-url', async (_event, request: unknown) => {
+  registerMediaHandler('resolveTrackUrl', async (_event, request: unknown) => {
     const payload = request as Partial<ResolveTrackMediaUrlRequest> | undefined;
 
     if (!payload?.rootPathToken || !payload.relativePath || !payload.trackId || payload.expectedKind !== 'audio') {
@@ -3422,7 +3415,7 @@ function registerResolveTrackMediaUrlIpc(): void {
 
 
 function registerReadTrackLyricsIpc(): void {
-  ipcMain.handle('yang-kura:lyrics:read-track-lyrics', async (_event, request: unknown) => {
+  registerMediaHandler('readTrackLyrics', async (_event, request: unknown) => {
     const payload = request as Partial<ReadTrackLyricsRequest> | undefined;
 
     if (!payload?.rootPathToken || !payload.trackId || !payload.trackRelativePath || payload.mode !== 'read-track-lyrics') {
@@ -3465,12 +3458,12 @@ function registerReadTrackLyricsIpc(): void {
 
 
 function registerAsmrMetadataProviderIpc(): void {
-  ipcMain.handle('yang-kura:metadata:asmr:single-rj-preview', async (_event, request: unknown) => {
+  registerMetadataHandler('asmrSingleRjPreview', async (_event, request: unknown) => {
     const payload = request as Partial<AsmrMetadataProviderRequest> | undefined;
     return fetchDlsiteMetadata(payload);
   });
 
-  ipcMain.handle('yang-kura:metadata:asmr:single-rj-cache-clear', async (_event, request: unknown) => {
+  registerMetadataHandler('asmrSingleRjCacheClear', async (_event, request: unknown) => {
     const payload = request as Partial<AsmrMetadataProviderCacheClearRequest> | undefined;
     return clearDlsiteMetadataCache(payload);
   });
@@ -3478,7 +3471,7 @@ function registerAsmrMetadataProviderIpc(): void {
 
 
 function registerExternalOpenIpc(): void {
-  ipcMain.handle('yang-kura:external:open-file', async (_event, request: unknown) => {
+  registerMediaHandler('openExternalFile', async (_event, request: unknown) => {
     const payload = request as Partial<OpenExternalFileRequest> | undefined;
     const allowedKinds = new Set(['audio', 'video', 'image', 'text', 'archive', 'other']);
 
@@ -3517,7 +3510,7 @@ function registerExternalOpenIpc(): void {
     });
   });
 
-  ipcMain.handle('yang-kura:external:open-in-file-manager', async (_event, request: unknown) => {
+  registerMediaHandler('openInFileManager', async (_event, request: unknown) => {
     const payload = request as Partial<OpenInFileManagerRequest> | undefined;
 
     if (!payload?.rootPathToken || payload.mode !== 'open-in-file-manager') {
@@ -4742,12 +4735,12 @@ async function buildMvp101PatchUiRefreshAfterWriteResult(request: Partial<Import
 }
 
 function registerCopyOnlyMainSideStubIpc(): void {
-  ipcMain.handle('yang-kura:import:copy-only:preflight', async (_event, request: unknown) => {
+  registerImporterHandler('copyPreflight', async (_event, request: unknown) => {
     const payload = request as Partial<ImportCopyOnlyStubRequest> | undefined;
     return buildMvp94CopyOnlyPreflightResult(payload);
   });
 
-  ipcMain.handle('yang-kura:import:copy-only:confirm', async (_event, request: unknown) => {
+  registerImporterHandler('copyConfirm', async (_event, request: unknown) => {
     const payload = request as Partial<ImportCopyOnlyConfirmStubRequest> | undefined;
     return {
       ok: false,
@@ -4762,43 +4755,43 @@ function registerCopyOnlyMainSideStubIpc(): void {
     } as const;
   });
 
-  ipcMain.handle('yang-kura:import:copy-only:execute', async (_event, request: unknown) => {
+  registerImporterHandler('copyExecute', async (_event, request: unknown) => {
     const payload = request as Partial<ImportCopyOnlyStubRequest> | undefined;
     return buildMvp95CopyOnlyExecuteResult(payload);
   });
 
-  ipcMain.handle('yang-kura:import:post-copy:refresh-preview', async (_event, request: unknown) => {
+  registerImporterHandler('postCopyRefreshPreview', async (_event, request: unknown) => {
     const payload = request as Partial<ImportPostCopyRefreshPreviewRequest> | undefined;
     return buildMvp97PostCopyRefreshPreviewResult(payload);
   });
 
-  ipcMain.handle('yang-kura:import:library-index-patch:preview', async (_event, request: unknown) => {
+  registerImporterHandler('indexPatchPreview', async (_event, request: unknown) => {
     const payload = request as Partial<ImportLibraryIndexPatchPreviewRequest> | undefined;
     return buildMvp98LibraryIndexPatchPreviewResult(payload);
   });
 
-  ipcMain.handle('yang-kura:import:library-index-patch:write-readiness', async (_event, request: unknown) => {
+  registerImporterHandler('indexPatchWriteReadiness', async (_event, request: unknown) => {
     const payload = request as Partial<ImportLibraryIndexPatchWriteReadinessRequest> | undefined;
     return buildMvp99LibraryIndexPatchWriteReadinessResult(payload);
   });
 
-  ipcMain.handle('yang-kura:import:library-index-patch:write-confirmed', async (_event, request: unknown) => {
+  registerImporterHandler('indexPatchWriteConfirmed', async (_event, request: unknown) => {
     const payload = request as Partial<ImportLibraryIndexPatchWriteRequest> | undefined;
     return buildMvp100LibraryIndexPatchWriteResult(payload);
   });
 
-  ipcMain.handle('yang-kura:import:library-index-patch:refresh-after-write', async (_event, request: unknown) => {
+  registerImporterHandler('indexPatchRefreshAfterWrite', async (_event, request: unknown) => {
     const payload = request as Partial<ImportLibraryIndexPatchUiRefreshRequest> | undefined;
     return buildMvp101PatchUiRefreshAfterWriteResult(payload);
   });
 
 
-ipcMain.handle('yang-kura:import:move-only:execute', async (_event, request: unknown) => {
+registerImporterHandler('moveExecute', async (_event, request: unknown) => {
   const payload = request as Partial<ImportMoveOnlyExecuteRequest> | undefined;
   return buildMvp105MoveOnlyExecuteResult(payload);
 });
 
-  ipcMain.handle('yang-kura:import:copy-only:cancel', async (_event, request: unknown) => {
+  registerImporterHandler('copyCancel', async (_event, request: unknown) => {
     const payload = request as Partial<ImportCopyOnlyCancelStubRequest> | undefined;
     return {
       ok: false,

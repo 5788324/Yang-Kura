@@ -40,14 +40,23 @@
 
 ### U36-B — App Shell、Router 与 Overlay 拆分
 
-- 分支：`agent/u36b-app-shell-router-overlays`
+- PR：#60
+- 合并提交：`00a2bad8ca24f68048aa4d48d5cc20a0407ecb1a`
 - 新增 `TopBar.tsx`，集中顶部资源库状态。
 - 新增 `AppRouter.tsx`，集中页面 lazy loading、日常路由和内部维护路由。
 - 新增 `QueueDrawer.tsx`，集中队列摘要、列表、清空和 Escape 关闭行为。
 - 新增 `PlayerOverlayHost.tsx`，集中 Lyrics 与断点续播覆盖层。
 - `App.tsx` 仅保留顶层状态、业务协调与壳组合。
 - 保持 Index、播放、字幕、元数据、导入事务和路径安全行为不变。
-- 当前任务：U36-C Main IPC 分域注册。
+- PR #60 的完整 Electron、稳定回归、portable/NSIS 与 Beta 资产门禁通过。
+
+### U36-C — Main IPC 分域注册
+
+- 分支：`agent/u36c-main-ipc-domains`。
+- 建立共享 invoke registrar 与五个领域注册模块。
+- Main 不再直接调用 `ipcMain.handle/removeHandler`，channel 全部来自 `IPC_CHANNELS`。
+- 业务实现、事务、Index、mpv、Provider、Preload API 与路径安全边界保持不变。
+- 当前任务：U37 首页、资源库与详情 UI。
 
 ## 当前结论
 
@@ -56,8 +65,9 @@ U34：完成
 U35-A：完成
 U35-B：完成
 U36-A：完成
-U36-B：代码完成，等待本分支最终门禁与合并
-当前任务：U36-C
+U36-B：完成
+U36-C：完成
+当前任务：U37
 目标版本：0.169.0-beta.2
 大型功能：继续冻结
 ```
