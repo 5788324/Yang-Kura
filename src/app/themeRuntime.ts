@@ -66,12 +66,13 @@ export const getBeta2ThemeLabel = (theme: Beta2ThemeId): string =>
 export const applyBeta2Theme = (theme: Beta2ThemeId): void => {
   if (typeof document === 'undefined') return;
   const themeClass = `theme-${theme}`;
+  const otherThemeClass = theme === 'dusk-amber' ? 'theme-mist-ivory' : 'theme-dusk-amber';
   const targets = [document.documentElement, document.body, document.querySelector('.u32-release-ui')]
     .filter((target): target is HTMLElement => target instanceof HTMLElement);
 
   for (const target of targets) {
-    target.classList.remove('theme-dusk-amber', 'theme-mist-ivory');
-    target.classList.add(themeClass);
-    target.dataset.ykTheme = theme;
+    if (target.classList.contains(otherThemeClass)) target.classList.remove(otherThemeClass);
+    if (!target.classList.contains(themeClass)) target.classList.add(themeClass);
+    if (target.dataset.ykTheme !== theme) target.dataset.ykTheme = theme;
   }
 };
