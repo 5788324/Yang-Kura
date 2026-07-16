@@ -1,0 +1,218 @@
+:root[data-yk-theme] {
+  background: var(--yk-canvas);
+  color: var(--yk-text-1);
+  color-scheme: dark;
+}
+
+:root[data-yk-theme="mist-ivory"] {
+  color-scheme: light;
+}
+
+body[data-yk-theme],
+body[data-yk-theme] #root {
+  background: var(--yk-canvas);
+  color: var(--yk-text-1);
+}
+
+.yk-app-shell--bridge {
+  display: block;
+  isolation: isolate;
+}
+
+.yk-app-shell--bridge > .u32-release-ui {
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(circle at 12% -10%, color-mix(in srgb, var(--yk-accent) 10%, transparent), transparent 30rem),
+    var(--yk-canvas);
+  color: var(--yk-text-1);
+}
+
+.yk-app-shell--bridge #windows-app-bar {
+  min-height: 2.75rem;
+  height: 2.75rem;
+  padding-inline: var(--yk-space-4);
+  gap: var(--yk-space-3);
+  border-color: var(--yk-border-subtle);
+  background: color-mix(in srgb, var(--yk-surface-1) 94%, transparent);
+  color: var(--yk-text-2);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--yk-border-strong) 45%, transparent);
+  backdrop-filter: blur(18px);
+}
+
+.yk-app-shell--bridge #windows-app-bar > div:first-child > span:first-child {
+  width: 0.55rem;
+  height: 0.55rem;
+  background: var(--yk-accent);
+  box-shadow: 0 0 0 4px var(--yk-accent-soft);
+}
+
+.yk-app-shell--bridge #windows-app-bar > div:first-child > span:last-child {
+  color: var(--yk-text-1);
+  font-size: var(--yk-text-sm);
+  letter-spacing: -0.01em;
+}
+
+.yk-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--yk-space-2);
+  min-height: 1.9rem;
+  padding-inline: var(--yk-space-3);
+  border: 1px solid var(--yk-border-subtle);
+  border-radius: var(--yk-radius-pill);
+  background: var(--yk-surface-2);
+  color: var(--yk-text-2);
+  font: inherit;
+  font-size: var(--yk-text-xs);
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color var(--yk-motion-fast) var(--yk-ease-standard),
+    background var(--yk-motion-fast) var(--yk-ease-standard),
+    color var(--yk-motion-fast) var(--yk-ease-standard),
+    transform var(--yk-motion-fast) var(--yk-ease-emphasized);
+}
+
+.yk-theme-toggle:hover {
+  border-color: var(--yk-border-strong);
+  background: var(--yk-surface-3);
+  color: var(--yk-text-1);
+  transform: translateY(-1px);
+}
+
+.yk-theme-toggle:focus-visible {
+  outline: 2px solid var(--yk-focus);
+  outline-offset: 2px;
+}
+
+.yk-theme-toggle svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--yk-accent);
+}
+
+.yk-app-shell--bridge #app-sidebar {
+  width: 14.75rem;
+  border-color: var(--yk-border-subtle);
+  background: color-mix(in srgb, var(--yk-surface-1) 96%, transparent);
+  box-shadow: inset -1px 0 color-mix(in srgb, var(--yk-border-strong) 25%, transparent);
+  backdrop-filter: blur(22px);
+}
+
+.yk-app-shell--bridge #app-sidebar > div:first-child > div:first-child {
+  border: 1px solid color-mix(in srgb, var(--yk-accent) 34%, transparent);
+  background: var(--yk-accent-soft);
+  color: var(--yk-accent);
+  box-shadow: var(--yk-shadow-sm);
+}
+
+.yk-app-shell--bridge #app-sidebar nav button {
+  min-height: 2.65rem;
+  border: 1px solid transparent;
+  border-radius: var(--yk-radius-md);
+}
+
+.yk-app-shell--bridge #app-sidebar nav button[aria-current="page"] {
+  border-color: color-mix(in srgb, var(--yk-accent) 28%, transparent);
+  background: var(--yk-accent-soft);
+  color: var(--yk-accent);
+  box-shadow: none;
+}
+
+.yk-app-shell--bridge #app-sidebar nav button:not([aria-current="page"]):hover {
+  border-color: var(--yk-border-subtle);
+  background: var(--yk-surface-2);
+  color: var(--yk-text-1);
+}
+
+.yk-app-shell--bridge #sidebar-search-input {
+  border-color: var(--yk-border-subtle);
+  background: var(--yk-surface-2);
+  color: var(--yk-text-1);
+}
+
+.yk-app-shell--bridge main {
+  background: transparent;
+  scrollbar-gutter: stable;
+}
+
+.yk-app-shell--bridge main > .animate-fade-in {
+  max-width: 92rem;
+}
+
+.yk-app-shell--bridge #u29-queue-drawer {
+  width: min(24rem, calc(100vw - 2rem));
+  padding: var(--yk-space-5);
+  border-color: var(--yk-border-strong);
+  background: color-mix(in srgb, var(--yk-surface-2) 96%, transparent);
+  color: var(--yk-text-1);
+  box-shadow: var(--yk-shadow-lg);
+  backdrop-filter: blur(24px);
+}
+
+.yk-app-shell--bridge #u29-queue-drawer [data-queue-track-id] {
+  border-radius: var(--yk-radius-md);
+}
+
+.yk-app-shell--bridge #u29-queue-drawer [data-queue-current="true"] {
+  border-color: color-mix(in srgb, var(--yk-accent) 30%, transparent);
+  background: var(--yk-accent-soft);
+  color: var(--yk-accent);
+}
+
+.yk-app-shell--bridge #legacy-resume-toast {
+  border-color: color-mix(in srgb, var(--yk-accent) 34%, transparent);
+  border-radius: var(--yk-radius-lg);
+  background: color-mix(in srgb, var(--yk-surface-2) 96%, transparent);
+  color: var(--yk-text-1);
+  box-shadow: var(--yk-shadow-lg);
+}
+
+.yk-app-shell--bridge #app-player-bar {
+  border-color: var(--yk-border-subtle);
+  background: color-mix(in srgb, var(--yk-surface-1) 97%, transparent);
+  box-shadow: 0 -1px 0 color-mix(in srgb, var(--yk-border-strong) 24%, transparent);
+  backdrop-filter: blur(22px);
+}
+
+@media (max-width: 960px) {
+  .yk-app-shell--bridge #app-sidebar {
+    width: 12.5rem;
+  }
+
+  .yk-theme-toggle span {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .yk-app-shell--bridge #app-sidebar {
+    width: 4.75rem;
+  }
+
+  .yk-app-shell--bridge #app-sidebar h1,
+  .yk-app-shell--bridge #app-sidebar h1 + span,
+  .yk-app-shell--bridge #app-sidebar nav button span span,
+  .yk-app-shell--bridge #app-sidebar nav > div:first-child,
+  .yk-app-shell--bridge #app-sidebar > div:last-child,
+  .yk-app-shell--bridge #sidebar-search-input,
+  .yk-app-shell--bridge #sidebar-search-input ~ button {
+    display: none;
+  }
+
+  .yk-app-shell--bridge #app-sidebar nav button {
+    justify-content: center;
+    padding-inline: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yk-theme-toggle {
+    transition: none;
+  }
+
+  .yk-theme-toggle:hover {
+    transform: none;
+  }
+}
