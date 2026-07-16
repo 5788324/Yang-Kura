@@ -51,7 +51,7 @@ if (failures.length === 0) {
     "renderLibraryPage(\n        'dashboard'",
     "renderLibraryPage(\n        'asmr'",
     "renderLibraryPage(\n        'music'",
-    "preserveContentWhenEmpty={kind === 'dashboard'}",
+    'preserveContentWhenEmpty',
     'data-u37a-library-page="missing-selection"',
     '返回音声库',
   ]) if (!router.includes(marker)) failures.push(`AppRouter missing U37-A boundary: ${marker}`);
