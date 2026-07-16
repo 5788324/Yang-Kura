@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - agent/u36c-main-ipc-domains
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -14,9 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check out branch
+      - name: Check out source branch
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
       - name: Set up Node 22
@@ -36,6 +40,7 @@ jobs:
         run: |
           rm scripts/apply-u36c-main-ipc-domains.mjs
           rm .github/workflows/u36c-branch-transform.yml
+          rm .github/u36c-transform-trigger.txt
 
       - name: Commit generated U36-C changes
         run: |
