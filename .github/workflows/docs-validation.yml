@@ -1,0 +1,56 @@
+name: Documentation Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/*.md'
+      - 'docs/**'
+      - 'AI_HANDOFF/**'
+      - 'scripts/verify-handoff.mjs'
+      - '.github/workflows/docs-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-docs:
+    name: Lightweight documentation consistency
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify handoff and project facts
+        run: node scripts/verify-handoff.mjs
+
+      - name: Require U34 architecture baseline
+        shell: bash
+        run: |
+          test -f docs/architecture/ARCHITECTURE_AUDIT.md
+          test -f docs/architecture/DEPENDENCY_MAP.md
+          test -f docs/architecture/REFACTOR_BACKLOG.md
+
+      - name: Report validated files
+        shell: bash
+        run: |
+          printf '%s\n' \
+            'AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md' \
+            'AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md' \
+            'PROJECT_STATE.md' \
+            'docs/architecture/ARCHITECTURE_AUDIT.md' \
+            'docs/architecture/DEPENDENCY_MAP.md' \
+            'docs/architecture/REFACTOR_BACKLOG.md'
