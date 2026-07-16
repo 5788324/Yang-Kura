@@ -9,7 +9,8 @@ if (!pkg.scripts?.['test:mpv:windows']) throw new Error('Windows mpv sample tool
 for (const [file, markers] of [
   ['electron/mpvSettingsStore.ts', ['class MpvSettingsStore', 'mvp123-mpv-installation-status', "spawn(executable, ['--version']", 'absolutePathReturned: false']],
   ['electron/mpvPlaybackBackend.ts', ['resolveExecutable', 'this.resolveExecutable()']],
-  ['electron/main.ts', ['registerMpvSettingsIpc', 'yang-kura:player:mpv:select-executable', 'mpv-settings.json', 'mpvSettingsStore.initialize()']],
+  ['electron/main.ts', ['registerMpvSettingsIpc', "registerPlayerHandler('mpvSelectExecutable'", 'mpv-settings.json', 'mpvSettingsStore.initialize()']],
+  ['electron/ipc/contracts.ts', ["mpvSelectExecutable: 'yang-kura:player:mpv:select-executable'", "mpvClearExecutable: 'yang-kura:player:mpv:clear-executable'"]],
   ['electron/preload.ts', ['getMpvInstallationStatus', 'selectMpvExecutable', 'clearMpvExecutable', 'canConfigureMpvExecutable: true']],
   ['src/types/electron-api.d.ts', ['YangKuraMpvInstallationStatus', 'selectMpvExecutable', 'canConfigureMpvExecutable: true']],
   ['src/components/SettingsPage.tsx', ['mvp123-mpv-settings-status', '选择 mpv.exe', 'HTMLAudio 回退', 'mvp123-mpv-windows-sample-check']],
