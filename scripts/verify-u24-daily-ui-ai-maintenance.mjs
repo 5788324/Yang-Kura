@@ -4,6 +4,7 @@ import ts from 'typescript';
 
 const sidebarPath = 'src/components/Sidebar.tsx';
 const sidebar = fs.readFileSync(sidebarPath, 'utf8');
+const navigation = fs.readFileSync('src/app/navigation.ts', 'utf8');
 const app = fs.readFileSync('src/App.tsx', 'utf8');
 
 const transpiled = ts.transpileModule(sidebar, {
@@ -14,24 +15,33 @@ const transpiled = ts.transpileModule(sidebar, {
 const errors = (transpiled.diagnostics ?? []).filter((diagnostic) => diagnostic.category === ts.DiagnosticCategory.Error);
 assert.equal(errors.length, 0, `Sidebar TypeScript diagnostics: ${errors.map((item) => item.messageText).join('; ')}`);
 
-const dailyStart = sidebar.indexOf('const DAILY_NAV_ITEMS');
-const implementationStart = sidebar.indexOf('const getNavItemClass');
-assert.ok(dailyStart >= 0 && implementationStart > dailyStart);
-const dailySource = sidebar.slice(dailyStart, implementationStart);
+assert.ok(navigation.includes('export const APP_ROUTE_REGISTRY'), 'canonical route registry missing');
+assert.ok(navigation.includes('export const DAILY_NAVIGATION_ROUTES'), 'daily navigation projection missing');
+assert.ok(navigation.includes('export const MAINTENANCE_ROUTES'), 'maintenance route projection missing');
 
-for (const marker of [
-  "{ id: 'dashboard', label: '首页'",
-  "{ id: 'asmr-lib', label: '音声库'",
-  "{ id: 'music-lib', label: '音乐库'",
-  "{ id: 'playlists', label: '歌单'",
-  "{ id: 'importer', label: '导入'",
-  "{ id: 'settings', label: '设置'",
-]) assert.ok(dailySource.includes(marker), `daily navigation missing: ${marker}`);
-
-for (const forbidden of ["id: 'downloader'", "id: 'diagnostics'", 'const MAINTENANCE_NAV_ITEMS']) {
-  assert.ok(!dailySource.includes(forbidden), `engineering route leaked into daily navigation: ${forbidden}`);
+for (const [id, label] of [
+  ['dashboard', '首页'],
+  ['asmr-lib', '音声库'],
+  ['music-lib', '音乐库'],
+  ['playlists', '歌单'],
+  ['importer', '导入'],
+  ['settings', '设置'],
+]) {
+  assert.ok(navigation.includes(`id: '${id}'`), `daily route missing: ${id}`);
+  assert.ok(navigation.includes(`label: '${label}'`), `daily label missing: ${label}`);
 }
 
+for (const [id, label] of [['downloader', '下载规划'], ['diagnostics', 'AI 维护']]) {
+  const routeStart = navigation.indexOf(`${id}:`);
+  const routeEnd = navigation.indexOf('\n  },', routeStart);
+  const routeSource = routeStart >= 0 ? navigation.slice(routeStart, routeEnd >= 0 ? routeEnd : undefined) : '';
+  assert.ok(routeSource.includes(`label: '${label}'`), `maintenance label missing: ${id}`);
+  assert.ok(routeSource.includes("section: 'maintenance'"), `maintenance section missing: ${id}`);
+  assert.ok(routeSource.includes('daily: false'), `maintenance route marked daily: ${id}`);
+  assert.ok(routeSource.includes('visibleInSidebar: false'), `maintenance route leaked into daily sidebar: ${id}`);
+}
+
+assert.ok(sidebar.includes("import { DAILY_NAVIGATION_ROUTES } from '../app/navigation';"));
 for (const marker of [
   '<div hidden aria-hidden="true">',
   'id="sidebar-ai-maintenance-toggle"',
@@ -40,11 +50,12 @@ for (const marker of [
 ]) assert.ok(sidebar.includes(marker), `hidden maintenance compatibility missing: ${marker}`);
 
 for (const forbidden of [
+  'const DAILY_NAV_ITEMS',
+  'const MAINTENANCE_NAV_ITEMS',
   'id="sidebar-ai-maintenance-panel"',
   'aria-expanded={showAiMaintenance}',
   'showAiMaintenance && (',
-  'const [isAiMaintenanceOpen, setIsAiMaintenanceOpen]',
-]) assert.ok(!sidebar.includes(forbidden), `release UI still exposes maintenance disclosure: ${forbidden}`);
+]) assert.ok(!sidebar.includes(forbidden), `obsolete maintenance implementation remains: ${forbidden}`);
 
 for (const marker of [
   "const DiagnosticsPageShell = lazy(() => import('./components/DiagnosticsPageShell'));",
