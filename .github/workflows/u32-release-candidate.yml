@@ -14,8 +14,6 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/u32-release-candidate.yml'
-      - 'PROJECT_STATE.md'
-      - 'PROJECT_ROADMAP.md'
       - 'docs/U32_RELEASE_CANDIDATE_PACKAGING.md'
   workflow_dispatch:
 
