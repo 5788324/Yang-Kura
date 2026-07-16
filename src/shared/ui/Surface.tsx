@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
 
 export type SurfaceTone = 'default' | 'subtle';
 export type SurfaceElevation = 'flat' | 'raised';
@@ -9,6 +9,7 @@ export interface SurfaceProps extends HTMLAttributes<HTMLDivElement> {
   elevation?: SurfaceElevation;
   padding?: SurfacePadding;
   className?: string;
+  children?: ReactNode;
 }
 
 export function Surface({
@@ -16,6 +17,7 @@ export function Surface({
   elevation = 'flat',
   padding = 'none',
   className = '',
+  children,
   ...surfaceProps
 }: SurfaceProps) {
   return (
@@ -25,6 +27,8 @@ export function Surface({
       data-elevation={elevation}
       data-padding={padding}
       className={`yk-surface ${className}`.trim()}
-    />
+    >
+      {children}
+    </div>
   );
 }
