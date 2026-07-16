@@ -8,10 +8,15 @@ const requiredFiles = [
   'electron/ipc/contracts.ts',
   'src/shared/ipc/index.ts',
   'src/styles/design-tokens.css',
+  'src/styles/design-components.css',
+  'src/app/AppShell.tsx',
   'src/shared/ui/Button.tsx',
   'src/shared/ui/Dialog.tsx',
+  'src/shared/ui/Drawer.tsx',
   'src/shared/ui/Feedback.tsx',
+  'src/shared/ui/MediaCard.tsx',
   'src/shared/ui/Surface.tsx',
+  'src/shared/ui/TrackRow.tsx',
   'src/shared/ui/index.ts',
 ];
 
@@ -70,9 +75,23 @@ if (failures.length === 0) {
     if (!tokenSource.includes(marker)) failures.push(`design token contract missing marker: ${marker}`);
   }
 
+  const componentStyles = read('src/styles/design-components.css');
+  for (const marker of [
+    '.yk-app-shell',
+    '.yk-drawer',
+    '.yk-media-card',
+    '.yk-track-row',
+    '@media (max-width: 720px)',
+  ]) {
+    if (!componentStyles.includes(marker)) failures.push(`component style contract missing marker: ${marker}`);
+  }
+
   const mainEntry = read('src/main.tsx');
-  if (!mainEntry.includes("import './styles/design-tokens.css';")) {
-    failures.push('renderer entry does not load semantic design tokens');
+  for (const importMarker of [
+    "import './styles/design-tokens.css';",
+    "import './styles/design-components.css';",
+  ]) {
+    if (!mainEntry.includes(importMarker)) failures.push(`renderer entry missing style import: ${importMarker}`);
   }
 
   const componentSources = requiredFiles
