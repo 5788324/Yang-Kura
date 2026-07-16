@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { IPC_CHANNELS, type IpcChannel } from './ipc/contracts';
+import { IPC_CHANNELS, type IpcChannel } from './ipc/contracts.js';
 import type {
   AsmrMetadataProviderCacheClearRequest,
   AsmrMetadataProviderRequest,
@@ -34,7 +34,7 @@ import type {
   SelectLibraryRootRequest,
   WriteIndexPreviewRequest,
   WriteLibraryIndexRequest,
-} from './preload/contracts';
+} from './preload/contracts.js';
 
 /**
  * Renderer bridge for tokenized local-media operations.
@@ -164,15 +164,15 @@ const yangKuraApi = {
   },
 
   getMpvInstallationStatus(): Promise<MpvInstallationStatus> {
-    return invoke(IPC_CHANNELS.player.mpvInstallationStatus);
+    return invoke<MpvInstallationStatus>(IPC_CHANNELS.player.mpvInstallationStatus);
   },
 
   selectMpvExecutable(): Promise<MpvExecutableActionResult> {
-    return invoke(IPC_CHANNELS.player.mpvSelectExecutable);
+    return invoke<MpvExecutableActionResult>(IPC_CHANNELS.player.mpvSelectExecutable);
   },
 
   clearMpvExecutable(): Promise<MpvExecutableActionResult> {
-    return invoke(IPC_CHANNELS.player.mpvClearExecutable);
+    return invoke<MpvExecutableActionResult>(IPC_CHANNELS.player.mpvClearExecutable);
   },
 
   onMpvPlaybackEvent(listener: (event: MpvPlaybackEvent) => void) {
