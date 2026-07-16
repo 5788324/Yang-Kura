@@ -140,9 +140,27 @@ requireMarkers('published verifier', publishedVerifier, [
 ]);
 
 for (const [label, text, markers] of [
-  ['PROJECT_STATE', state, ['核心版本：0.168.0-beta.1', 'Beta 1：已发布并完成远端资产回读', 'Beta 2：U34 联合审计已完成', '当前阶段：U35 架构边界与 Design System 基础', '目标版本：0.169.0-beta.2', 'MVP130']],
+  ['PROJECT_STATE', state, [
+    '核心版本：0.168.0-beta.1',
+    'Beta 1：已发布并完成远端资产回读',
+    'U35-A：共享 IPC 合同与 Design System 基础完成',
+    'U35-B：正式主题与生产 AppShell 接线完成',
+    'U36-A：导航注册表与 Preload IPC 统一完成',
+    '当前阶段：U36-B App Router / Overlay / Main IPC 拆分',
+    '目标版本：0.169.0-beta.2',
+    'MVP130',
+  ]],
   ['PROJECT_ROADMAP', roadmap, ['### U33：Beta 1 发布', '当前主线：Beta 2 联合整备', 'v0.168.0-beta.1', 'MVP130']],
-  ['CURRENT_PROJECT_HANDOFF', handoff, ['当前版本：0.168.0-beta.1', 'Beta 1：已发布并完成远端资产校验', 'Beta 2：U34 联合审计已完成', '当前任务：U35 共享契约、架构边界与 Design System 基础', '目标版本：0.169.0-beta.2', '用户只接收最终成果']],
+  ['CURRENT_PROJECT_HANDOFF', handoff, [
+    '当前版本：0.168.0-beta.1',
+    'Beta 1：已发布并完成远端资产校验',
+    'U35-A：完成',
+    'U35-B：完成',
+    'U36-A：完成',
+    '当前任务：U36-B App Router / Overlay Host / Main IPC 统一',
+    '目标版本：0.169.0-beta.2',
+    '用户只接收最终成果',
+  ]],
 ]) requireMarkers(label, text, markers);
 
 for (const temporary of ['scripts/apply-u33-version.mjs', '.github/workflows/u33-version-sync.yml']) {
