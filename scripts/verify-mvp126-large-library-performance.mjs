@@ -11,7 +11,12 @@ const checks = [
   ['src/components/AsmrLibrary.tsx', ['useDeferredValue', 'mvp126-asmr-render-window', 'visibleWorks', 'libraryPerformanceService']],
   ['src/components/MusicLibrary.tsx', ['useDeferredValue', 'mvp126-music-render-window', 'visibleTracks', 'artistGroups', 'libraryPerformanceService']],
   ['src/components/DiagnosticsPageShell.tsx', ['mvp126-diagnostics-two-stage-loader', '打开完整诊断', 'LibraryPerformanceDiagnosticsPanel']],
-  ['src/App.tsx', ['MVP126 route-level code splitting', "lazy(() => import('./components/AsmrLibrary'))", "lazy(() => import('./components/MusicLibrary'))", 'DiagnosticsPageShell']],
+  ['src/App.tsx', ["import AppRouter from './app/AppRouter';", '<AppRouter']],
+  ['src/app/AppRouter.tsx', [
+    "const AsmrLibrary = lazy(() => import('../components/AsmrLibrary'));",
+    "const MusicLibrary = lazy(() => import('../components/MusicLibrary'));",
+    "const DiagnosticsPageShell = lazy(() => import('../components/DiagnosticsPageShell'));",
+  ]],
   ['vite.config.ts', ['manualChunks', 'react-vendor', 'icons-vendor']],
   ['scripts/benchmark-mvp126-large-library.mjs', ['ASMR_WORKS = 4000', 'MUSIC_ALBUMS = 1500', 'real library access: NO']],
 ];
