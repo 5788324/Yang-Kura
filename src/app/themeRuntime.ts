@@ -1,0 +1,56 @@
+export type Beta2ThemeId = 'dusk-amber' | 'mist-ivory';
+
+export const BETA2_THEME_STORAGE_KEY = 'yang_kura_beta2_theme_v1';
+const LEGACY_SETTINGS_STORAGE_KEY = 'sqlite_settings';
+
+const LEGACY_THEME_MAP: Record<string, Beta2ThemeId> = {
+  dark: 'dusk-amber',
+  'acrylic-mist': 'dusk-amber',
+  'ocean-drops': 'mist-ivory',
+  'dusk-amber': 'dusk-amber',
+  'mist-ivory': 'mist-ivory',
+};
+
+export const normalizeBeta2Theme = (value: unknown): Beta2ThemeId =>
+  typeof value === 'string' && value in LEGACY_THEME_MAP
+    ? LEGACY_THEME_MAP[value]
+    : 'dusk-amber';
+
+const readLegacyTheme = (): unknown => {
+  if (typeof localStorage === 'undefined') return undefined;
+  try {
+    const raw = localStorage.getItem(LEGACY_SETTINGS_STORAGE_KEY);
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw) as { currentTheme?: unknown };
+    return parsed.currentTheme;
+  } catch {
+    return undefined;
+  }
+};
+
+export const readBeta2Theme = (): Beta2ThemeId => {
+  if (typeof localStorage === 'undefined') return 'dusk-amber';
+  const explicit = localStorage.getItem(BETA2_THEME_STORAGE_KEY);
+  return normalizeBeta2Theme(explicit ?? readLegacyTheme());
+};
+
+export const persistBeta2Theme = (theme: Beta2ThemeId): void => {
+  if (typeof localStorage === 'undefined') return;
+  localStorage.setItem(BETA2_THEME_STORAGE_KEY, theme);
+};
+
+export const getBeta2ThemeLabel = (theme: Beta2ThemeId): string =>
+  theme === 'dusk-amber' ? '暮夜琥珀' : '雾光象牙';
+
+export const applyBeta2Theme = (theme: Beta2ThemeId): void => {
+  if (typeof document === 'undefined') return;
+  const themeClass = `theme-${theme}`;
+  const targets = [document.documentElement, document.body, document.querySelector('.u32-release-ui')]
+    .filter((target): target is HTMLElement => target instanceof HTMLElement);
+
+  for (const target of targets) {
+    target.classList.remove('theme-dusk-amber', 'theme-mist-ivory');
+    target.classList.add(themeClass);
+    target.dataset.ykTheme = theme;
+  }
+};
