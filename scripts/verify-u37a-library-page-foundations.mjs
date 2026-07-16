@@ -18,6 +18,12 @@ for (const file of required) {
   if (!fs.existsSync(file)) failures.push(`missing U37-A file: ${file}`);
 }
 
+function requireIncludes(label, source, markers) {
+  for (const marker of markers) {
+    if (!source.includes(marker)) failures.push(`${label} missing: ${marker}`);
+  }
+}
+
 if (failures.length === 0) {
   const pageState = read('src/features/library/LibraryPageState.tsx');
   const routeBoundary = read('src/features/library/LibraryRouteBoundary.tsx');
@@ -28,50 +34,70 @@ if (failures.length === 0) {
   const handoff = read('AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md');
   const worklog = read('AI_HANDOFF/WORKLOG.md');
 
-  for (const marker of [
+  requireIncludes('LibraryPageState', pageState, [
     "export type LibraryPageKind = 'dashboard' | 'asmr' | 'music'",
-    "const delegatedState = itemCount > 0 ? 'ready'",
-    "connected ? 'empty' : 'disconnected'",
     'preserveContentWhenEmpty',
+    'delegatedState',
+    'data-u37a-library-page',
     'onOpenSettings',
+    'PAGE_COPY',
     '绝对路径不会暴露给 Renderer',
-  ]) if (!pageState.includes(marker)) failures.push(`LibraryPageState missing: ${marker}`);
+  ]);
+  if (!/itemCount\s*>\s*0\s*\|\|\s*preserveContentWhenEmpty/.test(pageState)) {
+    failures.push('LibraryPageState must preserve established page-owned empty states during incremental migration');
+  }
+  if (!/connected\s*\?\s*['"]empty['"]\s*:\s*['"]disconnected['"]/.test(pageState)) {
+    failures.push('LibraryPageState must classify empty and disconnected states');
+  }
 
-  for (const marker of [
+  requireIncludes('LibraryRouteBoundary', routeBoundary, [
     'getDerivedStateFromError',
     'componentDidCatch',
     'componentDidUpdate',
+    'this.setState({ error: null })',
     '重试页面',
     '播放器、队列和其他页面继续保持可用',
-  ]) if (!routeBoundary.includes(marker)) failures.push(`LibraryRouteBoundary missing: ${marker}`);
+  ]);
 
-  for (const marker of [
-    "import LibraryPageState, { type LibraryPageKind } from '../features/library/LibraryPageState';",
-    "import LibraryRouteBoundary from '../features/library/LibraryRouteBoundary';",
-    "renderLibraryPage(\n        'dashboard'",
-    "renderLibraryPage(\n        'asmr'",
-    "renderLibraryPage(\n        'music'",
+  requireIncludes('AppRouter', router, [
+    "from '../features/library/LibraryPageState'",
+    "from '../features/library/LibraryRouteBoundary'",
     'preserveContentWhenEmpty',
     'data-u37a-library-page="missing-selection"',
     '返回音声库',
-  ]) if (!router.includes(marker)) failures.push(`AppRouter missing U37-A boundary: ${marker}`);
-
+  ]);
+  for (const kind of ['dashboard', 'asmr', 'music']) {
+    const pattern = new RegExp(`renderLibraryPage\\(\\s*['\"]${kind}['\"]`);
+    if (!pattern.test(router)) failures.push(`AppRouter missing ${kind} page boundary`);
+  }
   if (router.includes('window.location.reload')) failures.push('U37-A recovery must not reload the whole application');
-  if (!styles.includes('.yk-library-page-state') || !styles.includes('.yk-library-page-state__surface')) {
-    failures.push('U37-A semantic page-state styles missing');
-  }
 
-  for (const marker of ['### U37-A', '### U37-B', '### U37-C', '### U37-D', 'U37 完成条件']) {
-    if (!plan.includes(marker)) failures.push(`U37 execution plan missing: ${marker}`);
-  }
+  requireIncludes('design-components.css', styles, [
+    '.yk-library-page {',
+    '.yk-library-page-state {',
+    '.yk-library-page-state__surface {',
+    '.yk-library-page-state__icon {',
+  ]);
 
-  for (const [file, source, markers] of [
-    ['PROJECT_STATE.md', state, ['U37-A：资源库页面状态与错误恢复完成', '当前阶段：U37-B']],
-    ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, ['U37-A：完成', '当前任务：U37-B']],
-    ['AI_HANDOFF/WORKLOG.md', worklog, ['### U37-A', '当前任务：U37-B']],
-  ]) {
-    for (const marker of markers) if (!source.includes(marker)) failures.push(`${file} missing progress marker: ${marker}`);
-  }
+  requireIncludes('U37 execution plan', plan, [
+    '### U37-A：',
+    '### U37-B：',
+    '### U37-C：',
+    '### U37-D：',
+    '## U37 完成条件',
+  ]);
+  requireIncludes('PROJECT_STATE.md', state, [
+    'U37-A：资源库页面状态与错误恢复完成',
+    '当前阶段：U37-B 首页与音声库列表 UI',
+  ]);
+  requireIncludes('AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, [
+    'U37-A：完成',
+    '当前任务：U37-B 首页与音声库列表 UI',
+  ]);
+  requireIncludes('AI_HANDOFF/WORKLOG.md', worklog, [
+    '### U37-A',
+    '当前任务：U37-B 首页与音声库列表 UI',
+  ]);
 }
 
 if (failures.length) {
