@@ -1,4 +1,4 @@
-import type { LibraryType } from '../ipc/contracts';
+import type { LibraryType } from '../ipc/contracts.js';
 
 export type SelectLibraryRootRequest = {
   libraryType: LibraryType;
