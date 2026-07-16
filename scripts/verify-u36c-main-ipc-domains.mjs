@@ -49,8 +49,7 @@ if (failures.length === 0) {
   ]) for (const marker of markers) if (!source.includes(marker)) failures.push(label + ' missing progress marker: ' + marker);
 }
 if (failures.length) {
-  console.error(failures.join('
-'));
+  console.error(failures.join('\n'));
   process.exit(1);
 }
 console.log('U36-C Main IPC domain registration PASS');
