@@ -10,6 +10,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import type { PageType, ThemeType } from '../types';
+import { DAILY_NAVIGATION_ROUTES } from '../app/navigation';
 
 interface SidebarProps {
   currentPage: PageType;
@@ -21,20 +22,16 @@ interface SidebarProps {
   setPlaylistDetailId: (id: string | null) => void;
 }
 
-interface SidebarNavItem {
-  id: PageType;
-  label: string;
-  icon: LucideIcon;
-}
-
-const DAILY_NAV_ITEMS: readonly SidebarNavItem[] = [
-  { id: 'dashboard', label: '首页', icon: History },
-  { id: 'asmr-lib', label: '音声库', icon: Headphones },
-  { id: 'music-lib', label: '音乐库', icon: Music },
-  { id: 'playlists', label: '歌单', icon: ListMusic },
-  { id: 'importer', label: '导入', icon: ArchiveRestore },
-  { id: 'settings', label: '设置', icon: Settings },
-];
+const NAVIGATION_ICONS: Record<PageType, LucideIcon> = {
+  dashboard: History,
+  'asmr-lib': Headphones,
+  'music-lib': Music,
+  playlists: ListMusic,
+  importer: ArchiveRestore,
+  settings: Settings,
+  downloader: ArchiveRestore,
+  diagnostics: Settings,
+};
 
 const getNavItemClass = (isActive: boolean) => {
   const focusClass = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-color/70 focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg';
@@ -45,9 +42,9 @@ const getNavItemClass = (isActive: boolean) => {
 };
 
 /*
- * Legacy verifier markers retained outside the visible UI:
- * AI 维护 / 工程与检修工具 / 仅供维护 / 下载规划 / 诊断工具.
- * The routes remain internal, but release-candidate daily navigation no longer exposes engineering pages.
+ * Engineering routes remain available through the maintenance boundary but are
+ * intentionally absent from daily navigation. Their labels and visibility now
+ * come from src/app/navigation.ts instead of page-local arrays.
  */
 export default function Sidebar({
   currentPage,
@@ -71,7 +68,7 @@ export default function Sidebar({
     >
       <div className="px-4 pt-5 pb-4 flex items-center gap-3">
         <div
-          className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/15"
+          className="w-9 h-9 rounded-xl bg-brand-color/10 border border-brand-color/25 flex items-center justify-center text-brand-color shadow-sm"
           aria-hidden="true"
         >
           <Headphones className="w-4.5 h-4.5" />
@@ -113,21 +110,21 @@ export default function Sidebar({
       <nav aria-label="页面导航" className="flex-1 px-3 py-2 overflow-y-auto scrollbar-thin">
         <div className="px-3 mb-2 text-[9px] font-semibold text-text-muted tracking-[0.16em] uppercase">媒体库</div>
         <div className="space-y-1">
-          {DAILY_NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const isCurrent = currentPage === item.id;
+          {DAILY_NAVIGATION_ROUTES.map((route) => {
+            const Icon = NAVIGATION_ICONS[route.id];
+            const isCurrent = currentPage === route.id;
             return (
               <button
-                key={item.id}
-                id={`nav-${item.id}`}
+                key={route.id}
+                id={`nav-${route.id}`}
                 type="button"
                 aria-current={isCurrent ? 'page' : undefined}
-                onClick={() => handleNavClick(item.id)}
+                onClick={() => handleNavClick(route.id)}
                 className={`h-10 w-full flex items-center justify-between px-3 rounded-xl text-[13px] text-left ${getNavItemClass(isCurrent)}`}
               >
                 <span className="flex items-center gap-3 min-w-0">
                   <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-                  <span className="truncate">{item.label}</span>
+                  <span className="truncate">{route.label}</span>
                 </span>
                 {isCurrent && <ChevronRight className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />}
               </button>
