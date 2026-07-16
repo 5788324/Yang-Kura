@@ -103,12 +103,12 @@ if (failures.length === 0) {
   }
 
   for (const [file, source, markers] of [
-    ['PROJECT_STATE.md', projectState, ['U36-A：导航注册表与 Preload IPC 统一完成', '当前阶段：U36-B']],
-    ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, ['U36-A：完成', '当前任务：U36-B']],
-    ['AI_HANDOFF/WORKLOG.md', worklog, ['U35-B', 'U36-A', '当前任务：U36-B']],
+    ['PROJECT_STATE.md', projectState, ['U36-A：导航注册表与 Preload IPC 统一完成']],
+    ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, ['U36-A：完成']],
+    ['AI_HANDOFF/WORKLOG.md', worklog, ['U35-B', 'U36-A']],
   ]) {
     for (const marker of markers) {
-      if (!source.includes(marker)) failures.push(`${file} missing progress marker: ${marker}`);
+      if (!source.includes(marker)) failures.push(`${file} missing historical progress marker: ${marker}`);
     }
   }
 }
