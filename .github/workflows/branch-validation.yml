@@ -45,9 +45,23 @@ jobs:
         run: npm rebuild electron
 
       - name: TypeScript validation
+        shell: pwsh
         env:
           NODE_OPTIONS: --max-old-space-size=8192
-        run: npm run lint
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          npm run lint 2>&1 | Tee-Object -FilePath artifacts/typescript-validation.log
+          $exitCode = $LASTEXITCODE
+          if ($exitCode -ne 0) { exit $exitCode }
+
+      - name: Upload TypeScript validation log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: typescript-validation-log
+          path: artifacts/typescript-validation.log
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Build desktop application
         env:
