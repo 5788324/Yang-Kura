@@ -87,7 +87,7 @@ const tokens = [
   ['PROJECT_STATE.md', 'U36-C：Main IPC 分域注册完成'],
   ['PROJECT_STATE.md', '当前阶段：U37 首页、资源库与详情 UI'],
   ['PROJECT_STATE.md', '## U35：架构边界与 Design System — 已完成'],
-  ['PROJECT_STATE.md', '## U36：应用壳与契约统一 — 当前阶段'],
+  ['PROJECT_STATE.md', '## U36：应用壳与契约统一 — 已完成'],
   ['PROJECT_ROADMAP.md', '已完成主线：U02～U33'],
   ['PROJECT_ROADMAP.md', '当前计划：U34～U41 Beta 2 联合整备'],
   ['PROJECT_ROADMAP.md', 'Beta 2 目标：0.169.0-beta.2'],
