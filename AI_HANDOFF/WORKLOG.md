@@ -52,11 +52,22 @@
 
 ### U36-C — Main IPC 分域注册
 
-- 分支：`agent/u36c-main-ipc-domains`。
-- 建立共享 invoke registrar 与五个领域注册模块。
+- PR：#61
+- 合并提交：`27d2076029cd2221183bb69b1d0d79ca078d974d`
+- 建立共享 invoke registrar 与 Library、Media、Player、Metadata、Importer 五个领域注册模块。
 - Main 不再直接调用 `ipcMain.handle/removeHandler`，channel 全部来自 `IPC_CHANNELS`。
 - 业务实现、事务、Index、mpv、Provider、Preload API 与路径安全边界保持不变。
-- 当前任务：U37 首页、资源库与详情 UI。
+- TypeScript、U28～U32、稳定回归、portable/NSIS 与 Beta 资产验证全部通过。
+
+### U37-A — 资源库页面状态与错误恢复
+
+- 分支：`agent/u37a-library-page-foundations`。
+- 新增 `LibraryPageState`，统一首页、音声库和音乐库的未连接、已连接但为空、正常内容状态。
+- 新增 `LibraryRouteBoundary`，把渲染异常限制在当前页面并提供原地重试。
+- AppRouter 为首页、音声库、RJ 详情和音乐库建立页面边界。
+- RJ 详情 ID 失效时提供明确返回入口，不再留下空白内容区。
+- 新增 `docs/architecture/U37_EXECUTION_PLAN.md`，将 U37 拆为 A～D 四个连续子轮次。
+- 当前任务：U37-B 首页与音声库列表 UI。
 
 ## 当前结论
 
@@ -67,7 +78,8 @@ U35-B：完成
 U36-A：完成
 U36-B：完成
 U36-C：完成
-当前任务：U37
+U37-A：代码完成，等待本分支最终门禁与合并
+当前任务：U37-B 首页与音声库列表 UI
 目标版本：0.169.0-beta.2
 大型功能：继续冻结
 ```

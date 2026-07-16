@@ -148,7 +148,7 @@ Infrastructure 实现 Domain/Application 接口
 - 首发主题：暮夜琥珀、雾光象牙。
 - 建立组件、图标、排版、间距、密度、阴影、反馈和 Motion 规范。
 
-### U36：App Shell、状态与 IPC 契约
+### U36：App Shell、状态与 IPC 契约 — 已完成
 
 - 重写桌面应用壳、导航、全局搜索、弹层和内容网格。
 - Renderer/Preload/Main 共用唯一 IPC 契约。
@@ -156,24 +156,14 @@ Infrastructure 实现 Domain/Application 接口
 - 逐步清理 `any`、非空断言和重复状态源。
 - 加入运行时参数校验和明确错误模型。
 
-### U37：资源库与详情纵向迁移
+### U37：资源库与详情纵向迁移 — 当前阶段
 
-页面：
+详细执行计划：`docs/architecture/U37_EXECUTION_PLAN.md`。
 
-- 首页与首次启动；
-- 音声库；
-- RJ 详情；
-- 音乐库；
-- 专辑与艺术家详情；
-- 全局搜索结果。
-
-能力：
-
-- 多选和批量操作；
-- 播放/字幕/文件健康筛选；
-- 元数据编辑；
-- DLsite 字段比较与选择性应用；
-- Index 空、损坏、恢复和新增文件提示。
+- **U37-A（完成）**：页面状态、空资源库、无效详情选择和渲染错误恢复。
+- **U37-B（当前）**：首页、音声库列表、筛选工具栏、MediaCard/TrackRow、多选与低风险批量操作。
+- **U37-C**：RJ 详情、音轨列表、元数据编辑、DLsite 字段选择性应用和字幕状态。
+- **U37-D**：音乐库、专辑/艺术家/文件夹详情、批量加入队列/收藏和 U37 全矩阵验收。
 
 同步整理：LibraryRepository、Index Reader/Writer、Metadata、Provider 和页面状态边界。
 

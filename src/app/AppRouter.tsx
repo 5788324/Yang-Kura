@@ -1,8 +1,11 @@
 import type React from 'react';
 import { Suspense, lazy } from 'react';
 import DiagnosticsRuntimeBoundary from '../components/DiagnosticsRuntimeBoundary';
+import LibraryPageState, { type LibraryPageKind } from '../features/library/LibraryPageState';
+import LibraryRouteBoundary from '../features/library/LibraryRouteBoundary';
 import type { LibrarySessionSnapshot } from '../services/librarySessionService';
 import type { AsmrMetadataSaveContext } from '../services/metadataOverrideService';
+import { Button, Feedback, Surface } from '../shared/ui';
 import type {
   AudioTrack,
   LibrarySettings,
@@ -65,10 +68,38 @@ export interface AppRouterProps {
 
 export default function AppRouter(props: AppRouterProps) {
   const selectedAsmrWork = props.rjWorks.find((work) => work.id === props.asmrDetailId);
+  const hasConnectedLibrary = Boolean(props.librarySessionSnapshot.lastIndex);
+  const dashboardItemCount = props.rjWorks.length + props.musicAlbums.length + props.playlists.length + props.recentTracks.length;
+
+  const renderLibraryPage = (
+    kind: LibraryPageKind,
+    pageTitle: string,
+    itemCount: number,
+    content: React.ReactNode,
+    resetKeySuffix = '',
+  ) => (
+    <LibraryRouteBoundary
+      pageTitle={pageTitle}
+      resetKey={`${kind}:${itemCount}:${props.searchQuery}:${resetKeySuffix}`}
+    >
+      <LibraryPageState
+        kind={kind}
+        connected={hasConnectedLibrary}
+        itemCount={itemCount}
+        onOpenSettings={() => props.setCurrentPage('settings')}
+        preserveContentWhenEmpty
+      >
+        {content}
+      </LibraryPageState>
+    </LibraryRouteBoundary>
+  );
 
   return (
     <Suspense fallback={<div className="min-h-[240px] rounded-2xl border border-border-color/50 bg-card-bg/30 p-6 text-sm text-text-muted">正在打开页面…</div>}>
-      {props.currentPage === 'dashboard' && !props.asmrDetailId && !props.playlistDetailId && (
+      {props.currentPage === 'dashboard' && !props.asmrDetailId && !props.playlistDetailId && renderLibraryPage(
+        'dashboard',
+        '首页',
+        dashboardItemCount,
         <Dashboard
           recentTracks={props.recentTracks}
           librarySessionSnapshot={props.librarySessionSnapshot}
@@ -81,10 +112,13 @@ export default function AppRouter(props: AppRouterProps) {
           setPlaylistDetailId={props.setPlaylistDetailId}
           setCurrentPage={props.setCurrentPage}
           searchQuery={props.searchQuery}
-        />
+        />,
       )}
 
-      {props.currentPage === 'asmr-lib' && !props.asmrDetailId && (
+      {props.currentPage === 'asmr-lib' && !props.asmrDetailId && renderLibraryPage(
+        'asmr',
+        '音声库',
+        props.rjWorks.length,
         <AsmrLibrary
           rjWorks={props.rjWorks}
           setAsmrDetailId={props.setAsmrDetailId}
@@ -94,28 +128,55 @@ export default function AppRouter(props: AppRouterProps) {
           onRefetchRjMetadata={props.onRefetchRjMetadata}
           onAddRjWorkTracksToPlaylist={props.onAddRjWorkTracksToPlaylist}
           playlists={props.playlists}
-        />
+        />,
       )}
 
       {props.currentPage === 'asmr-lib' && props.asmrDetailId && selectedAsmrWork && (
-        <AsmrDetail
-          rjWork={selectedAsmrWork}
-          onBack={() => props.setAsmrDetailId(null)}
-          onPlayTrack={props.onPlayTrack}
-          onAddToQueue={props.onAddToQueue}
-          favorites={props.favorites}
-          toggleFavorite={props.toggleFavorite}
-          onUpdateRjWork={props.onUpdateRjWork}
-          onClearRjWorkOverride={props.onClearRjWorkOverride}
-          onExplore={(query) => {
-            props.setSearchQuery(query);
-            props.setAsmrDetailId(null);
-            props.setCurrentPage('asmr-lib');
-          }}
-        />
+        <LibraryRouteBoundary
+          pageTitle="RJ 详情"
+          resetKey={`asmr-detail:${selectedAsmrWork.id}:${selectedAsmrWork.addedAt ?? ''}`}
+        >
+          <div className="yk-library-page" data-library-page="asmr-detail" data-u37a-library-page="ready">
+            <AsmrDetail
+              rjWork={selectedAsmrWork}
+              onBack={() => props.setAsmrDetailId(null)}
+              onPlayTrack={props.onPlayTrack}
+              onAddToQueue={props.onAddToQueue}
+              favorites={props.favorites}
+              toggleFavorite={props.toggleFavorite}
+              onUpdateRjWork={props.onUpdateRjWork}
+              onClearRjWorkOverride={props.onClearRjWorkOverride}
+              onExplore={(query) => {
+                props.setSearchQuery(query);
+                props.setAsmrDetailId(null);
+                props.setCurrentPage('asmr-lib');
+              }}
+            />
+          </div>
+        </LibraryRouteBoundary>
       )}
 
-      {props.currentPage === 'music-lib' && (
+      {props.currentPage === 'asmr-lib' && props.asmrDetailId && !selectedAsmrWork && (
+        <div className="yk-library-page yk-library-page-state" data-library-page="asmr-detail" data-u37a-library-page="missing-selection">
+          <Surface className="yk-library-page-state__surface" padding="lg" elevation="raised">
+            <Feedback
+              tone="warning"
+              title="找不到该音声作品"
+              description="作品可能已从 Index 移除、重新扫描后 ID 发生变化，或当前详情链接已经失效。"
+              action={(
+                <Button variant="primary" onClick={() => props.setAsmrDetailId(null)}>
+                  返回音声库
+                </Button>
+              )}
+            />
+          </Surface>
+        </div>
+      )}
+
+      {props.currentPage === 'music-lib' && renderLibraryPage(
+        'music',
+        '音乐库',
+        props.musicAlbums.reduce((count, album) => count + album.tracks.length, 0),
         <MusicLibrary
           albums={props.musicAlbums}
           onPlayTrack={props.onPlayTrack}
@@ -128,7 +189,8 @@ export default function AppRouter(props: AppRouterProps) {
           onClearMusicAlbumOverride={props.onClearMusicAlbumOverride}
           onClearMusicTrackOverride={props.onClearMusicTrackOverride}
           onMetadataStoreChanged={props.onMetadataStoreChanged}
-        />
+        />,
+        props.musicAlbums.length.toString(),
       )}
 
       {props.currentPage === 'playlists' && (

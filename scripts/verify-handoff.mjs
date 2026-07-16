@@ -25,6 +25,7 @@ const required = [
   'docs/architecture/U36A_SHELL_ROUTER_IPC.md',
   'docs/architecture/U36B_APP_SHELL_ROUTER_OVERLAYS.md',
   'docs/architecture/U36C_MAIN_IPC_DOMAINS.md',
+  'docs/architecture/U37_EXECUTION_PLAN.md',
   'docs/U29_PLAYER_RELIABILITY_ACCEPTANCE.md',
   'docs/U30_UI_FAST_TRACK_ACCEPTANCE.md',
   'docs/U31_IMPORTER_TRANSACTION_ACCEPTANCE.md',
@@ -63,8 +64,9 @@ const tokens = [
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U36-A：完成'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U36-B：完成'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U36-C：完成'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：U37 首页、资源库与详情 UI'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '## 5. 当前任务：U37'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U37-A：完成'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：U37-B 首页与音声库列表 UI'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '## 5. 当前任务：U37-B'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '## 7. 执行效率硬规则'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '正式下载器 / MVP130'],
   ['AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md', '用户只接收最终成果'],
@@ -76,7 +78,8 @@ const tokens = [
   ['AI_HANDOFF/WORKLOG.md', '### U36-A'],
   ['AI_HANDOFF/WORKLOG.md', '### U36-B'],
   ['AI_HANDOFF/WORKLOG.md', '### U36-C'],
-  ['AI_HANDOFF/WORKLOG.md', '当前任务：U37'],
+  ['AI_HANDOFF/WORKLOG.md', '### U37-A'],
+  ['AI_HANDOFF/WORKLOG.md', '当前任务：U37-B'],
   ['PROJECT_STATE.md', '核心版本：0.168.0-beta.1'],
   ['PROJECT_STATE.md', 'Beta 1：已发布并完成远端资产回读'],
   ['PROJECT_STATE.md', '当前主线：Beta 2 联合整备'],
@@ -85,7 +88,8 @@ const tokens = [
   ['PROJECT_STATE.md', 'U36-A：导航注册表与 Preload IPC 统一完成'],
   ['PROJECT_STATE.md', 'U36-B：App Shell、Router 与 Overlay 拆分完成'],
   ['PROJECT_STATE.md', 'U36-C：Main IPC 分域注册完成'],
-  ['PROJECT_STATE.md', '当前阶段：U37 首页、资源库与详情 UI'],
+  ['PROJECT_STATE.md', 'U37-A：资源库页面状态与错误恢复完成'],
+  ['PROJECT_STATE.md', '当前阶段：U37-B 首页与音声库列表 UI'],
   ['PROJECT_STATE.md', '## U35：架构边界与 Design System — 已完成'],
   ['PROJECT_STATE.md', '## U36：应用壳与契约统一 — 已完成'],
   ['PROJECT_ROADMAP.md', '已完成主线：U02～U33'],
@@ -110,6 +114,8 @@ const tokens = [
   ['docs/architecture/U36B_APP_SHELL_ROUTER_OVERLAYS.md', 'Player Overlay Host'],
   ['docs/architecture/U36C_MAIN_IPC_DOMAINS.md', 'Main IPC 分域注册'],
   ['docs/architecture/U36C_MAIN_IPC_DOMAINS.md', 'registerInvokeHandler'],
+  ['docs/architecture/U37_EXECUTION_PLAN.md', 'U37-A：页面状态与错误恢复'],
+  ['docs/architecture/U37_EXECUTION_PLAN.md', 'U37-D：音乐库、专辑与艺术家详情'],
   ['.github/workflows/docs-validation.yml', 'Documentation Validation'],
   ['.github/workflows/docs-validation.yml', 'Lightweight documentation consistency'],
   ['docs/NEXT_CHAT_HANDOFF.md', '当前主线：U33 Beta 发布'],
@@ -192,4 +198,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('[verify-handoff] U36-C complete and U37 handoff PASS');
+console.log('[verify-handoff] U37-A complete and U37-B handoff PASS');
