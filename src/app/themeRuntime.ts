@@ -1,7 +1,7 @@
 export type Beta2ThemeId = 'dusk-amber' | 'mist-ivory';
 
 export const BETA2_THEME_STORAGE_KEY = 'yang_kura_beta2_theme_v1';
-const LEGACY_SETTINGS_STORAGE_KEY = 'sqlite_settings';
+export const LEGACY_SETTINGS_STORAGE_KEY = 'sqlite_settings';
 
 const LEGACY_THEME_MAP: Record<string, Beta2ThemeId> = {
   dark: 'dusk-amber',
@@ -9,6 +9,11 @@ const LEGACY_THEME_MAP: Record<string, Beta2ThemeId> = {
   'ocean-drops': 'mist-ivory',
   'dusk-amber': 'dusk-amber',
   'mist-ivory': 'mist-ivory',
+};
+
+const CANONICAL_THEME_TO_LEGACY: Record<Beta2ThemeId, 'dark' | 'ocean-drops'> = {
+  'dusk-amber': 'dark',
+  'mist-ivory': 'ocean-drops',
 };
 
 export const normalizeBeta2Theme = (value: unknown): Beta2ThemeId =>
@@ -38,6 +43,22 @@ export const persistBeta2Theme = (theme: Beta2ThemeId): void => {
   if (typeof localStorage === 'undefined') return;
   localStorage.setItem(BETA2_THEME_STORAGE_KEY, theme);
 };
+
+export const persistLegacyThemeCompatibility = (theme: Beta2ThemeId): void => {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LEGACY_SETTINGS_STORAGE_KEY) ?? '{}') as Record<string, unknown>;
+    localStorage.setItem(LEGACY_SETTINGS_STORAGE_KEY, JSON.stringify({
+      ...parsed,
+      currentTheme: CANONICAL_THEME_TO_LEGACY[theme],
+    }));
+  } catch {
+    // Keep the canonical preference authoritative if the legacy payload is unreadable.
+  }
+};
+
+export const getLegacyThemeCompatibilityId = (theme: Beta2ThemeId): string =>
+  CANONICAL_THEME_TO_LEGACY[theme];
 
 export const getBeta2ThemeLabel = (theme: Beta2ThemeId): string =>
   theme === 'dusk-amber' ? '暮夜琥珀' : '雾光象牙';
