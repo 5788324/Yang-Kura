@@ -133,7 +133,7 @@ export default function AppRouter(props: AppRouterProps) {
       {props.currentPage === 'asmr-lib' && props.asmrDetailId && selectedAsmrWork && (
         <LibraryRouteBoundary
           pageTitle="RJ 详情"
-          resetKey={`asmr-detail:${selectedAsmrWork.id}:${selectedAsmrWork.updatedAt ?? ''}`}
+          resetKey={`asmr-detail:${selectedAsmrWork.id}:${selectedAsmrWork.addedAt ?? ''}`}
         >
           <div className="yk-library-page" data-library-page="asmr-detail" data-u37a-library-page="ready">
             <AsmrDetail
