@@ -43,11 +43,13 @@ if (failures.length === 0) {
 
   for (const marker of [
     "export type Beta2ThemeId = 'dusk-amber' | 'mist-ivory'",
-    "BETA2_THEME_STORAGE_KEY",
+    'BETA2_THEME_STORAGE_KEY',
     "dark: 'dusk-amber'",
     "'ocean-drops': 'mist-ivory'",
     'persistLegacyThemeCompatibility',
     'applyBeta2Theme',
+    '暮夜琥珀',
+    '雾光象牙',
   ]) {
     if (!themeRuntime.includes(marker)) failures.push(`theme runtime missing marker: ${marker}`);
   }
@@ -57,8 +59,6 @@ if (failures.length === 0) {
     'MutationObserver',
     "attributeFilter: ['class', 'data-u30-theme']",
     'id="beta2-theme-toggle"',
-    '暮夜琥珀',
-    '雾光象牙',
   ]) {
     if (!themeBridge.includes(marker)) failures.push(`theme bridge missing marker: ${marker}`);
   }
