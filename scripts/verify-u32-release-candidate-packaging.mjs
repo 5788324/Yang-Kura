@@ -18,7 +18,7 @@ const requireMarkers = (label, text, markers) => {
   }
 };
 
-if (pkg.version !== '0.168.0-beta.1') failures.push(`current package version must remain Beta 1 until Beta 2 implementation starts: ${pkg.version}`);
+if (pkg.version !== '0.168.0-beta.1') failures.push(`current package version must remain Beta 1 until Beta 2 release: ${pkg.version}`);
 
 requireMarkers('electron-builder', builder, [
   "target: 'portable'",
@@ -82,7 +82,9 @@ requireMarkers('packaged page readiness', readiness, [
 requireMarkers('PROJECT_STATE', state, [
   '核心版本：0.168.0-beta.1',
   'Beta 1：已发布并完成远端资产回读',
-  '当前主线：Beta 2 联合整备',
+  'U35-B：正式主题与生产 AppShell 接线完成',
+  'U36-A：导航注册表与 Preload IPC 统一完成',
+  '当前阶段：U36-B App Router / Overlay / Main IPC 拆分',
   '目标版本：0.169.0-beta.2',
   'MVP130',
   '用户不承担测试',
