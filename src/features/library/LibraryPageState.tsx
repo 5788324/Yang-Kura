@@ -9,6 +9,7 @@ export interface LibraryPageStateProps {
   connected: boolean;
   itemCount: number;
   onOpenSettings: () => void;
+  preserveContentWhenEmpty?: boolean;
   children: ReactNode;
 }
 
@@ -53,11 +54,13 @@ export default function LibraryPageState({
   connected,
   itemCount,
   onOpenSettings,
+  preserveContentWhenEmpty = false,
   children,
 }: LibraryPageStateProps) {
-  if (itemCount > 0) {
+  if (itemCount > 0 || preserveContentWhenEmpty) {
+    const delegatedState = itemCount > 0 ? 'ready' : connected ? 'empty-delegated' : 'disconnected-delegated';
     return (
-      <div className="yk-library-page" data-library-page={kind} data-u37a-library-page="ready">
+      <div className="yk-library-page" data-library-page={kind} data-u37a-library-page={delegatedState}>
         {children}
       </div>
     );
