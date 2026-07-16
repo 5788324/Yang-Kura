@@ -4,7 +4,10 @@ import { MoonStar, SunMedium } from 'lucide-react';
 import {
   applyBeta2Theme,
   getBeta2ThemeLabel,
+  getLegacyThemeCompatibilityId,
+  normalizeBeta2Theme,
   persistBeta2Theme,
+  persistLegacyThemeCompatibility,
   readBeta2Theme,
   type Beta2ThemeId,
 } from './themeRuntime';
@@ -24,6 +27,15 @@ export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
 
   useEffect(() => {
     const syncTargets = () => {
+      const appRoot = document.querySelector<HTMLElement>('.u32-release-ui');
+      const legacyTheme = appRoot?.dataset.u30Theme;
+      if (legacyTheme) {
+        const normalized = normalizeBeta2Theme(legacyTheme);
+        if (normalized !== theme) {
+          setTheme(normalized);
+          return;
+        }
+      }
       applyBeta2Theme(theme);
       setTopbarTarget(document.getElementById('windows-app-bar'));
     };
@@ -34,7 +46,7 @@ export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['class'],
+      attributeFilter: ['class', 'data-u30-theme'],
     });
     return () => observer.disconnect();
   }, [theme]);
@@ -49,6 +61,13 @@ export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
+  const selectTheme = (nextTheme: Beta2ThemeId) => {
+    persistLegacyThemeCompatibility(nextTheme);
+    const appRoot = document.querySelector<HTMLElement>('.u32-release-ui');
+    if (appRoot) appRoot.dataset.u30Theme = getLegacyThemeCompatibilityId(nextTheme);
+    setTheme(nextTheme);
+  };
+
   const nextTheme: Beta2ThemeId = theme === 'dusk-amber' ? 'mist-ivory' : 'dusk-amber';
 
   return (
@@ -62,7 +81,7 @@ export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
               data-current-theme={theme}
               aria-label={`当前主题：${getBeta2ThemeLabel(theme)}。切换为${getBeta2ThemeLabel(nextTheme)}`}
               title={`切换为${getBeta2ThemeLabel(nextTheme)}`}
-              onClick={() => setTheme(nextTheme)}
+              onClick={() => selectTheme(nextTheme)}
               className="yk-theme-toggle"
             >
               {theme === 'dusk-amber' ? <MoonStar aria-hidden="true" /> : <SunMedium aria-hidden="true" />}
