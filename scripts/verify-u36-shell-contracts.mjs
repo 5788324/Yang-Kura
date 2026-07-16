@@ -62,11 +62,14 @@ if (failures.length === 0) {
     failures.push('Sidebar must not keep a second daily navigation array');
   }
 
-  if (!preload.includes("import { IPC_CHANNELS, type IpcChannel } from './ipc/contracts';")) {
-    failures.push('Preload must import the canonical IPC registry');
+  if (!preload.includes("import { IPC_CHANNELS, type IpcChannel } from './ipc/contracts.js';")) {
+    failures.push('Preload must import the canonical IPC registry with a NodeNext specifier');
   }
-  if (!preload.includes("from './preload/contracts';")) {
-    failures.push('Preload must import extracted request contracts');
+  if (!preload.includes("from './preload/contracts.js';")) {
+    failures.push('Preload must import extracted request contracts with a NodeNext specifier');
+  }
+  if (!preloadContracts.includes("from '../ipc/contracts.js';")) {
+    failures.push('Preload request contracts must use a NodeNext IPC contract specifier');
   }
   if (/ipcRenderer\.(?:invoke|on|removeListener)\(\s*['"]yang-kura:/m.test(preload)) {
     failures.push('Preload contains a raw IPC channel string');
@@ -102,7 +105,7 @@ if (failures.length === 0) {
   for (const [file, source, markers] of [
     ['PROJECT_STATE.md', projectState, ['U36-A：导航注册表与 Preload IPC 统一完成', '当前阶段：U36-B']],
     ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, ['U36-A：完成', '当前任务：U36-B']],
-    ['AI_HANDOFF/WORKLOG.md', worklog, ['U35-B', 'U36-A']],
+    ['AI_HANDOFF/WORKLOG.md', worklog, ['U35-B', 'U36-A', '当前任务：U36-B']],
   ]) {
     for (const marker of markers) {
       if (!source.includes(marker)) failures.push(`${file} missing progress marker: ${marker}`);
