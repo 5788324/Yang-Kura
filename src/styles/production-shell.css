@@ -14,6 +14,24 @@ body[data-yk-theme] #root {
   color: var(--yk-text-1);
 }
 
+.theme-dusk-amber,
+.theme-mist-ivory {
+  --bg-primary: var(--yk-canvas);
+  --sidebar-bg: var(--yk-surface-1);
+  --card-bg: var(--yk-surface-2);
+  --input-bg: var(--yk-surface-3);
+  --border-color: var(--yk-border-subtle);
+  --border-color-hover: var(--yk-border-strong);
+  --text-primary: var(--yk-text-1);
+  --text-secondary: var(--yk-text-2);
+  --text-muted: var(--yk-text-3);
+  --brand-color: var(--yk-accent);
+  --brand-color-hover: var(--yk-accent-hover);
+  --brand-active: var(--yk-accent);
+  --hover-bg: var(--yk-surface-3);
+  --player-bg: var(--yk-surface-1);
+}
+
 .yk-app-shell--bridge {
   display: block;
   isolation: isolate;
