@@ -8,6 +8,7 @@ export interface SurfaceProps extends HTMLAttributes<HTMLDivElement> {
   tone?: SurfaceTone;
   elevation?: SurfaceElevation;
   padding?: SurfacePadding;
+  className?: string;
 }
 
 export function Surface({
