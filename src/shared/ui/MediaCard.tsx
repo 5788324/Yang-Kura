@@ -8,6 +8,7 @@ export interface MediaCardProps extends HTMLAttributes<HTMLElement> {
   badges?: ReactNode;
   actions?: ReactNode;
   interactive?: boolean;
+  className?: string;
 }
 
 export function MediaCard({
