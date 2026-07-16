@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { MoonStar, SunMedium } from 'lucide-react';
 import {
@@ -19,6 +19,7 @@ export interface ThemeRuntimeBridgeProps {
 export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
   const [theme, setTheme] = useState<Beta2ThemeId>(() => readBeta2Theme());
   const [topbarTarget, setTopbarTarget] = useState<HTMLElement | null>(null);
+  const lastLegacyThemeRef = useRef<string | null>(null);
 
   useEffect(() => {
     applyBeta2Theme(theme);
@@ -28,14 +29,19 @@ export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
   useEffect(() => {
     const syncTargets = () => {
       const appRoot = document.querySelector<HTMLElement>('.u32-release-ui');
-      const legacyTheme = appRoot?.dataset.u30Theme;
-      if (legacyTheme) {
+      const legacyTheme = appRoot?.dataset.u30Theme ?? null;
+
+      if (legacyTheme && lastLegacyThemeRef.current === null) {
+        lastLegacyThemeRef.current = legacyTheme;
+      } else if (legacyTheme && legacyTheme !== lastLegacyThemeRef.current) {
+        lastLegacyThemeRef.current = legacyTheme;
         const normalized = normalizeBeta2Theme(legacyTheme);
         if (normalized !== theme) {
           setTheme(normalized);
           return;
         }
       }
+
       applyBeta2Theme(theme);
       setTopbarTarget(document.getElementById('windows-app-bar'));
     };
@@ -62,9 +68,11 @@ export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
   }, []);
 
   const selectTheme = (nextTheme: Beta2ThemeId) => {
+    const legacyTheme = getLegacyThemeCompatibilityId(nextTheme);
     persistLegacyThemeCompatibility(nextTheme);
+    lastLegacyThemeRef.current = legacyTheme;
     const appRoot = document.querySelector<HTMLElement>('.u32-release-ui');
-    if (appRoot) appRoot.dataset.u30Theme = getLegacyThemeCompatibilityId(nextTheme);
+    if (appRoot) appRoot.dataset.u30Theme = legacyTheme;
     setTheme(nextTheme);
   };
 
