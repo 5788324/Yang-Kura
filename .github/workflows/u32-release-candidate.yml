@@ -50,15 +50,21 @@ jobs:
         shell: pwsh
         run: |
           npm rebuild electron
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm run patch:electron-builder
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Validate TypeScript and build desktop sources
+        shell: pwsh
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: |
           npm run lint
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm run build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm run build:electron
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build portable and NSIS release candidates
         env:

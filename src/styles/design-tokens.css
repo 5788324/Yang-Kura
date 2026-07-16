@@ -1,0 +1,265 @@
+/*
+ * Yang-Kura Design System foundation.
+ *
+ * The existing U32 classes remain active during migration. New work must consume
+ * the --yk-* semantic tokens instead of page-local palette values. The two Beta 2
+ * themes are present as dormant contracts until the U35-B theme switch is wired.
+ */
+
+:root {
+  color-scheme: dark;
+
+  --yk-font-sans: "Segoe UI Variable", "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  --yk-font-mono: "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+
+  --yk-text-xs: 0.75rem;
+  --yk-text-sm: 0.8125rem;
+  --yk-text-md: 0.9375rem;
+  --yk-text-lg: 1.125rem;
+  --yk-text-xl: 1.375rem;
+  --yk-text-2xl: 1.75rem;
+
+  --yk-leading-tight: 1.25;
+  --yk-leading-normal: 1.5;
+  --yk-leading-relaxed: 1.7;
+
+  --yk-space-1: 0.25rem;
+  --yk-space-2: 0.5rem;
+  --yk-space-3: 0.75rem;
+  --yk-space-4: 1rem;
+  --yk-space-5: 1.25rem;
+  --yk-space-6: 1.5rem;
+  --yk-space-8: 2rem;
+  --yk-space-10: 2.5rem;
+  --yk-space-12: 3rem;
+
+  --yk-radius-sm: 0.5rem;
+  --yk-radius-md: 0.75rem;
+  --yk-radius-lg: 1rem;
+  --yk-radius-xl: 1.25rem;
+  --yk-radius-pill: 999px;
+
+  --yk-control-sm: 2rem;
+  --yk-control-md: 2.5rem;
+  --yk-control-lg: 3rem;
+
+  --yk-motion-fast: 120ms;
+  --yk-motion-normal: 180ms;
+  --yk-motion-slow: 280ms;
+  --yk-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --yk-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --yk-z-base: 0;
+  --yk-z-sticky: 20;
+  --yk-z-drawer: 40;
+  --yk-z-dialog: 60;
+  --yk-z-toast: 80;
+
+  /* Safe fallback values before a theme class is applied. */
+  --yk-canvas: #11100f;
+  --yk-surface-1: #181614;
+  --yk-surface-2: #211e1b;
+  --yk-surface-3: #2b2723;
+  --yk-overlay: rgb(9 8 7 / 72%);
+  --yk-border-subtle: rgb(244 226 205 / 10%);
+  --yk-border-strong: rgb(244 226 205 / 20%);
+  --yk-text-1: #f8efe5;
+  --yk-text-2: #c8b7a5;
+  --yk-text-3: #8e7e6f;
+  --yk-accent: #d9855b;
+  --yk-accent-hover: #eb976c;
+  --yk-accent-soft: rgb(217 133 91 / 15%);
+  --yk-success: #68a67d;
+  --yk-warning: #d6a557;
+  --yk-danger: #d87272;
+  --yk-info: #7e9fbd;
+  --yk-focus: #f0a174;
+  --yk-shadow-sm: 0 1px 2px rgb(0 0 0 / 18%);
+  --yk-shadow-md: 0 10px 30px rgb(0 0 0 / 24%);
+  --yk-shadow-lg: 0 22px 70px rgb(0 0 0 / 34%);
+}
+
+/* Current production themes receive semantic aliases without visual changes. */
+.theme-dark {
+  --yk-canvas: var(--bg-primary);
+  --yk-surface-1: var(--sidebar-bg);
+  --yk-surface-2: var(--card-bg);
+  --yk-surface-3: var(--input-bg);
+  --yk-border-subtle: var(--border-color);
+  --yk-border-strong: var(--border-color-hover);
+  --yk-text-1: var(--text-primary);
+  --yk-text-2: var(--text-secondary);
+  --yk-text-3: var(--text-muted);
+  --yk-accent: var(--brand-color);
+  --yk-accent-hover: var(--brand-color-hover);
+  --yk-focus: var(--brand-color);
+}
+
+.theme-acrylic-mist,
+.theme-ocean-drops {
+  --yk-canvas: var(--bg-primary);
+  --yk-surface-1: var(--sidebar-bg);
+  --yk-surface-2: var(--card-bg);
+  --yk-surface-3: var(--input-bg);
+  --yk-border-subtle: var(--border-color);
+  --yk-border-strong: var(--border-color-hover);
+  --yk-text-1: var(--text-primary);
+  --yk-text-2: var(--text-secondary);
+  --yk-text-3: var(--text-muted);
+  --yk-accent: var(--brand-color);
+  --yk-accent-hover: var(--brand-color-hover);
+  --yk-focus: var(--brand-color);
+}
+
+/* Beta 2 canonical dark theme: 暮夜琥珀. */
+.theme-dusk-amber {
+  color-scheme: dark;
+  --yk-canvas: #100f0e;
+  --yk-surface-1: #171513;
+  --yk-surface-2: #1e1b18;
+  --yk-surface-3: #28231f;
+  --yk-overlay: rgb(7 6 5 / 76%);
+  --yk-border-subtle: rgb(241 218 194 / 10%);
+  --yk-border-strong: rgb(241 218 194 / 20%);
+  --yk-text-1: #f7ede2;
+  --yk-text-2: #c7b5a3;
+  --yk-text-3: #88796b;
+  --yk-accent: #d98257;
+  --yk-accent-hover: #ec9568;
+  --yk-accent-soft: rgb(217 130 87 / 16%);
+  --yk-success: #75a883;
+  --yk-warning: #d7a24e;
+  --yk-danger: #d67570;
+  --yk-info: #7d9cb8;
+  --yk-focus: #f0a174;
+  --yk-shadow-sm: 0 1px 2px rgb(0 0 0 / 22%);
+  --yk-shadow-md: 0 12px 36px rgb(0 0 0 / 28%);
+  --yk-shadow-lg: 0 24px 80px rgb(0 0 0 / 40%);
+}
+
+/* Beta 2 canonical light theme: 雾光象牙. */
+.theme-mist-ivory {
+  color-scheme: light;
+  --yk-canvas: #f2ede6;
+  --yk-surface-1: #f8f4ee;
+  --yk-surface-2: #fffdf9;
+  --yk-surface-3: #ebe3da;
+  --yk-overlay: rgb(49 40 32 / 30%);
+  --yk-border-subtle: rgb(75 59 44 / 12%);
+  --yk-border-strong: rgb(75 59 44 / 22%);
+  --yk-text-1: #302821;
+  --yk-text-2: #67594d;
+  --yk-text-3: #958679;
+  --yk-accent: #b96645;
+  --yk-accent-hover: #a95436;
+  --yk-accent-soft: rgb(185 102 69 / 13%);
+  --yk-success: #537e60;
+  --yk-warning: #a87428;
+  --yk-danger: #b85f5b;
+  --yk-info: #5f7e99;
+  --yk-focus: #b96645;
+  --yk-shadow-sm: 0 1px 3px rgb(62 45 30 / 8%);
+  --yk-shadow-md: 0 12px 36px rgb(62 45 30 / 12%);
+  --yk-shadow-lg: 0 24px 70px rgb(62 45 30 / 17%);
+}
+
+.yk-button {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: var(--yk-space-2);
+  height: var(--yk-control-md);
+  padding-inline: var(--yk-space-4);
+  border: 1px solid transparent;
+  border-radius: var(--yk-radius-md);
+  font: 650 var(--yk-text-sm) / 1 var(--yk-font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--yk-motion-fast) var(--yk-ease-standard),
+    border-color var(--yk-motion-fast) var(--yk-ease-standard),
+    color var(--yk-motion-fast) var(--yk-ease-standard),
+    transform var(--yk-motion-fast) var(--yk-ease-emphasized);
+}
+
+.yk-button:hover:not(:disabled) { transform: translateY(-1px); }
+.yk-button:active:not(:disabled) { transform: translateY(0); }
+.yk-button:disabled { cursor: not-allowed; opacity: 0.48; }
+.yk-button:focus-visible { outline: 2px solid var(--yk-focus); outline-offset: 2px; }
+.yk-button[data-size="sm"] { height: var(--yk-control-sm); padding-inline: var(--yk-space-3); font-size: var(--yk-text-xs); }
+.yk-button[data-size="lg"] { height: var(--yk-control-lg); padding-inline: var(--yk-space-5); font-size: var(--yk-text-md); }
+.yk-button[data-variant="primary"] { background: var(--yk-accent); color: #fff; }
+.yk-button[data-variant="primary"]:hover:not(:disabled) { background: var(--yk-accent-hover); }
+.yk-button[data-variant="secondary"] { background: var(--yk-surface-3); border-color: var(--yk-border-subtle); color: var(--yk-text-1); }
+.yk-button[data-variant="secondary"]:hover:not(:disabled) { border-color: var(--yk-border-strong); }
+.yk-button[data-variant="ghost"] { background: transparent; color: var(--yk-text-2); }
+.yk-button[data-variant="ghost"]:hover:not(:disabled) { background: var(--yk-accent-soft); color: var(--yk-text-1); }
+.yk-button[data-variant="danger"] { background: color-mix(in srgb, var(--yk-danger) 14%, transparent); border-color: color-mix(in srgb, var(--yk-danger) 34%, transparent); color: var(--yk-danger); }
+.yk-button[data-full-width="true"] { width: 100%; }
+.yk-button__spinner { width: 1em; height: 1em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: yk-spin 700ms linear infinite; }
+
+.yk-surface {
+  min-width: 0;
+  border: 1px solid var(--yk-border-subtle);
+  border-radius: var(--yk-radius-lg);
+  background: var(--yk-surface-2);
+  color: var(--yk-text-1);
+}
+.yk-surface[data-elevation="raised"] { box-shadow: var(--yk-shadow-md); }
+.yk-surface[data-tone="subtle"] { background: var(--yk-surface-1); }
+.yk-surface[data-padding="sm"] { padding: var(--yk-space-3); }
+.yk-surface[data-padding="md"] { padding: var(--yk-space-5); }
+.yk-surface[data-padding="lg"] { padding: var(--yk-space-8); }
+
+.yk-feedback {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--yk-space-4);
+  align-items: start;
+  padding: var(--yk-space-4);
+  border: 1px solid var(--yk-border-subtle);
+  border-radius: var(--yk-radius-md);
+  background: var(--yk-surface-1);
+  color: var(--yk-text-2);
+}
+.yk-feedback__title { margin: 0; color: var(--yk-text-1); font-size: var(--yk-text-sm); font-weight: 700; }
+.yk-feedback__description { margin: var(--yk-space-1) 0 0; font-size: var(--yk-text-xs); line-height: var(--yk-leading-relaxed); }
+.yk-feedback[data-tone="success"] { border-color: color-mix(in srgb, var(--yk-success) 36%, transparent); }
+.yk-feedback[data-tone="warning"] { border-color: color-mix(in srgb, var(--yk-warning) 40%, transparent); }
+.yk-feedback[data-tone="danger"] { border-color: color-mix(in srgb, var(--yk-danger) 40%, transparent); }
+.yk-feedback[data-tone="info"] { border-color: color-mix(in srgb, var(--yk-info) 40%, transparent); }
+
+.yk-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--yk-z-dialog);
+  display: grid;
+  place-items: center;
+  padding: var(--yk-space-6);
+  background: var(--yk-overlay);
+  backdrop-filter: blur(10px);
+}
+.yk-dialog {
+  width: min(36rem, 100%);
+  max-height: min(48rem, calc(100vh - 3rem));
+  overflow: auto;
+  border: 1px solid var(--yk-border-strong);
+  border-radius: var(--yk-radius-xl);
+  background: var(--yk-surface-2);
+  color: var(--yk-text-1);
+  box-shadow: var(--yk-shadow-lg);
+}
+.yk-dialog__header { padding: var(--yk-space-6) var(--yk-space-6) var(--yk-space-4); }
+.yk-dialog__title { margin: 0; font-size: var(--yk-text-lg); line-height: var(--yk-leading-tight); }
+.yk-dialog__description { margin: var(--yk-space-2) 0 0; color: var(--yk-text-2); font-size: var(--yk-text-sm); line-height: var(--yk-leading-relaxed); }
+.yk-dialog__body { padding: 0 var(--yk-space-6) var(--yk-space-6); }
+.yk-dialog__footer { display: flex; justify-content: flex-end; gap: var(--yk-space-2); padding: var(--yk-space-4) var(--yk-space-6); border-top: 1px solid var(--yk-border-subtle); }
+
+@keyframes yk-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .yk-button { transition: none; }
+  .yk-button:hover:not(:disabled) { transform: none; }
+  .yk-button__spinner { animation-duration: 1.5s; }
+}
