@@ -45,6 +45,8 @@ jobs:
         run: npm rebuild electron
 
       - name: TypeScript validation
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
         run: npm run lint
 
       - name: Build desktop application
