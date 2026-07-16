@@ -1,4 +1,5 @@
 import type React from 'react';
+import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import CoverArtwork from '../components/CoverArtwork';
 import { dailyListeningSurfaceService } from '../services/dailyListeningSurfaceService';
@@ -19,6 +20,18 @@ export default function QueueDrawer({
   onClose,
   onPlayTrack,
 }: QueueDrawerProps) {
+  useEffect(() => {
+    if (!open) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      onClose();
+      window.requestAnimationFrame(() => document.getElementById('player-queue-toggle')?.focus({ preventScroll: true }));
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   const queueSurface = dailyListeningSurfaceService.getQueueSummary(playerState);
