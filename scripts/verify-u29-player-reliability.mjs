@@ -9,6 +9,7 @@ import ts from 'typescript';
 const helperSource = fs.readFileSync('src/player/playerRuntimePolicy.ts', 'utf8');
 const hookSource = fs.readFileSync('src/hooks/useAudioPlayer.ts', 'utf8');
 const appSource = fs.readFileSync('src/App.tsx', 'utf8');
+const queueDrawerSource = fs.readFileSync('src/app/QueueDrawer.tsx', 'utf8');
 const playerBarSource = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
 const lyricsPanelSource = fs.readFileSync('src/components/LyricsPanel.tsx', 'utf8');
 const queueSource = fs.readFileSync('src/services/playerQueuePersistenceService.ts', 'utf8');
@@ -32,7 +33,7 @@ for (const [label, ok] of [
   ['stored history completion is migrated on load', historySource.includes('completed: isPlaybackComplete(progress, duration)')],
   ['home distinguishes playing paused and unauthorized', homeSource.includes('input.playerState.isPlaying') && homeSource.includes('currentTrackNeedsAuthorization') && homeSource.includes('当前已暂停') && homeSource.includes('需要重新授权资源库并读取 Index 后，才能从当前进度继续。')],
   ['PlayerBar exposes stable non-path runtime state', playerBarSource.includes('data-u29-playback-mode') && playerBarSource.includes('data-u29-source-ready') && !playerBarSource.includes('data-u29-root-path-token')],
-  ['queue drawer has stable item selectors', appSource.includes('id="u29-queue-drawer"') && appSource.includes('data-queue-track-id={track.id}')],
+  ['queue drawer has stable item selectors', queueDrawerSource.includes('id="u29-queue-drawer"') && queueDrawerSource.includes('data-queue-track-id={track.id}') && appSource.includes('<QueueDrawer')],
   ['lyrics panel exposes stable status only', lyricsPanelSource.includes('data-u29-lyrics-status') && lyricsPanelSource.includes('data-u29-lyrics-path')],
   ['U29 Electron E2E command exists', pkg.scripts?.['test:u29:electron-e2e'] === 'node scripts/test-u29-electron-e2e.mjs'],
 ]) {

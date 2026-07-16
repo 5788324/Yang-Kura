@@ -5,6 +5,7 @@ const sidebarPath = 'src/components/Sidebar.tsx';
 const sidebar = fs.readFileSync(sidebarPath, 'utf8');
 const navigation = fs.readFileSync('src/app/navigation.ts', 'utf8');
 const app = fs.readFileSync('src/App.tsx', 'utf8');
+const router = fs.readFileSync('src/app/AppRouter.tsx', 'utf8');
 const projectState = fs.readFileSync('PROJECT_STATE.md', 'utf8');
 const roadmap = fs.readFileSync('PROJECT_ROADMAP.md', 'utf8');
 const failures = [];
@@ -64,12 +65,15 @@ for (const forbidden of [
   'showAiMaintenance && (',
 ]) if (sidebar.includes(forbidden)) failures.push(`obsolete navigation implementation remains: ${forbidden}`);
 
+if (!app.includes("import AppRouter from './app/AppRouter';") || !app.includes('<AppRouter')) {
+  failures.push('App does not compose the extracted router boundary');
+}
 for (const route of [
-  "currentPage === 'downloader'",
-  "currentPage === 'diagnostics'",
+  "props.currentPage === 'downloader'",
+  "props.currentPage === 'diagnostics'",
   '<DownloaderPage',
   '<DiagnosticsPageShell',
-]) if (!app.includes(route)) failures.push(`Internal maintenance route removed: ${route}`);
+]) if (!router.includes(route)) failures.push(`Internal maintenance route removed: ${route}`);
 
 const dailyMapCount = (sidebar.match(/DAILY_NAVIGATION_ROUTES\.map\(\(route\) =>/g) ?? []).length;
 if (dailyMapCount !== 1) failures.push(`Daily navigation must have one rendering map; found ${dailyMapCount}`);

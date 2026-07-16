@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 
 const app = fs.readFileSync('src/App.tsx', 'utf8');
+const topBar = fs.readFileSync('src/app/TopBar.tsx', 'utf8');
 const sidebar = fs.readFileSync('src/components/Sidebar.tsx', 'utf8');
 const navigation = fs.readFileSync('src/app/navigation.ts', 'utf8');
 const dashboard = fs.readFileSync('src/components/Dashboard.tsx', 'utf8');
@@ -16,10 +17,13 @@ for (const marker of [
 ]) if (!app.includes(marker)) failures.push(`missing clean-profile marker: ${marker}`);
 
 for (const forbidden of ['导入器预览 / 详情导航 / 媒体库体验', '<span>真实音频可播</span>']) {
-  if (app.includes(forbidden)) failures.push(`engineering header text remains: ${forbidden}`);
+  if (`${app}\n${topBar}`.includes(forbidden)) failures.push(`engineering header text remains: ${forbidden}`);
 }
 for (const status of ['尚未选择资源库', '资源库待重新连接', '已加载 ${librarySessionSnapshot.lastIndex.trackCount} 条音轨']) {
-  if (!app.includes(status)) failures.push(`missing runtime library status: ${status}`);
+  if (!topBar.includes(status)) failures.push(`TopBar missing runtime library status: ${status}`);
+}
+if (!app.includes('<TopBar librarySessionSnapshot={librarySessionSnapshot} />')) {
+  failures.push('App does not compose the production TopBar boundary');
 }
 
 if (!dashboard.includes('id="u02-home-empty-state"')) failures.push('clean-profile home empty state missing');

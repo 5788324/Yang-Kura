@@ -5,6 +5,7 @@ const settings = fs.readFileSync('src/components/SettingsPage.tsx', 'utf8');
 const sidebar = fs.readFileSync('src/components/Sidebar.tsx', 'utf8');
 const navigation = fs.readFileSync('src/app/navigation.ts', 'utf8');
 const app = fs.readFileSync('src/App.tsx', 'utf8');
+const router = fs.readFileSync('src/app/AppRouter.tsx', 'utf8');
 const state = fs.readFileSync('PROJECT_STATE.md', 'utf8');
 const roadmap = fs.readFileSync('PROJECT_ROADMAP.md', 'utf8');
 const rules = fs.readFileSync('docs/UI_DAILY_SURFACE_RULES.md', 'utf8');
@@ -88,12 +89,15 @@ for (const forbidden of ['const DAILY_NAV_ITEMS', 'const MAINTENANCE_NAV_ITEMS',
   if (sidebar.includes(forbidden)) failures.push(`obsolete maintenance UI remains: ${forbidden}`);
 }
 
+if (!app.includes("import AppRouter from './app/AppRouter';") || !app.includes('<AppRouter')) {
+  failures.push('AppRouter boundary missing from App');
+}
 for (const marker of [
-  "currentPage === 'downloader'",
-  "currentPage === 'diagnostics'",
+  "props.currentPage === 'downloader'",
+  "props.currentPage === 'diagnostics'",
   '<DownloaderPage',
   '<DiagnosticsPageShell',
-]) if (!app.includes(marker)) failures.push(`maintenance route removed: ${marker}`);
+]) if (!router.includes(marker)) failures.push(`maintenance route removed: ${marker}`);
 
 const policyText = `${state}\n${roadmap}\n${rules}`;
 for (const marker of [

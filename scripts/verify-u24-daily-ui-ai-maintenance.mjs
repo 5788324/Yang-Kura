@@ -6,6 +6,7 @@ const sidebarPath = 'src/components/Sidebar.tsx';
 const sidebar = fs.readFileSync(sidebarPath, 'utf8');
 const navigation = fs.readFileSync('src/app/navigation.ts', 'utf8');
 const app = fs.readFileSync('src/App.tsx', 'utf8');
+const router = fs.readFileSync('src/app/AppRouter.tsx', 'utf8');
 
 const transpiled = ts.transpileModule(sidebar, {
   compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, strict: true },
@@ -57,15 +58,17 @@ for (const forbidden of [
   'showAiMaintenance && (',
 ]) assert.ok(!sidebar.includes(forbidden), `obsolete maintenance implementation remains: ${forbidden}`);
 
+assert.ok(app.includes("import AppRouter from './app/AppRouter';"), 'AppRouter boundary import missing');
+assert.ok(app.includes('<AppRouter'), 'AppRouter boundary composition missing');
 for (const marker of [
-  "const DiagnosticsPageShell = lazy(() => import('./components/DiagnosticsPageShell'));",
-  "const DownloaderPage = lazy(() => import('./components/DownloaderPage'));",
-  "currentPage === 'downloader'",
-  '<DownloaderPage onPlayTrack={handlePlayTrack} />',
-  "currentPage === 'diagnostics'",
+  "const DiagnosticsPageShell = lazy(() => import('../components/DiagnosticsPageShell'));",
+  "const DownloaderPage = lazy(() => import('../components/DownloaderPage'));",
+  "props.currentPage === 'downloader'",
+  '<DownloaderPage onPlayTrack={props.onPlayTrack} />',
+  "props.currentPage === 'diagnostics'",
   '<DiagnosticsRuntimeBoundary',
   '<DiagnosticsPageShell',
-]) assert.ok(app.includes(marker), `maintenance route was removed instead of hidden: ${marker}`);
+]) assert.ok(router.includes(marker), `maintenance route was removed instead of moved to AppRouter: ${marker}`);
 
 const projectDocuments = `${fs.readFileSync('PROJECT_STATE.md', 'utf8')}\n${fs.readFileSync('PROJECT_ROADMAP.md', 'utf8')}\n${fs.readFileSync('docs/U24_DAILY_UI_AI_MAINTENANCE.md', 'utf8')}`;
 for (const marker of ['U24', '侧栏去工程化与 AI 维护入口', 'AI 维护', '工程与检修工具', 'Windows GUI', 'MVP130']) {
