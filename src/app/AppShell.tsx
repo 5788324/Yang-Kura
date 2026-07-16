@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react';
 
 export interface AppShellProps {
-  topbar: ReactNode;
-  sidebar: ReactNode;
+  topbar?: ReactNode;
+  sidebar?: ReactNode;
   children: ReactNode;
   player?: ReactNode;
   overlay?: ReactNode;
   className?: string;
   contentClassName?: string;
+  bridge?: boolean;
 }
 
 export function AppShell({
@@ -18,7 +19,20 @@ export function AppShell({
   overlay,
   className = '',
   contentClassName = '',
+  bridge = false,
 }: AppShellProps) {
+  if (bridge) {
+    return (
+      <div
+        data-yk-app-shell="beta2-production-bridge"
+        className={`yk-app-shell yk-app-shell--bridge ${className}`.trim()}
+      >
+        {children}
+        {overlay}
+      </div>
+    );
+  }
+
   return (
     <div className={`yk-app-shell ${className}`.trim()}>
       <header className="yk-app-shell__topbar">{topbar}</header>
