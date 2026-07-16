@@ -2,250 +2,284 @@
 
 > **文档定位：Yang-Kura 唯一长期开发路线真源。**
 >
-> 代码事实以最新 GitHub `main` 为准；当前执行状态见 `PROJECT_STATE.md`，固定协作分工见 `AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md`。
+> 代码事实以最新 GitHub `main` 为准；当前执行状态见 `PROJECT_STATE.md`；UI 规则见 `docs/DESIGN.md`；固定协作分工见 `AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md`。
 
 ## 1. 文档优先级
 
 1. GitHub `main`：唯一代码事实来源。
-2. `PROJECT_STATE.md`：当前版本、完成事实、阻断项和当前任务。
-3. `PROJECT_ROADMAP.md`：长期顺序、发布门槛、冻结项和启动条件。
-4. `AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md`：AI、Codex 与用户的固定分工。
-5. `docs/U*.md` 与 Release Notes：单轮证据和用户发布说明。
+2. `PROJECT_STATE.md`：当前版本、完成事实和当前任务。
+3. `PROJECT_ROADMAP.md`：长期顺序、冻结项和发布门槛。
+4. `docs/DESIGN.md`：UI、主题、组件、动画和页面规则。
+5. `AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md`：新对话接手入口。
+6. `AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md`：AI、Codex 与用户的固定分工。
 
-## 2. 当前冻结点
-
-```text
-核心版本：0.168.0-beta.1
-已完成：U02～U32
-当前主线：U33 Beta 版本、tag、Windows 资产与 GitHub prerelease
-目标 tag：v0.168.0-beta.1
-目标发布：Yang-Kura 0.168.0 Beta 1
-发布后：进入个人 Beta 观察与定向修复
-MVP130 下载器：发布完成前继续冻结，禁止合入
-```
-
-## 3. 自主管理与快速通道
-
-用户只接收最终成果，不承担测试、排错、构建、Git 或发布操作。
+## 2. 当前基线
 
 ```text
-最新 main
-→ ChatGPT 合并相关低风险任务
-→ 产品实现与专项验证
-→ Windows CI / Electron / 文件系统自动测试
-→ PR 收口完整回归
-→ 只有 CI 无法替代的真实硬件或系统差异交给 Codex
-→ squash merge
-→ main-only 发布工作流创建 tag 与 prerelease
-→ 回读 Release 和资产
-→ 向用户交付结果
+版本：0.168.0-beta.1
+Beta 1：已发布并完成远端资产校验
+已完成主线：U02～U33
+当前计划：U34～U41 Beta 2 联合整备
+Beta 2 目标：0.169.0-beta.2
+大功能：Beta 2 完成前继续冻结
 ```
 
-个人自用项目不采用企业级冗余流程。删除、移动、覆盖、安装和发布等高影响操作仍必须验证回滚、数据保留或可重复执行。
+## 3. 长期产品目标
+
+Yang-Kura 是面向 Windows 的个人本地音频媒体库：
+
+- ASMR/RJ 音声库；
+- 普通本地音乐库；
+- 统一 Track 播放器；
+- 字幕与歌词；
+- 导入、元数据和资源维护；
+- 后续可扩展下载、转录、远端资源和更稳定数据层。
+
+当前阶段不追求功能数量，而追求：
+
+```text
+现有能力可信
++ 代码可长期维护
++ UI 达到正式产品质量
++ 后续模块可独立接入
+```
 
 ## 4. 已完成阶段
 
 ### 阶段 A：核心媒体能力
 
-- Electron Windows 桌面壳、目录选择和安全路径 token。
+- Electron Windows 桌面壳与安全路径 token。
 - Local JSON Index 写入、读取、备份、恢复和维护。
 - ASMR/RJ、普通音乐、首页、详情、收藏、歌单、队列和历史。
 - HTMLAudio、mpv、fallback、Seek 和进程回收。
 - LRC、SRT、VTT、ASS 字幕。
-- copy-only 导入、受控 move-only、本地元数据覆盖和 DLsite Provider。
-- 50,000 曲目生成数据性能基准。
+- copy-only、受控 move-only、事务回滚和 OperationLog。
+- 本地元数据覆盖、恢复与 DLsite 单 RJ Provider。
+- 50,000 曲目性能基准。
 
-### U02～U08：产品化与真实性
+### U02～U26：产品化、结构与日常 UI
 
-- 干净配置不注入演示媒体。
-- 中文、键盘焦点、弹窗、主题和全屏播放页收口。
-- 移除伪造播放进度与字幕状态。
+- 干净配置、中文、键盘焦点、弹窗和全屏播放。
+- PlayerBar 渐进拆分、主题合同和稳定回归。
+- 工程信息、诊断和历史工具退出日常界面。
 
-### U09～U23：渐进式结构与质量
+### U27～U32：真实 Windows 闭环
 
-- 播放器生命周期、歌词时间线、依赖门禁、侧栏导航和主题合同。
-- PlayerBar 渐进拆分完成，除非明确缺陷不再为了拆分而拆分。
+- U27 暴露资源库和 Demo 问题。
+- U28 完成目录授权、Index、浏览和播放闭环。
+- U29 完成播放器、Seek、队列、续播和字幕全流程。
+- U30 完成主题、窗口、DPI、键盘和可访问性矩阵。
+- U31 完成导入事务、失败回滚和数据安全。
+- U32 完成发布候选 UI、portable、NSIS、安装/卸载、数据保留和 SHA-256。
 
-### U24～U26：日常 UI 去工程化
+### U33：Beta 1 发布
 
-- 下载规划、诊断、历史工程卡、命令行说明和检修工具退出日常视觉层。
-- AI 维护与隐藏兼容层保留，日常界面只展示真实使用入口。
+- 版本：`0.168.0-beta.1`。
+- Tag：`v0.168.0-beta.1`。
+- GitHub prerelease、portable、setup、`SHA256SUMS.txt` 已发布。
+- 远端资产名、大小、目标提交和 SHA-256 已固化并校验。
+- 发布工作流已具备幂等恢复与故障证据。
 
-历史 UI 硬规则继续有效：
+## 5. 当前主线：Beta 2 联合整备
 
-> 日常层只展示用户实际会使用的功能；诊断、回归、工程状态、测试入口、命令行说明、MVP/版本收口信息和检修工具统一进入 AI 维护或隐藏兼容层，不得长期污染主界面。
+### 总体策略
 
-### U27：Windows GUI 验收
+不采用以下极端路线：
 
-最终 `NO-GO`，发现 MAJ-001 资源库状态断裂和 MAJ-002 Demo 诊断。两项均已在 U28 关闭。
+- 只重构代码，长期看不到产品改善；
+- 只替换 UI，继续依赖混乱状态和跨层调用；
+- 全项目推倒重写；
+- 一次性迁移 SQLite、播放器内核和 UI。
 
-### U28：资源库授权与真实 Index 闭环
-
-- 原生目录授权、当前窗口 token、设置、Index、首页、资源库、PlayerBar 和诊断统一。
-- 合法空 Index、损坏 JSON、多编码、媒体协议和重启边界通过 Electron E2E。
-
-### U29：播放器与字幕全流程
-
-- HTMLAudio/mpv 真实续播起点一致。
-- Seek、队列、完成策略、重启恢复和 token 对账完成。
-- LRC、SRT、VTT、ASS、双语和无字幕自动验收通过。
-
-### U30：日常 UI、三主题、窗口、DPI 与键盘
-
-- 三档窗口/DPI 与三主题矩阵通过。
-- PlayerBar、侧栏、Escape、焦点返回、reduced-motion 和 focus-visible 完成。
-- U28～U30 Electron E2E 成为永久门禁。
-
-详细证据见 `docs/U30_UI_FAST_TRACK_ACCEPTANCE.md`。
-
-### U31：导入器事务与数据安全
-
-- copy-only 与 move-only 接入统一事务服务。
-- 默认不覆盖目标；冲突保留源文件和既有目标。
-- copy 批次部分失败时删除本轮新复制文件。
-- move 批次部分失败时逆向恢复本轮已移动文件。
-- OperationLog 保存事务和回滚结果，仍不保存绝对路径。
-
-详细证据见 `docs/U31_IMPORTER_TRANSACTION_ACCEPTANCE.md`。
-
-### U32：发布候选 UI 与 Windows 发布物
-
-U32-A：
-
-- Windows Electron 使用生成的本地媒体样本实际运行和截图。
-- 日常侧栏只保留首页、音声库、音乐库、歌单、导入和设置。
-- 下载规划与诊断路由留在隐藏兼容层，不再显示工程入口。
-- 首页、资源库、歌单、导入器和设置页完成卡片、按钮、页签与间距对齐。
-
-U32-B：
-
-- portable 与 NSIS 产物生成并实际启动。
-- portable 与安装版都必须退出加载占位并完整显示正式首页。
-- 中文/空格路径、首次安装、重复安装和静默卸载通过。
-- 用户数据保留，残留进程为零。
-- packaged mpv 不可用时 HTMLAudio fallback 可用。
-- 包内 Index、日志、缓存、备份和用户数据泄漏为零。
-- 产物大小、截图、报告与 SHA-256 完整。
-
-正式证据见 `docs/U32_RELEASE_CANDIDATE_PACKAGING.md`。U32 合并提交：`c06e5b31b8472d6903dba1827a2994b0a8f199ec`。
-
-## 5. 当前主线：U33 Beta 发布
-
-### 5.1 发布计划
-
-唯一计划文件：`release/u33-release-plan.json`。
+采用纵向切片：
 
 ```text
-previousVersion：0.167.0-mvp129
-version：0.168.0-beta.1
-tag：v0.168.0-beta.1
-title：Yang-Kura 0.168.0 Beta 1
-channel：beta
-prerelease：true
-assets：portable / setup / SHA256SUMS.txt
+审计
+→ 稳定契约与设计系统
+→ App Shell
+→ 资源库/详情
+→ 播放器/歌词
+→ 导入/设置/维护
+→ 清理与质量门禁
+→ Beta 2 发布
 ```
 
-发布说明：`docs/RELEASE_NOTES_0.168.0-beta.1.md`。
+### U34：联合审计与不可破坏基线
 
-### 5.2 已完成预检
+目标：先确认真实结构和 UI 问题，不凭感觉重构。
 
-GitHub tags/releases 查询结果：
+交付：
+
+- `docs/architecture/ARCHITECTURE_AUDIT.md`
+- `docs/architecture/DEPENDENCY_MAP.md`
+- `docs/architecture/REFACTOR_BACKLOG.md`
+- 核心用户流程与不可破坏行为清单
+- 构建、测试、包体、性能和截图基线
+- 文件/函数复杂度、循环依赖、重复代码和跨层引用报告
+
+U34 不改变产品行为。
+
+### U35：架构边界与 Design System
+
+目标结构：
 
 ```text
-existing tags：0
-existing releases：0
-target collision：false
-U33 Release Preflight：29389036701 — PASS
+src/
+├─ app/                 启动、路由、顶层组合
+├─ features/            页面和用户功能
+├─ domain/              领域模型和业务规则
+├─ application/         用例、协调服务和事务
+├─ infrastructure/      Electron、文件系统、Index、mpv、Provider
+├─ shared/              契约、工具和基础 UI
+└─ tests/               fixtures、harness 和测试工具
 ```
 
-目标版本、tag 和标题无冲突，不覆盖历史发布。
-
-### 5.3 PR 发布候选门槛
-
-PR #41 必须全部通过：
-
-- `package.json` 与 `package-lock.json` 精确为 `0.168.0-beta.1`。
-- README、状态、路线图、交接和 Release Notes 一致。
-- Branch Validation 全链回归。
-- U33 Release Preflight。
-- U33 Beta Release 的 Windows build job。
-- portable 与 NSIS 构建。
-- packaged 安装、重复安装、卸载、数据保留、fallback 和进程退出。
-- portable 与安装版完整首页 readiness。
-- 最终 `SHA256SUMS.txt` 校验。
-- 发布包名称与计划文件完全一致。
-
-### 5.4 main-only 发布门槛
-
-只有 U33 PR squash 合入 `main` 后，`.github/workflows/u33-beta-release.yml` 的 publish job 才拥有 `contents: write` 并允许：
-
-1. 下载同一 main SHA 的已验证 Windows bundle。
-2. 本地执行 `sha256sum -c SHA256SUMS.txt`。
-3. 创建 `v0.168.0-beta.1` prerelease，目标提交固定为触发工作流的 `GITHUB_SHA`。
-4. 上传 portable、NSIS 和 `SHA256SUMS.txt`，不覆盖已有 Release。
-5. 回读 GitHub Release JSON。
-6. 验证 tag、标题、prerelease/draft 状态、目标提交、精确资产名、远端/本地体积和下载 URL。
-7. 上传 publication evidence。
-
-发布工作流必须可重复执行：若目标 Release 已存在，只验证，不覆盖资产或 Release 内容。
-
-### 5.5 U33 完成门槛
-
-- tag `v0.168.0-beta.1` 指向 U33 合并提交。
-- GitHub Release 标记为 prerelease，非 draft。
-- Release 标题为 `Yang-Kura 0.168.0 Beta 1`。
-- 仅包含两个 Windows EXE 与 `SHA256SUMS.txt`。
-- 资产体积、文件名、哈希和下载 URL 全部回读验证。
-- 最终状态和交接记录 Release URL、tag、提交、资产和已知限制。
-
-## 6. Beta 发布后的路线
-
-U33 完成后进入个人 Beta 观察期：
-
-1. 优先处理真实使用中可复现的 Blocker/Major。
-2. 不因历史待办自动启动大功能。
-3. 是否解冻 MVP130 下载器必须重新做优先级判断；不得自动合入实验包。
-4. SQLite、OpenList/WebDAV、Player Core v2、完整 AI Agent 和全局架构重写继续按明确需求单独立项。
-
-## 7. 自动验证合同
-
-每个 PR 至少执行：
+依赖方向：
 
 ```text
-npm ci --ignore-scripts --no-audit --no-fund
-npm audit --audit-level=high
-TypeScript validation
-Electron build
-U28 resource-library Electron E2E
-U29 player Electron E2E
-U30 UI and accessibility matrix
-U31 importer transaction matrix
-U32 visual audit
-全部 scripts/verify-u*.mjs
-npm run verify:stable
-最终生产构建
+UI / Adapter → Application → Domain
+Infrastructure 实现 Domain/Application 接口
 ```
 
-U33 额外执行：
+设计侧：
 
-```text
-release tag/release collision preflight
-portable + NSIS build
-packaged install/fallback acceptance
-complete packaged home readiness
-SHA256SUMS verification
-main-only GitHub prerelease publication
-published release target and asset verification
-```
+- `docs/DESIGN.md` 成为规则级事实源。
+- 建立语义 Token，而不是页面内颜色常量。
+- 首发主题：暮夜琥珀、雾光象牙。
+- 建立组件、图标、排版、间距、密度、阴影、反馈和 Motion 规范。
 
-## 8. 冻结项
+### U36：App Shell、状态与 IPC 契约
 
-Beta 发布完成前禁止启动或自动合入：
+- 重写桌面应用壳、导航、全局搜索、弹层和内容网格。
+- Renderer/Preload/Main 共用唯一 IPC 契约。
+- 裸 channel、重复类型和宽泛 payload 退出主线。
+- 逐步清理 `any`、非空断言和重复状态源。
+- 加入运行时参数校验和明确错误模型。
 
-- MVP130 正式下载器；
-- 完整 AI Agent；
+### U37：资源库与详情纵向迁移
+
+页面：
+
+- 首页与首次启动；
+- 音声库；
+- RJ 详情；
+- 音乐库；
+- 专辑与艺术家详情；
+- 全局搜索结果。
+
+能力：
+
+- 多选和批量操作；
+- 播放/字幕/文件健康筛选；
+- 元数据编辑；
+- DLsite 字段比较与选择性应用；
+- Index 空、损坏、恢复和新增文件提示。
+
+同步整理：LibraryRepository、Index Reader/Writer、Metadata、Provider 和页面状态边界。
+
+### U38：播放器与歌词纵向迁移
+
+三种正式模式：
+
+1. 经典：高效率日常播放。
+2. 黑胶：沉浸式封面/唱片体验。
+3. 歌词：日文、中文、双语与字幕管理。
+
+必须覆盖：
+
+- PlayerBar、队列、下一首播放、拖拽和移除；
+- 睡眠定时、播放完成策略、后端/fallback 状态；
+- 字幕来源、偏移、重新关联、无字幕状态；
+- reduced-motion、键盘、焦点返回和窗口适配。
+
+同步整理：PlayerController、PlaybackBackend、QueueService、PlaybackPersistence、SubtitleService。
+
+### U39：导入器、设置与 AI 维护纵向迁移
+
+导入器：
+
+- 来源选择、识别、目标树、冲突、确认、执行、取消、失败、回滚、完成摘要。
+- copy/move 安全语义必须与现有事务保持一致。
+
+设置：
+
+- 外观、资源库、播放、字幕、导入和高级设置分区。
+- 设置搜索、恢复默认和导入/导出可后置为 P2。
+
+AI 维护：
+
+- 缺失文件、Index 备份/恢复、Provider、mpv、导入历史和版本日志。
+- 日常界面不得显示 verifier、MVP、命令行或绝对路径。
+
+### U40：质量门禁、历史清理与文档
+
+- TypeScript strict 按目录逐步收紧。
+- 新增跨层引用、循环依赖、浮动 Promise、裸 IPC 和 `any` 自动阻断。
+- 复杂度/文件规模超限产生报告；高风险区域必须拆分或说明。
+- 删除旧 UI、废弃组件、重复工具和不再执行的兼容路径。
+- 历史 MVP verifier 归档，日常门禁转为行为测试和稳定合同。
+- 建立架构、数据流、IPC、错误模型、测试策略和扩展指南。
+
+### U41：Beta 2 发布
+
+目标版本：`0.169.0-beta.2`。
+
+必须通过：
+
+- TypeScript、Electron、依赖审计和稳定回归；
+- U28～U32 现有真实功能门禁；
+- 新 App Shell、主题、三播放器和主要页面 E2E；
+- 深色/浅色、三档窗口/DPI、键盘、焦点和 reduced-motion；
+- portable、NSIS、安装、重复安装、卸载、数据保留和进程退出；
+- Release 资产名、大小、下载 URL 和 SHA-256 回读。
+
+## 6. 执行顺序和预计轮次
+
+| 阶段 | 预计轮次 | 说明 |
+|---|---:|---|
+| U34 | 1～2 | 只审计和建立基线 |
+| U35 | 2 | 架构边界 + Design System |
+| U36 | 2 | App Shell + IPC/状态契约 |
+| U37 | 3～4 | 资源库和详情迁移 |
+| U38 | 3～4 | 三播放器和歌词迁移 |
+| U39 | 2～3 | 导入器、设置和维护迁移 |
+| U40 | 2 | 门禁、清理和文档 |
+| U41 | 1～2 | Windows 发布与回读 |
+
+总计约 **16～21 个开发轮次**。可合并低风险相关任务，但不得牺牲行为回归和数据安全。
+
+## 7. 大功能冻结
+
+Beta 2 完成前继续冻结：
+
+- 正式下载器 / MVP130；
 - SQLite 全面迁移；
 - OpenList/WebDAV；
 - Player Core v2；
-- 全局 CSS 或全项目架构重写；
-- 与 U33 发布无关的大功能。
+- 完整 AI Agent；
+- Arsm_Transcribe 正式接入；
+- 云同步、在线账号和插件市场；
+- 与 Beta 2 无关的大型 Provider。
+
+## 8. Beta 2 后路线
+
+Beta 2 完成后先进入短期稳定观察，再按收益/风险重新排序：
+
+1. Blocker/Major 修复。
+2. 正式 1.0 发布准备。
+3. 下载器、SQLite、转录 Worker、远端资源或播放器增强只能选一条主线启动。
+4. 不从历史待办自动恢复全部项目。
+
+## 9. 上线门槛
+
+Beta 2 可视为“个人长期使用上线候选”，但正式 `1.0.0` 仍需：
+
+- 至少一轮真实日常库连续使用观察；
+- 无数据丢失、索引损坏、导入回滚或双重播放 Blocker；
+- 首次启动、升级、卸载、备份恢复和 fallback 可重复；
+- 已知限制和数据备份说明清晰；
+- 决定是否接受无代码签名的 SmartScreen 提示，或为正式公开分发补代码签名。
+
+## 10. 自主管理与快速通道
+
+用户只接收最终成果，不承担测试、排错、Git 或发布操作。ChatGPT 负责实现、测试、文档、PR、合并和发布；Codex 仅用于 CI 无法替代的 Windows 实机、显示缩放、声卡/驱动或安装器差异验证。

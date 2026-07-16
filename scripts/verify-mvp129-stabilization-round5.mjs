@@ -28,9 +28,16 @@ const archiveCount = fs.existsSync(archiveRoot)
   ? fs.readdirSync(path.join(archiveRoot, 'root')).length + fs.readdirSync(path.join(archiveRoot, 'docs')).length + fs.readdirSync(path.join(archiveRoot, 'scripts')).length
   : 0;
 if (archiveCount < 300) failures.push(`legacy archive unexpectedly small: ${archiveCount}`);
-for (const file of ['README.md', 'PROJECT_STATE.md', 'PROJECT_ROADMAP.md']) {
-  if (!fs.readFileSync(file, 'utf8').includes('0.167.0-mvp129')) failures.push(`${file} does not retain the MVP129 historical baseline`);
-}
+
+const projectState = fs.readFileSync('PROJECT_STATE.md', 'utf8');
+const readme = fs.readFileSync('README.md', 'utf8');
+const roadmap = fs.readFileSync('PROJECT_ROADMAP.md', 'utf8');
+const u32Evidence = fs.readFileSync('docs/U32_RELEASE_CANDIDATE_PACKAGING.md', 'utf8');
+if (!projectState.includes('0.167.0-mvp129')) failures.push('PROJECT_STATE.md does not retain the MVP129 historical baseline anchor');
+if (!u32Evidence.includes('核心版本：0.167.0-mvp129')) failures.push('U32 evidence does not retain the MVP129 release-candidate baseline');
+if (!readme.includes('0.168.0-beta.1') || !readme.includes('0.169.0-beta.2')) failures.push('README.md does not identify the current Beta 1 / Beta 2 transition');
+if (!roadmap.includes('### U33：Beta 1 发布') || !roadmap.includes('当前主线：Beta 2 联合整备')) failures.push('PROJECT_ROADMAP.md does not preserve Beta 1 history and current Beta 2 planning');
+
 for (const file of ['NEXT_CHAT_HANDOFF.md', '00_NEW_CHAT_START_HERE.md']) {
   const source = fs.readFileSync(file, 'utf8');
   if (!source.includes('0.168.0-beta.1')) failures.push(`${file} does not identify the current Beta version`);

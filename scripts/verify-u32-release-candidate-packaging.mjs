@@ -18,7 +18,7 @@ const requireMarkers = (label, text, markers) => {
   }
 };
 
-if (pkg.version !== '0.168.0-beta.1') failures.push(`current package version must be U33 Beta: ${pkg.version}`);
+if (pkg.version !== '0.168.0-beta.1') failures.push(`current package version must remain Beta 1 until Beta 2 implementation starts: ${pkg.version}`);
 
 requireMarkers('electron-builder', builder, [
   "target: 'portable'",
@@ -80,21 +80,20 @@ requireMarkers('packaged page readiness', readiness, [
 ]);
 
 requireMarkers('PROJECT_STATE', state, [
-  '已合入主线：U02～U32',
-  '### U32：发布候选 UI 与 Windows 发布物',
-  '当前任务：U33',
-  '目标 tag：v0.168.0-beta.1',
+  '核心版本：0.168.0-beta.1',
+  'Beta 1：已发布并完成远端资产回读',
+  '当前主线：Beta 2 联合整备',
+  '目标版本：0.169.0-beta.2',
   'MVP130',
   '用户不承担测试',
 ]);
 
 requireMarkers('PROJECT_ROADMAP', roadmap, [
-  '### U32：发布候选 UI 与 Windows 发布物',
-  'portable 与安装版都必须退出加载占位',
-  '用户数据保留，残留进程为零',
-  '正式证据见 `docs/U32_RELEASE_CANDIDATE_PACKAGING.md`',
-  '当前主线：U33 Beta',
-  'MVP130 正式下载器',
+  '### U27～U32：真实 Windows 闭环',
+  'U32 完成发布候选 UI、portable、NSIS、安装/卸载、数据保留和 SHA-256',
+  '### U33：Beta 1 发布',
+  '当前主线：Beta 2 联合整备',
+  'MVP130',
 ]);
 
 requireMarkers('U32 historical evidence', evidence, [
