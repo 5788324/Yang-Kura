@@ -115,19 +115,19 @@ if (failures.length === 0) {
 
   requireIncludes('PROJECT_STATE.md', state, [
     'U37-D：音乐库与详情 UI 完成',
-    '当前任务：Windows 发布候选与个人日用版发布',
+    '当前任务：发布 0.169.0 Beta 2 个人日用版',
   ]);
   requireIncludes('PROJECT_ROADMAP.md', roadmap, [
     'U37-D：完成',
-    '当前任务：Windows 发布候选与个人日用版发布',
+    '当前任务：发布 0.169.0 Beta 2 个人日用版',
   ]);
   requireIncludes('CURRENT_PROJECT_HANDOFF.md', handoff, [
     'U37-D：完成',
-    '当前任务：Windows 发布候选与个人日用版发布',
+    '当前任务：发布 0.169.0 Beta 2 个人日用版',
   ]);
   requireIncludes('WORKLOG.md', worklog, [
     '### U37-D — 音乐库与详情 UI',
-    '当前任务：Windows 发布候选与个人日用版发布',
+    '当前任务：发布 0.169.0 Beta 2 个人日用版',
   ]);
   requireIncludes('U37 execution plan', plan, [
     '### U37-D：音乐库、专辑与艺术家详情 — 已完成',
