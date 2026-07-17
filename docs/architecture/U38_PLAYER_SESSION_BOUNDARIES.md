@@ -1,5 +1,11 @@
 # U38-A 播放器会话边界
 
+## 交付事实
+
+- PR：#73
+- 合并提交：`345d11555b219ae9eb48be0e1be539eca011b9e6`
+- 状态：已完成并合入 `main`
+
 ## 目标
 
 在不改变 mpv、HTMLAudio fallback、续播、字幕、队列和完成策略行为的前提下，将 `useAudioPlayer.ts` 中的 Queue、History 与 Persistence 职责拆出。
@@ -22,10 +28,11 @@
 
 ## 验收
 
-- TypeScript 与生产构建通过。
+- Documentation Validation、TypeScript、Electron 与最终生产构建通过。
 - U29 Electron E2E 验证播放、Seek、队列、四种字幕、重启、重新授权、续播、上一首和下一首。
 - U29 同时验证 Queue、History 和旧兼容快照均不泄露 token 或媒体 URL。
-- `verify:u38a-player-session-boundaries` 验证职责边界和文档事实。
+- U28～U32 真实回归、U28～U38 current focused verifiers 与 stable regression 全部通过。
+- portable、NSIS、首次安装、重复安装、卸载、数据保留和 packaged home readiness 全部通过。
 
 ## 下一步
 

@@ -110,9 +110,12 @@ Beta 2：已发布并完成远端资产校验
 
 ### U38-A — 播放器会话边界
 
+- PR：#73
+- 合并提交：`345d11555b219ae9eb48be0e1be539eca011b9e6`
 - 新增 `playerQueueTransitions.ts`，将上一首、下一首、shuffle、新队列和去重入队改为纯状态转换。
 - 新增 `usePlayerSessionPersistence.ts`，统一队列快照、播放历史、续播点、旧兼容键和节流写入。
 - `useAudioPlayer.ts` 不再直接依赖 `playerQueuePersistenceService` 或 `playbackHistoryService`。
 - 旧 `last_played_track_json` 使用隐私清洗后的音轨快照。
 - U29 Electron E2E 增加 Queue、History 和兼容快照的数据安全断言。
+- Documentation Validation、TypeScript、U28～U32、U28～U38 focused verifiers、stable regression、生产构建、portable 和 NSIS 全部通过。
 - 当前任务：U38-B 播放器 Controller 与 Backend 边界。
