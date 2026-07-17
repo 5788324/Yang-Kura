@@ -1,6 +1,7 @@
-import type { HTMLAttributes, ReactNode } from 'react';
+import type { HTMLAttributes, Key, ReactNode } from 'react';
 
 export interface MediaCardProps extends HTMLAttributes<HTMLElement> {
+  key?: Key;
   title: string;
   subtitle?: string;
   visual?: ReactNode;
