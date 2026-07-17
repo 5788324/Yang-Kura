@@ -1,0 +1,208 @@
+name: U39 Final Acceptance
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/u39-final-acceptance.yml'
+      - '.github/workflows/branch-validation.yml'
+      - 'scripts/verify-u39-final-acceptance.mjs'
+      - 'scripts/verify-handoff.mjs'
+      - 'scripts/test-u32-release-candidate-packaging.mjs'
+      - 'scripts/test-u32-packaged-page-readiness.mjs'
+      - 'docs/U39_FINAL_ACCEPTANCE.md'
+      - 'README.md'
+      - 'PROJECT_STATE.md'
+      - 'PROJECT_ROADMAP.md'
+      - 'AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md'
+      - 'AI_HANDOFF/WORKLOG.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: u39-final-acceptance-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  final-acceptance:
+    name: Windows full regression and packaged delivery
+    runs-on: windows-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Check out complete repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Audit high and critical dependency risk
+        run: npm audit --audit-level=high
+
+      - name: Rebuild Electron and patch builder compatibility
+        shell: pwsh
+        run: |
+          npm rebuild electron
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run patch:electron-builder
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Verify U39 milestone ancestry and closeout scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node scripts/verify-u39-final-acceptance.mjs
+
+      - name: Validate TypeScript and build desktop sources
+        shell: pwsh
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run lint
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run build:electron
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Run U28 resource-library and restart authorization
+        run: npm run test:u28:electron-e2e
+
+      - name: Run U29 playback, seek, queue, subtitle and resume matrix
+        run: npm run test:u29:electron-e2e
+
+      - name: Run U30 theme, DPI, keyboard and accessibility matrix
+        run: npm run test:u30:ui-matrix
+
+      - name: Run U31 importer transaction and rollback matrix
+        run: npm run test:u31:importer-transactions
+
+      - name: Run U32 daily UI visual audit
+        run: node scripts/test-u32-ui-audit.mjs
+
+      - name: Run U39 focused acceptance verifiers
+        shell: pwsh
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          node scripts/verify-u39a-playerbar-theme.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/verify-u39b-maintenance-entry.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/verify-u39c-root-authorization-persistence.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/verify-u39d-light-theme-contrast.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/test-u39d-light-theme-contrast.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/verify-u39e-empty-state-truthfulness.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/verify-u39f-architecture-guardrails.mjs --self-test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/test-u39f-architecture-guardrails.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/verify-u39f-architecture-guardrails.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/verify-handoff.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Run stable regression
+        shell: pwsh
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run verify:stable 2>&1 | Tee-Object -FilePath artifacts/u39-final-acceptance/stable-regression.log
+          $exitCode = $LASTEXITCODE
+          if ($exitCode -ne 0) { exit $exitCode }
+
+      - name: Build production renderer after regression
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: npm run build
+
+      - name: Build portable and NSIS candidates
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: node node_modules/electron-builder/cli.js --win portable nsis --config electron-builder.config.cjs
+
+      - name: Run packaged install, uninstall and data-retention acceptance
+        run: node scripts/test-u32-release-candidate-packaging.mjs
+
+      - name: Upload base U39 evidence and packaged candidates
+        uses: actions/upload-artifact@v4
+        with:
+          name: u39-final-acceptance-base
+          path: |
+            artifacts/u39-final-acceptance
+            artifacts/u28-electron-e2e
+            artifacts/u29-electron-e2e
+            artifacts/u30-ui-matrix
+            artifacts/u31-importer-transactions
+            artifacts/u32-ui-audit
+            artifacts/u32-release-candidate
+            artifacts/u39f-architecture-guardrails
+            release/*.exe
+          if-no-files-found: error
+          retention-days: 30
+
+  packaged-page-readiness:
+    name: Fresh Windows packaged page readiness
+    needs: final-acceptance
+    runs-on: windows-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Download base evidence and packaged candidates
+        uses: actions/download-artifact@v4
+        with:
+          name: u39-final-acceptance-base
+          path: .
+
+      - name: Require complete packaged page content on fresh runner
+        run: node scripts/test-u32-packaged-page-readiness.mjs
+
+      - name: Record final acceptance result
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node scripts/verify-u39-final-acceptance.mjs --record-pass
+
+      - name: Upload final U39 acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u39-final-acceptance-windows
+          path: |
+            artifacts/u39-final-acceptance
+            artifacts/u28-electron-e2e
+            artifacts/u29-electron-e2e
+            artifacts/u30-ui-matrix
+            artifacts/u31-importer-transactions
+            artifacts/u32-ui-audit
+            artifacts/u32-release-candidate
+            artifacts/u39f-architecture-guardrails
+            release/*.exe
+          if-no-files-found: warn
+          retention-days: 30

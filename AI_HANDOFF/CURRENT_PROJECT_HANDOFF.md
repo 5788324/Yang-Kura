@@ -13,7 +13,8 @@ Beta 2：已发布，Release ID 355486824
 U34～U38：完成
 U39-A～U39-E：完成
 U39-F：增量架构防回退门禁完成
-当前任务：综合收尾与剩余问题重新核对
+U39-G：最终综合验收完成
+当前任务：按需日常维护
 ```
 
 必须从最新 `origin/main` 接手。状态见 `PROJECT_STATE.md`，路线见 `PROJECT_ROADMAP.md`，日志见 `AI_HANDOFF/WORKLOG.md`。
@@ -32,7 +33,12 @@ U39-F：增量架构防回退门禁完成
 - 播放器：`Player Fast Validation`。
 - 设置、主题和页面：`UI Fast Validation`。
 - TypeScript / Electron 架构增量：`Architecture Guardrails`。
+- U39 阶段综合复核：`U39 Final Acceptance`。
 - Electron Main、安装器、依赖、用户数据目录和正式发布：完整 Windows 与打包验收。
+
+## 后续启动条件
+
+不再存在预排的下一轮 U39。只有真实 Bug、明确体验问题、用户提出的小型功能、依赖/Windows 兼容变化或触链技术债才启动新任务。Issue #66 保持开放。
 
 ## 协作
 

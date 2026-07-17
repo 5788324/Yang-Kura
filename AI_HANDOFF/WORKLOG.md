@@ -102,6 +102,13 @@
 - 纯门禁变更由 focused scope 委托，不重复执行 U28～U32 或安装包链。
 - 未修改产品运行时、播放器、资源库、Index、导入器或安装器。
 
+### U39-G — 最终综合验收
+
+- PR：#84。
+- 新增 `scripts/verify-u39-final-acceptance.mjs` 与 `.github/workflows/u39-final-acceptance.yml`。
+- 同一候选提交执行 U28～U32、U39-A～F、stable regression、portable、NSIS、安装卸载、用户数据保留和页面完整性。
+- U39 预排治理轮次收口；Issue #66 继续作为长期触链治理清单。
+
 ## 当前结论
 
 ```text
@@ -110,8 +117,9 @@ U37-A～U37-D：完成
 U38-A～U38-C：播放器治理完成
 U39-A～U39-E：日常体验与审计问题修复完成
 U39-F：增量架构防回退门禁完成
+U39-G：最终综合验收完成
 当前版本：0.169.0-beta.2
 Beta 2：已发布并完成远端资产校验
-当前任务：综合收尾与剩余问题重新核对
+当前任务：按需日常维护
 大型功能：长期冻结
 ```

@@ -24,7 +24,9 @@ on:
       - 'scripts/verify-u39b-maintenance-entry.mjs'
       - 'scripts/verify-u39f-architecture-guardrails.mjs'
       - 'scripts/test-u39f-architecture-guardrails.mjs'
+      - 'scripts/verify-u39-final-acceptance.mjs'
       - '.github/workflows/architecture-guardrails.yml'
+      - '.github/workflows/u39-final-acceptance.yml'
   workflow_dispatch:
 
 permissions:
@@ -74,14 +76,16 @@ jobs:
             '^scripts/verify-u39b-maintenance-entry\.mjs$',
             '^scripts/verify-u39f-architecture-guardrails\.mjs$',
             '^scripts/test-u39f-architecture-guardrails\.mjs$',
+            '^scripts/verify-u39-final-acceptance\.mjs$',
             '^scripts/verify-handoff\.mjs$',
-            '^\.github/workflows/(architecture-guardrails|branch-validation|player-fast-validation|ui-fast-validation|u32-release-candidate)\.yml$',
+            '^\.github/workflows/(architecture-guardrails|branch-validation|player-fast-validation|u39-final-acceptance|ui-fast-validation|u32-release-candidate)\.yml$',
             '^(README|PROJECT_STATE|PROJECT_ROADMAP)\.md$',
             '^AI_HANDOFF/(CURRENT_PROJECT_HANDOFF|WORKLOG)\.md$',
             '^docs/architecture/U38_PLAYER_SUBTITLE_BOUNDARY\.md$',
             '^docs/architecture/U39_PLAYERBAR_THEME\.md$',
             '^docs/architecture/U39_MAINTENANCE_ENTRY\.md$',
-            '^docs/architecture/U39_ARCHITECTURE_GUARDRAILS\.md$'
+            '^docs/architecture/U39_ARCHITECTURE_GUARDRAILS\.md$',
+            '^docs/U39_FINAL_ACCEPTANCE\.md$'
           )
 
           $unexpected = @($files | Where-Object {
@@ -98,7 +102,7 @@ jobs:
 
       - name: Focused fast-lane notice
         if: steps.scope.outputs.player_fast_only == 'true'
-        run: echo "Full regression skipped; targeted UI, player or architecture validation owns the relevant checks."
+        run: echo "Full regression skipped; the targeted UI, player, architecture or U39 final-acceptance workflow owns the relevant checks."
 
       - name: Set up Node 22
         if: steps.scope.outputs.player_fast_only != 'true'
