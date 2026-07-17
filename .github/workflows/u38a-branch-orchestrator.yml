@@ -1,23 +1,19 @@
 name: U38-A Branch Orchestrator
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/u38a-branch-orchestrator.yml'
   pull_request:
     branches:
       - main
     paths:
       - '.github/workflows/player-session-boundary-sync.yml'
+      - 'u38a-trigger.txt'
 
 permissions:
   contents: write
 
 jobs:
   apply:
-    if: github.event_name == 'push' || github.head_ref == 'agent/player-session-boundaries'
+    if: github.head_ref == 'agent/player-session-boundaries'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,8 +23,22 @@ jobs:
         shell: bash
         run: |
           awk 'BEGIN{capture=0} /python - <<.PY./{capture=1;next} /^          PY$/{capture=0} capture{sub(/^          /,"");print}' .github/workflows/player-session-boundary-sync.yml > /tmp/u38a-refactor.py
-          python /tmp/u38a-refactor.py
-          rm .github/workflows/player-session-boundary-sync.yml
+          set +e
+          python /tmp/u38a-refactor.py > /tmp/u38a-refactor.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/u38a-refactor.log
+          if [ "$status" -ne 0 ]; then
+            mkdir -p artifacts
+            cp /tmp/u38a-refactor.log artifacts/u38a-refactor-error.log
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add artifacts/u38a-refactor-error.log
+            git commit -m 'ci: capture U38-A refactor failure'
+            git push origin HEAD:agent/player-session-boundaries
+            exit "$status"
+          fi
+          rm -f u38a-trigger.txt .github/workflows/player-session-boundary-sync.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
