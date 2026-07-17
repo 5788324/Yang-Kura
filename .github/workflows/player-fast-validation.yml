@@ -7,7 +7,13 @@ on:
     paths:
       - 'src/hooks/useAudioPlayer.ts'
       - 'src/hooks/usePlayerSubtitles.ts'
+      - 'src/components/PlayerBar.tsx'
+      - 'src/components/PlayerBarPrimarySections.tsx'
+      - 'src/components/PlayerBarAuxiliaryControls.tsx'
+      - 'src/components/PlayerProgressTrack.tsx'
+      - 'src/components/PlayerTransientPresenters.tsx'
       - 'scripts/verify-u38c-player-subtitles.mjs'
+      - 'scripts/verify-u39a-playerbar-theme.mjs'
       - '.github/workflows/player-fast-validation.yml'
   workflow_dispatch:
 
@@ -20,13 +26,33 @@ concurrency:
 
 jobs:
   validate-player:
-    name: Player TypeScript, build and U29
+    name: Player targeted validation
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect player validation scope
+        id: scope
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -ne "pull_request") {
+            "runtime_changed=true" >> $env:GITHUB_OUTPUT
+            "ui_changed=true" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+
+          $base = "${{ github.event.pull_request.base.sha }}"
+          $files = @(git diff --name-only $base HEAD)
+          $runtimeChanged = @($files | Where-Object { $_ -match '^src/hooks/use(AudioPlayer|PlayerSubtitles)\.ts$|^scripts/verify-u38c-player-subtitles\.mjs$' }).Count -gt 0
+          $uiChanged = @($files | Where-Object { $_ -match '^src/components/Player(Bar|BarPrimarySections|BarAuxiliaryControls|ProgressTrack|TransientPresenters)\.tsx$|^scripts/verify-u39a-playerbar-theme\.mjs$' }).Count -gt 0
+          "runtime_changed=$($runtimeChanged.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          "ui_changed=$($uiChanged.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          Write-Host "runtime_changed=$runtimeChanged ui_changed=$uiChanged"
 
       - name: Set up Node 22
         uses: actions/setup-node@v4
@@ -49,16 +75,28 @@ jobs:
           npm run build:electron
 
       - name: Verify U38-C subtitle boundary
+        if: steps.scope.outputs.runtime_changed == 'true'
         run: node scripts/verify-u38c-player-subtitles.mjs
 
       - name: Run U29 player Electron E2E
+        if: steps.scope.outputs.runtime_changed == 'true'
         run: npm run test:u29:electron-e2e
 
-      - name: Upload U29 evidence
+      - name: Verify U39-A player theme boundary
+        if: steps.scope.outputs.ui_changed == 'true'
+        run: node scripts/verify-u39a-playerbar-theme.mjs
+
+      - name: Run U30 theme and accessibility matrix
+        if: steps.scope.outputs.ui_changed == 'true'
+        run: npm run test:u30:ui-matrix
+
+      - name: Upload player evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: player-fast-validation-evidence
-          path: artifacts/u29-electron-e2e
+          path: |
+            artifacts/u29-electron-e2e
+            artifacts/u30-ui-matrix
           if-no-files-found: warn
           retention-days: 7

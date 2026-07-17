@@ -56,7 +56,7 @@ export function PlayerTrackSummary({
     <>
       <div
         onClick={onOpenLyrics}
-        className={`relative w-12 h-12 rounded-full overflow-hidden bg-black/60 border border-zinc-800 flex-shrink-0 cursor-pointer shadow-xl group/album transition-transform hover:scale-105 ${
+        className={`relative w-12 h-12 rounded-full overflow-hidden bg-card-bg/70 border border-border-color flex-shrink-0 cursor-pointer shadow-lg group/album transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-color ${
           isPlaying ? 'animate-spin-slow' : ''
         }`}
         role="button"
@@ -77,8 +77,8 @@ export function PlayerTrackSummary({
           className="w-full h-full object-cover rounded-full p-1"
           rounded
         />
-        <div className="absolute inset-0 m-auto w-3.5 h-3.5 bg-zinc-950 border border-zinc-700 rounded-full flex items-center justify-center">
-          <div className="w-1 h-1 bg-white rounded-full" />
+        <div className="absolute inset-0 m-auto w-3.5 h-3.5 bg-player-bg border border-border-color rounded-full flex items-center justify-center">
+          <div className="w-1 h-1 bg-text-primary rounded-full" />
         </div>
       </div>
 
@@ -87,16 +87,16 @@ export function PlayerTrackSummary({
           <button
             type="button"
             onClick={onOpenLyrics}
-            className="text-[13px] font-bold text-zinc-100 hover:text-sky-400 cursor-pointer transition-colors truncate text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400 rounded"
+            className="text-[13px] font-bold text-text-primary hover:text-brand-color cursor-pointer transition-colors truncate text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-color rounded"
             title={track.title}
           >
             {track.title}
           </button>
-          <span className="text-[8px] bg-sky-500/15 text-sky-400 border border-sky-500/25 px-1 py-px rounded font-extrabold uppercase tracking-wide flex-shrink-0">
+          <span className="text-[8px] bg-brand-color/15 text-brand-color border border-brand-color/25 px-1 py-px rounded font-extrabold uppercase tracking-wide flex-shrink-0">
             本地
           </span>
         </div>
-        <p className="text-xs text-zinc-400 truncate mt-1" title={track.artist}>
+        <p className="text-xs text-text-secondary truncate mt-1" title={track.artist}>
           {track.artist}
         </p>
         {playbackError ? (
@@ -111,15 +111,15 @@ export function PlayerTrackSummary({
           <>
             <div
               id="mvp74-playerbar-daily-control-strip"
-              className="mt-1.5 flex items-center gap-1.5 text-[9px] text-zinc-400 truncate"
+              className="mt-1.5 flex items-center gap-1.5 text-[9px] text-text-muted truncate"
               title={hiddenMaintenanceNote}
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-sky-400/90 flex-shrink-0" />
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-color flex-shrink-0" />
               <span className="truncate">{compactStatus}</span>
             </div>
             <div className="mt-1 flex flex-wrap gap-1">
               {visibleBadges.slice(0, 3).map((badge) => (
-                <span key={badge} className="rounded-full border border-white/10 bg-white/5 px-1.5 py-0.5 text-[8px] font-bold text-zinc-300">
+                <span key={badge} className="rounded-full border border-border-color bg-card-bg/55 px-1.5 py-0.5 text-[8px] font-bold text-text-secondary">
                   {badge}
                 </span>
               ))}
@@ -145,11 +145,11 @@ export function PlayerTrackSummary({
         )}
       </div>
 
-      <div className="flex items-center pl-3 border-l border-zinc-800/80 flex-shrink-0">
+      <div className="flex items-center pl-3 border-l border-border-color/80 flex-shrink-0">
         <button
           type="button"
           onClick={onToggleFavorite}
-          className="flex items-center space-x-1.5 text-zinc-400 hover:text-white transition-colors group/heart focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400 rounded"
+          className="flex items-center space-x-1.5 text-text-muted hover:text-text-primary transition-colors group/heart focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-color rounded"
           title={isLiked ? '取消喜欢' : '喜欢这首音声'}
           aria-label={isLiked ? '取消喜欢' : '添加到喜欢'}
           aria-pressed={isLiked}
@@ -160,7 +160,7 @@ export function PlayerTrackSummary({
             }`}
             aria-hidden="true"
           />
-          <span className="text-[10px] font-bold text-zinc-500 group-hover/heart:text-zinc-300">
+          <span className="text-[10px] font-bold text-text-muted group-hover/heart:text-text-secondary">
             喜欢
           </span>
         </button>
@@ -202,11 +202,12 @@ export function PlayerTransportControls({
 }: PlayerTransportControlsProps) {
   const loopLabel = loopMode === 'shuffle' ? '随机播放' : loopMode === 'one' ? '单曲循环' : '列表循环';
   const playLabel = playbackMode === 'resolving-local-media' ? '正在解析本地音频' : isPlaying ? '暂停' : '播放';
+  const secondaryButtonClass = 'p-1.5 rounded-full hover:bg-hover-bg text-text-secondary hover:text-text-primary disabled:opacity-30 transition-all cursor-pointer hover:scale-105 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-color';
 
   return (
     <div className="u30-player-transport flex-1 min-w-0 flex items-center justify-center" onClick={(event) => event.stopPropagation()}>
       <div
-        className="flex min-w-0 items-center bg-zinc-900/40 border border-zinc-900 px-3 xl:px-5 py-2.5 rounded-full shadow-inner space-x-2 xl:space-x-5"
+        className="flex min-w-0 items-center bg-card-bg/55 border border-border-color px-3 xl:px-5 py-2.5 rounded-full shadow-inner space-x-2 xl:space-x-5"
         role="group"
         aria-label="播放控制"
       >
@@ -214,18 +215,18 @@ export function PlayerTransportControls({
           type="button"
           onClick={onToggleLoopMode}
           disabled={!hasTrack}
-          className={`p-1.5 rounded-lg transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400 ${
-            !hasTrack ? 'opacity-30' : 'hover:bg-zinc-800 text-zinc-400 hover:text-white cursor-pointer hover:scale-105'
+          className={`p-1.5 rounded-lg transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-color ${
+            !hasTrack ? 'opacity-30' : 'hover:bg-hover-bg text-text-muted hover:text-text-primary cursor-pointer hover:scale-105'
           }`}
           title={loopLabel}
           aria-label={`切换播放模式，当前为${loopLabel}`}
         >
           {loopMode === 'shuffle' ? (
-            <Shuffle className="w-4 h-4 text-sky-400" aria-hidden="true" />
+            <Shuffle className="w-4 h-4 text-brand-color" aria-hidden="true" />
           ) : loopMode === 'one' ? (
             <Repeat1 className="w-4 h-4 text-pink-400" aria-hidden="true" />
           ) : (
-            <Repeat className="w-4 h-4 text-zinc-400" aria-hidden="true" />
+            <Repeat className="w-4 h-4 text-text-muted" aria-hidden="true" />
           )}
         </button>
 
@@ -233,7 +234,7 @@ export function PlayerTransportControls({
           type="button"
           onClick={onPrevious}
           disabled={!hasTrack}
-          className="p-1.5 rounded-full hover:bg-zinc-800 text-zinc-200 disabled:opacity-30 transition-all cursor-pointer hover:scale-105 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400"
+          className={secondaryButtonClass}
           title="上一首"
           aria-label="上一首"
         >
@@ -244,7 +245,7 @@ export function PlayerTransportControls({
           type="button"
           onClick={onTogglePlay}
           disabled={!hasTrack}
-          className="w-11 h-11 rounded-full bg-sky-500 hover:bg-sky-400 text-white flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+          className="w-11 h-11 rounded-full bg-brand-color hover:bg-brand-color-hover text-white flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-color"
           title={playLabel}
           aria-label={playLabel}
           aria-pressed={isPlaying}
@@ -260,7 +261,7 @@ export function PlayerTransportControls({
           type="button"
           onClick={onNext}
           disabled={!hasTrack}
-          className="p-1.5 rounded-full hover:bg-zinc-800 text-zinc-200 disabled:opacity-30 transition-all cursor-pointer hover:scale-105 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400"
+          className={secondaryButtonClass}
           title="下一首"
           aria-label="下一首"
         >
@@ -272,24 +273,24 @@ export function PlayerTransportControls({
           type="button"
           onClick={onToggleQueue}
           disabled={!hasTrack}
-          className={`p-1.5 rounded-lg transition-all flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400 ${
+          className={`p-1.5 rounded-lg transition-all flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-color ${
             !hasTrack ? 'opacity-30' : ''
           } ${
             isQueueOpen
-              ? 'bg-sky-500/20 text-sky-400 border border-sky-500/20'
-              : 'text-zinc-400 hover:text-white hover:bg-zinc-800 cursor-pointer hover:scale-105'
+              ? 'bg-brand-color/15 text-brand-color border border-brand-color/30'
+              : 'text-text-muted hover:text-text-primary hover:bg-hover-bg cursor-pointer hover:scale-105'
           }`}
           title="当前播放队列"
           aria-label={`当前播放队列，共 ${queueCount} 首`}
           aria-pressed={isQueueOpen}
         >
           <ListMusic className="w-4 h-4" aria-hidden="true" />
-          <span className="text-[9px] font-mono font-bold ml-1 text-zinc-500">{queueCount}</span>
+          <span className="text-[9px] font-mono font-bold ml-1 text-text-muted">{queueCount}</span>
         </button>
 
-        <div className="u30-player-time text-[10px] text-zinc-400 font-mono flex items-center space-x-1 pl-3.5 border-l border-zinc-800" aria-label={`播放时间 ${currentTimeLabel}，总时长 ${durationLabel}`}>
-          <span className="text-sky-400 font-bold">{currentTimeLabel}</span>
-          <span className="text-zinc-600">/</span>
+        <div className="u30-player-time text-[10px] text-text-secondary font-mono flex items-center space-x-1 pl-3.5 border-l border-border-color" aria-label={`播放时间 ${currentTimeLabel}，总时长 ${durationLabel}`}>
+          <span className="text-brand-color font-bold">{currentTimeLabel}</span>
+          <span className="text-text-muted">/</span>
           <span>{durationLabel}</span>
         </div>
       </div>

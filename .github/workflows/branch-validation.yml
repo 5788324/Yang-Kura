@@ -10,7 +10,13 @@ on:
       - 'AI_HANDOFF/**'
       - 'src/hooks/useAudioPlayer.ts'
       - 'src/hooks/usePlayerSubtitles.ts'
+      - 'src/components/PlayerBar.tsx'
+      - 'src/components/PlayerBarPrimarySections.tsx'
+      - 'src/components/PlayerBarAuxiliaryControls.tsx'
+      - 'src/components/PlayerProgressTrack.tsx'
+      - 'src/components/PlayerTransientPresenters.tsx'
       - 'scripts/verify-u38c-player-subtitles.mjs'
+      - 'scripts/verify-u39a-playerbar-theme.mjs'
   workflow_dispatch:
 
 permissions:
@@ -46,12 +52,19 @@ jobs:
           $allowed = @(
             '^src/hooks/useAudioPlayer\.ts$',
             '^src/hooks/usePlayerSubtitles\.ts$',
+            '^src/components/PlayerBar\.tsx$',
+            '^src/components/PlayerBarPrimarySections\.tsx$',
+            '^src/components/PlayerBarAuxiliaryControls\.tsx$',
+            '^src/components/PlayerProgressTrack\.tsx$',
+            '^src/components/PlayerTransientPresenters\.tsx$',
             '^scripts/verify-u38c-player-subtitles\.mjs$',
+            '^scripts/verify-u39a-playerbar-theme\.mjs$',
             '^scripts/verify-handoff\.mjs$',
             '^\.github/workflows/(branch-validation|player-fast-validation|u32-release-candidate)\.yml$',
             '^(README|PROJECT_STATE|PROJECT_ROADMAP)\.md$',
             '^AI_HANDOFF/(CURRENT_PROJECT_HANDOFF|WORKLOG)\.md$',
-            '^docs/architecture/U38_PLAYER_SUBTITLE_BOUNDARY\.md$'
+            '^docs/architecture/U38_PLAYER_SUBTITLE_BOUNDARY\.md$',
+            '^docs/architecture/U39_PLAYERBAR_THEME\.md$'
           )
 
           $unexpected = @($files | Where-Object {
@@ -68,7 +81,7 @@ jobs:
 
       - name: Player fast-lane notice
         if: steps.scope.outputs.player_fast_only == 'true'
-        run: echo "Full regression skipped; Player Fast Validation owns TypeScript, builds, U38-C verifier and U29."
+        run: echo "Full regression skipped; Player Fast Validation owns TypeScript, builds and the relevant U29/U30 matrix."
 
       - name: Set up Node 22
         if: steps.scope.outputs.player_fast_only != 'true'
@@ -161,7 +174,7 @@ jobs:
           $failed = $false
 
           Get-ChildItem -Path scripts -Filter 'verify-u*.mjs' |
-            Where-Object { $_.Name -match '^verify-u(?:2[89]|3[0-8])' } |
+            Where-Object { $_.Name -match '^verify-u(?:2[89]|3[0-9])' } |
             Sort-Object Name |
             ForEach-Object {
               Write-Host "Running $($_.Name)"

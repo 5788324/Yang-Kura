@@ -113,8 +113,11 @@ export default function PlayerBar({
   return (
     <div
       id="app-player-bar"
-       className="h-20 min-w-0 bg-zinc-950 border-t border-zinc-800/80 px-3 lg:px-5 xl:px-8 gap-2 flex items-center justify-between select-none relative z-50 text-white"
+      className="h-20 min-w-0 bg-player-bg/95 border-t border-border-color/80 px-3 lg:px-5 xl:px-8 gap-2 flex items-center justify-between select-none relative z-50 text-text-primary shadow-[0_-12px_32px_rgba(0,0,0,0.14)] backdrop-blur-xl"
+      role="region"
+      aria-label="全局播放器"
       data-mvp79-player-ui-bugfix="true"
+      data-u39-player-theme-surface="semantic"
       data-u29-playback-mode={playerState.playbackMode ?? 'idle'}
       data-u29-track-id={currentTrack?.id ?? ''}
       data-u29-progress={Number.isFinite(progress) ? progress.toFixed(3) : '0.000'}
@@ -142,7 +145,7 @@ export default function PlayerBar({
       />
 
       <div
-         className="u30-player-track w-[30%] min-w-0 flex items-center space-x-2 xl:space-x-4 pr-2 xl:pr-4"
+        className="u30-player-track w-[30%] min-w-0 flex items-center space-x-2 xl:space-x-4 pr-2 xl:pr-4"
         onClick={(event) => event.stopPropagation()}
       >
         {currentTrack ? (
