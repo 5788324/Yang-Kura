@@ -7,165 +7,111 @@
 ### U34 — 联合审计与交付规则
 
 - PR：#56
-- 合并提交：`96885e2f5da6d24891e9e8e041ef681f13446f1c`
 - 完成架构审计、依赖图、重构待办和关键行为冻结清单。
 - 建立低风险任务批量修改、单一 PR、单次最终门禁规则。
-- 建立文档轻量 CI。
 
-### U35-A / U35-B — Design System 与生产 AppShell
+### U35 / U36 — Design System、AppShell 与 IPC 分域
 
-- PR：#57、#58
-- 建立唯一 IPC 契约、语义 Token、共享 UI primitives、两套正式主题和生产 AppShell。
-
-### U36-A / U36-B / U36-C — 导航、Router、Overlay 与 IPC 分域
-
-- PR：#59、#60、#61
-- 建立统一导航注册表、Preload 请求合同、AppRouter、QueueDrawer、PlayerOverlayHost。
-- Main IPC 按 Library、Media、Player、Metadata、Importer 分域。
+- PR：#57～#61
+- 建立统一 IPC 契约、语义 Token、共享 UI、生产 AppShell、Router、Overlay 和 Main IPC 分域。
 
 ## 2026-07-17
 
-### U37-A — 页面状态与错误恢复
+### U37 — 媒体库正式页面
 
-- PR：#62
-- 合并提交：`63fcd76121f82be024f93ac0d7f11a8edee067ff`
-- 首页、音声库、RJ 详情和音乐库建立页面边界与恢复入口。
+- PR：#62、#63、#69
+- 首页、音声库、RJ 详情和音乐库建立正式页面边界。
+- 音乐库支持歌曲、专辑、艺术家和文件夹四视图。
+- 搜索、筛选、收藏、多选、批量入队和歌单操作进入正式 UI。
 
-### U37-B — 首页与音声库列表 UI
-
-- PR：#63
-- 合并提交：`0d5815da9132d3697b048ef0b9cfcf43bf1c6552`
-- 新增 `HomeLibraryPage.tsx` 和 `AsmrLibraryPage.tsx`。
-- 迁移搜索、排序、筛选、网格/列表、多选和批量加入歌单。
-
-### U37-C — RJ 详情 UI
-
-- 合并提交：`7587308b0b91cfb0f4e985b850a00915875d28cf`
-- 新增 `RjDetailPage.tsx` 与 `RjMetadataDialog.tsx`。
-- 保留播放、队列、收藏、字幕、文件健康、本地覆盖和 DLsite 选择性应用。
-
-### 项目治理与发布策略更新
-
-- PR：#68
-- 合并提交：`4e9bdcf811133e7d8740b76fd01b1d07fb32d2a8`
-- 创建 Issue #65 与 #66。
-- 关闭被后续主线取代的遗留 PR #54。
-- 明确大型功能长期冻结，媒体库完成后直接发布个人日用版。
-
-### U37-D — 音乐库与详情 UI
-
-- PR：#69
-- 合并提交：`731b3a0e2e727a98d9a33b7ab7080b830dca5777`
-- 新增正式 `MusicLibraryPage`，完成歌曲、专辑、艺术家、文件夹四视图和详情钻取。
-- 支持搜索、排序、收藏、多选、全选当前结果、批量入队、播放全部和分组入队。
-- 删除旧 `src/components/MusicLibrary.tsx`。
-- TypeScript、U28～U32、focused verifiers、stable regression、生产构建和 Windows 打包链通过。
-
-### U37-D 文档收口
-
-- PR：#70
-- 合并提交：`8aadcc4bdd995f45d47eddf1d1d966f9c27d4b1c`
-- 工作日志与 U37 执行计划同步到最终验收事实。
-
-### Beta 2 个人日用版发布准备
+### Beta 2 个人日用版
 
 - PR：#71
-- 合并提交：`14bc78a81c827882efc232c6c6c12f0d8ed04542`
-- 版本升级为 `0.169.0-beta.2`。
-- 发布计划、Release Notes、Windows 构建、发布和资产回读升级为 Personal Beta Release。
-
-### Beta 2 个人日用版发布 — 已完成
-
 - tag：`v0.169.0-beta.2`
 - Release ID：`355486824`
 - 目标提交：`14bc78a81c827882efc232c6c6c12f0d8ed04542`
-- 发布时间：`2026-07-17T05:21:02Z`
-- portable、setup 和 `SHA256SUMS.txt` 的远端文件名、大小、SHA-256 与 digest 全部一致。
-- Issue #65 完成并关闭。
+- portable、setup 和 `SHA256SUMS.txt` 的远端文件名、大小、SHA-256 与 digest 一致。
 
 ### U38-A — 播放器会话边界
 
 - PR：#73
 - 合并提交：`345d11555b219ae9eb48be0e1be539eca011b9e6`
-- 新增 `playerQueueTransitions.ts`，负责上一首、下一首、shuffle、新队列和去重入队。
-- 新增 `usePlayerSessionPersistence.ts`，统一 Queue、History、续播点、兼容键和节流写入。
-- `useAudioPlayer.ts` 不再直接依赖 Queue/History 持久化服务。
-- U29 Electron E2E 增加持久化数据清洗断言。
-- Documentation Validation、TypeScript、U28～U32、focused verifiers、stable regression、生产构建、portable 和 NSIS 全部通过。
+- `playerQueueTransitions.ts` 负责队列转换。
+- `usePlayerSessionPersistence.ts` 负责 Queue、History、续播和节流持久化。
 
-### U38-B — 播放器 Controller 与 Backend 边界
+### U38-B — Controller 与 Backend
 
 - PR：#75
 - 合并提交：`4e7105386c2057bdcff95183b45b56aa6ceb5513`
-- 新增 `usePlayerBackend.ts`，集中 HTMLAudio 生命周期、mpv 事件/命令、媒体解析、自动 fallback、Seek、音量/静音和播放状态同步。
-- `useAudioPlayer.ts` 保留 Queue、完成策略、用户操作、会话持久化和字幕协调，对外 API 不变。
-- U29 Electron E2E 覆盖真实后端、Seek、暂停、完成策略、Queue、四种字幕、重启授权、续播、上一首和下一首。
-- Documentation Validation、TypeScript、U28～U32、focused verifiers、stable regression、最终生产构建、portable、NSIS、安装卸载、数据保留和打包后页面完整性全部通过。
+- `usePlayerBackend.ts` 集中 HTMLAudio、mpv、媒体解析、fallback、Seek、音量和状态同步。
 
-### U38-C — 播放器字幕加载与状态边界
+### U38-C — 字幕生命周期
 
 - PR：#77
 - 合并提交：`bff4ff6641263a002509344216a01c7a79b4163b`
-- 新增 `usePlayerSubtitles.ts`，集中字幕请求代次、过期结果丢弃、来源变更重载和结果映射。
-- 切歌、重新授权或字幕来源列表变化时，旧请求立即失效，不能覆盖当前曲目。
-- 新请求开始时清除旧歌词和旧来源，避免同一音轨重新绑定字幕后显示旧内容。
-- `loaded`、`missing`、`error` 状态统一映射，并同步当前曲目与 Queue。
-- 新增 U38-C 定向 verifier 和 `Player Fast Validation`。
-- U38 播放器连续结构治理到此收口。
+- `usePlayerSubtitles.ts` 集中请求代次、过期结果丢弃、来源变化重载和状态映射。
+- U38 连续播放器结构治理收口。
 
-### U39-A — 播放器底栏语义主题一致性
+### U39-A — 播放器主题一致性
 
 - PR：#78
 - 合并提交：`8431829427dbe3da86b976a18d124a7a119c5e8f`
-- 底栏、控制、进度条和临时弹层进入语义主题体系。
-- 增加全局播放器 region 语义和统一品牌色键盘焦点。
-- 不修改 mpv/HTMLAudio、Queue、字幕、Seek、续播或完成策略。
+- PlayerBar、控制、进度条和临时弹层进入语义主题体系。
+- 播放后端、Queue、字幕、Seek 和续播未改动。
 
-### U39-B — 设置与 AI 维护入口边界
+### U39-B — 设置与 AI 维护入口
 
 - PR：#79
-- 设置页明确进入独立 AI 维护路由。
-- 维护概览只加载真实 Index 状态；性能面板和完整历史诊断按需加载。
-- `diagnostics` 保持隐藏维护路由，不进入日常一级侧栏。
+- 合并提交：`f87813cb219f8d298c54eb4fd7793d1038129b5a`
+- 设置页提供独立 AI 维护入口。
+- 维护概览、性能诊断和完整历史诊断按需加载。
 
-### U39-C — 资源库授权持久化与重启恢复
+### U39-C — 资源库授权持久化
 
 - PR：#80
 - 合并提交：`77f0152a80aea9fdfeaaf33f046d9a47d69f6d2e`
-- `RootAuthorizationStore` 在用户数据目录持久化并启动恢复授权记录。
-- 重新选择既有资源库时复用存储记录，或从现有 Index 接管旧 token。
-- U28 验证重启后无需重选即可读取和播放。
+- `RootAuthorizationStore` 在用户数据目录持久化授权记录。
+- 重新选择既有资源库时复用记录或接管 Index token。
+- U28 / U29 验证重启后无需重选即可读取、播放、续播和加载字幕。
 
-### U39-D — 雾光象牙浅色主题对比度
+### U39-D — 雾光象牙对比度
 
 - PR：#81
-- 新增 `theme-contrast-bridge.css`，同步 Beta 2 语义 Token 与旧 Tailwind 变量。
-- 文字和状态色达到至少 `4.5:1`，可交互边界达到至少 `3:1`。
-- 静态 WCAG verifier、真实 Electron 对比度、U30 与完整回归通过。
+- 合并提交：`5a6411da2a5dbdb90ef143061f293e6f7160c94a`
+- 新旧主题变量同步。
+- 文字与状态色至少 `4.5:1`，交互边界至少 `3:1`。
+- 静态 WCAG、真实 Electron 和 U30 验收通过。
 
-### U39-E — 音乐库与导入器空状态真实性
+### U39-E — 日常空状态真实性
 
 - PR：#82
-- 新增 `empty-state-truthfulness.css`，空音乐库隐藏无内容的元数据工具容器。
+- 合并提交：`b0842eb335f937748d580c6e7aee990537307224`
+- 空音乐库隐藏无内容的元数据工具容器。
 - 导入器未选择来源时明确显示当前没有扫描结果。
-- 三种来源类型使用产品说明，不再向日常用户展示历史阶段、mock 或自动化验收措辞。
-- 历史示例统计继续保持隐藏，不作为当前扫描结果展示。
-- U39-E verifier、TypeScript、Renderer/Electron build、U30、U32 与完整 Windows 回归用于验收。
-- 未修改导入执行器、Index、播放器、字幕或安装器。
+- 历史示例统计继续隐藏，不作为当前扫描结果。
+- U39-E verifier、U30、U32 和完整 Windows 回归通过。
+
+### U39-F — 增量架构防回退门禁
+
+- PR：#83
+- 新增 `.github/workflows/architecture-guardrails.yml`。
+- 新增 `scripts/verify-u39f-architecture-guardrails.mjs`，比较 PR base 与 head。
+- 禁止新增显式 `any`、Renderer 裸 IPC、Renderer/Electron 实现层跨层导入和相对导入循环。
+- 新增 `scripts/test-u39f-architecture-guardrails.mjs`，在临时 Git 仓库注入四类违规并确认门禁失败。
+- 当前报告记录 1 个历史相对导入环，0 个本 PR 新增循环。
+- 纯门禁变更由 focused scope 委托，不重复执行 U28～U32 或安装包链。
+- 未修改产品运行时、播放器、资源库、Index、导入器或安装器。
 
 ## 当前结论
 
 ```text
 U34～U36：完成
 U37-A～U37-D：完成
-U38-A～U38-C：播放器结构治理完成
-U39-A：播放器底栏主题一致性完成
-U39-B：设置与 AI 维护入口边界完成
-U39-C：资源库授权持久化与重启恢复完成
-U39-D：雾光象牙浅色主题对比度完成
-U39-E：音乐库与导入器空状态真实性完成
+U38-A～U38-C：播放器治理完成
+U39-A～U39-E：日常体验与审计问题修复完成
+U39-F：增量架构防回退门禁完成
 当前版本：0.169.0-beta.2
 Beta 2：已发布并完成远端资产校验
-当前任务：继续修复 U39 审计剩余问题
+当前任务：综合收尾与剩余问题重新核对
 大型功能：长期冻结
 ```
