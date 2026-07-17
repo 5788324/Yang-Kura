@@ -65,25 +65,29 @@ requireMarkers('Release Notes', notes, [
   '未进行商业代码签名', '不包含自动更新',
 ]);
 requireMarkers('README', readme, [
-  '> 当前版本：`0.169.0-beta.2`', 'Beta 2 个人日用版已发布',
+  '> 当前版本：`0.169.0-beta.2`', 'Beta 2 个人日用版',
   'Release ID：`355486824`', 'release/beta2-publication-state.json',
   'U38-A 已完成 Queue、History 与 Persistence 分离',
+  'U38-B 已完成 Controller 与 Backend 分离',
 ]);
 requireMarkers('PROJECT_STATE', state, [
   'Beta 2：个人日用版已发布并完成远端资产回读',
   'U38-A：播放器 Queue/History/Persistence 分离完成',
-  '当前任务：U38-B 播放器 Controller 与 Backend 边界',
+  'U38-B：播放器 Controller/Backend 分离完成',
+  '当前任务：U38-C Subtitle loader 与字幕状态',
 ]);
 requireMarkers('PROJECT_ROADMAP', roadmap, [
   'Beta 2：个人日用版已发布并完成远端资产校验',
   '### Beta 2 个人日用版发布 — 已完成',
   'U38-A：播放器 Queue/History/Persistence 分离完成',
+  'U38-B：播放器 Controller/Backend 分离完成',
 ]);
 requireMarkers('CURRENT_PROJECT_HANDOFF', handoff, [
   'Beta 2：个人日用版已发布并完成远端资产校验',
   'Release ID：355486824',
   'U38-A：完成',
-  '当前任务：U38-B 播放器 Controller 与 Backend 边界',
+  'U38-B：完成',
+  '当前任务：U38-C Subtitle loader 与字幕状态',
 ]);
 
 requireMarkers('publication record audit workflow', preflightWorkflow, [
