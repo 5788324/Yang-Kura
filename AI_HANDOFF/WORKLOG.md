@@ -99,10 +99,8 @@
 - 合并提交：`4e7105386c2057bdcff95183b45b56aa6ceb5513`
 - 新增 `usePlayerBackend.ts`，集中 HTMLAudio 生命周期、mpv 事件/命令、媒体解析、自动 fallback、Seek、音量/静音和播放状态同步。
 - `useAudioPlayer.ts` 保留 Queue、完成策略、用户操作、会话持久化和字幕协调，对外 API 不变。
-- `playerRuntimePolicy.ts` 提供共享 tokenized-local-track 类型守卫。
 - U29 Electron E2E 覆盖真实后端、Seek、暂停、完成策略、Queue、四种字幕、重启授权、续播、上一首和下一首。
-- U38-B verifier 禁止 Controller 重新直接持有 Audio、mpv 或 media resolver 副作用。
-- Documentation Validation、TypeScript、U28～U32、U28～U38 focused verifiers、stable regression、最终生产构建、portable、NSIS、安装卸载、数据保留和打包后页面完整性全部通过。
+- Documentation Validation、TypeScript、U28～U32、focused verifiers、stable regression、最终生产构建、portable、NSIS、安装卸载、数据保留和打包后页面完整性全部通过。
 
 ### U38-C — 播放器字幕加载与状态边界
 
@@ -112,50 +110,48 @@
 - 切歌、重新授权或字幕来源列表变化时，旧请求立即失效，不能覆盖当前曲目。
 - 新请求开始时清除旧歌词和旧来源，避免同一音轨重新绑定字幕后显示旧内容。
 - `loaded`、`missing`、`error` 状态统一映射，并同步当前曲目与 Queue。
-- `useAudioPlayer.ts` 不再直接调用字幕 IPC。
 - 新增 U38-C 定向 verifier 和 `Player Fast Validation`。
-- Windows 打包验收从普通 `src/**` 变更中移除，仅保留 Electron、依赖、安装器、打包配置和正式发布相关触发。
-- U38 播放器连续结构治理到此收口；后续优先真实 Bug、字幕体验和日常 UI。
+- U38 播放器连续结构治理到此收口。
 
 ### U39-A — 播放器底栏语义主题一致性
 
 - PR：#78
 - 合并提交：`8431829427dbe3da86b976a18d124a7a119c5e8f`
-- 底栏根表面改用 `player-bg`、`border-color` 和 `text-primary`。
-- 曲目信息、播放控制、辅助控制、进度条、歌单菜单、音量弹层、Seek 预览、歌词浮窗和 Toast 全部进入语义主题体系。
-- 移除播放器结构层的固定 zinc 深色；品牌强调、错误、警告和收藏状态色保留。
+- 底栏、控制、进度条和临时弹层进入语义主题体系。
 - 增加全局播放器 region 语义和统一品牌色键盘焦点。
-- `Player Fast Validation` 按变更范围选择 U29 运行时矩阵或 U30 主题/无障碍矩阵。
-- 不修改 mpv/HTMLAudio、播放状态、Queue、字幕、Seek、续播或完成策略。
+- 不修改 mpv/HTMLAudio、Queue、字幕、Seek、续播或完成策略。
 
 ### U39-B — 设置与 AI 维护入口边界
 
-- 新增 `SettingsMaintenanceEntry.tsx`，从设置页明确进入独立 AI 维护路由。
-- `DiagnosticsPageShell` 增加返回设置与返回维护概览。
-- 维护概览只加载真实 Index 状态；性能面板和完整历史诊断继续按需加载。
+- PR：#79
+- 设置页明确进入独立 AI 维护路由。
+- 维护概览只加载真实 Index 状态；性能面板和完整历史诊断按需加载。
 - `diagnostics` 保持隐藏维护路由，不进入日常一级侧栏。
-- 现有资源库检修、索引清理、备份与恢复能力暂不删除。
-- 新增 `UI Fast Validation` 与 U39-B 定向 verifier。
 
 ### U39-C — 资源库授权持久化与重启恢复
 
 - PR：#80
 - 合并提交：`77f0152a80aea9fdfeaaf33f046d9a47d69f6d2e`
-- 根因：Electron Main 的 root token 映射仅存在于内存，重启后 Index、媒体协议、mpv 和字幕无法解析旧 token。
-- 新增 `RootAuthorizationStore`，在用户数据目录持久化并启动恢复授权记录。
+- `RootAuthorizationStore` 在用户数据目录持久化并启动恢复授权记录。
 - 重新选择既有资源库时复用存储记录，或从现有 Index 接管旧 token。
-- Renderer 持久化脱敏授权摘要，Library Session 不再把正常重启误判为必须重新授权。
-- U28 改为验证重启后无需重选即可读取空 Index，并继续读取真实 WAV 与播放。
-- U29、构建和 Windows 打包链用于回归验证。
+- U28 验证重启后无需重选即可读取和播放。
 
 ### U39-D — 雾光象牙浅色主题对比度
 
 - PR：#81
-- 新增 `theme-contrast-bridge.css`，在主题迁移期同步 Beta 2 语义 Token 与旧 Tailwind 变量。
-- 三级文字、状态色和强调色对所有浅色表面达到至少 `4.5:1`。
-- 可交互边界达到至少 `3:1`；白字强调按钮达到至少 `4.5:1`。
-- 新增静态 WCAG verifier 与真实 Electron 运行时验收，覆盖主题挂载、变量同步、对比度和浅色首页/设置截图。
-- UI Fast、U30、U28～U32、当前行为 verifier、stable regression 和生产构建通过。
+- 新增 `theme-contrast-bridge.css`，同步 Beta 2 语义 Token 与旧 Tailwind 变量。
+- 文字和状态色达到至少 `4.5:1`，可交互边界达到至少 `3:1`。
+- 静态 WCAG verifier、真实 Electron 对比度、U30 与完整回归通过。
+
+### U39-E — 音乐库与导入器空状态真实性
+
+- PR：#82
+- 新增 `empty-state-truthfulness.css`，空音乐库隐藏无内容的元数据工具容器。
+- 导入器未选择来源时明确显示当前没有扫描结果。
+- 三种来源类型使用产品说明，不再向日常用户展示历史阶段、mock 或自动化验收措辞。
+- 历史示例统计继续保持隐藏，不作为当前扫描结果展示。
+- U39-E verifier、TypeScript、Renderer/Electron build、U30、U32 与完整 Windows 回归用于验收。
+- 未修改导入执行器、Index、播放器、字幕或安装器。
 
 ## 当前结论
 
@@ -167,8 +163,9 @@ U39-A：播放器底栏主题一致性完成
 U39-B：设置与 AI 维护入口边界完成
 U39-C：资源库授权持久化与重启恢复完成
 U39-D：雾光象牙浅色主题对比度完成
+U39-E：音乐库与导入器空状态真实性完成
 当前版本：0.169.0-beta.2
 Beta 2：已发布并完成远端资产校验
-当前任务：继续修复 U39 审计剩余 Major/Minor 问题
+当前任务：继续修复 U39 审计剩余问题
 大型功能：长期冻结
 ```
