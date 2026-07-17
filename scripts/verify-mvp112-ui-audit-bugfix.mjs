@@ -44,9 +44,12 @@ required(diagnostics, "mvp112-diagnostics-lightweight-shell", "lightweight diagn
 required(diagnostics, "showMaintenanceDetails", "deferred diagnostics rendering");
 required(diagnostics, "DiagnosticsMaintenanceContent", "maintenance split");
 
-const music = read("src/components/MusicLibrary.tsx");
-required(music, "aria-label={isFav ?", "favorite accessible name");
+const music = read("src/features/library/MusicLibraryPage.tsx");
+required(router, "lazy(() => import('../features/library/MusicLibraryPage'))", "formal music library route");
+required(music, "aria-label={isFavorite ?", "favorite accessible name");
 required(music, "aria-label={`播放 ${track.title}`}", "play accessible name");
-required(music, "opacity-70 hover:opacity-100 focus-visible:opacity-100", "always-visible track play control");
+required(music, "className=\"u37d-icon-button u37d-icon-button--primary\"", "always-visible track play control");
+required(music, "aria-label={`将 ${track.title} 加入播放队列`}", "queue accessible name");
+if (fs.existsSync("src/components/MusicLibrary.tsx")) throw new Error("Legacy MusicLibrary.tsx must remain removed after U37-D migration");
 
 console.log("PASS MVP112 UI audit bugfix verifier");
