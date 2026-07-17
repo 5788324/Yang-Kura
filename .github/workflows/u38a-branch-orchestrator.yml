@@ -20,6 +20,8 @@ jobs:
         with:
           ref: agent/player-session-boundaries
       - name: Execute embedded branch transformation
+        id: transform
+        continue-on-error: true
         shell: bash
         run: |
           awk 'BEGIN{capture=0} /python - <<.PY./{capture=1;next} /^          PY$/{capture=0} capture{sub(/^          /,"");print}' .github/workflows/player-session-boundary-sync.yml > /tmp/u38a-refactor.py
@@ -27,15 +29,25 @@ jobs:
           python /tmp/u38a-refactor.py > /tmp/u38a-refactor.log 2>&1
           status=$?
           set -e
+          echo "$status" > /tmp/u38a-refactor.status
           cat /tmp/u38a-refactor.log
+          exit "$status"
+      - name: Upload transformation diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u38a-refactor-diagnostics
+          path: |
+            /tmp/u38a-refactor.py
+            /tmp/u38a-refactor.log
+            /tmp/u38a-refactor.status
+          if-no-files-found: error
+          retention-days: 7
+      - name: Commit transformed branch
+        shell: bash
+        run: |
+          status=$(cat /tmp/u38a-refactor.status)
           if [ "$status" -ne 0 ]; then
-            mkdir -p artifacts
-            cp /tmp/u38a-refactor.log artifacts/u38a-refactor-error.log
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add artifacts/u38a-refactor-error.log
-            git commit -m 'ci: capture U38-A refactor failure'
-            git push origin HEAD:agent/player-session-boundaries
             exit "$status"
           fi
           rm -f docs/U38A_TRIGGER.md .github/workflows/player-session-boundary-sync.yml
