@@ -6,6 +6,7 @@ const failures = [];
 const requiredFiles = [
   'src/features/library/MusicLibraryPage.tsx',
   'src/styles/music-library.css',
+  'src/styles/music-library-track-row.css',
   'src/app/AppRouter.tsx',
   'src/main.tsx',
   'scripts/test-u32-ui-audit.mjs',
@@ -30,6 +31,7 @@ function requireIncludes(label, source, markers) {
 if (failures.length === 0) {
   const page = read('src/features/library/MusicLibraryPage.tsx');
   const styles = read('src/styles/music-library.css');
+  const trackRowStyles = read('src/styles/music-library-track-row.css');
   const router = read('src/app/AppRouter.tsx');
   const main = read('src/main.tsx');
   const audit = read('scripts/test-u32-ui-audit.mjs');
@@ -79,7 +81,10 @@ if (failures.length === 0) {
   ]);
   if (router.includes("import('../components/MusicLibrary')")) failures.push('AppRouter still routes to the legacy music library');
 
-  requireIncludes('renderer entry', main, ["import './styles/music-library.css';"]);
+  requireIncludes('renderer entry', main, [
+    "import './styles/music-library.css';",
+    "import './styles/music-library-track-row.css';",
+  ]);
   requireIncludes('music-library.css', styles, [
     '.u37d-music-library {',
     '.u37d-toolbar {',
@@ -89,7 +94,13 @@ if (failures.length === 0) {
     '@media (max-width: 620px)',
     '@media (prefers-reduced-motion: reduce)',
   ]);
-  if (/#[0-9a-f]{3,8}/i.test(styles)) failures.push('U37-D styles must use semantic tokens instead of hard-coded colors');
+  requireIncludes('music-library-track-row.css', trackRowStyles, [
+    '.u37d-track-list .yk-track-row__copy {',
+    'display: grid;',
+    '.u37d-track-list .yk-track-row__subtitle {',
+    'margin-top: 0;',
+  ]);
+  if (/#[0-9a-f]{3,8}/i.test(styles + trackRowStyles)) failures.push('U37-D styles must use semantic tokens instead of hard-coded colors');
 
   requireIncludes('U32 Electron audit', audit, [
     '[data-u37d-music-library=\\"tracks\\"]',
