@@ -423,9 +423,13 @@ try {
   await cdp.connect();
   await waitFor(cdp, `document.querySelector('#windows-app-bar')`, 'application shell');
 
-  const rootSelection = await cdp.evaluate(`window.yangKura.selectLibraryRoot({libraryType:'asmr',reason:'u40b-full-product-acceptance'})`, true);
-  assert.equal(rootSelection?.ok, true, 'temporary fixture root selection');
-  const seed = await seedApplication(cdp, rootSelection.rootPathToken);
+  await navTo(cdp, 'settings');
+  await click(cdp, '[data-settings-tab="paths"]', 'settings paths tab');
+  await clickButtonByText(cdp, '选择音声库目录', true);
+  await waitFor(cdp, `document.body.innerText.includes('已选择目录，可读取已有记录或重新扫描')`, 'temporary fixture root selection');
+  const rootPathToken = await cdp.evaluate(`(() => { const roots=JSON.parse(sessionStorage.getItem('yang_kura_u28_authorized_roots_v1')??'{}'); return roots.asmr?.rootPathToken??''; })()`);
+  assert.ok(rootPathToken.startsWith('yk-root-'), 'temporary fixture root token');
+  const seed = await seedApplication(cdp, rootPathToken);
   report.userJourneys.push({ name:'fixture-root-and-seed', status:'PASS', trackCount:seed.tracks.length, oneSecondAudioCount:report.fixture.audioFiles.length });
 
   await testWindowStates(cdp);
