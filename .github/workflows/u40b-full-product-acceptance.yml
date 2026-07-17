@@ -1,0 +1,100 @@
+name: U40-B Full Product Acceptance
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/u40b-full-product-acceptance.yml'
+      - 'scripts/test-u40b-full-product-journey.mjs'
+      - 'scripts/verify-u40b-full-product-acceptance.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: u40b-full-product-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  full-product-acceptance:
+    name: Windows user journeys and visible interaction coverage
+    runs-on: windows-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Prepare Electron runtime
+        shell: pwsh
+        run: |
+          npm rebuild electron
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run patch:electron-builder
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Validate TypeScript and desktop builds
+        shell: pwsh
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run lint
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run build:electron
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: U28 resource library, index and restart journeys
+        run: npm run test:u28:electron-e2e
+
+      - name: U29 player, queue, subtitles and resume journeys
+        run: npm run test:u29:electron-e2e
+
+      - name: U30 theme, DPI, keyboard and accessibility matrix
+        run: npm run test:u30:ui-matrix
+
+      - name: U31 importer copy, move, conflict and rollback
+        shell: pwsh
+        run: |
+          npm run test:u31:importer-transactions
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory -Force -Path artifacts/u31-importer-transactions | Out-Null
+          @{ status = 'PASS'; suite = 'U31 importer transactions'; head = '${{ github.sha }}' } | ConvertTo-Json | Set-Content -Encoding utf8 artifacts/u31-importer-transactions/report.json
+
+      - name: U32 daily pages and detail visual audit
+        run: node scripts/test-u32-ui-audit.mjs
+
+      - name: U40-B all visible controls and one-second media journeys
+        run: node scripts/test-u40b-full-product-journey.mjs
+
+      - name: Aggregate U40-B evidence
+        run: node scripts/verify-u40b-full-product-acceptance.mjs
+
+      - name: Upload U40-B evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u40b-full-product-acceptance
+          path: |
+            artifacts/u28-electron-e2e
+            artifacts/u29-electron-e2e
+            artifacts/u30-ui-matrix
+            artifacts/u31-importer-transactions
+            artifacts/u32-ui-audit
+            artifacts/u40b-full-product-acceptance
+          if-no-files-found: warn
+          retention-days: 30
