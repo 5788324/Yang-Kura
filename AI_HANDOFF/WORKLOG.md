@@ -96,11 +96,13 @@
 ### U38-B — 播放器 Controller 与 Backend 边界
 
 - PR：#75
+- 合并提交：`4e7105386c2057bdcff95183b45b56aa6ceb5513`
 - 新增 `usePlayerBackend.ts`，集中 HTMLAudio 生命周期、mpv 事件/命令、媒体解析、自动 fallback、Seek、音量/静音和播放状态同步。
 - `useAudioPlayer.ts` 保留 Queue、完成策略、用户操作、会话持久化和字幕协调，对外 API 不变。
 - `playerRuntimePolicy.ts` 提供共享 tokenized-local-track 类型守卫。
-- U29 Electron E2E 继续覆盖真实后端、Seek、暂停、完成策略、Queue、四种字幕、重启授权、续播、上一首和下一首。
+- U29 Electron E2E 覆盖真实后端、Seek、暂停、完成策略、Queue、四种字幕、重启授权、续播、上一首和下一首。
 - U38-B verifier 禁止 Controller 重新直接持有 Audio、mpv 或 media resolver 副作用。
+- Documentation Validation、TypeScript、U28～U32、U28～U38 focused verifiers、stable regression、最终生产构建、portable、NSIS、安装卸载、数据保留和打包后页面完整性全部通过。
 - 当前任务：U38-C Subtitle loader 与字幕状态。
 
 ## 当前结论
