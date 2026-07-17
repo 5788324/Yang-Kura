@@ -458,8 +458,9 @@ async function runEmptyAndRestartScenario(root) {
     await assertLayout(runtime.cdp, '空 Index 音乐库');
     await screenshot(runtime.cdp, '06-empty-index-music');
 
-    await clickSelector(runtime.cdp, '#sidebar-ai-maintenance-toggle');
-    await navigate(runtime.cdp, 'diagnostics');
+    await navigate(runtime.cdp, 'settings');
+    await waitForBodyText(runtime.cdp, '应用设置');
+    await clickVisibleText(runtime.cdp, '打开 AI 维护', 'button');
     await waitForBodyText(runtime.cdp, '日常状态');
     await waitForBodyText(runtime.cdp, '已加载真实 library-index.json：0 个音声集合，0 个音乐集合，0 条轨道。');
     assert.equal(await runtime.cdp.evaluate(`document.querySelector('#u28-diagnostics-asmr-count')?.textContent?.trim()`), '0', '诊断页音声作品计数应为 0');
@@ -583,8 +584,9 @@ async function runPopulatedPlaybackScenario(root) {
     await assertLayout(runtime.cdp, '真实音轨播放');
     await screenshot(runtime.cdp, '13-populated-playback');
 
-    await clickSelector(runtime.cdp, '#sidebar-ai-maintenance-toggle');
-    await navigate(runtime.cdp, 'diagnostics');
+    await navigate(runtime.cdp, 'settings');
+    await waitForBodyText(runtime.cdp, '应用设置');
+    await clickVisibleText(runtime.cdp, '打开 AI 维护', 'button');
     await waitForBodyText(runtime.cdp, '日常状态');
     await waitForBodyText(runtime.cdp, '已加载真实 library-index.json：1 个音声集合，0 个音乐集合，1 条轨道。');
     await clickVisibleText(runtime.cdp, '刷新真实资源状态', 'button');
