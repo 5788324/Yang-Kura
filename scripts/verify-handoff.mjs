@@ -33,6 +33,8 @@ const required = [
   'scripts/verify-u39c-root-authorization-persistence.mjs',
   'scripts/verify-u39d-light-theme-contrast.mjs',
   'scripts/test-u39d-light-theme-contrast.mjs',
+  'scripts/verify-u39e-empty-state-truthfulness.mjs',
+  'src/styles/empty-state-truthfulness.css',
   '.github/workflows/player-fast-validation.yml',
   '.github/workflows/ui-fast-validation.yml',
   'archive/legacy-mvp-history/README.md',
@@ -44,6 +46,7 @@ const tokens = [
   ['README.md', 'U39-B 设置与 AI 维护入口'],
   ['README.md', 'U39-C 资源库授权持久化'],
   ['README.md', 'U39-D 雾光象牙浅色主题对比度'],
+  ['README.md', 'U39-E 日常空状态真实性'],
   ['README.md', 'UI Fast Validation'],
   ['PROJECT_STATE.md', '核心版本：0.169.0-beta.2'],
   ['PROJECT_STATE.md', 'U38-A～U38-C：播放器结构治理完成'],
@@ -51,12 +54,12 @@ const tokens = [
   ['PROJECT_STATE.md', 'U39-B：设置与 AI 维护入口边界完成'],
   ['PROJECT_STATE.md', 'U39-C：资源库授权持久化与重启读取/播放恢复完成'],
   ['PROJECT_STATE.md', 'U39-D：雾光象牙浅色主题对比度与运行时验收完成'],
-  ['PROJECT_STATE.md', '当前任务：U39 审计剩余 Major/Minor 问题继续按优先级修复'],
+  ['PROJECT_STATE.md', 'U39-E：音乐库与导入器空状态真实性完成'],
+  ['PROJECT_STATE.md', '当前任务：U39 审计剩余问题继续按优先级修复'],
   ['PROJECT_STATE.md', 'Release ID：`355486824`'],
   ['PROJECT_ROADMAP.md', 'U39-B：设置与 AI 维护入口边界完成'],
   ['PROJECT_ROADMAP.md', 'U39-C：资源库授权持久化与重启恢复完成'],
   ['PROJECT_ROADMAP.md', 'U39-D：雾光象牙浅色主题对比度完成'],
-  ['PROJECT_ROADMAP.md', '当前任务：U39 审计剩余 Major/Minor 问题继续按优先级修复'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前版本：0.169.0-beta.2'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U39-B：设置与 AI 维护入口边界完成'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U39-C：资源库授权持久化与重启恢复完成'],
@@ -80,6 +83,8 @@ const tokens = [
   ['docs/architecture/U39_ROOT_AUTHORIZATION_PERSISTENCE.md', '重启无需再次选择目录'],
   ['docs/architecture/U39_LIGHT_THEME_CONTRAST.md', '# U39-D 雾光象牙浅色主题对比度'],
   ['docs/architecture/U39_LIGHT_THEME_CONTRAST.md', '至少达到 4.5:1'],
+  ['src/styles/empty-state-truthfulness.css', '尚未选择导入来源'],
+  ['src/styles/empty-state-truthfulness.css', '当前没有扫描结果'],
   ['docs/DESIGN.md', '暮夜琥珀'],
   ['docs/DESIGN.md', '雾光象牙'],
   ['docs/architecture/ARCHITECTURE_AUDIT.md', '结论：GO'],
@@ -136,6 +141,7 @@ for (const temporary of [
   '.github/workflows/beta2-publication-capture.yml',
   '.github/workflows/player-session-boundary-sync.yml',
   '.github/workflows/u38a-branch-orchestrator.yml',
+  '.github/workflows/u39e-empty-state-sync.yml',
   'scripts/apply-u38a-refactor.py',
   'docs/U38A_TRIGGER.md',
 ]) {
@@ -146,4 +152,4 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log('[verify-handoff] U39-D light theme contrast handoff PASS');
+console.log('[verify-handoff] U39-E empty-state truthfulness handoff PASS');

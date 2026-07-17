@@ -11,9 +11,12 @@ on:
       - 'src/components/SettingsMaintenanceEntry.tsx'
       - 'src/components/DiagnosticsPageShell.tsx'
       - 'src/styles/theme-contrast-bridge.css'
+      - 'src/styles/empty-state-truthfulness.css'
       - 'scripts/verify-u39b-maintenance-entry.mjs'
       - 'scripts/verify-u39d-light-theme-contrast.mjs'
       - 'scripts/test-u39d-light-theme-contrast.mjs'
+      - 'scripts/verify-u39e-empty-state-truthfulness.mjs'
+      - 'scripts/test-u32-ui-audit.mjs'
       - '.github/workflows/ui-fast-validation.yml'
   workflow_dispatch:
 
@@ -26,9 +29,9 @@ concurrency:
 
 jobs:
   validate-ui:
-    name: UI TypeScript, build, U30 and contrast
+    name: UI TypeScript, build, U30, U32 and focused UX
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 55
 
     steps:
       - name: Check out repository
@@ -60,11 +63,17 @@ jobs:
       - name: Verify U39-D light theme contrast tokens
         run: node scripts/verify-u39d-light-theme-contrast.mjs
 
+      - name: Verify U39-E empty-state truthfulness
+        run: node scripts/verify-u39e-empty-state-truthfulness.mjs
+
       - name: Run U30 UI and accessibility matrix
         run: npm run test:u30:ui-matrix
 
       - name: Run U39-D Electron contrast acceptance
         run: node scripts/test-u39d-light-theme-contrast.mjs
+
+      - name: Run U32 daily page audit
+        run: node scripts/test-u32-ui-audit.mjs
 
       - name: Upload UI evidence
         if: always()
@@ -74,5 +83,6 @@ jobs:
           path: |
             artifacts/u30-ui-matrix
             artifacts/u39d-light-theme-contrast
+            artifacts/u32-ui-audit
           if-no-files-found: warn
           retention-days: 7

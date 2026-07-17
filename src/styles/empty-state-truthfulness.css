@@ -1,0 +1,44 @@
+/* U39-E: keep empty daily surfaces explicit and free of historical preview data. */
+
+[data-library-page="music"][data-u37a-library-page$="delegated"] .u37d-metadata-tools {
+  display: none;
+}
+
+#mvp86-import-source-options::before {
+  content: "尚未选择导入来源\A当前没有扫描结果。这里仅说明支持的来源类型；生成预览前不会更改媒体库内容。";
+  grid-column: 1 / -1;
+  display: block;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--card-bg) 82%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.65;
+  white-space: pre-line;
+}
+
+#mvp86-import-source-options > article .min-w-0 > p.mt-1 {
+  display: none;
+}
+
+#mvp86-import-source-options > article .min-w-0::after {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.6875rem;
+  line-height: 1.65;
+}
+
+#mvp86-import-source-options > article:nth-of-type(1) .min-w-0::after {
+  content: "包含 RJ / ASMR 音轨、封面、字幕或说明文件的作品目录。";
+}
+
+#mvp86-import-source-options > article:nth-of-type(2) .min-w-0::after {
+  content: "包含同一专辑或艺术家作品的音乐目录。";
+}
+
+#mvp86-import-source-options > article:nth-of-type(3) .min-w-0::after {
+  content: "包含零散音频或需要人工确认分类的混合目录。";
+}
