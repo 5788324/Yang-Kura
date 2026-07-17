@@ -1,5 +1,5 @@
 # U38-A orchestration trigger
 
-Temporary marker used to export the transformed workspace for connector-backed commit.
+Temporary marker used to commit generated source and documentation.
 
-Export rerun: 3
+Commit rerun: 4
