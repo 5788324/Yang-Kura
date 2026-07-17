@@ -2,7 +2,7 @@
 
 > 当前版本：`0.169.0-beta.2`  
 > 代码事实来源：GitHub `main`  
-> 当前阶段：U38-B Controller/Backend 分离完成；当前 U38-C Subtitle loader
+> 当前阶段：U38 播放器治理完成；真实 Bug、字幕体验和日常 UI 优先
 
 Yang-Kura 是 Windows 本地音频媒体库，面向 ASMR/RJ 音声和普通本地音乐。技术栈为 React、Vite、TypeScript、Electron；当前索引为 Local JSON Index。
 
@@ -30,24 +30,31 @@ Issue #66：渐进式结构治理与质量提升。
 
 ```text
 真实使用 Bug
-→ 日常 UI / 性能 / 播放体验
-→ 技术债和代码质量
-→ 小型且明确有收益的补充
+→ 字幕与播放实际体验
+→ 日常 UI / 性能
+→ 修改相关链路时顺带处理技术债
 ```
 
 ## U38 播放器治理
 
-- U38-A 已完成 Queue、History 与 Persistence 分离。
-- U38-B 已完成 Controller 与 Backend 分离，新增 `usePlayerBackend.ts` 集中 HTMLAudio、mpv、媒体解析、fallback、Seek 和后端同步。
-- `useAudioPlayer.ts` 保留 Controller、完成策略、用户操作和字幕协调。
-- 当前任务为 U38-C Subtitle loader 与字幕状态。
-- mpv/HTMLAudio fallback、Queue、History、续播、完成策略和字幕显示行为继续冻结。
+- U38-A：Queue、History 与 Persistence 分离。
+- U38-B：Controller 与 Backend 分离，`usePlayerBackend.ts` 集中 HTMLAudio、mpv、媒体解析、fallback、Seek 和后端同步。
+- U38-C：`usePlayerSubtitles.ts` 集中字幕请求代次、过期结果丢弃、字幕来源变更重载、结果映射和当前曲目/Queue 状态同步。
+- `useAudioPlayer.ts` 现在只保留 Controller、完成策略和用户操作协调。
+- U38 连续结构治理已经收口，不再继续为了目录整齐拆播放器。
+
+## 快速开发模式
+
+- 普通 UI、Hook 和状态管理改动只运行 TypeScript、生产构建、相关 E2E 和定向 verifier。
+- 播放器 Renderer 改动使用 `Player Fast Validation` 和 U29。
+- portable、NSIS、安装与卸载只在 Electron Main、安装器、依赖、打包配置或正式发布变化时执行。
+- 一个任务一个 PR，功能和必要文档同一 PR 收口。
 
 ## 开发原则
 
 - 不推倒重写，不保留长期新旧双轨。
-- 修改哪个用户链路，就同步整理该链路。
-- 简单、低风险且相关的任务合并处理。
+- 用户可感知成果优先于纯内部整理。
+- 修改哪个用户链路，再同步整理该链路。
 - 文件写入、迁移、导入回滚、安装和发布保留专项验收。
 - Renderer 不接收不必要的绝对路径或 `file://`。
 
@@ -63,4 +70,5 @@ Issue #66：渐进式结构治理与质量提升。
 - `AI_HANDOFF/WORKLOG.md`
 - `docs/architecture/U38_PLAYER_SESSION_BOUNDARIES.md`
 - `docs/architecture/U38_PLAYER_BACKEND_BOUNDARY.md`
+- `docs/architecture/U38_PLAYER_SUBTITLE_BOUNDARY.md`
 - `docs/DESIGN.md`
