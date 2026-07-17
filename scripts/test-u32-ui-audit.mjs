@@ -267,14 +267,14 @@ try {
   assert.equal(selectedMusicCount, 2, 'two music tracks selected');
   await waitFor(cdp, "document.querySelector('.u37d-selection-bar')?.textContent?.includes('已选择 2 首')", 'music selection count');
   await clickButtonByText(cdp, '批量加入队列');
-  await waitFor(cdp, "JSON.parse(localStorage.getItem('yang_kura_player_queue_v1') ?? '{}').queue?.some((track) => track.id === 'm-02')", 'music batch queue persistence');
+  await waitFor(cdp, "document.querySelector('#app-player-bar')?.dataset.u29QueueCount === '3'", 'music batch queue state');
 
   await click(cdp, '[data-u37d-view="albums"]');
   await waitFor(cdp, "document.querySelectorAll('[data-u37d-collection-grid=\"albums\"] [data-u37d-collection-card]').length === 2", 'album cards');
   await screenshot(cdp, '03b-music-albums-after');
   await click(cdp, '[data-u37d-collection-card="album:album-1"]');
   await waitFor(cdp, "document.querySelector('[data-u37d-detail=\"album\"]')", 'album detail');
-  assert.equal(await cdp.evaluate("document.querySelectorAll('[data-u37d-detail=\"album\"] ~ .u37d-selection-bar + .u37d-content [data-u37d-track-row]').length === 2 || document.querySelectorAll('[data-u37d-track-row]').length === 2"), true, 'album detail shows two tracks');
+  assert.equal(await cdp.evaluate("document.querySelectorAll('[data-u37d-track-row]').length === 2"), true, 'album detail shows two tracks');
   await screenshot(cdp, '03c-music-album-detail-after');
   await clickButtonByText(cdp, '返回专辑');
   await waitFor(cdp, "document.querySelector('[data-u37d-music-library=\"albums\"]')", 'return to albums');
