@@ -1,0 +1,45 @@
+name: U39-G Packaging Close Race Sync
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'scripts/apply-u39g-packaging-close-race.mjs'
+      - '.github/workflows/u39g-packaging-close-race-sync.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: u39g-packaging-close-race-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  patch:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply close-race patch
+        run: node scripts/apply-u39g-packaging-close-race.mjs
+
+      - name: Commit test-harness fix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/test-u32-release-candidate-packaging.mjs scripts/verify-u39-final-acceptance.mjs
+          if git diff --cached --quiet; then
+            echo "Packaging close-race fix already applied."
+            exit 0
+          fi
+          git commit -m "test: stabilize packaged window close handshake"
+          git push origin HEAD:${{ github.event.pull_request.head.ref || github.ref_name }}
