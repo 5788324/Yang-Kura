@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - 'electron/**'
-      - 'src/**'
       - 'scripts/test-u32-release-candidate-packaging.mjs'
       - 'scripts/test-u32-packaged-page-readiness.mjs'
       - 'scripts/verify-u32-release-candidate-packaging.mjs'
