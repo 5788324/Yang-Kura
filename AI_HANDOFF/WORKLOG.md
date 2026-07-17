@@ -23,10 +23,9 @@
 
 - PR：#58
 - 合并提交：`5937903c932bdabb0fbb0115b4312fb14a57d79e`
-- 两套 Beta 2 正式主题投入生产运行。
+- 两套正式主题投入生产运行。
 - Renderer 入口接入 ThemeRuntimeBridge 与 AppShell production bridge。
 - TopBar、Sidebar、内容区、PlayerBar、队列和续播提示接入语义 Token。
-- 完整 Electron、稳定回归和 Windows 打包门禁通过。
 
 ### U36-A — 导航与 Preload IPC 统一
 
@@ -36,7 +35,6 @@
 - Sidebar 改为消费统一导航注册表。
 - Preload 请求类型拆到 `electron/preload/contracts.ts`。
 - Preload 所有 IPC 调用改用 `IPC_CHANNELS`。
-- 历史 verifier 改为验证真实结构，不向产品代码回填旧锚点。
 
 ### U36-B — App Shell、Router 与 Overlay 拆分
 
@@ -44,7 +42,6 @@
 - 合并提交：`00a2bad8ca24f68048aa4d48d5cc20a0407ecb1a`
 - 新增 `TopBar.tsx`、`AppRouter.tsx`、`QueueDrawer.tsx` 和 `PlayerOverlayHost.tsx`。
 - `App.tsx` 仅保留顶层状态、业务协调与壳组合。
-- 保持 Index、播放、字幕、元数据、导入事务和路径安全行为不变。
 
 ### U36-C — Main IPC 分域注册
 
@@ -52,7 +49,6 @@
 - 合并提交：`27d2076029cd2221183bb69b1d0d79ca078d974d`
 - 建立共享 invoke registrar 与 Library、Media、Player、Metadata、Importer 五个领域注册模块。
 - Main 不再直接调用 `ipcMain.handle/removeHandler`，channel 全部来自 `IPC_CHANNELS`。
-- 业务实现、事务、Index、mpv、Provider、Preload API 与路径安全边界保持不变。
 
 ### U37-A — 资源库页面状态与错误恢复
 
@@ -79,19 +75,30 @@
 - 音轨列表使用共享 `TrackRow`，支持播放、队列、收藏、外部打开和文件管理器定位。
 - 新增 `RjMetadataDialog.tsx`，保留本地覆盖、清除覆盖、DLsite 查询、差异预览和字段选择性应用。
 - 评分、个人听音状态和笔记统一保存到本地元数据覆盖层，不修改媒体文件。
-- 当前任务推进到 U37-D 音乐库与详情 UI。
 
 ### 项目治理与发布策略更新
 
+- PR：#68
+- 合并提交：`4e9bdcf811133e7d8740b76fd01b1d07fb32d2a8`
 - 创建 Issue #65：完成媒体库并发布个人日用版。
 - 创建 Issue #66：渐进式结构治理与质量提升。
-- 关闭未合并且已被 PR #55 及后续主线取代的遗留 PR #54。
-- 修正 `PROJECT_ROADMAP.md` 的阶段漂移。
-- 明确项目仅供个人本地使用，不引入与实际风险无关的重流程。
-- 简单、低风险、相关任务默认合并完成；完整门禁集中在 PR 收口时执行一次。
-- U37-D 媒体库正式页面完成并通过 Windows 发布候选后，即发布个人日用版。
-- 发布后主线改为真实 Bug、日常体验、UI、性能和技术债持续治理。
-- 下载器、SQLite、OpenList/WebDAV、Player Core v2、AI Agent、转录集成、云同步等大型功能长期冻结，除非用户明确重新解冻。
+- 关闭被后续主线取代的遗留 PR #54。
+- 明确项目仅供个人本地使用，简单相关任务默认合并完成。
+- 大型功能长期冻结，媒体库完成后直接发布个人日用版。
+
+### U37-D — 音乐库与详情 UI
+
+- PR：#69
+- 新增 `src/features/library/MusicLibraryPage.tsx`，替换旧音乐库生产路由。
+- 完成歌曲、专辑、艺术家、文件夹四种正式视图。
+- 专辑、艺术家和文件夹支持钻取详情、返回导航、播放全部和全部加入队列。
+- 专辑墙与分组使用共享 `MediaCard`，曲目列表使用共享 `TrackRow`。
+- 支持页面/全局搜索、排序、仅看收藏、曲目多选、全选当前结果和批量加入队列。
+- 保留播放、队列、收藏、外部打开、文件定位、音乐元数据覆盖和大库渲染窗口。
+- 新增语义主题样式、窄窗口响应布局、键盘激活和 reduced-motion。
+- 删除旧 `src/components/MusicLibrary.tsx`，不保留新旧实现双轨。
+- U32 Electron 审计升级为验证四视图、钻取详情、批量队列、收藏筛选和窄窗口。
+- 当前任务推进到 Windows 发布候选与个人日用版发布。
 
 ## 当前结论
 
@@ -100,8 +107,8 @@ U34～U36：完成
 U37-A：完成
 U37-B：完成
 U37-C：完成
-当前任务：U37-D 音乐库与详情 UI
-个人日用版发布：U37 完成后
+U37-D：完成
+当前任务：Windows 发布候选与个人日用版发布
 技术债：持续治理
 大型功能：长期冻结
 ```

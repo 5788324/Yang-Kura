@@ -59,9 +59,9 @@ assert.deepEqual(plan, {
 
 requireMarkers('README', readme, [
   '> 当前版本：`0.168.0-beta.1`',
-  '## Beta 1',
+  '## 已发布基线',
   'Issue #65：完成媒体库并发布个人日用版',
-  '当前阶段：U37-D 音乐库与详情 UI',
+  '当前阶段：U37 媒体库正式页面完成；准备 Windows 发布候选与个人日用版',
   '正式下载器 / MVP130',
 ]);
 
@@ -143,23 +143,22 @@ for (const [label, text, markers] of [
   ['PROJECT_STATE', state, [
     '核心版本：0.168.0-beta.1',
     'Beta 1：已发布并完成远端资产回读',
-    'U37-C：RJ 详情 UI 完成',
-    '当前任务：U37-D 音乐库与详情 UI',
-    '个人日用版发布',
+    'U37-D：音乐库与详情 UI 完成',
+    '当前任务：Windows 发布候选与个人日用版发布',
     'MVP130',
   ]],
   ['PROJECT_ROADMAP', roadmap, [
     '版本：0.168.0-beta.1',
-    'U37-C：完成',
-    '当前任务：U37-D 音乐库与详情 UI',
-    '个人日用版发布：U37 完成后',
+    'U37-D：完成',
+    '当前任务：Windows 发布候选与个人日用版发布',
+    'Windows 发布候选与个人日用版发布',
     'MVP130',
   ]],
   ['CURRENT_PROJECT_HANDOFF', handoff, [
     '当前版本：0.168.0-beta.1',
     'Beta 1：已发布并完成远端资产校验',
-    'U37-C：完成',
-    '当前任务：U37-D 音乐库与详情 UI',
+    'U37-D：完成',
+    '当前任务：Windows 发布候选与个人日用版发布',
     '用户只接收最终成果',
   ]],
 ]) requireMarkers(label, text, markers);

@@ -20,18 +20,24 @@ forbidden(layoutService, "ariaLabel: 'MVP76", 'MVP text in ASMR aria label');
 forbidden(layoutService, "trackListAriaLabel: 'MVP76", 'MVP text in music track aria label');
 forbidden(layoutService, "albumGridAriaLabel: 'MVP76", 'MVP text in music album aria label');
 
-const music = read('src/components/MusicLibrary.tsx');
-required(music, 'aria-label={mvp76CardLayout.trackListAriaLabel}', 'music track list label binding');
-required(music, 'aria-label={mvp76CardLayout.albumGridAriaLabel}', 'music album label binding');
+const music = read('src/features/library/MusicLibraryPage.tsx');
+required(music, 'aria-label="音乐库视图"', 'music view switcher label');
+required(music, '<span className="sr-only">搜索音乐库</span>', 'music search accessible label');
+required(music, 'aria-label={`播放 ${track.title}`}', 'track play accessible label');
+required(music, 'aria-label={`将 ${track.title} 加入播放队列`}', 'track queue accessible label');
+required(music, 'aria-label={isFavorite ?', 'track favorite accessible label');
 
-const asmr = read('src/components/AsmrLibrary.tsx');
-required(asmr, 'aria-label={mvp76CardLayout.ariaLabel}', 'ASMR list label binding');
+const asmr = read('src/features/library/AsmrLibraryPage.tsx');
+required(asmr, 'aria-label="音声作品列表"', 'ASMR list accessible label');
+required(asmr, 'aria-label="音声作品封面列表"', 'ASMR grid accessible label');
 
-for (const path of ['src/components/MusicLibrary.tsx', 'src/components/AsmrLibrary.tsx']) {
+for (const path of ['src/features/library/MusicLibraryPage.tsx', 'src/features/library/AsmrLibraryPage.tsx']) {
   const source = read(path);
-  const literalAriaLabels = [...source.matchAll(/aria-label\s*=\s*[\"']([^\"']+)[\"']/g)].map((match) => match[1]);
+  const literalAriaLabels = [...source.matchAll(/aria-label\s*=\s*["']([^"']+)["']/g)].map((match) => match[1]);
   const offending = literalAriaLabels.find((label) => /MVP\s*-?\s*\d+/i.test(label));
   if (offending) throw new Error(`Engineering MVP text exposed through literal accessibility label in ${path}: ${offending}`);
 }
+
+if (fs.existsSync('src/components/MusicLibrary.tsx')) throw new Error('Legacy music accessibility surface must remain removed');
 
 console.log('PASS MVP113 accessibility label hotfix verifier');

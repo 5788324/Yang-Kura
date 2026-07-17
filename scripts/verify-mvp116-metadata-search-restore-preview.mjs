@@ -9,8 +9,10 @@ const checks = [
   ['src/components/MusicMetadataManagementPanel.tsx', 'mvp116-metadata-backup-preview'],
   ['src/components/MusicMetadataManagementPanel.tsx', 'mvp116-metadata-override-summary'],
   ['src/components/AsmrDetail.tsx', '还原本地修改'],
-  ['src/components/AsmrLibrary.tsx', '个人收听标记筛选'],
-  ['src/components/MusicLibrary.tsx', 'filteredAlbums'],
+  ['src/features/library/AsmrLibraryPage.tsx', 'aria-label="个人状态筛选"'],
+  ['src/features/library/AsmrLibraryPage.tsx', '全部个人标记'],
+  ['src/features/library/MusicLibraryPage.tsx', 'filteredAlbums'],
+  ['src/features/library/MusicLibraryPage.tsx', '<MusicMetadataManagementPanel'],
   ['src/App.tsx', 'handleClearRjWorkOverride'],
 ];
 for (const [file, marker] of checks) {
@@ -19,4 +21,5 @@ for (const [file, marker] of checks) {
 }
 const service = fs.readFileSync('src/services/metadataOverrideService.ts', 'utf8');
 if (service.includes('absolutePath') || service.includes('file://')) throw new Error('metadata override service must not persist path data');
+if (fs.existsSync('src/components/MusicLibrary.tsx')) throw new Error('legacy music metadata surface must remain removed');
 console.log('MVP116 metadata search / restore / preview verification PASS');

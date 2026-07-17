@@ -85,18 +85,18 @@ requireMarkers('packaged page readiness', readiness, [
 requireMarkers('PROJECT_STATE', state, [
   '核心版本：0.168.0-beta.1',
   'Beta 1：已发布并完成远端资产回读',
-  'U37-C：RJ 详情 UI 完成',
-  '当前任务：U37-D 音乐库与详情 UI',
-  '发布条件：媒体库正式页面完成 + 核心回归与 Windows 发布候选通过',
+  'U37-D：音乐库与详情 UI 完成',
+  '当前任务：Windows 发布候选与个人日用版发布',
+  '发布条件：核心回归 + portable / NSIS + 安装卸载与数据保留通过',
   'MVP130',
   '用户不承担测试',
 ]);
 
 requireMarkers('PROJECT_ROADMAP', roadmap, [
   'portable、NSIS、安装、卸载和用户数据保留',
-  'U37-C：完成',
-  '当前任务：U37-D 音乐库与详情 UI',
-  '个人日用版发布：U37 完成后',
+  'U37-D：完成',
+  '当前任务：Windows 发布候选与个人日用版发布',
+  'Windows 发布候选与个人日用版发布',
   'MVP130',
 ]);
 

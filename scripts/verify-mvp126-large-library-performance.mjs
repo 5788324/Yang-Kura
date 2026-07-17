@@ -9,12 +9,12 @@ if (pkg.scripts?.['test:library:performance'] !== 'node scripts/benchmark-mvp126
 const checks = [
   ['src/services/libraryPerformanceService.ts', ['LARGE_LIBRARY_RENDER_LIMITS', 'buildAsmrSearchIndex', 'buildMusicSearchIndex', 'sliceRenderWindow', 'absolutePath', 'file://']],
   ['src/features/library/AsmrLibraryPage.tsx', ['useDeferredValue', 'mvp126-asmr-render-window', 'visibleWorks', 'buildAsmrSearchIndex', 'sliceRenderWindow', 'LARGE_LIBRARY_RENDER_LIMITS.asmrStep']],
-  ['src/components/MusicLibrary.tsx', ['useDeferredValue', 'mvp126-music-render-window', 'visibleTracks', 'artistGroups', 'libraryPerformanceService']],
+  ['src/features/library/MusicLibraryPage.tsx', ['useDeferredValue', 'data-u37d-music-library', 'visibleTracks', 'artistGroups', 'libraryPerformanceService', 'getRenderWindowModel', 'LARGE_LIBRARY_RENDER_LIMITS.musicTracksStep']],
   ['src/components/DiagnosticsPageShell.tsx', ['mvp126-diagnostics-two-stage-loader', '打开完整诊断', 'LibraryPerformanceDiagnosticsPanel']],
   ['src/App.tsx', ["import AppRouter from './app/AppRouter';", '<AppRouter']],
   ['src/app/AppRouter.tsx', [
     "const AsmrLibrary = lazy(() => import('../features/library/AsmrLibraryPage'));",
-    "const MusicLibrary = lazy(() => import('../components/MusicLibrary'));",
+    "const MusicLibrary = lazy(() => import('../features/library/MusicLibraryPage'));",
     "const DiagnosticsPageShell = lazy(() => import('../components/DiagnosticsPageShell'));",
   ]],
   ['vite.config.ts', ['manualChunks', 'react-vendor', 'icons-vendor']],
@@ -29,8 +29,11 @@ for (const [file, tokens] of checks) {
 const service = fs.readFileSync('src/services/libraryPerformanceService.ts', 'utf8');
 if (/from ['"]node:fs['"]|from ['"]fs['"]|readFile\s*\(|readdir\s*\(|absolutePath\s*:/.test(service)) throw new Error('performance service must not access real files or paths');
 
-const productionAsmr = fs.readFileSync('src/features/library/AsmrLibraryPage.tsx', 'utf8');
-if (/absolutePath|file:\/\//.test(productionAsmr)) throw new Error('production ASMR page must not expose absolute paths or file URLs');
+for (const pagePath of ['src/features/library/AsmrLibraryPage.tsx', 'src/features/library/MusicLibraryPage.tsx']) {
+  const page = fs.readFileSync(pagePath, 'utf8');
+  if (/absolutePath|file:\/\//.test(page)) throw new Error(`${pagePath} must not expose absolute paths or file URLs`);
+}
+if (fs.existsSync('src/components/MusicLibrary.tsx')) throw new Error('legacy music performance surface must remain removed');
 
 const output = execFileSync(process.execPath, ['scripts/benchmark-mvp126-large-library.mjs'], { encoding: 'utf8' });
 if (!output.includes('PASS') || !output.includes('50000 tracks') || !output.includes('real library access: NO')) throw new Error('benchmark output incomplete');

@@ -19,7 +19,7 @@ import type {
 const Dashboard = lazy(() => import('../features/library/HomeLibraryPage'));
 const AsmrLibrary = lazy(() => import('../features/library/AsmrLibraryPage'));
 const RjDetailPage = lazy(() => import('../features/library/RjDetailPage'));
-const MusicLibrary = lazy(() => import('../components/MusicLibrary'));
+const MusicLibrary = lazy(() => import('../features/library/MusicLibraryPage'));
 const PlaylistPage = lazy(() => import('../components/PlaylistPage'));
 const DiagnosticsPageShell = lazy(() => import('../components/DiagnosticsPageShell'));
 const ImporterPage = lazy(() => import('../components/ImporterPage'));

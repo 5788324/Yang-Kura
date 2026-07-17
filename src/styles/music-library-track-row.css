@@ -1,0 +1,17 @@
+/* U37-D TrackRow extension: keep title and metadata on separate readable lines. */
+.u37d-track-list .yk-track-row__copy {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: var(--yk-space-1);
+}
+
+.u37d-track-list .yk-track-row__title,
+.u37d-track-list .yk-track-row__subtitle {
+  display: block;
+  min-width: 0;
+}
+
+.u37d-track-list .yk-track-row__subtitle {
+  margin-top: 0;
+}

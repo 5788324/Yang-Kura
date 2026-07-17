@@ -60,11 +60,10 @@ const tokens = [
 
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '用户只接收最终成果'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'Beta 1：已发布并完成远端资产校验'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U37-C：完成'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：U37-D 音乐库与详情 UI'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '发布条件：媒体库正式页面完成并通过 Windows 发布候选'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '## 6. 当前任务：U37-D 音乐库与详情 UI'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '## 7. 个人日用版发布'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U37-D：完成'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：Windows 发布候选与个人日用版发布'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '## 6. 当前任务：Windows 发布候选与个人日用版发布'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '## 7. 发布后的工作模式'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '## 10. 执行效率硬规则'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '正式下载器 / MVP130'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '长期冻结，除非用户明确重新解冻'],
@@ -82,23 +81,20 @@ const tokens = [
   ['AI_HANDOFF/WORKLOG.md', '### U37-A'],
   ['AI_HANDOFF/WORKLOG.md', '### U37-B'],
   ['AI_HANDOFF/WORKLOG.md', '### U37-C'],
-  ['AI_HANDOFF/WORKLOG.md', '### 项目治理与发布策略更新'],
-  ['AI_HANDOFF/WORKLOG.md', '当前任务：U37-D 音乐库与详情 UI'],
-  ['AI_HANDOFF/WORKLOG.md', '个人日用版发布：U37 完成后'],
+  ['AI_HANDOFF/WORKLOG.md', '### U37-D — 音乐库与详情 UI'],
+  ['AI_HANDOFF/WORKLOG.md', '当前任务：Windows 发布候选与个人日用版发布'],
 
   ['PROJECT_STATE.md', '核心版本：0.168.0-beta.1'],
   ['PROJECT_STATE.md', 'Beta 1：已发布并完成远端资产回读'],
   ['PROJECT_STATE.md', 'U34～U36：架构基础与契约整备完成'],
-  ['PROJECT_STATE.md', 'U37-C：RJ 详情 UI 完成'],
-  ['PROJECT_STATE.md', '当前任务：U37-D 音乐库与详情 UI'],
-  ['PROJECT_STATE.md', '发布条件：媒体库正式页面完成 + 核心回归与 Windows 发布候选通过'],
+  ['PROJECT_STATE.md', 'U37-D：音乐库与详情 UI 完成'],
+  ['PROJECT_STATE.md', '当前任务：Windows 发布候选与个人日用版发布'],
   ['PROJECT_STATE.md', '## 技术债治理'],
   ['PROJECT_STATE.md', '大型功能：长期冻结，除非用户明确重新解冻'],
 
   ['PROJECT_ROADMAP.md', '版本：0.168.0-beta.1'],
-  ['PROJECT_ROADMAP.md', 'U37-C：完成'],
-  ['PROJECT_ROADMAP.md', '当前任务：U37-D 音乐库与详情 UI'],
-  ['PROJECT_ROADMAP.md', '个人日用版发布：U37 完成后'],
+  ['PROJECT_ROADMAP.md', 'U37-D：完成'],
+  ['PROJECT_ROADMAP.md', '当前任务：Windows 发布候选与个人日用版发布'],
   ['PROJECT_ROADMAP.md', '## 6. 技术债治理'],
   ['PROJECT_ROADMAP.md', '## 8. 长期冻结的大功能'],
   ['PROJECT_ROADMAP.md', 'MVP130'],
@@ -119,11 +115,12 @@ const tokens = [
   ['docs/architecture/U36B_APP_SHELL_ROUTER_OVERLAYS.md', 'Player Overlay Host'],
   ['docs/architecture/U36C_MAIN_IPC_DOMAINS.md', 'Main IPC 分域注册'],
   ['docs/architecture/U36C_MAIN_IPC_DOMAINS.md', 'registerInvokeHandler'],
-  ['docs/architecture/U37_EXECUTION_PLAN.md', 'U37-A：页面状态与错误恢复'],
+  ['docs/architecture/U37_EXECUTION_PLAN.md', 'U37 状态：全部完成'],
+  ['docs/architecture/U37_EXECUTION_PLAN.md', 'U37-A：页面状态与错误恢复 — 已完成'],
   ['docs/architecture/U37_EXECUTION_PLAN.md', 'U37-B：首页与音声库列表 — 已完成'],
   ['docs/architecture/U37_EXECUTION_PLAN.md', 'U37-C：RJ 详情 — 已完成'],
-  ['docs/architecture/U37_EXECUTION_PLAN.md', 'U37-D：音乐库、专辑与艺术家详情 — 当前任务'],
-  ['docs/architecture/U37_EXECUTION_PLAN.md', 'Windows 发布候选与个人日用版发布'],
+  ['docs/architecture/U37_EXECUTION_PLAN.md', 'U37-D：音乐库、专辑与艺术家详情 — 已完成'],
+  ['docs/architecture/U37_EXECUTION_PLAN.md', 'Windows 发布候选验收'],
 
   ['.github/workflows/docs-validation.yml', 'Documentation Validation'],
   ['.github/workflows/docs-validation.yml', 'Lightweight documentation consistency'],
@@ -207,4 +204,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('[verify-handoff] U37-C complete; U37-D leads to personal-use release PASS');
+console.log('[verify-handoff] U37 complete; Windows personal-use release candidate handoff PASS');
