@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useState } from 'react';
-import { Activity, Gauge, Wrench } from 'lucide-react';
+import { Activity, ArrowLeft, Gauge, Wrench } from 'lucide-react';
 import type { MusicAlbum, RJWork } from '../types';
 
 const DiagnosticsPage = lazy(() => import('./DiagnosticsPage'));
@@ -14,8 +14,8 @@ interface DiagnosticsPageShellProps {
   setMusicAlbums?: React.Dispatch<React.SetStateAction<MusicAlbum[]>>;
   setAsmrDetailId?: (id: string | null) => void;
   onRefetchRjMetadata?: (rjId: string) => void;
+  onBackToSettings: () => void;
 }
-
 
 export default function DiagnosticsPageShell(props: DiagnosticsPageShellProps) {
   const [showPerformance, setShowPerformance] = useState(false);
@@ -25,17 +25,41 @@ export default function DiagnosticsPageShell(props: DiagnosticsPageShellProps) {
 
   if (showFullDiagnostics) {
     return (
-      <Suspense fallback={<div className="rounded-2xl border border-border-color/50 bg-card-bg/30 p-6 text-xs text-text-muted">正在按需加载完整诊断工具…</div>}>
-        <DiagnosticsPage {...props} initialMaintenanceOpen />
-      </Suspense>
+      <div className="space-y-4 pb-20">
+        <button
+          type="button"
+          onClick={() => setShowFullDiagnostics(false)}
+          className="inline-flex items-center gap-2 rounded-xl border border-border-color bg-card-bg/55 px-3 py-2 text-xs font-bold text-text-primary hover:border-brand-color/40"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          返回维护概览
+        </button>
+        <Suspense fallback={<div className="rounded-2xl border border-border-color/50 bg-card-bg/30 p-6 text-xs text-text-muted">正在按需加载完整诊断工具…</div>}>
+          <DiagnosticsPage {...props} initialMaintenanceOpen />
+        </Suspense>
+      </div>
     );
   }
 
   return (
     <div id="mvp126-diagnostics-two-stage-loader" className="space-y-5 pb-20 animate-fade-in">
+      <div className="flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={props.onBackToSettings}
+          className="inline-flex items-center gap-2 rounded-xl border border-border-color bg-card-bg/55 px-3 py-2 text-xs font-bold text-text-primary hover:border-brand-color/40"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          返回设置
+        </button>
+        <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[9px] font-bold text-amber-200">
+          独立维护区
+        </span>
+      </div>
+
       <section className="rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-sky-500/5 to-transparent p-6 shadow-sm">
-        <p className="text-[10px] font-bold tracking-wider text-emerald-300">系统诊断</p>
-        <h2 className="mt-1 text-xl font-black text-text-primary">日常状态</h2>
+        <p className="text-[10px] font-bold tracking-wider text-emerald-300">AI 维护</p>
+        <h2 className="mt-1 text-xl font-black text-text-primary">真实资源状态与诊断</h2>
         <p className="mt-2 max-w-3xl text-xs leading-relaxed text-text-muted">这里仅显示当前真实 Index 映射出的资源状态。没有完成目录授权或 Index 读取时，会明确显示不可用，不再使用 Demo 扫描冒充真实状态。</p>
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="rounded-2xl border border-border-color/50 bg-card-bg/40 p-4"><p className="text-[10px] text-text-muted">音声作品</p><p id="u28-diagnostics-asmr-count" className="mt-1 text-xl font-black text-text-primary">{workCount}</p></div>
@@ -49,7 +73,7 @@ export default function DiagnosticsPageShell(props: DiagnosticsPageShellProps) {
         </div>
       </section>
       {showPerformance && <Suspense fallback={<div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4 text-xs text-text-muted">正在加载性能诊断…</div>}><LibraryPerformanceDiagnosticsPanel /></Suspense>}
-      <section className="rounded-2xl border border-border-color/50 bg-card-bg/30 p-4 text-xs text-text-muted">日常页面只加载轻量状态。完整历史 MVP、IPC、Scanner 和 Contract 信息保持按需加载。</section>
+      <section className="rounded-2xl border border-border-color/50 bg-card-bg/30 p-4 text-xs text-text-muted">维护概览只加载真实状态。完整历史 MVP、IPC、Scanner 和 Contract 信息继续按需加载，不占用日常设置页。</section>
     </div>
   );
 }
