@@ -99,22 +99,22 @@ if (failures.length === 0) {
   requireIncludes('PROJECT_STATE.md', state, [
     'U37-A：资源库页面状态与错误恢复完成',
     'U37-B：首页与音声库列表 UI 完成',
-    '当前阶段：U37-C RJ 详情 UI',
+    'U37-C：RJ 详情 UI 完成',
   ]);
   requireIncludes('CURRENT_PROJECT_HANDOFF.md', handoff, [
     'U37-A：完成',
     'U37-B：完成',
-    '当前任务：U37-C RJ 详情 UI',
+    'U37-C：完成',
   ]);
   requireIncludes('WORKLOG.md', worklog, [
     '### U37-A',
     '### U37-B',
-    '当前任务：U37-C RJ 详情 UI',
+    '### U37-C',
   ]);
   requireIncludes('U37 execution plan', plan, [
     '### U37-A：页面状态与错误恢复 — 已完成',
     '### U37-B：首页与音声库列表 — 已完成',
-    '### U37-C：RJ 详情 — 当前任务',
+    '### U37-C：RJ 详情 — 已完成',
   ]);
 }
 
