@@ -171,9 +171,32 @@ try {
   assert.equal(await cdp.evaluate("document.querySelector('#nav-diagnostics')?.offsetParent === null && document.querySelector('#nav-downloader')?.offsetParent === null"), true, 'engineering routes are hidden from daily navigation');
 
   await capturePage(cdp, 'dashboard', '01-dashboard-after');
+  assert.equal(await cdp.evaluate("document.querySelector('[data-u37b-home=\"daily\"]') !== null"), true, 'U37-B production home is active');
   assert.equal(await cdp.evaluate("document.querySelector('#mvp45-home-recent-listening')?.getBoundingClientRect().top < innerHeight"), true, 'dashboard recent media enters first viewport');
+
   await capturePage(cdp, 'asmr-lib', '02-asmr-library-after');
-  assert.equal(await cdp.evaluate("document.querySelector('#mvp53-asmr-visual-unity') && getComputedStyle(document.querySelector('#mvp53-asmr-visual-unity')).display === 'none'"), true, 'ASMR engineering summary hidden');
+  assert.equal(await cdp.evaluate("document.querySelector('[data-u37b-asmr-library=\"grid\"]') !== null"), true, 'U37-B ASMR grid is active');
+  assert.equal(await cdp.evaluate("document.querySelectorAll('[data-u37b-asmr-card]').length >= 5"), true, 'U37-B ASMR cards render seeded works');
+  assert.equal(await cdp.evaluate("document.querySelector('#mvp53-asmr-visual-unity') === null"), true, 'legacy ASMR engineering summary removed from daily DOM');
+
+  const bulkSelection = await cdp.evaluate(`(() => {
+    const boxes = [...document.querySelectorAll('[data-u37b-asmr-card] input[type="checkbox"]')].slice(0, 2);
+    boxes.forEach((box) => box.click());
+    const selectedText = document.querySelector('.u37b-selection-bar')?.textContent ?? '';
+    const button = [...document.querySelectorAll('button')].find((item) => item.textContent?.includes('批量加入歌单'));
+    if (!button || button.disabled) throw new Error('U37-B bulk playlist button unavailable');
+    button.click();
+    return { boxCount: boxes.length, selectedText };
+  })()`);
+  assert.equal(bulkSelection.boxCount, 2, 'two ASMR works selected');
+  assert.ok(bulkSelection.selectedText.includes('2'), 'selection bar reports two selected works');
+  await waitFor(cdp, "document.body.innerText.includes('已将 2 个作品加入')", 'bulk playlist feedback');
+  await waitFor(cdp, "JSON.parse(localStorage.getItem('yang_kura_user_playlists_v1') ?? '{}').playlists?.find((item) => item.id === 'playlist-night')?.tracksCount >= 6", 'bulk playlist persistence');
+
+  await click(cdp, '[aria-label="列表浏览"]');
+  await waitFor(cdp, "document.querySelector('[data-u37b-asmr-library=\"list\"] .u37b-asmr-list')", 'U37-B ASMR list view');
+  await screenshot(cdp, '02b-asmr-library-list-after');
+
   await capturePage(cdp, 'music-lib', '03-music-library-after');
   assert.equal(await cdp.evaluate("document.querySelector('#mvp53-music-visual-unity') && getComputedStyle(document.querySelector('#mvp53-music-visual-unity')).display === 'none'"), true, 'music engineering summary hidden');
   await capturePage(cdp, 'playlists', '04-playlists-after');
