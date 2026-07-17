@@ -42,8 +42,7 @@ if (failures.length === 0) {
     "localStorage.setItem('last_played_track_id'",
   ]) if (hook.includes(forbidden)) failures.push(`useAudioPlayer still owns session persistence: ${forbidden}`);
 
-  const hookLines = hook.split(/?
-/).length;
+  const hookLines = hook.split(/\r?\n/).length;
   if (hookLines > 700) failures.push(`useAudioPlayer remains too large after U38-A: ${hookLines} lines`);
 
   for (const marker of [
@@ -83,8 +82,7 @@ if (failures.length === 0) {
 }
 
 if (failures.length) {
-  console.error(failures.join('
-'));
+  console.error(failures.join('\n'));
   process.exit(1);
 }
 console.log('U38-A player Queue/History/Persistence boundaries PASS');
