@@ -61,15 +61,9 @@ jobs:
           helper = '''}
 
 function getSourceOptionDescription(optionId: string, fallback: string) {
-  if (optionId === "rj-work-import") {
-    return "包含 RJ / ASMR 音轨、封面、字幕或说明文件的作品目录。";
-  }
-  if (optionId === "music-album-import") {
-    return "包含同一专辑或艺术家作品的音乐目录。";
-  }
-  if (optionId === "music-singles-import") {
-    return "包含零散音频或需要人工确认分类的混合目录。";
-  }
+  if (optionId === "rj-work-import") return "包含 RJ / ASMR 音轨、封面、字幕或说明文件的作品目录。";
+  if (optionId === "music-album-import") return "包含同一专辑或艺术家作品的音乐目录。";
+  if (optionId === "music-singles-import") return "包含零散音频或需要人工确认分类的混合目录。";
   return fallback;
 }
 
@@ -103,14 +97,10 @@ function getSourceOptionDescription(optionId: string, fallback: string) {
       <section id="mvp112-importer-primary-flow"'''
           replace_once('src/components/ImporterPage.tsx', empty_anchor, empty_state)
           replace_once('src/components/ImporterPage.tsx', '{option.description}', '{getSourceOptionDescription(option.id, option.description)}')
-          replace_once(
-              'src/components/ImporterPage.tsx',
-              '''        id="mvp86-import-source-options"
-        className="grid grid-cols-1 lg:grid-cols-3 gap-3"''',
-              '''        id="mvp86-import-source-options"
+          replace_once('src/components/ImporterPage.tsx', '''        id="mvp86-import-source-options"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-3"''', '''        id="mvp86-import-source-options"
         data-u39e-source-options="product-copy"
-        className="grid grid-cols-1 lg:grid-cols-3 gap-3"''',
-          )
+        className="grid grid-cols-1 lg:grid-cols-3 gap-3"''')
 
           u32_anchor = '''  await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 800, deviceScaleFactor: 1.25, mobile: false });
 
@@ -141,73 +131,38 @@ function getSourceOptionDescription(optionId: string, fallback: string) {
   await cdp.evaluate(`(() => {'''
           replace_once('scripts/test-u32-ui-audit.mjs', u32_anchor, u32_checks)
 
-          verifier = r'''#!/usr/bin/env node
-          import assert from 'node:assert/strict';
-          import fs from 'node:fs';
-
-          const read = (file) => fs.readFileSync(file, 'utf8');
-          const music = read('src/features/library/MusicLibraryPage.tsx');
-          const importer = read('src/components/ImporterPage.tsx');
-          const u32 = read('scripts/test-u32-ui-audit.mjs');
-          const workflow = read('.github/workflows/ui-fast-validation.yml');
-
-          assert.match(music, /albums\.length > 0 \? \([\s\S]*u37d-metadata-tools/);
-          assert.match(importer, /id="u39e-importer-empty-source"/);
-          assert.match(importer, /尚未选择导入来源/);
-          assert.match(importer, /getSourceOptionDescription\(option\.id, option\.description\)/);
-          assert.match(u32, /empty music library does not render metadata tools shell/);
-          assert.match(u32, /truthful empty source guidance/);
-          assert.match(workflow, /verify-u39e-empty-state-truthfulness\.mjs/);
-          assert.match(workflow, /test-u32-ui-audit\.mjs/);
-
-          console.log('U39-E empty-state truthfulness verifier PASS');
-          '''
-          Path('scripts/verify-u39e-empty-state-truthfulness.mjs').write_text(verifier.replace('          ', ''), encoding='utf-8')
+          verifier = '''#!/usr/bin/env node
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const read = (file) => fs.readFileSync(file, 'utf8');
+const music = read('src/features/library/MusicLibraryPage.tsx');
+const importer = read('src/components/ImporterPage.tsx');
+const u32 = read('scripts/test-u32-ui-audit.mjs');
+const workflow = read('.github/workflows/ui-fast-validation.yml');
+assert.match(music, /albums\\.length > 0 \\? \\([\\s\\S]*u37d-metadata-tools/);
+assert.match(importer, /id="u39e-importer-empty-source"/);
+assert.match(importer, /尚未选择导入来源/);
+assert.match(importer, /getSourceOptionDescription\\(option\\.id, option\\.description\\)/);
+assert.match(u32, /empty music library does not render metadata tools shell/);
+assert.match(u32, /truthful empty source guidance/);
+assert.match(workflow, /verify-u39e-empty-state-truthfulness\\.mjs/);
+assert.match(workflow, /test-u32-ui-audit\\.mjs/);
+console.log('U39-E empty-state truthfulness verifier PASS');
+'''
+          Path('scripts/verify-u39e-empty-state-truthfulness.mjs').write_text(verifier, encoding='utf-8')
 
           ui = Path('.github/workflows/ui-fast-validation.yml').read_text(encoding='utf-8')
-          ui = ui.replace(
-              "      - 'src/styles/theme-contrast-bridge.css'\n",
-              "      - 'src/styles/theme-contrast-bridge.css'\n      - 'src/features/library/MusicLibraryPage.tsx'\n      - 'src/components/ImporterPage.tsx'\n",
-              1,
-          )
-          ui = ui.replace(
-              "      - 'scripts/test-u39d-light-theme-contrast.mjs'\n",
-              "      - 'scripts/test-u39d-light-theme-contrast.mjs'\n      - 'scripts/verify-u39e-empty-state-truthfulness.mjs'\n      - 'scripts/test-u32-ui-audit.mjs'\n",
-              1,
-          )
-          ui = ui.replace(
-              "      - name: Run U30 UI and accessibility matrix\n",
-              "      - name: Verify U39-E empty-state truthfulness\n        run: node scripts/verify-u39e-empty-state-truthfulness.mjs\n\n      - name: Run U30 UI and accessibility matrix\n",
-              1,
-          )
-          ui = ui.replace(
-              "      - name: Upload UI evidence\n",
-              "      - name: Run U32 daily empty-state and page audit\n        run: node scripts/test-u32-ui-audit.mjs\n\n      - name: Upload UI evidence\n",
-              1,
-          )
-          ui = ui.replace(
-              "            artifacts/u39d-light-theme-contrast\n",
-              "            artifacts/u39d-light-theme-contrast\n            artifacts/u32-ui-audit\n",
-              1,
-          )
+          ui = ui.replace("      - 'src/styles/theme-contrast-bridge.css'\n", "      - 'src/styles/theme-contrast-bridge.css'\n      - 'src/features/library/MusicLibraryPage.tsx'\n      - 'src/components/ImporterPage.tsx'\n", 1)
+          ui = ui.replace("      - 'scripts/test-u39d-light-theme-contrast.mjs'\n", "      - 'scripts/test-u39d-light-theme-contrast.mjs'\n      - 'scripts/verify-u39e-empty-state-truthfulness.mjs'\n      - 'scripts/test-u32-ui-audit.mjs'\n", 1)
+          ui = ui.replace("      - name: Run U30 UI and accessibility matrix\n", "      - name: Verify U39-E empty-state truthfulness\n        run: node scripts/verify-u39e-empty-state-truthfulness.mjs\n\n      - name: Run U30 UI and accessibility matrix\n", 1)
+          ui = ui.replace("      - name: Upload UI evidence\n", "      - name: Run U32 daily empty-state and page audit\n        run: node scripts/test-u32-ui-audit.mjs\n\n      - name: Upload UI evidence\n", 1)
+          ui = ui.replace("            artifacts/u39d-light-theme-contrast\n", "            artifacts/u39d-light-theme-contrast\n            artifacts/u32-ui-audit\n", 1)
           Path('.github/workflows/ui-fast-validation.yml').write_text(ui, encoding='utf-8')
 
           branch = Path('.github/workflows/branch-validation.yml').read_text(encoding='utf-8')
-          branch = branch.replace(
-              "      - 'src/components/DiagnosticsPageShell.tsx'\n",
-              "      - 'src/components/DiagnosticsPageShell.tsx'\n      - 'src/features/library/MusicLibraryPage.tsx'\n      - 'src/components/ImporterPage.tsx'\n      - 'scripts/test-u32-ui-audit.mjs'\n      - 'scripts/verify-u39e-empty-state-truthfulness.mjs'\n",
-              1,
-          )
-          branch = branch.replace(
-              "            '^src/components/DiagnosticsPageShell\\.tsx$',\n",
-              "            '^src/components/DiagnosticsPageShell\\.tsx$',\n            '^src/features/library/MusicLibraryPage\\.tsx$',\n            '^src/components/ImporterPage\\.tsx$',\n            '^scripts/test-u32-ui-audit\\.mjs$',\n            '^scripts/verify-u39e-empty-state-truthfulness\\.mjs$',\n",
-              1,
-          )
-          branch = branch.replace(
-              "            '^docs/architecture/U39_MAINTENANCE_ENTRY\\.md$'\n",
-              "            '^docs/architecture/U39_MAINTENANCE_ENTRY\\.md$',\n            '^docs/architecture/U39_EMPTY_STATE_TRUTHFULNESS\\.md$'\n",
-              1,
-          )
+          branch = branch.replace("      - 'src/components/DiagnosticsPageShell.tsx'\n", "      - 'src/components/DiagnosticsPageShell.tsx'\n      - 'src/features/library/MusicLibraryPage.tsx'\n      - 'src/components/ImporterPage.tsx'\n      - 'scripts/test-u32-ui-audit.mjs'\n      - 'scripts/verify-u39e-empty-state-truthfulness.mjs'\n", 1)
+          branch = branch.replace("            '^src/components/DiagnosticsPageShell\\.tsx$',\n", "            '^src/components/DiagnosticsPageShell\\.tsx$',\n            '^src/features/library/MusicLibraryPage\\.tsx$',\n            '^src/components/ImporterPage\\.tsx$',\n            '^scripts/test-u32-ui-audit\\.mjs$',\n            '^scripts/verify-u39e-empty-state-truthfulness\\.mjs$',\n", 1)
+          branch = branch.replace("            '^docs/architecture/U39_MAINTENANCE_ENTRY\\.md$'\n", "            '^docs/architecture/U39_MAINTENANCE_ENTRY\\.md$',\n            '^docs/architecture/U39_EMPTY_STATE_TRUTHFULNESS\\.md$'\n", 1)
           branch = branch.replace('the relevant U29/U30 matrix.', 'the relevant U29/U30/U32 matrix.', 1)
           Path('.github/workflows/branch-validation.yml').write_text(branch, encoding='utf-8')
 
@@ -240,3 +195,4 @@ function getSourceOptionDescription(optionId: string, fallback: string) {
           git add src/features/library/MusicLibraryPage.tsx src/components/ImporterPage.tsx scripts/test-u32-ui-audit.mjs scripts/verify-u39e-empty-state-truthfulness.mjs .github/workflows/ui-fast-validation.yml .github/workflows/branch-validation.yml docs/architecture/U39_EMPTY_STATE_TRUTHFULNESS.md
           git commit -m "fix empty library and importer states"
           git push origin HEAD:agent/u39e-empty-state-truthfulness
+      # synchronize trigger
