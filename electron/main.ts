@@ -33,6 +33,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { clearDlsiteMetadataCache, fetchDlsiteMetadata, type DlsiteMetadataCacheClearRequest, type DlsiteMetadataRequest } from './dlsiteMetadataProvider.js';
 import { MpvPlaybackBackend, type MpvPlaybackCommand } from './mpvPlaybackBackend.js';
 import { MpvSettingsStore } from './mpvSettingsStore.js';
+import { RootAuthorizationStore } from './rootAuthorizationStore.js';
 import { applyLibraryIndexRemovalOperations, buildLibraryIndexRemovalPreview, collectLibraryIndexHealthReferences, type LibraryIndexHealthReference, type LibraryIndexHealthStatus, type LibraryIndexRemovalPreviewOperation } from './libraryIndexHealthService.js';
 import { appendMaintenanceHistory, buildLibraryIndexBackupRetentionPreview, inspectLibraryIndexBackups, readMaintenanceHistory, restoreLibraryIndexFromBackup, type MaintenanceHistoryEntry } from './libraryIndexMaintenanceService.js';
 import { describeLibraryIndexReadError, parseLibraryIndexJsonBuffer } from './libraryIndexJsonReader.js';
@@ -71,6 +72,7 @@ function configureStableAppStorage(): void {
 configureStableAppStorage();
 
 const mpvSettingsStore = new MpvSettingsStore(path.join(stableUserDataPath, 'mpv-settings.json'));
+const rootAuthorizationStore = new RootAuthorizationStore(path.join(stableUserDataPath, 'root-authorizations.json'));
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -2949,15 +2951,14 @@ function registerDirectoryDialogIpc(mainWindow: BrowserWindow): void {
 
     const absolutePath = result.filePaths[0];
     const displayName = path.basename(absolutePath) || getDefaultDisplayName(libraryType);
-    const rootPathToken = `yk-root-${crypto.randomUUID()}`;
-
-    rootTokenMap.set(rootPathToken, {
-      rootPathToken,
+    const rootRecord = await rootAuthorizationStore.authorize({
       absolutePath,
       displayName,
       libraryType,
-      selectedAt: new Date().toISOString(),
+      createToken: () => `yk-root-${crypto.randomUUID()}`,
     });
+    const { rootPathToken } = rootRecord;
+    rootTokenMap.set(rootPathToken, rootRecord);
 
     return {
       ok: true,
@@ -4856,6 +4857,8 @@ async function createMainWindow(): Promise<BrowserWindow> {
 
 app.whenReady().then(async () => {
   await mpvSettingsStore.initialize();
+  const restoredRootRecords = await rootAuthorizationStore.initialize();
+  restoredRootRecords.forEach((record) => rootTokenMap.set(record.rootPathToken, record));
   registerMediaProtocol();
   await createMainWindow();
 

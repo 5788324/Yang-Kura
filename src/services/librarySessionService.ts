@@ -44,6 +44,7 @@ const STORAGE_KEY = 'yang_kura_library_session_v1';
 const UPDATE_EVENT_NAME = 'yang-kura-library-session-updated';
 const INDEX_READ_EVENT_NAME = 'yang-kura-library-index-loaded';
 const CURRENT_WINDOW_ROOT_SESSION_KEY = 'yang_kura_u28_authorized_roots_v1';
+const PERSISTED_ROOT_SESSION_KEY = 'yang_kura_persisted_authorized_roots_v1';
 let indexReadEventDispatchDepth = 0;
 
 const emptySnapshot = (): LibrarySessionSnapshot => ({
@@ -72,10 +73,9 @@ const safeJsonParse = (value: string | null): LibrarySessionSnapshot => {
   }
 };
 
-const hasCurrentWindowAuthorization = (): boolean => {
-  if (typeof sessionStorage === 'undefined') return false;
+const storageHasAuthorization = (storage: Storage, key: string): boolean => {
   try {
-    const parsed = JSON.parse(sessionStorage.getItem(CURRENT_WINDOW_ROOT_SESSION_KEY) ?? '{}') as Record<string, unknown>;
+    const parsed = JSON.parse(storage.getItem(key) ?? '{}') as Record<string, unknown>;
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return false;
     return Object.values(parsed).some((value) => {
       if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
@@ -85,6 +85,12 @@ const hasCurrentWindowAuthorization = (): boolean => {
   } catch {
     return false;
   }
+};
+
+const hasCurrentWindowAuthorization = (): boolean => {
+  if (typeof sessionStorage !== 'undefined' && storageHasAuthorization(sessionStorage, CURRENT_WINDOW_ROOT_SESSION_KEY)) return true;
+  if (typeof localStorage !== 'undefined' && storageHasAuthorization(localStorage, PERSISTED_ROOT_SESSION_KEY)) return true;
+  return false;
 };
 
 const applyCurrentWindowAuthorizationBoundary = (
@@ -262,11 +268,11 @@ export const librarySessionService = {
       return `最近一次资源库记录读取失败：${snapshot.lastReadAttempt.message}`;
     }
     if (snapshot.lastIndex) {
-      return `上次已读取「${snapshot.lastIndex.displayName}」：${snapshot.lastIndex.collectionCount} 个集合，${snapshot.lastIndex.trackCount} 条音轨。重启后请先重新选择该目录，再点“读取现有 index”。`;
+      return `上次已读取「${snapshot.lastIndex.displayName}」：${snapshot.lastIndex.collectionCount} 个集合，${snapshot.lastIndex.trackCount} 条音轨。授权已保存在本机，可在重启后继续读取和播放。`;
     }
     const selectedRoots = Object.values(snapshot.selectedRoots).filter(Boolean) as LibrarySessionRootSnapshot[];
     if (selectedRoots.length > 0) {
-      return `上次选择过「${selectedRoots.map((root) => root.displayName).join('、')}」。打包版重启后需要重新选择目录以恢复权限。`;
+      return `上次选择过「${selectedRoots.map((root) => root.displayName).join('、')}」。授权已保存在本机，重启后会自动恢复。`;
     }
     return '尚未导入本地资源库。请到设置页选择音声库或音乐库目录。';
   },

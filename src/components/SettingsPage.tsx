@@ -67,6 +67,7 @@ interface SettingsPageProps {
 }
 
 const U28_ROOT_SESSION_KEY = 'yang_kura_u28_authorized_roots_v1';
+const U39_PERSISTED_ROOTS_KEY = 'yang_kura_persisted_authorized_roots_v1';
 
 type U28RootSessionEntry = {
   rootPathToken: string;
@@ -101,8 +102,36 @@ const writeU28RootSession = (result: YangKuraSelectLibraryRootSuccessResult): vo
   }));
 };
 
+const readPersistedRootSession = (): U28RootSessionState => {
+  if (typeof localStorage === 'undefined') return {};
+  try {
+    const parsed = JSON.parse(localStorage.getItem(U39_PERSISTED_ROOTS_KEY) ?? '{}') as U28RootSessionState;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const writePersistedRootSession = (result: YangKuraSelectLibraryRootSuccessResult): void => {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    const previous = readPersistedRootSession();
+    localStorage.setItem(U39_PERSISTED_ROOTS_KEY, JSON.stringify({
+      ...previous,
+      [result.libraryType]: {
+        rootPathToken: result.rootPathToken,
+        displayName: result.displayName,
+        libraryType: result.libraryType,
+        selectedAt: new Date().toISOString(),
+      },
+    }));
+  } catch {
+    // The current-window session remains usable when persistent browser storage is unavailable.
+  }
+};
+
 const getU28RootSessionEntry = (libraryType: YangKuraLibraryType): U28RootSessionEntry | undefined =>
-  readU28RootSession()[libraryType];
+  readU28RootSession()[libraryType] ?? readPersistedRootSession()[libraryType];
 
 export default function SettingsPage({
   settings,
@@ -318,8 +347,9 @@ export default function SettingsPage({
 
     if (result.ok) {
       const tokenValue = `rootPathToken:${result.rootPathToken}`;
-      librarySessionService.recordRootSelected(result);
       writeU28RootSession(result);
+      writePersistedRootSession(result);
+      librarySessionService.recordRootSelected(result);
       if (libraryType === "music") {
         setNewMusicType("local");
         setNewMusicLabel((prev) => prev.trim() || result.displayName);
