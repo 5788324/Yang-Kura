@@ -55,9 +55,7 @@ if (failures.length === 0) {
     "const Dashboard = lazy(() => import('../components/Dashboard'));",
     "const Dashboard = lazy(() => import('../features/library/HomeLibraryPage'));",
   ];
-  if (!dashboardRouteCandidates.some((marker) => router.includes(marker))) {
-    failures.push('AppRouter missing lazy dashboard route contract');
-  }
+  if (!dashboardRouteCandidates.some((marker) => router.includes(marker))) failures.push('AppRouter missing lazy dashboard route contract');
 
   for (const marker of [
     "const DiagnosticsPageShell = lazy(() => import('../components/DiagnosticsPageShell'));",
@@ -84,14 +82,10 @@ if (failures.length === 0) {
   ]) if (!overlays.includes(marker)) failures.push(`PlayerOverlayHost missing contract: ${marker}`);
 
   for (const [file, source, markers] of [
-    ['PROJECT_STATE.md', state, ['U36-B：App Shell、Router 与 Overlay 拆分完成', 'U36-C：Main IPC 分域注册完成']],
-    ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, ['U36-B：完成', 'U36-C：完成']],
-    ['AI_HANDOFF/WORKLOG.md', worklog, ['U36-B', 'U36-C：完成']],
-  ]) {
-    for (const marker of markers) {
-      if (!source.includes(marker)) failures.push(`${file} missing progress marker: ${marker}`);
-    }
-  }
+    ['PROJECT_STATE.md', state, ['U34～U36：架构基础与契约整备完成', '新增 `TopBar.tsx`、`AppRouter.tsx`、`QueueDrawer.tsx`、`PlayerOverlayHost.tsx`']],
+    ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, ['U34～U36：完成', '拆出 `TopBar.tsx`、`AppRouter.tsx`、`QueueDrawer.tsx`、`PlayerOverlayHost.tsx`']],
+    ['AI_HANDOFF/WORKLOG.md', worklog, ['### U36-B', '`App.tsx` 仅保留顶层状态、业务协调与壳组合']],
+  ]) for (const marker of markers) if (!source.includes(marker)) failures.push(`${file} missing current App Shell fact: ${marker}`);
 }
 
 if (failures.length) {
