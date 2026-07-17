@@ -1,0 +1,242 @@
+name: U39-E Empty State Sync
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/u39e-empty-state-sync.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/u39e-empty-state-truthfulness
+      - name: Apply U39-E product and test changes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              if old not in text:
+                  raise SystemExit(f'Missing anchor in {path}: {old[:100]!r}')
+              p.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          music = '''      <Surface className="u37d-metadata-tools" padding="md" tone="subtle">
+            <MusicMetadataManagementPanel
+              albums={albums}
+              onUpdateAlbum={onUpdateMusicAlbum}
+              onUpdateTrack={onUpdateMusicTrack}
+              onClearAlbumOverride={onClearMusicAlbumOverride}
+              onClearTrackOverride={onClearMusicTrackOverride}
+              onMetadataStoreChanged={onMetadataStoreChanged}
+            />
+          </Surface>'''
+          music_new = '''      {albums.length > 0 ? (
+            <Surface className="u37d-metadata-tools" padding="md" tone="subtle">
+              <MusicMetadataManagementPanel
+                albums={albums}
+                onUpdateAlbum={onUpdateMusicAlbum}
+                onUpdateTrack={onUpdateMusicTrack}
+                onClearAlbumOverride={onClearMusicAlbumOverride}
+                onClearTrackOverride={onClearMusicTrackOverride}
+                onMetadataStoreChanged={onMetadataStoreChanged}
+              />
+            </Surface>
+          ) : null}'''
+          replace_once('src/features/library/MusicLibraryPage.tsx', music, music_new)
+
+          helper_anchor = '''}
+
+/* MVP-86 verifier marker:'''
+          helper = '''}
+
+function getSourceOptionDescription(optionId: string, fallback: string) {
+  if (optionId === "rj-work-import") {
+    return "包含 RJ / ASMR 音轨、封面、字幕或说明文件的作品目录。";
+  }
+  if (optionId === "music-album-import") {
+    return "包含同一专辑或艺术家作品的音乐目录。";
+  }
+  if (optionId === "music-singles-import") {
+    return "包含零散音频或需要人工确认分类的混合目录。";
+  }
+  return fallback;
+}
+
+/* MVP-86 verifier marker:'''
+          replace_once('src/components/ImporterPage.tsx', helper_anchor, helper)
+
+          empty_anchor = '''      </section>
+
+      <section id="mvp112-importer-primary-flow"'''
+          empty_state = '''      </section>
+
+      <section
+        id="u39e-importer-empty-source"
+        data-u39e-importer-source-state="empty"
+        role="status"
+        className="rounded-2xl border border-border-color/70 bg-card-bg/55 p-4 shadow-sm"
+      >
+        <div className="flex items-start gap-3">
+          <div className="rounded-xl border border-brand-color/25 bg-brand-color/10 p-2 text-brand-color">
+            <FolderInput className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div>
+            <p className="text-sm font-extrabold text-text-primary">尚未选择导入来源</p>
+            <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+              当前没有扫描结果。这里仅说明支持的来源类型；生成预览前不会更改媒体库内容。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="mvp112-importer-primary-flow"'''
+          replace_once('src/components/ImporterPage.tsx', empty_anchor, empty_state)
+          replace_once('src/components/ImporterPage.tsx', '{option.description}', '{getSourceOptionDescription(option.id, option.description)}')
+          replace_once(
+              'src/components/ImporterPage.tsx',
+              '''        id="mvp86-import-source-options"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-3"''',
+              '''        id="mvp86-import-source-options"
+        data-u39e-source-options="product-copy"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-3"''',
+          )
+
+          u32_anchor = '''  await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 800, deviceScaleFactor: 1.25, mobile: false });
+
+  await cdp.evaluate(`(() => {'''
+          u32_checks = '''  await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 800, deviceScaleFactor: 1.25, mobile: false });
+
+  await capturePage(cdp, 'music-lib', '00-music-empty-state', "document.querySelector('[data-u37d-music-library=\\"tracks\\"]')");
+  assert.equal(await cdp.evaluate("document.querySelector('.u37d-metadata-tools') === null"), true, 'empty music library does not render metadata tools shell');
+  report.pages.push({ pageId: 'music-empty-state', check: 'no empty metadata tools shell' });
+
+  await capturePage(cdp, 'importer', '00-importer-empty-source', "document.querySelector('#u39e-importer-empty-source')");
+  const importerEmptyState = await cdp.evaluate(`(() => {
+    const state = document.querySelector('#u39e-importer-empty-source');
+    const sourceOptions = document.querySelector('#mvp86-import-source-options');
+    return {
+      stateVisible: Boolean(state && state.getBoundingClientRect().height > 0),
+      stateText: state?.textContent ?? '',
+      sourceText: sourceOptions?.innerText ?? '',
+      mainText: document.querySelector('main')?.innerText ?? '',
+    };
+  })()`);
+  assert.equal(importerEmptyState.stateVisible, true, 'importer empty-source state is visible');
+  assert.match(importerEmptyState.stateText, /尚未选择导入来源/);
+  assert.equal(/本轮|后续|mock|自动化验收/.test(importerEmptyState.sourceText), false, 'visible source descriptions are product-facing');
+  assert.equal(importerEmptyState.mainText.includes('4 个示例文件'), false, 'hidden sample file count is not presented as current result');
+  report.pages.push({ pageId: 'importer-empty-source', check: 'truthful empty source guidance' });
+
+  await cdp.evaluate(`(() => {'''
+          replace_once('scripts/test-u32-ui-audit.mjs', u32_anchor, u32_checks)
+
+          verifier = r'''#!/usr/bin/env node
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+
+          const read = (file) => fs.readFileSync(file, 'utf8');
+          const music = read('src/features/library/MusicLibraryPage.tsx');
+          const importer = read('src/components/ImporterPage.tsx');
+          const u32 = read('scripts/test-u32-ui-audit.mjs');
+          const workflow = read('.github/workflows/ui-fast-validation.yml');
+
+          assert.match(music, /albums\.length > 0 \? \([\s\S]*u37d-metadata-tools/);
+          assert.match(importer, /id="u39e-importer-empty-source"/);
+          assert.match(importer, /尚未选择导入来源/);
+          assert.match(importer, /getSourceOptionDescription\(option\.id, option\.description\)/);
+          assert.match(u32, /empty music library does not render metadata tools shell/);
+          assert.match(u32, /truthful empty source guidance/);
+          assert.match(workflow, /verify-u39e-empty-state-truthfulness\.mjs/);
+          assert.match(workflow, /test-u32-ui-audit\.mjs/);
+
+          console.log('U39-E empty-state truthfulness verifier PASS');
+          '''
+          Path('scripts/verify-u39e-empty-state-truthfulness.mjs').write_text(verifier.replace('          ', ''), encoding='utf-8')
+
+          ui = Path('.github/workflows/ui-fast-validation.yml').read_text(encoding='utf-8')
+          ui = ui.replace(
+              "      - 'src/styles/theme-contrast-bridge.css'\n",
+              "      - 'src/styles/theme-contrast-bridge.css'\n      - 'src/features/library/MusicLibraryPage.tsx'\n      - 'src/components/ImporterPage.tsx'\n",
+              1,
+          )
+          ui = ui.replace(
+              "      - 'scripts/test-u39d-light-theme-contrast.mjs'\n",
+              "      - 'scripts/test-u39d-light-theme-contrast.mjs'\n      - 'scripts/verify-u39e-empty-state-truthfulness.mjs'\n      - 'scripts/test-u32-ui-audit.mjs'\n",
+              1,
+          )
+          ui = ui.replace(
+              "      - name: Run U30 UI and accessibility matrix\n",
+              "      - name: Verify U39-E empty-state truthfulness\n        run: node scripts/verify-u39e-empty-state-truthfulness.mjs\n\n      - name: Run U30 UI and accessibility matrix\n",
+              1,
+          )
+          ui = ui.replace(
+              "      - name: Upload UI evidence\n",
+              "      - name: Run U32 daily empty-state and page audit\n        run: node scripts/test-u32-ui-audit.mjs\n\n      - name: Upload UI evidence\n",
+              1,
+          )
+          ui = ui.replace(
+              "            artifacts/u39d-light-theme-contrast\n",
+              "            artifacts/u39d-light-theme-contrast\n            artifacts/u32-ui-audit\n",
+              1,
+          )
+          Path('.github/workflows/ui-fast-validation.yml').write_text(ui, encoding='utf-8')
+
+          branch = Path('.github/workflows/branch-validation.yml').read_text(encoding='utf-8')
+          branch = branch.replace(
+              "      - 'src/components/DiagnosticsPageShell.tsx'\n",
+              "      - 'src/components/DiagnosticsPageShell.tsx'\n      - 'src/features/library/MusicLibraryPage.tsx'\n      - 'src/components/ImporterPage.tsx'\n      - 'scripts/test-u32-ui-audit.mjs'\n      - 'scripts/verify-u39e-empty-state-truthfulness.mjs'\n",
+              1,
+          )
+          branch = branch.replace(
+              "            '^src/components/DiagnosticsPageShell\\.tsx$',\n",
+              "            '^src/components/DiagnosticsPageShell\\.tsx$',\n            '^src/features/library/MusicLibraryPage\\.tsx$',\n            '^src/components/ImporterPage\\.tsx$',\n            '^scripts/test-u32-ui-audit\\.mjs$',\n            '^scripts/verify-u39e-empty-state-truthfulness\\.mjs$',\n",
+              1,
+          )
+          branch = branch.replace(
+              "            '^docs/architecture/U39_MAINTENANCE_ENTRY\\.md$'\n",
+              "            '^docs/architecture/U39_MAINTENANCE_ENTRY\\.md$',\n            '^docs/architecture/U39_EMPTY_STATE_TRUTHFULNESS\\.md$'\n",
+              1,
+          )
+          branch = branch.replace('the relevant U29/U30 matrix.', 'the relevant U29/U30/U32 matrix.', 1)
+          Path('.github/workflows/branch-validation.yml').write_text(branch, encoding='utf-8')
+
+          Path('docs/architecture/U39_EMPTY_STATE_TRUTHFULNESS.md').write_text('''# U39-E 空状态真实性
+
+## 目标
+
+修复两个日常空状态问题：音乐库没有内容时不显示空的元数据工具容器；导入器尚未选择来源时明确说明当前没有扫描结果。
+
+## 行为
+
+- 音乐元数据工具只在存在专辑时挂载。
+- 导入页显示“尚未选择导入来源”。
+- 来源类型使用产品文案，不展示阶段、mock 或自动化测试措辞。
+- 历史示例模型继续留在隐藏兼容层。
+
+## 验收
+
+- 静态 verifier 检查条件渲染和产品文案。
+- U32 在写入测试样本前检查干净配置的音乐库和导入页。
+- 原有 U32 页面回归继续通过。
+
+## 非范围
+
+不修改导入执行、索引、播放器、字幕或安装器。
+''', encoding='utf-8')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/library/MusicLibraryPage.tsx src/components/ImporterPage.tsx scripts/test-u32-ui-audit.mjs scripts/verify-u39e-empty-state-truthfulness.mjs .github/workflows/ui-fast-validation.yml .github/workflows/branch-validation.yml docs/architecture/U39_EMPTY_STATE_TRUTHFULNESS.md
+          git commit -m "fix empty library and importer states"
+          git push origin HEAD:agent/u39e-empty-state-truthfulness
