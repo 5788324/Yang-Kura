@@ -1,0 +1,170 @@
+name: U39-D Documentation Sync
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/u39d-doc-sync.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/u39d-light-theme-contrast
+          fetch-depth: 0
+      - name: Synchronize U39-D core documentation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              file = Path(path)
+              source = file.read_text(encoding='utf-8')
+              if source.count(old) != 1:
+                  raise SystemExit(f'{path}: expected one anchor, found {source.count(old)}: {old[:80]}')
+              file.write_text(source.replace(old, new, 1), encoding='utf-8')
+
+          replace_once(
+              'README.md',
+              '> 当前阶段：U39-C 真实资源库重启授权修复完成；真实 Bug 和日常体验优先',
+              '> 当前阶段：U39-D 雾光象牙浅色主题对比度修复完成；真实 Bug 和日常体验优先',
+          )
+          replace_once(
+              'README.md',
+              '''## 快速开发模式\n''',
+              '''## U39-D 雾光象牙浅色主题对比度\n\n- 新增浅色主题兼容桥接层，同时同步 Beta 2 `--yk-*` Token 与旧 Tailwind 变量。\n- 三级文字、状态文字和强调色在所有浅色表面达到至少 `4.5:1`。\n- 可交互边界在所有浅色表面达到至少 `3:1`；白字强调按钮达到至少 `4.5:1`。\n- 原生下拉选项和键盘焦点使用同一浅色语义色。\n- 静态 WCAG 计算、真实 Electron 运行时对比度、U30 窗口/DPI/键盘矩阵全部通过。\n\n## 快速开发模式\n''',
+          )
+          replace_once(
+              'README.md',
+              '- `docs/architecture/U39_MAINTENANCE_ENTRY.md`\n- `docs/DESIGN.md`',
+              '- `docs/architecture/U39_MAINTENANCE_ENTRY.md`\n- `docs/architecture/U39_ROOT_AUTHORIZATION_PERSISTENCE.md`\n- `docs/architecture/U39_LIGHT_THEME_CONTRAST.md`\n- `docs/DESIGN.md`',
+          )
+
+          replace_once(
+              'PROJECT_STATE.md',
+              'U39-C：资源库授权持久化与重启读取/播放恢复完成\n当前任务：U39 审计 Major/Minor 问题继续按优先级修复',
+              'U39-C：资源库授权持久化与重启读取/播放恢复完成\nU39-D：雾光象牙浅色主题对比度与运行时验收完成\n当前任务：U39 审计剩余 Major/Minor 问题继续按优先级修复',
+          )
+          replace_once(
+              'PROJECT_STATE.md',
+              '- 设置页可进入独立 AI 维护概览，性能与完整诊断按需加载。',
+              '- 设置页可进入独立 AI 维护概览，性能与完整诊断按需加载。\n- 雾光象牙浅色主题的文字、状态色、边界、按钮和键盘焦点已建立自动对比度门禁。',
+          )
+          replace_once(
+              'PROJECT_STATE.md',
+              '## 快速开发模式\n',
+              '''## U39-D 浅色主题可读性\n\n- 根因：雾光象牙的三级文字、状态色和强调按钮对比度低于小字号 WCAG AA。\n- 修复：`theme-contrast-bridge.css` 同步新语义 Token 与旧 Tailwind 变量，避免新旧页面分裂。\n- 门槛：文字和状态色至少 `4.5:1`，可交互边界至少 `3:1`，白字强调按钮至少 `4.5:1`。\n- 验收：静态亮度计算、真实 Electron 计算样式、浅色首页/设置截图和 U30 窗口/DPI/键盘矩阵全部通过。\n- 非范围：未修改播放、资源库、Index、导入或安装链。\n\n## 快速开发模式\n''',
+          )
+
+          replace_once(
+              'PROJECT_ROADMAP.md',
+              'U39-C：资源库授权持久化与重启恢复完成\n当前任务：U39 审计 Major/Minor 问题继续按优先级修复',
+              'U39-C：资源库授权持久化与重启恢复完成\nU39-D：雾光象牙浅色主题对比度完成\n当前任务：U39 审计剩余 Major/Minor 问题继续按优先级修复',
+          )
+          replace_once(
+              'PROJECT_ROADMAP.md',
+              '- 现有资源库检修、索引清理、备份和恢复能力暂不删除，后续触碰对应功能时再迁移。',
+              '- 现有资源库检修、索引清理、备份和恢复能力暂不删除，后续触碰对应功能时再迁移。\n- U39-D：雾光象牙浅色主题统一新旧颜色变量，并用静态 WCAG 与真实 Electron 运行时测试锁定对比度。',
+          )
+          replace_once(
+              'PROJECT_ROADMAP.md',
+              '### Beta 2 个人日用版发布 — 已完成',
+              '''### U39-D：雾光象牙浅色主题对比度 — 已完成\n\n- 小字号文字与状态色对所有浅色表面至少 `4.5:1`；\n- 组件边界对所有浅色表面至少 `3:1`；\n- 白字强调按钮至少 `4.5:1`；\n- Beta 2 `--yk-*` Token 与旧 Tailwind 变量保持同步；\n- U30 和真实 Electron 浅色主题验收通过。\n\n### Beta 2 个人日用版发布 — 已完成''',
+          )
+
+          replace_once(
+              'AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md',
+              'U39-C：资源库授权持久化与重启恢复完成\n当前任务：继续修复 U39 审计 Major/Minor 问题',
+              'U39-C：资源库授权持久化与重启恢复完成\nU39-D：雾光象牙浅色主题对比度完成\n当前任务：继续修复 U39 审计剩余 Major/Minor 问题',
+          )
+          replace_once(
+              'AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md',
+              '''9. `docs/architecture/U39_MAINTENANCE_ENTRY.md`\n10. `docs/architecture/U39_ROOT_AUTHORIZATION_PERSISTENCE.md`\n11. `docs/DESIGN.md`\n12. `AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md`\n13. `MVP130_EXPERIMENTAL_DO_NOT_MERGE.md`''',
+              '''9. `docs/architecture/U39_MAINTENANCE_ENTRY.md`\n10. `docs/architecture/U39_ROOT_AUTHORIZATION_PERSISTENCE.md`\n11. `docs/architecture/U39_LIGHT_THEME_CONTRAST.md`\n12. `docs/DESIGN.md`\n13. `AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md`\n14. `MVP130_EXPERIMENTAL_DO_NOT_MERGE.md`''',
+          )
+          replace_once(
+              'AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md',
+              '### U34～U39-C',
+              '### U34～U39-D',
+          )
+          replace_once(
+              'AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md',
+              '- U39-C：Main 持久化 root token 授权映射，重新选择旧目录时接管 Index token，重启后可直接读取和播放。',
+              '- U39-C：Main 持久化 root token 授权映射，重新选择旧目录时接管 Index token，重启后可直接读取和播放。\n- U39-D：雾光象牙统一新旧主题变量；文字/状态色达到 4.5:1，组件边界达到 3:1，并由真实 Electron 运行时重复验证。',
+          )
+          replace_once(
+              'AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md',
+              '- 设置、导航和维护表层：`UI Fast Validation`，执行 TypeScript、Renderer/Electron build、定向 verifier 和 U30。',
+              '- 设置、导航、主题和维护表层：`UI Fast Validation`，执行 TypeScript、Renderer/Electron build、定向 verifier、U30，以及浅色主题运行时对比度验收。',
+          )
+
+          replace_once(
+              'AI_HANDOFF/WORKLOG.md',
+              '''### U39-C — 资源库授权持久化与重启恢复\n\n- 根因：Electron Main 的 root token 映射仅存在于内存，重启后 Index、媒体协议、mpv 和字幕无法解析旧 token。\n- 新增 `RootAuthorizationStore`，在用户数据目录持久化并启动恢复授权记录。\n- 重新选择既有资源库时复用存储记录，或从现有 Index 接管旧 token。\n- Renderer 持久化脱敏授权摘要，Library Session 不再把正常重启误判为必须重新授权。\n- U28 改为验证重启后无需重选即可读取空 Index，并继续读取真实 WAV 与播放。\n- U29、构建和 Windows 打包链用于回归验证。\n''',
+              '''### U39-C — 资源库授权持久化与重启恢复\n\n- PR：#80\n- 合并提交：`77f0152a80aea9fdfeaaf33f046d9a47d69f6d2e`\n- 根因：Electron Main 的 root token 映射仅存在于内存，重启后 Index、媒体协议、mpv 和字幕无法解析旧 token。\n- 新增 `RootAuthorizationStore`，在用户数据目录持久化并启动恢复授权记录。\n- 重新选择既有资源库时复用存储记录，或从现有 Index 接管旧 token。\n- Renderer 持久化脱敏授权摘要，Library Session 不再把正常重启误判为必须重新授权。\n- U28 改为验证重启后无需重选即可读取空 Index，并继续读取真实 WAV 与播放。\n- U29、构建和 Windows 打包链用于回归验证。\n\n### U39-D — 雾光象牙浅色主题对比度\n\n- PR：#81\n- 新增 `theme-contrast-bridge.css`，在主题迁移期同步 Beta 2 语义 Token 与旧 Tailwind 变量。\n- 三级文字、状态色和强调色对所有浅色表面达到至少 `4.5:1`。\n- 可交互边界达到至少 `3:1`；白字强调按钮达到至少 `4.5:1`。\n- 新增静态 WCAG verifier 与真实 Electron 运行时验收，覆盖主题挂载、变量同步、对比度和浅色首页/设置截图。\n- UI Fast、U30、U28～U32、当前行为 verifier、stable regression 和生产构建通过。\n''',
+          )
+          replace_once(
+              'AI_HANDOFF/WORKLOG.md',
+              '''U39-A：播放器底栏主题一致性完成\nU39-B：设置与 AI 维护入口边界完成\nU39-C：资源库授权持久化与重启恢复完成\nU39-C：资源库授权持久化与重启恢复完成\nU39-C：资源库授权持久化与重启恢复完成\n当前版本：0.169.0-beta.2\nBeta 2：已发布并完成远端资产校验\n当前任务：继续修复 U39 审计 Major/Minor 问题''',
+              '''U39-A：播放器底栏主题一致性完成\nU39-B：设置与 AI 维护入口边界完成\nU39-C：资源库授权持久化与重启恢复完成\nU39-D：雾光象牙浅色主题对比度完成\n当前版本：0.169.0-beta.2\nBeta 2：已发布并完成远端资产校验\n当前任务：继续修复 U39 审计剩余 Major/Minor 问题''',
+          )
+
+          replace_once(
+              'scripts/verify-handoff.mjs',
+              "  'docs/architecture/U39_ROOT_AUTHORIZATION_PERSISTENCE.md',\n",
+              "  'docs/architecture/U39_ROOT_AUTHORIZATION_PERSISTENCE.md',\n  'docs/architecture/U39_LIGHT_THEME_CONTRAST.md',\n",
+          )
+          replace_once(
+              'scripts/verify-handoff.mjs',
+              "  'scripts/verify-u39c-root-authorization-persistence.mjs',\n",
+              "  'scripts/verify-u39c-root-authorization-persistence.mjs',\n  'scripts/verify-u39d-light-theme-contrast.mjs',\n  'scripts/test-u39d-light-theme-contrast.mjs',\n",
+          )
+          replace_once(
+              'scripts/verify-handoff.mjs',
+              "  ['README.md', 'U39-C 资源库授权持久化'],\n",
+              "  ['README.md', 'U39-C 资源库授权持久化'],\n  ['README.md', 'U39-D 雾光象牙浅色主题对比度'],\n",
+          )
+          replace_once(
+              'scripts/verify-handoff.mjs',
+              "  ['PROJECT_STATE.md', 'U39-C：资源库授权持久化与重启读取/播放恢复完成'],\n  ['PROJECT_STATE.md', '当前任务：U39 审计 Major/Minor 问题继续按优先级修复'],",
+              "  ['PROJECT_STATE.md', 'U39-C：资源库授权持久化与重启读取/播放恢复完成'],\n  ['PROJECT_STATE.md', 'U39-D：雾光象牙浅色主题对比度与运行时验收完成'],\n  ['PROJECT_STATE.md', '当前任务：U39 审计剩余 Major/Minor 问题继续按优先级修复'],",
+          )
+          replace_once(
+              'scripts/verify-handoff.mjs',
+              "  ['PROJECT_ROADMAP.md', 'U39-C：资源库授权持久化与重启恢复完成'],\n  ['PROJECT_ROADMAP.md', '当前任务：U39 审计 Major/Minor 问题继续按优先级修复'],",
+              "  ['PROJECT_ROADMAP.md', 'U39-C：资源库授权持久化与重启恢复完成'],\n  ['PROJECT_ROADMAP.md', 'U39-D：雾光象牙浅色主题对比度完成'],\n  ['PROJECT_ROADMAP.md', '当前任务：U39 审计剩余 Major/Minor 问题继续按优先级修复'],",
+          )
+          replace_once(
+              'scripts/verify-handoff.mjs',
+              "  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U39-C：资源库授权持久化与重启恢复完成'],\n",
+              "  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U39-C：资源库授权持久化与重启恢复完成'],\n  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U39-D：雾光象牙浅色主题对比度完成'],\n",
+          )
+          replace_once(
+              'scripts/verify-handoff.mjs',
+              "  ['AI_HANDOFF/WORKLOG.md', '### U39-C — 资源库授权持久化与重启恢复'],\n",
+              "  ['AI_HANDOFF/WORKLOG.md', '### U39-C — 资源库授权持久化与重启恢复'],\n  ['AI_HANDOFF/WORKLOG.md', '### U39-D — 雾光象牙浅色主题对比度'],\n",
+          )
+          replace_once(
+              'scripts/verify-handoff.mjs',
+              "  ['docs/architecture/U39_ROOT_AUTHORIZATION_PERSISTENCE.md', '重启无需再次选择目录'],\n",
+              "  ['docs/architecture/U39_ROOT_AUTHORIZATION_PERSISTENCE.md', '重启无需再次选择目录'],\n  ['docs/architecture/U39_LIGHT_THEME_CONTRAST.md', '# U39-D 雾光象牙浅色主题对比度'],\n  ['docs/architecture/U39_LIGHT_THEME_CONTRAST.md', '至少达到 4.5:1'],\n",
+          )
+          replace_once(
+              'scripts/verify-handoff.mjs',
+              "console.log('[verify-handoff] U39-C root authorization persistence handoff PASS');",
+              "console.log('[verify-handoff] U39-D light theme contrast handoff PASS');",
+          )
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md PROJECT_STATE.md PROJECT_ROADMAP.md AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md AI_HANDOFF/WORKLOG.md scripts/verify-handoff.mjs
+          git commit -m "document U39-D light theme contrast"
+          git push origin HEAD:agent/u39d-light-theme-contrast
