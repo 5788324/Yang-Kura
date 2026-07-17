@@ -7,7 +7,6 @@ import {
   Copy,
   Edit3,
   ExternalLink,
-  FileAudio,
   FileWarning,
   FolderOpen,
   Heart,
@@ -295,7 +294,7 @@ export default function RjDetailPage({
             )) : <span>暂无标签</span>}
           </div>
           <div className="u37c-rj-hero__actions">
-            <Button variant="primary" leadingIcon={<Play aria-hidden="true" />} onClick={playAll} disabled={playableTracks.length === 0}>播放全部</Button>
+            <Button id="play-all-asmr" variant="primary" leadingIcon={<Play aria-hidden="true" />} onClick={playAll} disabled={playableTracks.length === 0}>播放全部音声</Button>
             <Button variant="secondary" leadingIcon={<ListPlus aria-hidden="true" />} onClick={queueAll} disabled={playableTracks.length === 0}>加入队列</Button>
             {onUpdateRjWork ? <Button variant="ghost" leadingIcon={<Edit3 aria-hidden="true" />} onClick={() => setMetadataOpen(true)}>编辑作品信息</Button> : null}
             {overrideCount > 0 && onClearRjWorkOverride ? <Button variant="ghost" leadingIcon={<RotateCcw aria-hidden="true" />} onClick={clearOverride}>还原本地修改</Button> : null}
