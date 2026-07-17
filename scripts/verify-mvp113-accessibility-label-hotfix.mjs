@@ -28,7 +28,8 @@ required(music, 'aria-label={`将 ${track.title} 加入播放队列`}', 'track q
 required(music, 'aria-label={isFavorite ?', 'track favorite accessible label');
 
 const asmr = read('src/features/library/AsmrLibraryPage.tsx');
-required(asmr, 'aria-label={mvp76CardLayout.ariaLabel}', 'ASMR list label binding');
+required(asmr, 'aria-label="音声作品列表"', 'ASMR list accessible label');
+required(asmr, 'aria-label="音声作品封面列表"', 'ASMR grid accessible label');
 
 for (const path of ['src/features/library/MusicLibraryPage.tsx', 'src/features/library/AsmrLibraryPage.tsx']) {
   const source = read(path);
