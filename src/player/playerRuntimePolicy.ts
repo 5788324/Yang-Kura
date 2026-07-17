@@ -5,6 +5,21 @@ export interface PendingPlaybackStart {
   progress: number;
 }
 
+export type TokenizedLocalAudioTrack = AudioTrack & {
+  rootPathToken: string;
+  sourceRelativePath: string;
+};
+
+export function isTokenizedLocalTrack(
+  track: AudioTrack | null | undefined,
+): track is TokenizedLocalAudioTrack {
+  return Boolean(
+    track?.rootPathToken &&
+    track.sourceRelativePath &&
+    track.playbackSourceKind === 'tokenized-local-file',
+  );
+}
+
 export function clampPlaybackPosition(seconds: number, duration?: number): number {
   const safeSeconds = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
   const safeDuration = Number.isFinite(duration) && (duration ?? 0) > 0 ? duration ?? 0 : 0;

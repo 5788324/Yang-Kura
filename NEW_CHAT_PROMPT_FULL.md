@@ -5,7 +5,8 @@
 当前版本：`0.169.0-beta.2`  
 Beta 2 个人日用版已发布并完成远端资产校验。  
 U38-A 播放器 Queue/History/Persistence 分离已完成。  
-当前阶段：U38-B 播放器 Controller 与 Backend 边界。  
+U38-B 播放器 Controller/Backend 分离已完成。  
+当前阶段：U38-C Subtitle loader 与字幕状态。  
 发布证据：`release/beta2-publication-state.json`
 
 必读：
@@ -14,6 +15,7 @@ U38-A 播放器 Queue/History/Persistence 分离已完成。
 - `AI_HANDOFF/WORKLOG.md`
 - `PROJECT_ROADMAP.md`
 - `docs/architecture/U38_PLAYER_SESSION_BOUNDARIES.md`
+- `docs/architecture/U38_PLAYER_BACKEND_BOUNDARY.md`
 - `docs/architecture/REFACTOR_BACKLOG.md`
 - `release/beta2-publication-state.json`
 

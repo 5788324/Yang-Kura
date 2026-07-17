@@ -13,11 +13,12 @@ U37-B：首页与音声库列表 UI 完成
 U37-C：RJ 详情 UI 完成
 U37-D：音乐库与详情 UI 完成
 U38-A：播放器 Queue/History/Persistence 分离完成
-当前任务：U38-B 播放器 Controller 与 Backend 边界
+U38-B：播放器 Controller/Backend 分离完成
+当前任务：U38-C Subtitle loader 与字幕状态
 大型功能：长期冻结，除非用户明确重新解冻
 ```
 
-Yang-Kura 已完成本地媒体库主要日常页面的正式 UI 迁移，并发布 `v0.169.0-beta.2` 个人日用 prerelease。portable、NSIS、安装卸载、用户数据保留、目标提交、远端资产名、大小和 SHA-256 均已自动校验。当前进入播放器渐进式治理，不改变已经发布的用户行为。
+Yang-Kura 已完成本地媒体库主要日常页面的正式 UI 迁移，并发布 `v0.169.0-beta.2` 个人日用 prerelease。portable、NSIS、安装卸载、用户数据保留、目标提交、远端资产名、大小和 SHA-256 均已自动校验。播放器 Queue/History/Persistence 与 mpv/HTMLAudio Backend 已完成渐进式分离，当前继续处理 Subtitle loader，不改变已经发布的用户行为。
 
 ## 发布事实
 
@@ -50,21 +51,21 @@ Yang-Kura 已完成本地媒体库主要日常页面的正式 UI 迁移，并发
 | 核心功能完整度 | 高，个人本地媒体库主链已完成 |
 | Windows 可交付性 | Beta 2 已发布并完成远端资产验证 |
 | UI 状态 | 主要日常页面和详情均已正式迁移 |
-| 当前重点 | 播放器可靠性与高耦合职责拆分 |
+| 当前重点 | Subtitle loader 与字幕状态边界 |
 | 技术债 | 持续解决，采用渐进式拆分，不推倒重写 |
 | 大功能 | 长期冻结，不从历史待办自动恢复 |
 
-## 当前任务：U38-B 播放器 Controller 与 Backend 边界
+## 当前任务：U38-C Subtitle loader 与字幕状态
 
 ```text
-Controller 状态协调
-→ mpv client 边界
-→ HTMLAudio adapter 边界
-→ fallback 行为冻结与回归
-→ U38-C Subtitle loader
+字幕请求与取消
+→ 格式归一结果映射
+→ 当前曲目/Queue 字幕状态同步
+→ missing/error 状态门禁
+→ U38 播放器治理收口
 ```
 
-U38-A 已将 Queue、History、续播点、旧兼容键和节流写入从 `useAudioPlayer.ts` 中抽离。U38-B 只拆分 Controller 与 Backend 协调，不更改 mpv、HTMLAudio fallback、Seek、完成策略或当前队列行为。
+U38-A 已将 Queue、History、续播点、旧兼容键和节流写入从 `useAudioPlayer.ts` 抽离；U38-B 已将 HTMLAudio 生命周期、mpv 事件/命令、媒体 URL 解析、fallback 和后端同步抽离到 `usePlayerBackend.ts`。U38-C 只拆 Subtitle loader 和字幕状态更新，不更改真实后端、Seek、完成策略、Queue、History 或续播行为。
 
 ## 技术债治理
 
@@ -73,7 +74,7 @@ U38-A 已将 Queue、History、续播点、旧兼容键和节流写入从 `useAu
 - `electron/main.ts` 继续按领域下沉实现；
 - `SettingsPage.tsx` 拆分日常设置与 AI 维护；
 - `DiagnosticsPage.tsx` 归档历史运行时内容；
-- `useAudioPlayer.ts` 继续拆分 Controller、Backend 与 Subtitle；
+- `useAudioPlayer.ts` 继续拆分 Subtitle loader 与字幕状态；
 - `src/types.ts` 按领域拆分；
 - 历史 MVP verifier 和 package 元数据退出日常运行时；
 - 新目录与迁移目录逐步收紧 TypeScript strict。

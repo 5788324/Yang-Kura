@@ -12,13 +12,16 @@ for (const [file, markers] of [
   ['electron/ipc/contracts.ts', ["mpvStart: 'yang-kura:player:mpv:start'", "mpvEvent: 'yang-kura:player:mpv:event'"]],
   ['electron/preload.ts', ['requestMpvPlaybackStart', 'requestMpvPlaybackCommand', 'onMpvPlaybackEvent']],
   ['src/types/electron-api.d.ts', ['YangKuraMpvPlaybackStartRequest', 'YangKuraMpvPlaybackEvent', 'getMpvPlaybackStatus']],
-  ['src/hooks/useAudioPlayer.ts', ["playbackMode: 'mpv'", 'requestMpvPlaybackStart', 'HTMLAudio', 'onMpvPlaybackEvent']],
+  ['src/hooks/usePlayerBackend.ts', ["playbackMode: 'mpv'", 'requestMpvPlaybackStart', 'HTMLAudio', 'onMpvPlaybackEvent']],
+  ['src/hooks/useAudioPlayer.ts', ["from './usePlayerBackend'", 'usePlayerBackend({', 'handleSeek: backend.seek']],
   ['docs/MPV_BACKEND_MINIMAL_MVP122.md', ['mpv 子进程', 'HTMLAudio fallback', 'rootPathToken']],
 ]) {
   const text = fs.readFileSync(file, 'utf8');
   for (const marker of markers) if (!text.includes(marker)) throw new Error(`${file} missing ${marker}`);
 }
 
+const controllerText = fs.readFileSync('src/hooks/useAudioPlayer.ts', 'utf8');
+if (controllerText.includes('requestMpvPlaybackStart') || controllerText.includes('new Audio(')) throw new Error('U38-B controller/backend boundary regression');
 const mainText = fs.readFileSync('electron/main.ts', 'utf8');
 if (mainText.includes('absolutePathReturned: true') || mainText.includes('fileUrlReturned: true')) throw new Error('renderer path safety regression');
 const backendText = fs.readFileSync('electron/mpvPlaybackBackend.ts', 'utf8');

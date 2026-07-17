@@ -59,9 +59,7 @@
 - 新增正式 `MusicLibraryPage`，完成歌曲、专辑、艺术家、文件夹四视图和详情钻取。
 - 支持搜索、排序、收藏、多选、全选当前结果、批量入队、播放全部和分组入队。
 - 删除旧 `src/components/MusicLibrary.tsx`。
-- 修复曲目标题/艺术家布局和批量队列实时状态验收。
-- TypeScript、U28～U32、focused verifiers、stable regression、生产构建全部通过。
-- portable、NSIS、首次安装、重复安装、卸载、用户数据保留和进程退出全部通过。
+- TypeScript、U28～U32、focused verifiers、stable regression、生产构建和 Windows 打包链通过。
 
 ### U37-D 文档收口
 
@@ -74,24 +72,36 @@
 - PR：#71
 - 合并提交：`14bc78a81c827882efc232c6c6c12f0d8ed04542`
 - 版本升级为 `0.169.0-beta.2`。
-- 发布计划、Release Notes、预检、Windows 构建、main-only 发布和资产回读升级为 Personal Beta Release。
-- 旧 Beta 1 自动恢复工作流改为只读手动历史审计。
-- U02～U27 历史字符串 verifier 退出当前 focused gate，U28～U37 当前结构 verifier 全部通过。
-- PR 阶段 TypeScript、U28～U32、stable regression、portable、NSIS、安装卸载和发布资产组装全部通过。
+- 发布计划、Release Notes、Windows 构建、发布和资产回读升级为 Personal Beta Release。
 
 ### Beta 2 个人日用版发布 — 已完成
 
 - tag：`v0.169.0-beta.2`
 - Release ID：`355486824`
-- 标题：`Yang-Kura 0.169.0 Beta 2 · 个人日用版`
 - 目标提交：`14bc78a81c827882efc232c6c6c12f0d8ed04542`
 - 发布时间：`2026-07-17T05:21:02Z`
-- portable：`Yang.Kura-0.169.0-beta.2-portable-x64.exe`，85,261,159 bytes，SHA-256 `2c5fa4be8460a7f591a1f2f4bb5a105e3001ca9dbd944a8a5ae324e4ef77a3e5`
-- setup：`Yang.Kura-0.169.0-beta.2-setup-x64.exe`，85,491,801 bytes，SHA-256 `e6f234606922da9f96d8e6cad3f0b9a4b7adc1d3f74fc42d088ec752192ec885`
-- `SHA256SUMS.txt`：213 bytes，SHA-256 `5ce43fe6bdefbe3036f08e47bcd2ccfcaa89e5b2b3f7c32a17ad948e46dcb9bd`
-- 三个资产的远端文件名、大小、下载文件 SHA-256 和 GitHub digest 全部一致。
-- 冻结记录：`release/beta2-publication-state.json`。
+- portable、setup 和 `SHA256SUMS.txt` 的远端文件名、大小、SHA-256 与 digest 全部一致。
 - Issue #65 完成并关闭。
+
+### U38-A — 播放器会话边界
+
+- PR：#73
+- 合并提交：`345d11555b219ae9eb48be0e1be539eca011b9e6`
+- 新增 `playerQueueTransitions.ts`，负责上一首、下一首、shuffle、新队列和去重入队。
+- 新增 `usePlayerSessionPersistence.ts`，统一 Queue、History、续播点、兼容键和节流写入。
+- `useAudioPlayer.ts` 不再直接依赖 Queue/History 持久化服务。
+- U29 Electron E2E 增加持久化数据清洗断言。
+- Documentation Validation、TypeScript、U28～U32、focused verifiers、stable regression、生产构建、portable 和 NSIS 全部通过。
+
+### U38-B — 播放器 Controller 与 Backend 边界
+
+- PR：#75
+- 新增 `usePlayerBackend.ts`，集中 HTMLAudio 生命周期、mpv 事件/命令、媒体解析、自动 fallback、Seek、音量/静音和播放状态同步。
+- `useAudioPlayer.ts` 保留 Queue、完成策略、用户操作、会话持久化和字幕协调，对外 API 不变。
+- `playerRuntimePolicy.ts` 提供共享 tokenized-local-track 类型守卫。
+- U29 Electron E2E 继续覆盖真实后端、Seek、暂停、完成策略、Queue、四种字幕、重启授权、续播、上一首和下一首。
+- U38-B verifier 禁止 Controller 重新直接持有 Audio、mpv 或 media resolver 副作用。
+- 当前任务：U38-C Subtitle loader 与字幕状态。
 
 ## 当前结论
 
@@ -102,20 +112,9 @@ U37-B：完成
 U37-C：完成
 U37-D：完成
 U38-A：播放器 Queue/History/Persistence 分离完成
+U38-B：播放器 Controller/Backend 分离完成
 当前版本：0.169.0-beta.2
 Beta 2：已发布并完成远端资产校验
-当前任务：U38-B 播放器 Controller 与 Backend 边界
+当前任务：U38-C Subtitle loader 与字幕状态
 大型功能：长期冻结
 ```
-
-### U38-A — 播放器会话边界
-
-- PR：#73
-- 合并提交：`345d11555b219ae9eb48be0e1be539eca011b9e6`
-- 新增 `playerQueueTransitions.ts`，将上一首、下一首、shuffle、新队列和去重入队改为纯状态转换。
-- 新增 `usePlayerSessionPersistence.ts`，统一队列快照、播放历史、续播点、旧兼容键和节流写入。
-- `useAudioPlayer.ts` 不再直接依赖 `playerQueuePersistenceService` 或 `playbackHistoryService`。
-- 旧 `last_played_track_json` 使用隐私清洗后的音轨快照。
-- U29 Electron E2E 增加 Queue、History 和兼容快照的数据安全断言。
-- Documentation Validation、TypeScript、U28～U32、U28～U38 focused verifiers、stable regression、生产构建、portable 和 NSIS 全部通过。
-- 当前任务：U38-B 播放器 Controller 与 Backend 边界。

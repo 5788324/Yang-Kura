@@ -48,15 +48,17 @@ requireMarkers('PROJECT_STATE', state, [
   'Beta 2：个人日用版已发布并完成远端资产回读',
   'U37-D：音乐库与详情 UI 完成',
   'U38-A：播放器 Queue/History/Persistence 分离完成',
-  '当前任务：U38-B 播放器 Controller 与 Backend 边界',
+  'U38-B：播放器 Controller/Backend 分离完成',
+  '当前任务：U38-C Subtitle loader 与字幕状态',
   'MVP130', '用户不承担测试',
 ]);
 requireMarkers('PROJECT_ROADMAP', roadmap, [
   'portable、NSIS、安装、卸载和用户数据保留',
   'U37-D：完成',
   'U38-A：播放器 Queue/History/Persistence 分离完成',
+  'U38-B：播放器 Controller/Backend 分离完成',
   '### Beta 2 个人日用版发布 — 已完成',
-  '当前任务：U38-B 播放器 Controller 与 Backend 边界',
+  '当前任务：U38-C Subtitle loader 与字幕状态',
   'MVP130',
 ]);
 requireMarkers('U32 historical evidence', evidence, [

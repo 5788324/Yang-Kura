@@ -10,7 +10,8 @@ for (const [file, markers] of [
   ['electron/mpvPlaybackBackend.ts', ['SEEK_COALESCE_MS', "'absolute+exact'", 'fallback-requested', 'waitForChildExit', "this.shutdownState = 'forced'", 'shell: false']],
   ['electron/main.ts', ['getMpvRuntimeDetails', 'allowQuitAfterMpvCleanup', 'event.preventDefault()', 'mpvPlaybackBackend.dispose()']],
   ['src/services/mpvPlaybackPreferenceService.ts', ['prefer-mpv', 'html-audio-only', 'yang-kura-mpv-playback-preference-changed']],
-  ['src/hooks/useAudioPlayer.ts', ['mpvPlaybackPreferenceService.shouldAttemptMpv', 'forceHtmlFallbackTrackRef', "event.type === 'fallback-requested'", 'playbackNotice']],
+  ['src/hooks/usePlayerBackend.ts', ['mpvPlaybackPreferenceService.shouldAttemptMpv', 'forceHtmlFallbackTrackRef', "event.type === 'fallback-requested'", 'playbackNotice']],
+  ['src/hooks/useAudioPlayer.ts', ["from './usePlayerBackend'", 'usePlayerBackend({', 'handleSeek: backend.seek']],
   ['src/components/SettingsPage.tsx', ['mvp124-mpv-backend-preference', '仅使用 HTMLAudio', 'mvp124-mpv-stability-diagnostics']],
   ['src/player/playerBarPresentationModel.ts', ['playbackNotice: playerState.playbackNotice']],
   ['src/components/PlayerBar.tsx', ['{...presentation.trackSummary}']],
@@ -23,6 +24,8 @@ for (const [file, markers] of [
   for (const marker of markers) if (!text.includes(marker)) throw new Error(`${file} missing ${marker}`);
 }
 
+const controller = fs.readFileSync('src/hooks/useAudioPlayer.ts', 'utf8');
+if (controller.includes('mpvPlaybackPreferenceService') || controller.includes('forceHtmlFallbackTrackRef')) throw new Error('U38-B backend responsibility returned to controller');
 const backend = fs.readFileSync('electron/mpvPlaybackBackend.ts', 'utf8');
 if (backend.includes("['seek', seconds, 'absolute', 'exact']")) throw new Error('legacy invalid multi-flag seek command remains');
 if (backend.includes('shell: true') || backend.includes('exec(')) throw new Error('unsafe process execution regression');

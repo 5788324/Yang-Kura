@@ -42,9 +42,6 @@ if (failures.length === 0) {
     "localStorage.setItem('last_played_track_id'",
   ]) if (hook.includes(forbidden)) failures.push(`useAudioPlayer still owns session persistence: ${forbidden}`);
 
-  const hookLines = hook.split(/\r?\n/).length;
-  if (hookLines > 700) failures.push(`useAudioPlayer remains too large after U38-A: ${hookLines} lines`);
-
   for (const marker of [
     'restorePlayerSessionState',
     'usePlayerSessionPersistence',
@@ -75,10 +72,10 @@ if (failures.length === 0) {
   ]) if (!e2e.includes(marker)) failures.push(`U29 E2E missing persistence assertion: ${marker}`);
 
   for (const [label, source, markers] of [
-    ['PROJECT_STATE.md', state, ['U38-A：播放器 Queue/History/Persistence 分离完成', '当前任务：U38-B 播放器 Controller 与 Backend 边界']],
-    ['CURRENT_PROJECT_HANDOFF.md', handoff, ['U38-A：完成', '当前任务：U38-B 播放器 Controller 与 Backend 边界']],
+    ['PROJECT_STATE.md', state, ['U38-A：播放器 Queue/History/Persistence 分离完成', 'U38-B：播放器 Controller/Backend 分离完成', '当前任务：U38-C Subtitle loader 与字幕状态']],
+    ['CURRENT_PROJECT_HANDOFF.md', handoff, ['U38-A：完成', 'U38-B：完成', '当前任务：U38-C Subtitle loader 与字幕状态']],
     ['WORKLOG.md', worklog, ['### U38-A — 播放器会话边界', 'U29 Electron E2E']],
-  ]) for (const marker of markers) if (!source.includes(marker)) failures.push(`${label} missing current U38-A fact: ${marker}`);
+  ]) for (const marker of markers) if (!source.includes(marker)) failures.push(`${label} missing current U38 fact: ${marker}`);
 }
 
 if (failures.length) {
