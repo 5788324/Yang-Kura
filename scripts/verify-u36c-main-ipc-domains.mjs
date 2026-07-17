@@ -43,9 +43,9 @@ if (failures.length === 0) {
   const contractChannelCount = (contracts.match(/'yang-kura:/g) || []).length;
   if (contractChannelCount !== 36) failures.push('canonical channel count changed unexpectedly: ' + contractChannelCount);
   for (const [label, source, markers] of [
-    ['PROJECT_STATE.md', state, ['U34～U36：架构基础与契约整备完成', 'Main 注册层按 Library、Media、Player、Metadata、Importer 分域']],
-    ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, ['U34～U36：完成', 'Main 注册层按 Library、Media、Player、Metadata、Importer 分域']],
-    ['AI_HANDOFF/WORKLOG.md', worklog, ['### U36-C', 'Library、Media、Player、Metadata、Importer 五个领域注册模块']],
+    ['PROJECT_STATE.md', state, ['U34～U36：架构基础与契约整备完成']],
+    ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, ['U34～U36：完成', '正式 AppShell、Router、Overlay 与 Main IPC 分域投入运行']],
+    ['AI_HANDOFF/WORKLOG.md', worklog, ['### U36-A / U36-B / U36-C', 'Main IPC 按 Library、Media、Player、Metadata、Importer 分域']],
   ]) for (const marker of markers) if (!source.includes(marker)) failures.push(label + ' missing current architecture fact: ' + marker);
 }
 if (failures.length) {

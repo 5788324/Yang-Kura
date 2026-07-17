@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
   "channel": "beta",
-  "previousVersion": "0.167.0-mvp129",
-  "version": "0.168.0-beta.1",
-  "tag": "v0.168.0-beta.1",
-  "title": "Yang-Kura 0.168.0 Beta 1",
+  "previousVersion": "0.168.0-beta.1",
+  "version": "0.169.0-beta.2",
+  "tag": "v0.169.0-beta.2",
+  "title": "Yang-Kura 0.169.0 Beta 2 · 个人日用版",
   "prerelease": true,
   "draft": false,
   "targetPlatform": "Windows x64",
-  "releaseNotesPath": "docs/RELEASE_NOTES_0.168.0-beta.1.md",
+  "releaseNotesPath": "docs/RELEASE_NOTES_0.169.0-beta.2.md",
   "assets": [
-    "Yang Kura-0.168.0-beta.1-portable-x64.exe",
-    "Yang Kura-0.168.0-beta.1-setup-x64.exe",
+    "Yang Kura-0.169.0-beta.2-portable-x64.exe",
+    "Yang Kura-0.169.0-beta.2-setup-x64.exe",
     "SHA256SUMS.txt"
   ],
   "frozenUntilPublished": [
@@ -19,6 +19,9 @@
     "SQLite full migration",
     "OpenList/WebDAV",
     "Player Core v2",
+    "full AI Agent",
+    "Arsm_Transcribe integration",
+    "cloud sync and plugin marketplace",
     "global architecture rewrite"
   ]
 }

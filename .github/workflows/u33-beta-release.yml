@@ -1,4 +1,4 @@
-name: U33 Beta Release
+name: Personal Beta Release
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'release/u33-release-plan.json'
-      - 'docs/RELEASE_NOTES_0.168.0-beta.1.md'
+      - 'docs/RELEASE_NOTES_0.169.0-beta.2.md'
       - 'scripts/verify-handoff.mjs'
       - 'scripts/verify-u32-release-candidate-packaging.mjs'
       - 'scripts/verify-u33-release-preflight.mjs'
@@ -21,7 +21,7 @@ on:
       - main
     paths:
       - 'release/u33-release-plan.json'
-      - 'docs/RELEASE_NOTES_0.168.0-beta.1.md'
+      - 'docs/RELEASE_NOTES_0.169.0-beta.2.md'
       - 'scripts/verify-handoff.mjs'
       - 'scripts/verify-u32-release-candidate-packaging.mjs'
       - 'scripts/verify-u33-release-preflight.mjs'
@@ -37,18 +37,19 @@ permissions:
   contents: read
 
 concurrency:
-  group: u33-beta-release-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: false
+  group: personal-beta-release-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
-    name: Build and validate Beta release assets
+    name: Build and validate personal Beta assets
     runs-on: windows-latest
     timeout-minutes: 120
     outputs:
       version: ${{ steps.plan.outputs.version }}
       tag: ${{ steps.plan.outputs.tag }}
       title: ${{ steps.plan.outputs.title }}
+      notes: ${{ steps.plan.outputs.notes }}
       portable: ${{ steps.plan.outputs.portable }}
       setup: ${{ steps.plan.outputs.setup }}
 
@@ -70,6 +71,7 @@ jobs:
           "version=$($plan.version)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "tag=$($plan.tag)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "title=$($plan.title)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "notes=$($plan.releaseNotesPath)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "portable=$($plan.assets[0])" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "setup=$($plan.assets[1])" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
@@ -95,7 +97,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: u33-beta-live-preflight-${{ github.sha }}
+          name: personal-beta-live-preflight-${{ github.sha }}
           path: artifacts/u33-release-preflight
           if-no-files-found: error
           retention-days: 14
@@ -119,6 +121,7 @@ jobs:
           npm run lint
           npm run build
           npm run build:electron
+          node scripts/verify-u33-beta-release.mjs
 
       - name: Build portable and NSIS Beta assets
         shell: pwsh
@@ -133,7 +136,7 @@ jobs:
           for ($attempt = 1; $attempt -le 3; $attempt++) {
             "=== electron-builder attempt $attempt of 3 ===" | Tee-Object -FilePath $logPath -Append
             if (Test-Path release) {
-              Get-ChildItem release -Force | Where-Object { $_.Name -ne 'u33-release-plan.json' } | Remove-Item -Recurse -Force
+              Get-ChildItem release -Force | Where-Object { $_.Name -ne 'u33-release-plan.json' -and $_.Name -ne 'u33-publication-state.json' } | Remove-Item -Recurse -Force
             }
             & node node_modules/electron-builder/cli.js --win portable nsis --config electron-builder.config.cjs --publish never 2>&1 | Tee-Object -FilePath $logPath -Append
             $exitCode = $LASTEXITCODE
@@ -142,9 +145,7 @@ jobs:
               $succeeded = $true
               break
             }
-            if ($attempt -lt 3) {
-              Start-Sleep -Seconds (15 * $attempt)
-            }
+            if ($attempt -lt 3) { Start-Sleep -Seconds (15 * $attempt) }
           }
           if (-not $succeeded) { exit $exitCode }
 
@@ -152,7 +153,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: u33-electron-builder-log-${{ github.sha }}
+          name: personal-beta-electron-builder-log-${{ github.sha }}
           path: artifacts/u33-electron-builder/electron-builder.log
           if-no-files-found: warn
           retention-days: 14
@@ -176,10 +177,10 @@ jobs:
           Copy-Item artifacts/u33-release-preflight/preflight-report.json artifacts/u33-release-bundle/preflight-report.json
           Get-ChildItem artifacts/u33-release-bundle | Format-Table Name,Length
 
-      - name: Upload validated Beta bundle
+      - name: Upload validated personal Beta bundle
         uses: actions/upload-artifact@v4
         with:
-          name: u33-beta-windows-${{ github.sha }}
+          name: personal-beta-windows-${{ github.sha }}
           path: artifacts/u33-release-bundle
           if-no-files-found: error
           retention-days: 30
@@ -202,10 +203,10 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Download validated Beta bundle
+      - name: Download validated personal Beta bundle
         uses: actions/download-artifact@v4
         with:
-          name: u33-beta-windows-${{ github.sha }}
+          name: personal-beta-windows-${{ github.sha }}
           path: publish
 
       - name: Verify local release checksums
@@ -219,6 +220,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ needs.build.outputs.tag }}
           RELEASE_TITLE: ${{ needs.build.outputs.title }}
+          RELEASE_NOTES: ${{ needs.build.outputs.notes }}
           PORTABLE_ASSET: ${{ needs.build.outputs.portable }}
           SETUP_ASSET: ${{ needs.build.outputs.setup }}
         shell: bash
@@ -233,7 +235,7 @@ jobs:
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
               --title "$RELEASE_TITLE" \
-              --notes-file docs/RELEASE_NOTES_0.168.0-beta.1.md \
+              --notes-file "$RELEASE_NOTES" \
               --prerelease
           fi
           gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" > publish/release.json
@@ -245,7 +247,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: u33-published-release-${{ github.sha }}
+          name: personal-beta-published-release-${{ github.sha }}
           path: |
             publish/release.json
             publish/published-release-report.json
@@ -253,7 +255,7 @@ jobs:
           retention-days: 30
 
   report-failure:
-    name: Report main publication failure
+    name: Report personal Beta publication failure
     if: >-
       always() &&
       ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
@@ -267,26 +269,24 @@ jobs:
       issues: write
 
     steps:
-      - name: Create or update U33 publication failure issue
+      - name: Create or update publication failure issue
         env:
           GH_TOKEN: ${{ github.token }}
           BUILD_RESULT: ${{ needs.build.result }}
           PUBLISH_RESULT: ${{ needs.publish.result }}
         shell: bash
         run: |
-          title="U33 Beta 发布失败：${GITHUB_SHA}"
+          title="个人日用版发布失败：${GITHUB_SHA}"
           run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          builder_artifact="u33-electron-builder-log-${GITHUB_SHA}"
           body=$(cat <<EOF
-          U33 Beta main 发布作业失败。
+          Yang-Kura 个人日用版 main 发布作业失败。
 
           - commit: \`${GITHUB_SHA}\`
           - build: \`${BUILD_RESULT}\`
           - publish: \`${PUBLISH_RESULT}\`
           - workflow: ${run_url}
-          - electron-builder 日志 artifact: \`${builder_artifact}\`
 
-          该 Issue 由发布工作流自动创建，用于让 ChatGPT 读取失败入口并继续诊断。请勿手工修改产品源码。
+          该 Issue 由发布工作流自动创建，供 ChatGPT 继续诊断。用户无需运行命令。
           EOF
           )
           existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq '.[0].number // empty')

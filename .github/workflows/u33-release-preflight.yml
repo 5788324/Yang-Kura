@@ -1,4 +1,4 @@
-name: U33 Release Preflight
+name: Personal Beta Release Preflight
 
 on:
   pull_request:
@@ -6,9 +6,12 @@ on:
       - main
     paths:
       - 'release/u33-release-plan.json'
-      - 'docs/RELEASE_NOTES_0.168.0-beta.1.md'
+      - 'docs/RELEASE_NOTES_0.169.0-beta.2.md'
       - 'scripts/verify-u33-release-preflight.mjs'
+      - 'scripts/verify-u33-published-release.mjs'
+      - 'scripts/verify-u33-beta-release.mjs'
       - '.github/workflows/u33-release-preflight.yml'
+      - '.github/workflows/u33-beta-release.yml'
       - 'package.json'
       - 'package-lock.json'
   workflow_dispatch:
@@ -17,7 +20,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: u33-release-preflight-${{ github.event.pull_request.number || github.ref }}
+  group: personal-beta-release-preflight-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -44,14 +47,14 @@ jobs:
           gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/tags?per_page=100" > artifacts/u33-release-preflight/tags-pages.json
           gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/releases?per_page=100" > artifacts/u33-release-preflight/releases-pages.json
 
-      - name: Verify proposed Beta release
+      - name: Verify proposed personal Beta release
         run: node scripts/verify-u33-release-preflight.mjs
 
       - name: Upload preflight evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: u33-release-preflight
+          name: personal-beta-release-preflight
           path: artifacts/u33-release-preflight
           if-no-files-found: error
           retention-days: 14

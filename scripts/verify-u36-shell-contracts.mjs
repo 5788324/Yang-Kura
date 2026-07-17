@@ -66,9 +66,9 @@ if (failures.length === 0) {
   if (!ipcContracts.includes('export const IPC_CHANNELS')) failures.push('canonical IPC registry is missing');
 
   for (const [file, source, markers] of [
-    ['PROJECT_STATE.md', projectState, ['U34～U36：架构基础与契约整备完成', '建立 `src/app/navigation.ts` 页面元数据事实源']],
-    ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, ['U34～U36：完成', '建立统一导航注册表和 Preload 请求合同']],
-    ['AI_HANDOFF/WORKLOG.md', worklog, ['### U36-A', 'Preload 所有 IPC 调用改用 `IPC_CHANNELS`']],
+    ['PROJECT_STATE.md', projectState, ['U34～U36：架构基础与契约整备完成']],
+    ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, ['U34～U36：完成', '正式 AppShell、Router、Overlay 与 Main IPC 分域投入运行']],
+    ['AI_HANDOFF/WORKLOG.md', worklog, ['### U36-A / U36-B / U36-C', 'Main IPC 按 Library、Media、Player、Metadata、Importer 分域']],
   ]) for (const marker of markers) if (!source.includes(marker)) failures.push(`${file} missing current architecture fact: ${marker}`);
 }
 

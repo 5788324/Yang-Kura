@@ -1,32 +1,14 @@
-name: U33 Published Asset Recovery
+name: Beta 1 Historical Release Audit
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/u33-published-asset-recovery.yml'
-      - 'docs/RELEASE_NOTES_0.168.0-beta.1.md'
-      - 'scripts/verify-u33-published-release.mjs'
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/u33-published-asset-recovery.yml'
-      - 'docs/RELEASE_NOTES_0.168.0-beta.1.md'
-      - 'scripts/verify-u33-published-release.mjs'
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: u33-published-asset-recovery-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
-  validate:
-    name: Validate published-asset recovery contract
+  audit:
+    name: Verify frozen Beta 1 publication record
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -34,171 +16,44 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Node 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Validate static publication contract
-        run: node scripts/verify-u33-published-release.mjs
-
-  recover:
-    name: Normalize and verify existing U33 prerelease
-    if: >-
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
-    needs: validate
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: write
-      issues: write
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Read and validate current published release
-        id: prepare
+      - name: Query published Beta 1 release
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: v0.168.0-beta.1
         shell: bash
         run: |
-          mkdir -p publish
-          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" > publish/release-before.json
-          gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" > publish/tag.json
+          mkdir -p artifacts/beta1-release-audit
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/v0.168.0-beta.1" > artifacts/beta1-release-audit/release.json
+
+      - name: Compare remote release with frozen publication state
+        shell: bash
+        run: |
           node <<'NODE'
           const assert = require('node:assert/strict');
           const fs = require('node:fs');
-          const release = JSON.parse(fs.readFileSync('publish/release-before.json', 'utf8'));
-          const tag = JSON.parse(fs.readFileSync('publish/tag.json', 'utf8'));
-          const expectedNames = [
-            'Yang.Kura-0.168.0-beta.1-portable-x64.exe',
-            'Yang.Kura-0.168.0-beta.1-setup-x64.exe',
-            'SHA256SUMS.txt',
-          ];
-          assert.equal(release.tag_name, 'v0.168.0-beta.1');
-          assert.equal(release.name, 'Yang-Kura 0.168.0 Beta 1');
+          const frozen = JSON.parse(fs.readFileSync('release/u33-publication-state.json', 'utf8'));
+          const release = JSON.parse(fs.readFileSync('artifacts/beta1-release-audit/release.json', 'utf8'));
+          assert.equal(frozen.status, 'published');
+          assert.equal(release.tag_name, frozen.tag);
+          assert.equal(release.name, frozen.title);
+          assert.equal(release.target_commitish, frozen.targetCommitish);
           assert.equal(Boolean(release.prerelease), true);
           assert.equal(Boolean(release.draft), false);
-          assert.equal(tag.object?.sha, release.target_commitish, 'release target must match tag target');
-          const assets = new Map((release.assets ?? []).map((asset) => [asset.name, asset]));
-          assert.deepEqual([...assets.keys()].sort(), expectedNames.sort(), 'published asset names mismatch');
-          const checksumLines = expectedNames
-            .filter((name) => name.endsWith('.exe'))
-            .map((name) => {
-              const asset = assets.get(name);
-              assert.ok(asset, `missing release asset: ${name}`);
-              assert.match(asset.digest ?? '', /^sha256:[a-f0-9]{64}$/i, `missing release digest: ${name}`);
-              assert.ok(Number(asset.size) > 100000, `release asset unexpectedly small: ${name}`);
-              return `${asset.digest.slice('sha256:'.length).toLowerCase()} *${name}`;
-            });
-          fs.writeFileSync('publish/SHA256SUMS.txt', `${checksumLines.join('\n')}\n`, 'utf8');
+          const remote = new Map((release.assets ?? []).map((asset) => [asset.name, asset]));
+          for (const asset of frozen.assets) {
+            const item = remote.get(asset.publishedName);
+            assert.ok(item, `missing historical asset: ${asset.publishedName}`);
+            assert.equal(item.size, asset.sizeBytes, `historical asset size mismatch: ${asset.publishedName}`);
+            assert.equal(item.digest, `sha256:${asset.sha256}`, `historical asset digest mismatch: ${asset.publishedName}`);
+          }
+          assert.equal(remote.size, frozen.assets.length, 'unexpected historical release assets');
+          console.log('Beta 1 historical release audit PASS');
           NODE
-          echo "target=$(jq -r .target_commitish publish/release-before.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Update notes and checksum asset
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: v0.168.0-beta.1
-          RELEASE_TITLE: Yang-Kura 0.168.0 Beta 1
-        shell: bash
-        run: |
-          gh release edit "$RELEASE_TAG" \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "$RELEASE_TITLE" \
-            --notes-file docs/RELEASE_NOTES_0.168.0-beta.1.md \
-            --prerelease
-          gh release upload "$RELEASE_TAG" publish/SHA256SUMS.txt \
-            --repo "$GITHUB_REPOSITORY" \
-            --clobber
-          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" > publish/release.json
-
-      - name: Verify normalized published release
-        run: node scripts/verify-u33-published-release.mjs publish/release.json publish "${{ steps.prepare.outputs.target }}" --remote-only
-
-      - name: Upload recovery evidence
+      - name: Upload audit evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: u33-published-asset-recovery-${{ github.sha }}
-          path: |
-            publish/release-before.json
-            publish/release.json
-            publish/tag.json
-            publish/SHA256SUMS.txt
-            publish/published-release-report.json
+          name: beta1-historical-release-audit
+          path: artifacts/beta1-release-audit
           if-no-files-found: warn
           retention-days: 30
-
-      - name: Record verified publication success
-        if: success()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ISSUE_NUMBER: '47'
-          RELEASE_TAG: v0.168.0-beta.1
-          TARGET_COMMIT: ${{ steps.prepare.outputs.target }}
-        shell: bash
-        run: |
-          body=$(cat <<EOF
-          U33 Beta 发布恢复已完成并通过远端校验。
-
-          - tag: \`${RELEASE_TAG}\`
-          - target: \`${TARGET_COMMIT}\`
-          - prerelease: \`true\`
-          - assets:
-            - \`Yang.Kura-0.168.0-beta.1-portable-x64.exe\`
-            - \`Yang.Kura-0.168.0-beta.1-setup-x64.exe\`
-            - \`SHA256SUMS.txt\`
-          - 校验：Release 元数据、tag target、资产数量、大小、远端 SHA-256 digest 与校验清单全部一致
-          - evidence artifact: \`u33-published-asset-recovery-${GITHUB_SHA}\`
-          - workflow: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-
-          此 Issue 按已完成关闭。后续开发保持暂停，进入项目规划讨论。
-          EOF
-          )
-          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$body"
-          gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER" \
-            -f state=closed \
-            -f state_reason=completed >/dev/null
-
-  report-recovery-failure:
-    name: Report U33 publication recovery failure
-    if: >-
-      always() &&
-      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) &&
-      (needs.validate.result == 'failure' || needs.recover.result == 'failure')
-    needs:
-      - validate
-      - recover
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-
-    steps:
-      - name: Reopen and update U33 publication issue
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ISSUE_NUMBER: '47'
-          VALIDATE_RESULT: ${{ needs.validate.result }}
-          RECOVER_RESULT: ${{ needs.recover.result }}
-        shell: bash
-        run: |
-          gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER" -f state=open >/dev/null
-          body=$(cat <<EOF
-          U33 发布恢复未通过。
-
-          - commit: \`${GITHUB_SHA}\`
-          - validate: \`${VALIDATE_RESULT}\`
-          - recover: \`${RECOVER_RESULT}\`
-          - workflow: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-          EOF
-          )
-          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$body"
