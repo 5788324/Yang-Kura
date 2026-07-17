@@ -35,12 +35,12 @@ const roadmap = fs.readFileSync('PROJECT_ROADMAP.md', 'utf8');
 const u32Evidence = fs.readFileSync('docs/U32_RELEASE_CANDIDATE_PACKAGING.md', 'utf8');
 if (!projectState.includes('0.167.0-mvp129')) failures.push('PROJECT_STATE.md does not retain the MVP129 historical baseline anchor');
 if (!u32Evidence.includes('核心版本：0.167.0-mvp129')) failures.push('U32 evidence does not retain the MVP129 release-candidate baseline');
-if (!readme.includes('0.168.0-beta.1') || !readme.includes('U37 媒体库正式页面完成') || !readme.includes('个人日用版')) failures.push('README.md does not identify the current Beta and personal-use release route');
-if (!roadmap.includes('Beta 1：已发布并完成远端资产校验') || !roadmap.includes('U37-D：完成') || !roadmap.includes('当前任务：Windows 发布候选与个人日用版发布')) failures.push('PROJECT_ROADMAP.md does not preserve Beta 1 history and the current release candidate route');
+if (!readme.includes('0.169.0-beta.2') || !readme.includes('U37 媒体库正式页面完成') || !readme.includes('个人日用版')) failures.push('README.md does not identify the Beta 2 personal-use release route');
+if (!roadmap.includes('Beta 1：已发布并完成远端资产校验') || !roadmap.includes('U37-D：完成') || !roadmap.includes('当前任务：发布 0.169.0 Beta 2 个人日用版')) failures.push('PROJECT_ROADMAP.md does not preserve Beta 1 history and the current Beta 2 release route');
 
 for (const file of ['NEXT_CHAT_HANDOFF.md', '00_NEW_CHAT_START_HERE.md']) {
   const source = fs.readFileSync(file, 'utf8');
-  if (!source.includes('0.168.0-beta.1')) failures.push(`${file} does not identify the current Beta version`);
+  if (!source.includes('0.169.0-beta.2')) failures.push(`${file} does not identify the current Beta 2 version`);
   if (source.includes('核心版本：0.167.0-mvp129')) failures.push(`${file} still presents MVP129 as the current version`);
 }
 const runFirst = fs.readFileSync('RUN_ME_FIRST.md', 'utf8');
