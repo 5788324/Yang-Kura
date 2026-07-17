@@ -46,7 +46,7 @@ if (failures.length === 0) {
     '播放全部', '全部加入队列',
   ]);
   if (/absolutePath\s*[:=]/.test(page)) failures.push('MusicLibraryPage must not expose absolute path fields');
-  if (/(?:src|href|url)\s*=\s*["']file:\/\//i.test(page) || /["']file:\/\/[^"']+["']/.test(page)) failures.push('MusicLibraryPage must not embed file URLs');
+  if (/(?:src|href|url)\s*=\s*["']file:\/\//i.test(page) || /["']file:\/\/[^"']+['"]/.test(page)) failures.push('MusicLibraryPage must not embed file URLs');
   if (/mvp\d+/i.test(page)) failures.push('MusicLibraryPage must not add historical MVP anchors');
 
   requireIncludes('AppRouter', router, ["const MusicLibrary = lazy(() => import('../features/library/MusicLibraryPage'));", '<MusicLibrary']);
@@ -70,16 +70,20 @@ if (failures.length === 0) {
   ]);
   requireIncludes('PROJECT_STATE.md', state, [
     'U37-D：音乐库与详情 UI 完成',
-    '当前任务：长期日用维护与 Issue #66 技术债治理',
+    'U38-A：播放器 Queue/History/Persistence 分离完成',
+    '当前任务：U38-B 播放器 Controller 与 Backend 边界',
   ]);
   requireIncludes('PROJECT_ROADMAP.md', roadmap, [
-    'U37-D：完成', '当前任务：长期日用维护与 Issue #66 技术债治理',
+    'U37-D：完成',
+    'U38-A：播放器 Queue/History/Persistence 分离完成',
+    '当前任务：U38-B 播放器 Controller 与 Backend 边界',
   ]);
   requireIncludes('CURRENT_PROJECT_HANDOFF.md', handoff, [
-    'U37-D：完成', '当前任务：长期日用维护与 Issue #66 技术债治理',
+    'U37-D：完成', 'U38-A：完成',
+    '当前任务：U38-B 播放器 Controller 与 Backend 边界',
   ]);
   requireIncludes('WORKLOG.md', worklog, [
-    '### U37-D — 音乐库与详情 UI', '### Beta 2 个人日用版发布 — 已完成',
+    '### U37-D — 音乐库与详情 UI', '### U38-A — 播放器会话边界',
   ]);
   requireIncludes('U37 execution plan', plan, [
     '### U37-D：音乐库、专辑与艺术家详情 — 已完成', 'U37 状态：全部完成',
