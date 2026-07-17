@@ -2,7 +2,7 @@
 
 > 当前版本：`0.169.0-beta.2`  
 > 代码事实来源：GitHub `main`  
-> 当前阶段：U39-C 真实资源库重启授权修复完成；真实 Bug 和日常体验优先
+> 当前阶段：U39-D 雾光象牙浅色主题对比度修复完成；真实 Bug 和日常体验优先
 
 Yang-Kura 是 Windows 本地音频媒体库，面向 ASMR/RJ 音声和普通本地音乐。技术栈为 React、Vite、TypeScript、Electron；当前索引为 Local JSON Index。
 
@@ -68,6 +68,14 @@ Issue #66：渐进式结构治理与质量提升。
 - 旧版本升级后需要重新选择原目录一次；之后无需每次重启重新授权。
 - U28 已覆盖重启后直接读取和真实 WAV 播放。
 
+## U39-D 雾光象牙浅色主题对比度
+
+- 新增浅色主题兼容桥接层，同时同步 Beta 2 `--yk-*` Token 与旧 Tailwind 变量。
+- 三级文字、状态文字和强调色在所有浅色表面达到至少 `4.5:1`。
+- 可交互边界在所有浅色表面达到至少 `3:1`；白字强调按钮达到至少 `4.5:1`。
+- 原生下拉选项和键盘焦点使用同一浅色语义色。
+- 静态 WCAG 计算、真实 Electron 运行时对比度、U30 窗口/DPI/键盘矩阵全部通过。
+
 ## 快速开发模式
 
 - 普通 UI、Hook 和状态管理改动只运行 TypeScript、生产构建、相关 E2E 和定向 verifier。
@@ -99,4 +107,6 @@ Issue #66：渐进式结构治理与质量提升。
 - `docs/architecture/U38_PLAYER_SUBTITLE_BOUNDARY.md`
 - `docs/architecture/U39_PLAYERBAR_THEME.md`
 - `docs/architecture/U39_MAINTENANCE_ENTRY.md`
+- `docs/architecture/U39_ROOT_AUTHORIZATION_PERSISTENCE.md`
+- `docs/architecture/U39_LIGHT_THEME_CONTRAST.md`
 - `docs/DESIGN.md`
