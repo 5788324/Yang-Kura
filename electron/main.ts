@@ -51,7 +51,12 @@ const appRoot = path.resolve(__dirname, '..');
 
 const isDevShell = process.env.YANG_KURA_ELECTRON_DEV === '1';
 const viteDevUrl = process.env.YANG_KURA_VITE_DEV_URL ?? 'http://127.0.0.1:3000';
-const stableUserDataPath = path.join(app.getPath('appData'), 'Yang-Kura');
+const e2eUserDataPath = process.env.YANG_KURA_E2E_MODE === '1'
+  ? process.env.YANG_KURA_E2E_USER_DATA_ROOT?.trim()
+  : undefined;
+const stableUserDataPath = e2eUserDataPath
+  ? path.resolve(e2eUserDataPath)
+  : path.join(app.getPath('appData'), 'Yang-Kura');
 const stableSessionDataPath = path.join(stableUserDataPath, 'session');
 const stableCachePath = path.join(stableUserDataPath, 'cache');
 const stableLogsPath = path.join(stableUserDataPath, 'logs');

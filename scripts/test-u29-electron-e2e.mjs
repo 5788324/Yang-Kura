@@ -165,7 +165,7 @@ async function launchApp(fixtureDir, profileDir) {
   const stdout = []; const stderr = [];
   const child = spawn(electronExecutable(), [`--remote-debugging-port=${port}`, path.join(cwd, 'dist-electron', 'main.js')], {
     cwd,
-    env: { ...process.env, APPDATA: profileDir, LOCALAPPDATA: profileDir, YANG_KURA_ELECTRON_DEV: '0', YANG_KURA_E2E_MODE: '1', YANG_KURA_E2E_LIBRARY_ROOT: fixtureDir, ELECTRON_DISABLE_SECURITY_WARNINGS: 'true' },
+    env: { ...process.env, APPDATA: profileDir, LOCALAPPDATA: profileDir, YANG_KURA_ELECTRON_DEV: '0', YANG_KURA_E2E_MODE: '1', YANG_KURA_E2E_LIBRARY_ROOT: fixtureDir, YANG_KURA_E2E_USER_DATA_ROOT: path.join(profileDir, 'Yang-Kura'), ELECTRON_DISABLE_SECURITY_WARNINGS: 'true' },
     stdio: ['ignore', 'pipe', 'pipe'], windowsHide: false,
   });
   child.stdout.on('data', (chunk) => stdout.push(String(chunk)));

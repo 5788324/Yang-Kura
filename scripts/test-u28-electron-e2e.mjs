@@ -254,6 +254,7 @@ async function launchApp(fixtureDir, profileDir) {
       YANG_KURA_ELECTRON_DEV: '0',
       YANG_KURA_E2E_MODE: '1',
       YANG_KURA_E2E_LIBRARY_ROOT: fixtureDir,
+      YANG_KURA_E2E_USER_DATA_ROOT: path.join(profileDir, 'Yang-Kura'),
       ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
