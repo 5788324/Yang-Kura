@@ -298,21 +298,12 @@ try {
 
 runtime = await launchApp(fixtureDir, profileDir);
 try {
-  const restored = await waitForPlayer(runtime.cdp, (state) => state.trackId === tracks[0].id && state.queueCount === tracks.length && state.progress >= 5.5, 'restored queue UI');
-  assert.equal(restored.sourceReady, false, '重启后不应保留上个窗口的 root token');
-  await clickSelector(runtime.cdp, '#app-player-bar button[aria-label="播放"]');
-  await waitForBodyText(runtime.cdp, '需要重新授权资源库并读取 Index');
-  const blocked = await playerState(runtime.cdp);
-  assert.equal(blocked.mode, 'idle'); assert.equal(blocked.sourceReady, false); assert.ok(blocked.progress >= 5.5, '未授权点击播放不应清空续播点');
-  await screenshot(runtime.cdp, '02-restart-authorization-required');
+  const restored = await waitForPlayer(runtime.cdp, (state) => state.trackId === tracks[0].id && state.queueCount === tracks.length && state.sourceReady && state.progress >= 5.5, 'restored authorized queue UI', 20000);
+  assert.equal(restored.currentIndex, 0);
+  await screenshot(runtime.cdp, '02-restart-authorization-restored');
 
-  const secondToken = await authorize(runtime.cdp); assert.ok(secondToken.startsWith('yk-root-')); assert.notEqual(secondToken, firstToken, '重启授权必须生成新的当前窗口 token');
-  writeIndex(path.join(fixtureDir, 'library-index.json'), buildIndex(secondToken, sizes));
-  await readIndex(runtime.cdp);
-  const reconciled = await waitForPlayer(runtime.cdp, (state) => state.trackId === tracks[0].id && state.queueCount === tracks.length && state.sourceReady && state.progress >= 5.5, 'queue token reconciliation');
-  assert.equal(reconciled.currentIndex, 0);
   await clickSelector(runtime.cdp, '#app-player-bar button[aria-label="播放"]');
-  const resumed = await waitForPlayer(runtime.cdp, (state) => (state.mode === 'html-audio' || state.mode === 'mpv') && state.progress > 6.2, 'actual restart resume', 20000);
+  const resumed = await waitForPlayer(runtime.cdp, (state) => (state.mode === 'html-audio' || state.mode === 'mpv') && state.progress > 6.2, 'actual persisted-authorization restart resume', 20000);
   assert.ok(resumed.progress < 11.5, `续播位置异常：${resumed.progress}`);
 
   await clickSelector(runtime.cdp, '#app-player-bar button[aria-label="下一首"]');
@@ -324,7 +315,7 @@ try {
   assert.ok(clamped.progress <= 12.05, 'Seek 未限制到音轨时长');
   await screenshot(runtime.cdp, '03-restart-real-resume');
   assert.deepEqual(runtime.cdp.pageErrors, [], `restart Renderer errors: ${runtime.cdp.pageErrors.join(' | ')}`);
-  report.scenarios.push({ name: 'restart-reauthorize-token-reconcile-real-resume', status: 'PASS', resumedProgress: resumed.progress, secondTokenChanged: secondToken !== firstToken });
+  report.scenarios.push({ name: 'restart-persisted-authorization-real-resume', status: 'PASS', resumedProgress: resumed.progress, authorizationReused: true, firstToken });
 } finally { await closeApp(runtime); }
 
 report.status = 'PASS';
