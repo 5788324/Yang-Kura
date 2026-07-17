@@ -1,57 +1,20 @@
-name: Personal Beta Release
+name: Beta 2 Published Release Audit
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'release/u33-release-plan.json'
-      - 'docs/RELEASE_NOTES_0.169.0-beta.2.md'
-      - 'scripts/verify-handoff.mjs'
-      - 'scripts/verify-u32-release-candidate-packaging.mjs'
-      - 'scripts/verify-u33-release-preflight.mjs'
-      - 'scripts/verify-u33-published-release.mjs'
-      - 'scripts/verify-u33-beta-release.mjs'
-      - '.github/workflows/u33-beta-release.yml'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'electron-builder.config.cjs'
-  push:
-    branches:
-      - main
-    paths:
-      - 'release/u33-release-plan.json'
-      - 'docs/RELEASE_NOTES_0.169.0-beta.2.md'
-      - 'scripts/verify-handoff.mjs'
-      - 'scripts/verify-u32-release-candidate-packaging.mjs'
-      - 'scripts/verify-u33-release-preflight.mjs'
-      - 'scripts/verify-u33-published-release.mjs'
-      - 'scripts/verify-u33-beta-release.mjs'
-      - '.github/workflows/u33-beta-release.yml'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'electron-builder.config.cjs'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: personal-beta-release-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: beta2-published-release-audit
+  cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build and validate personal Beta assets
-    runs-on: windows-latest
-    timeout-minutes: 120
-    outputs:
-      version: ${{ steps.plan.outputs.version }}
-      tag: ${{ steps.plan.outputs.tag }}
-      title: ${{ steps.plan.outputs.title }}
-      notes: ${{ steps.plan.outputs.notes }}
-      portable: ${{ steps.plan.outputs.portable }}
-      setup: ${{ steps.plan.outputs.setup }}
+  audit:
+    name: Re-verify frozen Beta 2 prerelease
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Check out repository
@@ -61,237 +24,31 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
 
-      - name: Read release plan
-        id: plan
-        shell: pwsh
-        run: |
-          $plan = Get-Content release/u33-release-plan.json -Raw | ConvertFrom-Json
-          "version=$($plan.version)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "tag=$($plan.tag)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "title=$($plan.title)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "notes=$($plan.releaseNotesPath)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "portable=$($plan.assets[0])" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "setup=$($plan.assets[1])" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
-      - name: Query current tags and releases
+      - name: Download published release metadata and assets
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          mkdir -p artifacts/u33-release-preflight
-          gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/tags?per_page=100" > artifacts/u33-release-preflight/tags-pages.json
-          gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/releases?per_page=100" > artifacts/u33-release-preflight/releases-pages.json
+          mkdir -p artifacts/beta2-published-release/assets
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/v0.169.0-beta.2" > artifacts/beta2-published-release/release.json
+          gh release download v0.169.0-beta.2 --repo "$GITHUB_REPOSITORY" --dir artifacts/beta2-published-release/assets
 
-      - name: Verify version, tag and release plan
-        env:
-          U33_ALLOW_EXISTING_TARGET: ${{ github.event_name != 'pull_request' && '1' || '0' }}
-        shell: pwsh
-        run: |
-          node scripts/verify-u33-release-preflight.mjs 2>&1 | Tee-Object -FilePath artifacts/u33-release-preflight/live-preflight.log
-          $exitCode = $LASTEXITCODE
-          if ($exitCode -ne 0) { exit $exitCode }
-
-      - name: Upload live preflight evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: personal-beta-live-preflight-${{ github.sha }}
-          path: artifacts/u33-release-preflight
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Install dependencies without lifecycle scripts
-        run: npm ci --ignore-scripts --no-audit --no-fund
-
-      - name: Audit high and critical dependency risk
-        run: npm audit --audit-level=high
-
-      - name: Rebuild Electron and apply builder compatibility patch
-        shell: pwsh
-        run: |
-          npm rebuild electron
-          npm run patch:electron-builder
-
-      - name: Validate TypeScript and desktop sources
-        env:
-          NODE_OPTIONS: --max-old-space-size=8192
-        run: |
-          npm run lint
-          npm run build
-          npm run build:electron
-          node scripts/verify-u33-beta-release.mjs
-
-      - name: Build portable and NSIS Beta assets
-        shell: pwsh
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-          NODE_OPTIONS: --max-old-space-size=8192
-        run: |
-          New-Item -ItemType Directory -Force -Path artifacts/u33-electron-builder | Out-Null
-          $logPath = 'artifacts/u33-electron-builder/electron-builder.log'
-          $succeeded = $false
-          $exitCode = 1
-          for ($attempt = 1; $attempt -le 3; $attempt++) {
-            "=== electron-builder attempt $attempt of 3 ===" | Tee-Object -FilePath $logPath -Append
-            if (Test-Path release) {
-              Get-ChildItem release -Force | Where-Object { $_.Name -ne 'u33-release-plan.json' -and $_.Name -ne 'u33-publication-state.json' } | Remove-Item -Recurse -Force
-            }
-            & node node_modules/electron-builder/cli.js --win portable nsis --config electron-builder.config.cjs --publish never 2>&1 | Tee-Object -FilePath $logPath -Append
-            $exitCode = $LASTEXITCODE
-            "=== attempt $attempt exit code: $exitCode ===" | Tee-Object -FilePath $logPath -Append
-            if ($exitCode -eq 0) {
-              $succeeded = $true
-              break
-            }
-            if ($attempt -lt 3) { Start-Sleep -Seconds (15 * $attempt) }
-          }
-          if (-not $succeeded) { exit $exitCode }
-
-      - name: Upload electron-builder diagnostic log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: personal-beta-electron-builder-log-${{ github.sha }}
-          path: artifacts/u33-electron-builder/electron-builder.log
-          if-no-files-found: warn
-          retention-days: 14
-
-      - name: Run packaged install and fallback acceptance
-        run: node scripts/test-u32-release-candidate-packaging.mjs
-
-      - name: Require complete packaged home content
-        run: node scripts/test-u32-packaged-page-readiness.mjs
-
-      - name: Assemble release bundle
-        shell: pwsh
-        run: |
-          $plan = Get-Content release/u33-release-plan.json -Raw | ConvertFrom-Json
-          New-Item -ItemType Directory -Force -Path artifacts/u33-release-bundle | Out-Null
-          Copy-Item (Join-Path release $plan.assets[0]) artifacts/u33-release-bundle/
-          Copy-Item (Join-Path release $plan.assets[1]) artifacts/u33-release-bundle/
-          Copy-Item artifacts/u32-release-candidate/SHA256SUMS.txt artifacts/u33-release-bundle/
-          Copy-Item artifacts/u32-release-candidate/report.json artifacts/u33-release-bundle/packaging-report.json
-          Copy-Item artifacts/u32-release-candidate/page-readiness-report.json artifacts/u33-release-bundle/page-readiness-report.json
-          Copy-Item artifacts/u33-release-preflight/preflight-report.json artifacts/u33-release-bundle/preflight-report.json
-          Get-ChildItem artifacts/u33-release-bundle | Format-Table Name,Length
-
-      - name: Upload validated personal Beta bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: personal-beta-windows-${{ github.sha }}
-          path: artifacts/u33-release-bundle
-          if-no-files-found: error
-          retention-days: 30
-
-  publish:
-    name: Publish GitHub prerelease after main merge
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: write
-
-    steps:
-      - name: Check out published commit
-        uses: actions/checkout@v4
-
-      - name: Set up Node 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Download validated personal Beta bundle
-        uses: actions/download-artifact@v4
-        with:
-          name: personal-beta-windows-${{ github.sha }}
-          path: publish
-
-      - name: Verify local release checksums
+      - name: Verify frozen publication record
         shell: bash
         run: |
-          cd publish
-          sha256sum -c SHA256SUMS.txt
+          expected_target=$(node -p "require('./release/beta2-publication-state.json').targetCommitish")
+          node scripts/verify-u33-published-release.mjs \
+            artifacts/beta2-published-release/release.json \
+            artifacts/beta2-published-release/assets \
+            "$expected_target" \
+            --remote-only
 
-      - name: Create or verify GitHub prerelease
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ needs.build.outputs.tag }}
-          RELEASE_TITLE: ${{ needs.build.outputs.title }}
-          RELEASE_NOTES: ${{ needs.build.outputs.notes }}
-          PORTABLE_ASSET: ${{ needs.build.outputs.portable }}
-          SETUP_ASSET: ${{ needs.build.outputs.setup }}
-        shell: bash
-        run: |
-          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "Release $RELEASE_TAG already exists; verifying without overwriting."
-          else
-            gh release create "$RELEASE_TAG" \
-              "publish/$PORTABLE_ASSET" \
-              "publish/$SETUP_ASSET" \
-              "publish/SHA256SUMS.txt" \
-              --repo "$GITHUB_REPOSITORY" \
-              --target "$GITHUB_SHA" \
-              --title "$RELEASE_TITLE" \
-              --notes-file "$RELEASE_NOTES" \
-              --prerelease
-          fi
-          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" > publish/release.json
-
-      - name: Verify published release and assets
-        run: node scripts/verify-u33-published-release.mjs publish/release.json publish "$GITHUB_SHA"
-
-      - name: Upload publication evidence
+      - name: Upload audit evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: personal-beta-published-release-${{ github.sha }}
-          path: |
-            publish/release.json
-            publish/published-release-report.json
+          name: beta2-published-release-audit
+          path: artifacts/beta2-published-release
           if-no-files-found: warn
           retention-days: 30
-
-  report-failure:
-    name: Report personal Beta publication failure
-    if: >-
-      always() &&
-      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) &&
-      (needs.build.result == 'failure' || needs.publish.result == 'failure')
-    needs:
-      - build
-      - publish
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-
-    steps:
-      - name: Create or update publication failure issue
-        env:
-          GH_TOKEN: ${{ github.token }}
-          BUILD_RESULT: ${{ needs.build.result }}
-          PUBLISH_RESULT: ${{ needs.publish.result }}
-        shell: bash
-        run: |
-          title="个人日用版发布失败：${GITHUB_SHA}"
-          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          body=$(cat <<EOF
-          Yang-Kura 个人日用版 main 发布作业失败。
-
-          - commit: \`${GITHUB_SHA}\`
-          - build: \`${BUILD_RESULT}\`
-          - publish: \`${PUBLISH_RESULT}\`
-          - workflow: ${run_url}
-
-          该 Issue 由发布工作流自动创建，供 ChatGPT 继续诊断。用户无需运行命令。
-          EOF
-          )
-          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq '.[0].number // empty')
-          if [ -n "$existing" ]; then
-            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "$body"
-          else
-            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body"
-          fi

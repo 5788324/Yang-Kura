@@ -17,5 +17,6 @@ npm run verify:stable
 
 - `package.json` 版本与 `PROJECT_STATE.md` 当前核心版本一致；
 - 当前版本应为 `0.169.0-beta.2`；
-- 当前主线是发布 Beta 2 个人日用版；
+- Beta 2 已发布并完成远端资产校验；
+- 当前主线是长期日用维护与 Issue #66 技术债治理；
 - 代码来自最新 `origin/main`。

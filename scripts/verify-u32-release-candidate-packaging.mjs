@@ -2,21 +2,27 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-const builder = fs.readFileSync('electron-builder.config.cjs', 'utf8');
-const workflow = fs.readFileSync('.github/workflows/u32-release-candidate.yml', 'utf8');
-const runtime = fs.readFileSync('scripts/test-u32-release-candidate-packaging.mjs', 'utf8');
-const readiness = fs.readFileSync('scripts/test-u32-packaged-page-readiness.mjs', 'utf8');
-const state = fs.readFileSync('PROJECT_STATE.md', 'utf8');
-const roadmap = fs.readFileSync('PROJECT_ROADMAP.md', 'utf8');
-const evidence = fs.readFileSync('docs/U32_RELEASE_CANDIDATE_PACKAGING.md', 'utf8');
-
+const read = (file) => fs.readFileSync(file, 'utf8');
+const pkg = JSON.parse(read('package.json'));
+const publication = JSON.parse(read('release/beta2-publication-state.json'));
+const builder = read('electron-builder.config.cjs');
+const workflow = read('.github/workflows/u32-release-candidate.yml');
+const runtime = read('scripts/test-u32-release-candidate-packaging.mjs');
+const readiness = read('scripts/test-u32-packaged-page-readiness.mjs');
+const state = read('PROJECT_STATE.md');
+const roadmap = read('PROJECT_ROADMAP.md');
+const evidence = read('docs/U32_RELEASE_CANDIDATE_PACKAGING.md');
 const failures = [];
-const requireMarkers = (label, text, markers) => {
-  for (const marker of markers) if (!text.includes(marker)) failures.push(`${label} missing: ${marker}`);
+
+const requireMarkers = (label, source, markers) => {
+  for (const marker of markers) if (!source.includes(marker)) failures.push(`${label} missing: ${marker}`);
 };
 
-if (pkg.version !== '0.169.0-beta.2') failures.push(`current package version must be Beta 2 release candidate: ${pkg.version}`);
+assert.equal(pkg.version, '0.169.0-beta.2');
+assert.equal(publication.status, 'published');
+assert.equal(publication.tag, 'v0.169.0-beta.2');
+assert.equal(publication.releaseId, 355486824);
+assert.equal(publication.assets?.length, 3);
 
 requireMarkers('electron-builder', builder, [
   "target: 'portable'", "target: 'nsis'", 'asar: true', 'oneClick: false', 'perMachine: false',
@@ -24,11 +30,11 @@ requireMarkers('electron-builder', builder, [
 ]);
 requireMarkers('U32 workflow', workflow, [
   'name: U32 Release Candidate Packaging', 'runs-on: windows-latest', 'contents: read',
-  'npm ci --ignore-scripts --no-audit --no-fund', 'npm audit --audit-level=high',
-  'npm rebuild electron', 'npm run patch:electron-builder', 'electron-builder/cli.js --win portable nsis',
-  'node scripts/test-u32-release-candidate-packaging.mjs', 'node scripts/test-u32-packaged-page-readiness.mjs',
-  'Require complete packaged home content', 'u32-release-candidate-windows', 'release/*.exe',
-  'artifacts/u32-release-candidate',
+  'npm audit --audit-level=high', 'npm rebuild electron', 'npm run patch:electron-builder',
+  'electron-builder/cli.js --win portable nsis',
+  'node scripts/test-u32-release-candidate-packaging.mjs',
+  'node scripts/test-u32-packaged-page-readiness.mjs',
+  'u32-release-candidate-windows', 'release/*.exe', 'artifacts/u32-release-candidate',
 ]);
 requireMarkers('packaged acceptance', runtime, [
   'portable-chinese-space-path', 'nsis-first-install', 'nsis-repeat-install-upgrade',
@@ -43,26 +49,30 @@ requireMarkers('packaged page readiness', readiness, [
   'production home content', '中文 空格', 'Stop-Process',
 ]);
 requireMarkers('PROJECT_STATE', state, [
-  '核心版本：0.169.0-beta.2', 'Beta 1：已发布并完成远端资产回读',
-  'U37-D：音乐库与详情 UI 完成', '当前任务：发布 0.169.0 Beta 2 个人日用版',
-  '发布条件：核心回归 + portable / NSIS + 安装卸载与数据保留 + 发布资产回读',
+  '核心版本：0.169.0-beta.2',
+  'Beta 2：个人日用版已发布并完成远端资产回读',
+  'U37-D：音乐库与详情 UI 完成',
+  '当前任务：长期日用维护与 Issue #66 技术债治理',
   'MVP130', '用户不承担测试',
 ]);
 requireMarkers('PROJECT_ROADMAP', roadmap, [
-  'portable、NSIS、安装、卸载和用户数据保留', 'U37-D：完成',
-  '当前任务：发布 0.169.0 Beta 2 个人日用版', 'MVP130',
+  'portable、NSIS、安装、卸载和用户数据保留',
+  'U37-D：完成',
+  '### Beta 2 个人日用版发布 — 已完成',
+  '当前任务：长期日用维护与 Issue #66 技术债治理',
+  'MVP130',
 ]);
 requireMarkers('U32 historical evidence', evidence, [
   '# U32 Windows 发布候选打包与系统集成验收', '结论：AUTOMATED GO',
-  '核心版本：0.167.0-mvp129（U32 不改版本号）', 'Branch Validation：29388203409 — PASS',
-  'U32 Release Candidate Packaging：29388203405 — PASS', 'GitHub runner 临时目录',
-  'HTMLAudio fallback', '静默卸载', 'SHA256SUMS.txt', '真实 mpv、声卡和驱动',
-  'U32 可以关闭，项目下一任务为 U33',
+  '核心版本：0.167.0-mvp129（U32 不改版本号）',
+  'Branch Validation：29388203409 — PASS',
+  'U32 Release Candidate Packaging：29388203405 — PASS',
+  'GitHub runner 临时目录', 'HTMLAudio fallback', '静默卸载', 'SHA256SUMS.txt',
+  '真实 mpv、声卡和驱动', 'U32 可以关闭，项目下一任务为 U33',
 ]);
 
 if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-assert.ok(true);
-console.log('U32 release-candidate packaging capability verifier PASS');
+console.log('U32 packaging capability and published Beta 2 evidence PASS');

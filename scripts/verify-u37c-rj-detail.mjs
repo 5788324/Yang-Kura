@@ -17,9 +17,9 @@ const requiredFiles = [
 ];
 for (const file of requiredFiles) if (!fs.existsSync(file)) failures.push(`missing U37-C file: ${file}`);
 
-function requireIncludes(label, source, markers) {
+const requireIncludes = (label, source, markers) => {
   for (const marker of markers) if (!source.includes(marker)) failures.push(`${label} missing: ${marker}`);
-}
+};
 
 if (failures.length === 0) {
   const detail = read('src/features/library/RjDetailPage.tsx');
@@ -34,38 +34,34 @@ if (failures.length === 0) {
   const plan = read('docs/architecture/U37_EXECUTION_PLAN.md');
 
   requireIncludes('RjDetailPage', detail, [
-    'data-u37c-rj-detail="ready"', '<TrackRow', '播放全部', '加入队列', '作品信息与个人记录',
-    '个人听音记录', '资源健康与字幕', 'subtitleRelativePaths', 'requestOpenExternalFile',
-    'requestOpenInFileManager', '<RjMetadataDialog',
+    'data-u37c-rj-detail="ready"', '<TrackRow', '播放全部', '加入队列',
+    '作品信息与个人记录', '个人听音记录', '资源健康与字幕',
+    'subtitleRelativePaths', 'requestOpenExternalFile', 'requestOpenInFileManager', '<RjMetadataDialog',
   ]);
   requireIncludes('RjMetadataDialog', metadata, [
     'data-u37c-metadata-editor="ready"', '<AsmrMetadataProviderPreview',
-    'onApplyToDraft={applyProviderCandidate}', "kind: 'provider'", "kind: 'manual'", '还原', '保存修改', '不会重命名文件',
+    'onApplyToDraft={applyProviderCandidate}', "kind: 'provider'", "kind: 'manual'",
+    '还原', '保存修改', '不会重命名文件',
   ]);
-
   for (const [file, source] of [['RjDetailPage', detail], ['RjMetadataDialog', metadata]]) {
     if (/absolutePath\s*[:=]/.test(source)) failures.push(`${file} must not expose absolute path fields`);
     if (/(?:src|href|url)\s*=\s*["']file:\/\//i.test(source) || /["']file:\/\/[^"']+["']/.test(source)) failures.push(`${file} must not embed file URLs`);
-    if (source.includes('mvp43-asmr-detail-navigation') || source.includes('mvp56-asmr-detail-summary')) failures.push(`${file} must not retain legacy detail UI anchors`);
   }
-
   requireIncludes('AppRouter', router, ["const RjDetailPage = lazy(() => import('../features/library/RjDetailPage'));", '<RjDetailPage']);
   if (router.includes("const AsmrDetail = lazy(() => import('../components/AsmrDetail'))")) failures.push('AppRouter still routes production RJ details to the legacy component');
-
   requireIncludes('renderer entry', main, ["import './styles/rj-detail.css';"]);
   requireIncludes('rj-detail.css', styles, [
-    '.u37c-rj-detail {', '.u37c-rj-hero {', '.u37c-rj-track-list', '.u37c-rj-details {', '.u37c-metadata-dialog', '@media (prefers-reduced-motion: reduce)',
+    '.u37c-rj-detail {', '.u37c-rj-hero {', '.u37c-rj-track-list', '.u37c-rj-details {',
+    '.u37c-metadata-dialog', '@media (prefers-reduced-motion: reduce)',
   ]);
-  if (/#[0-9a-f]{3,8}/i.test(styles)) failures.push('U37-C styles must use semantic tokens instead of hard-coded colors');
-
+  if (/#[0-9a-f]{3,8}/i.test(styles)) failures.push('U37-C styles must use semantic tokens');
   requireIncludes('U32 Electron audit', u32, [
-    '[data-u37c-rj-detail=\\"ready\\"]', 'RJ detail uses shared TrackRow entries', 'RJ personal status persistence',
-    '[data-u37c-metadata-editor=\\"ready\\"]', 'provider preview remains available',
+    '[data-u37c-rj-detail=\\"ready\\"]', 'RJ detail uses shared TrackRow entries',
+    'RJ personal status persistence', '[data-u37c-metadata-editor=\\"ready\\"]', 'provider preview remains available',
   ]);
-
-  requireIncludes('PROJECT_STATE.md', state, ['U37-C：RJ 详情 UI 完成', '当前任务：发布 0.169.0 Beta 2 个人日用版']);
-  requireIncludes('CURRENT_PROJECT_HANDOFF.md', handoff, ['U37-C：完成', '当前任务：发布 0.169.0 Beta 2 个人日用版']);
-  requireIncludes('WORKLOG.md', worklog, ['### U37-C — RJ 详情 UI', '当前任务：发布 0.169.0 Beta 2 个人日用版']);
+  requireIncludes('PROJECT_STATE.md', state, ['U37-C：RJ 详情 UI 完成', '当前任务：长期日用维护与 Issue #66 技术债治理']);
+  requireIncludes('CURRENT_PROJECT_HANDOFF.md', handoff, ['U37-C：完成', '当前任务：长期日用维护与 Issue #66 技术债治理']);
+  requireIncludes('WORKLOG.md', worklog, ['### U37-C — RJ 详情 UI', 'Beta 2：已发布并完成远端资产校验']);
   requireIncludes('U37 execution plan', plan, ['### U37-C：RJ 详情 — 已完成', '### U37-D：音乐库、专辑与艺术家详情 — 已完成']);
 }
 

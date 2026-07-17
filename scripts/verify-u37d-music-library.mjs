@@ -16,17 +16,12 @@ const requiredFiles = [
   'AI_HANDOFF/WORKLOG.md',
   'docs/architecture/U37_EXECUTION_PLAN.md',
 ];
-
-for (const file of requiredFiles) {
-  if (!fs.existsSync(file)) failures.push(`missing U37-D file: ${file}`);
-}
+for (const file of requiredFiles) if (!fs.existsSync(file)) failures.push(`missing U37-D file: ${file}`);
 if (fs.existsSync('src/components/MusicLibrary.tsx')) failures.push('legacy MusicLibrary.tsx remains after production migration');
 
-function requireIncludes(label, source, markers) {
-  for (const marker of markers) {
-    if (!source.includes(marker)) failures.push(`${label} missing: ${marker}`);
-  }
-}
+const requireIncludes = (label, source, markers) => {
+  for (const marker of markers) if (!source.includes(marker)) failures.push(`${label} missing: ${marker}`);
+};
 
 if (failures.length === 0) {
   const page = read('src/features/library/MusicLibraryPage.tsx');
@@ -42,96 +37,52 @@ if (failures.length === 0) {
   const plan = read('docs/architecture/U37_EXECUTION_PLAN.md');
 
   requireIncludes('MusicLibraryPage', page, [
-    'data-u37d-music-library=',
-    "['tracks', '歌曲', ListMusic]",
-    "['albums', '专辑', Disc3]",
-    "['artists', '艺术家', UserRound]",
-    "['folders', '文件夹', Folder]",
-    '<MediaCard',
-    '<TrackRow',
-    '批量加入队列',
-    '全选当前结果',
-    '仅看收藏',
-    'requestOpenExternalFile',
-    'requestOpenInFileManager',
-    '<MusicMetadataManagementPanel',
-    'libraryPerformanceService.getRenderWindowModel',
+    'data-u37d-music-library=', "['tracks', '歌曲', ListMusic]", "['albums', '专辑', Disc3]",
+    "['artists', '艺术家', UserRound]", "['folders', '文件夹', Folder]",
+    '<MediaCard', '<TrackRow', '批量加入队列', '全选当前结果', '仅看收藏',
+    'requestOpenExternalFile', 'requestOpenInFileManager', '<MusicMetadataManagementPanel',
+    'libraryPerformanceService.getRenderWindowModel', 'data-u37d-detail={detail.kind}',
+    "setDetail({ kind: 'album'", "setDetail({ kind: 'artist'", "setDetail({ kind: 'folder'",
+    '播放全部', '全部加入队列',
   ]);
-
-  for (const marker of [
-    'data-u37d-detail={detail.kind}',
-    "setDetail({ kind: 'album'",
-    "setDetail({ kind: 'artist'",
-    "setDetail({ kind: 'folder'",
-    '播放全部',
-    '全部加入队列',
-  ]) {
-    if (!page.includes(marker)) failures.push(`MusicLibraryPage detail contract missing: ${marker}`);
-  }
-
   if (/absolutePath\s*[:=]/.test(page)) failures.push('MusicLibraryPage must not expose absolute path fields');
-  if (/(?:src|href|url)\s*=\s*["']file:\/\//i.test(page) || /["']file:\/\/[^"']+["']/.test(page)) {
-    failures.push('MusicLibraryPage must not embed file URLs');
-  }
+  if (/(?:src|href|url)\s*=\s*["']file:\/\//i.test(page) || /["']file:\/\/[^"']+["']/.test(page)) failures.push('MusicLibraryPage must not embed file URLs');
   if (/mvp\d+/i.test(page)) failures.push('MusicLibraryPage must not add historical MVP anchors');
 
-  requireIncludes('AppRouter', router, [
-    "const MusicLibrary = lazy(() => import('../features/library/MusicLibraryPage'));",
-    '<MusicLibrary',
-  ]);
+  requireIncludes('AppRouter', router, ["const MusicLibrary = lazy(() => import('../features/library/MusicLibraryPage'));", '<MusicLibrary']);
   if (router.includes("import('../components/MusicLibrary')")) failures.push('AppRouter still routes to the legacy music library');
-
-  requireIncludes('renderer entry', main, [
-    "import './styles/music-library.css';",
-    "import './styles/music-library-track-row.css';",
-  ]);
+  requireIncludes('renderer entry', main, ["import './styles/music-library.css';", "import './styles/music-library-track-row.css';"]);
   requireIncludes('music-library.css', styles, [
-    '.u37d-music-library {',
-    '.u37d-toolbar {',
-    '.u37d-collection-grid {',
-    '.u37d-detail-hero {',
-    '.u37d-track-list {',
-    '@media (max-width: 620px)',
+    '.u37d-music-library {', '.u37d-toolbar {', '.u37d-collection-grid {',
+    '.u37d-detail-hero {', '.u37d-track-list {', '@media (max-width: 620px)',
     '@media (prefers-reduced-motion: reduce)',
   ]);
   requireIncludes('music-library-track-row.css', trackRowStyles, [
-    '.u37d-track-list .yk-track-row__copy {',
-    'display: grid;',
-    '.u37d-track-list .yk-track-row__subtitle {',
-    'margin-top: 0;',
+    '.u37d-track-list .yk-track-row__copy {', 'display: grid;',
+    '.u37d-track-list .yk-track-row__subtitle {', 'margin-top: 0;',
   ]);
-  if (/#[0-9a-f]{3,8}/i.test(styles + trackRowStyles)) failures.push('U37-D styles must use semantic tokens instead of hard-coded colors');
-
+  if (/#[0-9a-f]{3,8}/i.test(styles + trackRowStyles)) failures.push('U37-D styles must use semantic tokens');
   requireIncludes('U32 Electron audit', audit, [
-    '[data-u37d-music-library=\\"tracks\\"]',
-    'U37-D music track list renders seeded tracks',
-    'music batch queue state',
-    '[data-u37d-detail=\\"album\\"]',
-    '[data-u37d-detail=\\"artist\\"]',
-    '[data-u37d-detail=\\"folder\\"]',
-    'favorite-only track filter',
-    'narrow music library',
+    '[data-u37d-music-library=\\"tracks\\"]', 'U37-D music track list renders seeded tracks',
+    'music batch queue state', '[data-u37d-detail=\\"album\\"]',
+    '[data-u37d-detail=\\"artist\\"]', '[data-u37d-detail=\\"folder\\"]',
+    'favorite-only track filter', 'narrow music library',
   ]);
-
   requireIncludes('PROJECT_STATE.md', state, [
     'U37-D：音乐库与详情 UI 完成',
-    '当前任务：发布 0.169.0 Beta 2 个人日用版',
+    '当前任务：长期日用维护与 Issue #66 技术债治理',
   ]);
   requireIncludes('PROJECT_ROADMAP.md', roadmap, [
-    'U37-D：完成',
-    '当前任务：发布 0.169.0 Beta 2 个人日用版',
+    'U37-D：完成', '当前任务：长期日用维护与 Issue #66 技术债治理',
   ]);
   requireIncludes('CURRENT_PROJECT_HANDOFF.md', handoff, [
-    'U37-D：完成',
-    '当前任务：发布 0.169.0 Beta 2 个人日用版',
+    'U37-D：完成', '当前任务：长期日用维护与 Issue #66 技术债治理',
   ]);
   requireIncludes('WORKLOG.md', worklog, [
-    '### U37-D — 音乐库与详情 UI',
-    '当前任务：发布 0.169.0 Beta 2 个人日用版',
+    '### U37-D — 音乐库与详情 UI', '### Beta 2 个人日用版发布 — 已完成',
   ]);
   requireIncludes('U37 execution plan', plan, [
-    '### U37-D：音乐库、专辑与艺术家详情 — 已完成',
-    'U37 状态：全部完成',
+    '### U37-D：音乐库、专辑与艺术家详情 — 已完成', 'U37 状态：全部完成',
   ]);
 }
 
@@ -139,5 +90,4 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-
 console.log('U37-D production music library and collection details PASS');
