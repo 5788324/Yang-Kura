@@ -2,7 +2,7 @@
 
 > 当前版本：`0.169.0-beta.2`  
 > 代码事实来源：GitHub `main`  
-> 当前阶段：U38 播放器治理完成；真实 Bug、字幕体验和日常 UI 优先
+> 当前阶段：U38 播放器治理完成；U39-A 底栏主题一致性完成；真实 Bug和日常体验优先
 
 Yang-Kura 是 Windows 本地音频媒体库，面向 ASMR/RJ 音声和普通本地音乐。技术栈为 React、Vite、TypeScript、Electron；当前索引为 Local JSON Index。
 
@@ -43,10 +43,18 @@ Issue #66：渐进式结构治理与质量提升。
 - `useAudioPlayer.ts` 现在只保留 Controller、完成策略和用户操作协调。
 - U38 连续结构治理已经收口，不再继续为了目录整齐拆播放器。
 
+## U39-A 播放器底栏主题一致性
+
+- 底栏、曲目信息、播放控制、辅助控制和进度条统一使用语义主题 Token。
+- 歌单菜单、音量弹层、Seek 预览、歌词浮窗和 Toast 跟随当前主题材质。
+- 去除播放器结构层中的固定 zinc 深色，不改变品牌强调、错误、警告或收藏状态色。
+- 增加全局播放器 region 语义和一致的键盘焦点反馈。
+- 播放后端、Queue、字幕、Seek、续播和完成策略未改动。
+
 ## 快速开发模式
 
 - 普通 UI、Hook 和状态管理改动只运行 TypeScript、生产构建、相关 E2E 和定向 verifier。
-- 播放器 Renderer 改动使用 `Player Fast Validation` 和 U29。
+- 播放器 Renderer 使用 `Player Fast Validation`：运行时变更执行 U29，视觉和无障碍变更执行 U30。
 - portable、NSIS、安装与卸载只在 Electron Main、安装器、依赖、打包配置或正式发布变化时执行。
 - 一个任务一个 PR，功能和必要文档同一 PR 收口。
 
@@ -71,4 +79,5 @@ Issue #66：渐进式结构治理与质量提升。
 - `docs/architecture/U38_PLAYER_SESSION_BOUNDARIES.md`
 - `docs/architecture/U38_PLAYER_BACKEND_BOUNDARY.md`
 - `docs/architecture/U38_PLAYER_SUBTITLE_BOUNDARY.md`
+- `docs/architecture/U39_PLAYERBAR_THEME.md`
 - `docs/DESIGN.md`
