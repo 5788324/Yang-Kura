@@ -31,12 +31,13 @@ jobs:
       - name: Apply U39-G closeout updates
         run: node scripts/apply-u39g-closeout.mjs
 
-      - name: Commit synchronized closeout
+      - name: Commit synchronized closeout documents
         shell: bash
         run: |
+          git checkout -- .github/workflows/branch-validation.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add README.md PROJECT_STATE.md PROJECT_ROADMAP.md AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md AI_HANDOFF/WORKLOG.md scripts/verify-handoff.mjs .github/workflows/branch-validation.yml
+          git add README.md PROJECT_STATE.md PROJECT_ROADMAP.md AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md AI_HANDOFF/WORKLOG.md scripts/verify-handoff.mjs
           if git diff --cached --quiet; then
             echo "U39-G closeout already synchronized."
             exit 0
