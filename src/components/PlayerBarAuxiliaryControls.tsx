@@ -5,9 +5,9 @@ import type { AudioTrack, Playlist } from '../types';
 import { PlayerPlaylistMenu, PlayerVolumePopover } from './PlayerTransientPresenters';
 
 const AUXILIARY_ICON_BUTTON_BASE_CLASS =
-  'p-2 rounded-xl transition-all border flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400';
+  'p-2 rounded-xl transition-all border flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-color';
 const AUXILIARY_ICON_BUTTON_IDLE_CLASS =
-  'text-zinc-400 hover:text-white hover:bg-zinc-900 border-transparent hover:border-zinc-800/80 cursor-pointer';
+  'text-text-muted hover:text-text-primary hover:bg-hover-bg border-transparent hover:border-border-color cursor-pointer';
 const AUXILIARY_ICON_BUTTON_DISABLED_CLASS = 'opacity-30 border-transparent';
 
 interface PlayerAuxiliaryControlsProps {
@@ -70,7 +70,7 @@ export function PlayerAuxiliaryControls({
         type="button"
         onClick={onToggleCompletion}
         disabled={!hasTrack || !canToggleCompletion}
-        className="u30-completion-control text-[10px] border border-zinc-800 bg-zinc-900/60 text-zinc-300 px-2.5 py-1 rounded-full font-bold flex-shrink-0 hover:border-sky-500/40 hover:text-sky-300 disabled:opacity-40 disabled:hover:border-zinc-800 disabled:hover:text-zinc-300 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400"
+        className="u30-completion-control text-[10px] border border-border-color bg-card-bg/60 text-text-secondary px-2.5 py-1 rounded-full font-bold flex-shrink-0 hover:border-brand-color/40 hover:text-brand-color disabled:opacity-40 disabled:hover:border-border-color disabled:hover:text-text-secondary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-color"
         title={completionHint}
         aria-label={`播放完成策略：${completionLabel}`}
       >
@@ -88,7 +88,7 @@ export function PlayerAuxiliaryControls({
             !hasTrack ? AUXILIARY_ICON_BUTTON_DISABLED_CLASS : ''
           } ${
             isPlaylistMenuOpen
-              ? 'bg-sky-500/15 border-sky-500/40 text-sky-400'
+              ? 'bg-brand-color/15 border-brand-color/40 text-brand-color'
               : AUXILIARY_ICON_BUTTON_IDLE_CLASS
           }`}
           title="收藏到歌单"
@@ -117,7 +117,7 @@ export function PlayerAuxiliaryControls({
           !hasTrack ? AUXILIARY_ICON_BUTTON_DISABLED_CLASS : ''
         } ${
           isFloatingLyricsVisible
-            ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-400 font-extrabold scale-105'
+            ? 'bg-brand-color/15 border-brand-color/40 text-brand-color font-extrabold scale-105'
             : AUXILIARY_ICON_BUTTON_IDLE_CLASS
         }`}
         title="歌词浮窗开关"
@@ -127,7 +127,7 @@ export function PlayerAuxiliaryControls({
         <Tv className="w-4.5 h-4.5" aria-hidden="true" />
       </button>
 
-      <span className="text-zinc-800" aria-hidden="true">|</span>
+      <span className="text-border-color" aria-hidden="true">|</span>
 
       <div
         className="relative flex items-center justify-center"
@@ -137,13 +137,13 @@ export function PlayerAuxiliaryControls({
         <button
           type="button"
           onClick={onToggleMute}
-          className="text-zinc-400 hover:text-white p-2 rounded-xl hover:bg-zinc-900 transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400"
+          className="text-text-muted hover:text-text-primary p-2 rounded-xl hover:bg-hover-bg transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-color"
           title={isMuted ? '取消静音' : '静音'}
           aria-label={isMuted ? '取消静音' : '静音'}
           aria-pressed={isMuted}
         >
           {isMuted ? (
-            <VolumeX className="w-4.5 h-4.5 text-zinc-500" aria-hidden="true" />
+            <VolumeX className="w-4.5 h-4.5 text-text-muted" aria-hidden="true" />
           ) : (
             <Volume2 className="w-4.5 h-4.5" aria-hidden="true" />
           )}
@@ -161,7 +161,7 @@ export function PlayerAuxiliaryControls({
       <button
         type="button"
         onClick={onMoreActions}
-        className="u30-more-control text-zinc-500 hover:text-white p-1 rounded transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400"
+        className="u30-more-control text-text-muted hover:text-text-primary p-1 rounded transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-color"
         title="更多播放操作（后续开放）"
         aria-label="更多播放操作（后续开放）"
       >
