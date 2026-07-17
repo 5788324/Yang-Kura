@@ -82,9 +82,9 @@ if (failures.length === 0) {
   ]) if (!overlays.includes(marker)) failures.push(`PlayerOverlayHost missing contract: ${marker}`);
 
   for (const [file, source, markers] of [
-    ['PROJECT_STATE.md', state, ['U34～U36：架构基础与契约整备完成', '新增 `TopBar.tsx`、`AppRouter.tsx`、`QueueDrawer.tsx`、`PlayerOverlayHost.tsx`']],
-    ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, ['U34～U36：完成', '拆出 `TopBar.tsx`、`AppRouter.tsx`、`QueueDrawer.tsx`、`PlayerOverlayHost.tsx`']],
-    ['AI_HANDOFF/WORKLOG.md', worklog, ['### U36-B', '`App.tsx` 仅保留顶层状态、业务协调与壳组合']],
+    ['PROJECT_STATE.md', state, ['U34～U36：架构基础与契约整备完成']],
+    ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, ['U34～U36：完成', '正式 AppShell、Router、Overlay 与 Main IPC 分域投入运行']],
+    ['AI_HANDOFF/WORKLOG.md', worklog, ['### U36-A / U36-B / U36-C', 'AppRouter、QueueDrawer、PlayerOverlayHost']],
   ]) for (const marker of markers) if (!source.includes(marker)) failures.push(`${file} missing current App Shell fact: ${marker}`);
 }
 
