@@ -18,7 +18,7 @@ import type {
 
 const Dashboard = lazy(() => import('../features/library/HomeLibraryPage'));
 const AsmrLibrary = lazy(() => import('../features/library/AsmrLibraryPage'));
-const AsmrDetail = lazy(() => import('../components/AsmrDetail'));
+const RjDetailPage = lazy(() => import('../features/library/RjDetailPage'));
 const MusicLibrary = lazy(() => import('../components/MusicLibrary'));
 const PlaylistPage = lazy(() => import('../components/PlaylistPage'));
 const DiagnosticsPageShell = lazy(() => import('../components/DiagnosticsPageShell'));
@@ -137,7 +137,7 @@ export default function AppRouter(props: AppRouterProps) {
           resetKey={`asmr-detail:${selectedAsmrWork.id}:${selectedAsmrWork.addedAt ?? ''}`}
         >
           <div className="yk-library-page" data-library-page="asmr-detail" data-u37a-library-page="ready">
-            <AsmrDetail
+            <RjDetailPage
               rjWork={selectedAsmrWork}
               onBack={() => props.setAsmrDetailId(null)}
               onPlayTrack={props.onPlayTrack}
