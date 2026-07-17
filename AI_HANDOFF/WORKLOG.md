@@ -103,7 +103,17 @@
 - U29 Electron E2E 覆盖真实后端、Seek、暂停、完成策略、Queue、四种字幕、重启授权、续播、上一首和下一首。
 - U38-B verifier 禁止 Controller 重新直接持有 Audio、mpv 或 media resolver 副作用。
 - Documentation Validation、TypeScript、U28～U32、U28～U38 focused verifiers、stable regression、最终生产构建、portable、NSIS、安装卸载、数据保留和打包后页面完整性全部通过。
-- 当前任务：U38-C Subtitle loader 与字幕状态。
+
+### U38-C — 播放器字幕加载与状态边界
+
+- 新增 `usePlayerSubtitles.ts`，集中字幕请求代次、过期结果丢弃、来源变更重载和结果映射。
+- 切歌、重新授权或字幕来源列表变化时，旧请求立即失效，不能覆盖当前曲目。
+- 新请求开始时清除旧歌词和旧来源，避免同一音轨重新绑定字幕后显示旧内容。
+- `loaded`、`missing`、`error` 状态统一映射，并同步当前曲目与 Queue。
+- `useAudioPlayer.ts` 不再直接调用字幕 IPC。
+- 新增 U38-C 定向 verifier 和 `Player Fast Validation`。
+- Windows 打包验收从普通 `src/**` 变更中移除，仅保留 Electron、依赖、安装器、打包配置和正式发布相关触发。
+- U38 播放器连续结构治理到此收口；后续优先真实 Bug、字幕体验和日常 UI。
 
 ## 当前结论
 
@@ -115,8 +125,9 @@ U37-C：完成
 U37-D：完成
 U38-A：播放器 Queue/History/Persistence 分离完成
 U38-B：播放器 Controller/Backend 分离完成
+U38-C：播放器 Subtitle lifecycle/state 分离完成
 当前版本：0.169.0-beta.2
 Beta 2：已发布并完成远端资产校验
-当前任务：U38-C Subtitle loader 与字幕状态
+当前任务：真实 Bug、字幕体验与日常 UI 优先
 大型功能：长期冻结
 ```
