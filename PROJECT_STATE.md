@@ -95,6 +95,9 @@ U38-A：Queue / History / Persistence
 - 设置、主题和日常页面：`UI Fast Validation`。
 - TypeScript / Electron 架构增量：`Architecture Guardrails`。
 - Electron Main、安装器、依赖、用户数据目录和正式发布变化：完整 Windows 与打包验收。
+- 个人项目默认按投入产出比分级验证；纯文档和低风险内部整理不扩大到发布级门禁。
+- 一个任务只使用一个 PR，功能、必要文档和交接在同一 PR 收口，不再追加独立“文档收口 PR”。
+- 核心文档集中维护 `README.md`、`PROJECT_STATE.md`、`PROJECT_ROADMAP.md`、`AI_HANDOFF/WORKLOG.md` 和当前交接；历史镜像只在确有依赖时同步。
 
 ## 仍在 Issue #66 跟踪
 
