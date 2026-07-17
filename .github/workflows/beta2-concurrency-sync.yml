@@ -1,0 +1,40 @@
+name: Beta 2 Concurrency Sync
+
+on:
+  push:
+    branches:
+      - agent/personal-release-beta2
+    paths:
+      - '.github/workflows/beta2-concurrency-sync.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/personal-release-beta2
+      - name: Keep PR release runs cancellable
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('.github/workflows/u33-beta-release.yml')
+          source = path.read_text(encoding='utf-8')
+          old = '  cancel-in-progress: false'
+          new = "  cancel-in-progress: ${{ github.event_name == 'pull_request' }}"
+          if old not in source:
+              raise SystemExit('release concurrency marker not found')
+          path.write_text(source.replace(old, new, 1), encoding='utf-8')
+          PY
+      - name: Commit concurrency update
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/u33-beta-release.yml
+          git commit -m 'ci: cancel superseded PR release builds'
+          git push origin HEAD:agent/personal-release-beta2
