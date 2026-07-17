@@ -18,7 +18,7 @@ const requireMarkers = (label, text, markers) => {
   }
 };
 
-if (pkg.version !== '0.168.0-beta.1') failures.push(`current package version must remain Beta 1 until Beta 2 release: ${pkg.version}`);
+if (pkg.version !== '0.168.0-beta.1') failures.push(`current package version must remain Beta 1 until the next release: ${pkg.version}`);
 
 requireMarkers('electron-builder', builder, [
   "target: 'portable'",
@@ -85,24 +85,18 @@ requireMarkers('packaged page readiness', readiness, [
 requireMarkers('PROJECT_STATE', state, [
   '核心版本：0.168.0-beta.1',
   'Beta 1：已发布并完成远端资产回读',
-  '当前主线：Beta 2 联合整备',
-  'U35-B：正式主题与生产 AppShell 接线完成',
-  'U36-A：导航注册表与 Preload IPC 统一完成',
-  'U36-B：App Shell、Router 与 Overlay 拆分完成',
-  'U36-C：Main IPC 分域注册完成',
-  'U37-B：首页与音声库列表 UI 完成',
   'U37-C：RJ 详情 UI 完成',
-  '当前阶段：U37-D 音乐库与详情 UI',
-  '目标版本：0.169.0-beta.2',
+  '当前任务：U37-D 音乐库与详情 UI',
+  '发布条件：媒体库正式页面完成 + 核心回归与 Windows 发布候选通过',
   'MVP130',
   '用户不承担测试',
 ]);
 
 requireMarkers('PROJECT_ROADMAP', roadmap, [
-  '### U27～U32：真实 Windows 闭环',
-  'U32 完成发布候选 UI、portable、NSIS、安装/卸载、数据保留和 SHA-256',
-  '### U33：Beta 1 发布',
-  '当前主线：Beta 2 联合整备',
+  'portable、NSIS、安装、卸载和用户数据保留',
+  'U37-C：完成',
+  '当前任务：U37-D 音乐库与详情 UI',
+  '个人日用版发布：U37 完成后',
   'MVP130',
 ]);
 
@@ -126,4 +120,4 @@ if (failures.length) {
 }
 
 assert.ok(true);
-console.log('U32 release-candidate packaging production-home verifier PASS');
+console.log('U32 release-candidate packaging capability verifier PASS');

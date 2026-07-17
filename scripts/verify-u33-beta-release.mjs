@@ -59,9 +59,9 @@ assert.deepEqual(plan, {
 
 requireMarkers('README', readme, [
   '> 当前版本：`0.168.0-beta.1`',
-  '> 当前阶段：Beta 1 已发布；准备 `0.169.0-beta.2` 架构与 UI 联合整备',
   '## Beta 1',
-  '## 当前主线：Beta 2',
+  'Issue #65：完成媒体库并发布个人日用版',
+  '当前阶段：U37-D 音乐库与详情 UI',
   '正式下载器 / MVP130',
 ]);
 
@@ -143,25 +143,23 @@ for (const [label, text, markers] of [
   ['PROJECT_STATE', state, [
     '核心版本：0.168.0-beta.1',
     'Beta 1：已发布并完成远端资产回读',
-    '当前主线：Beta 2 联合整备',
-    'U35-A：共享 IPC 合同与 Design System 基础完成',
-    'U35-B：正式主题与生产 AppShell 接线完成',
-    'U36-A：导航注册表与 Preload IPC 统一完成',
-    'U36-B：App Shell、Router 与 Overlay 拆分完成',
-    'U36-C：Main IPC 分域注册完成',
-    '目标版本：0.169.0-beta.2',
+    'U37-C：RJ 详情 UI 完成',
+    '当前任务：U37-D 音乐库与详情 UI',
+    '个人日用版发布',
     'MVP130',
   ]],
-  ['PROJECT_ROADMAP', roadmap, ['### U33：Beta 1 发布', '当前主线：Beta 2 联合整备', 'v0.168.0-beta.1', 'MVP130']],
+  ['PROJECT_ROADMAP', roadmap, [
+    '版本：0.168.0-beta.1',
+    'U37-C：完成',
+    '当前任务：U37-D 音乐库与详情 UI',
+    '个人日用版发布：U37 完成后',
+    'MVP130',
+  ]],
   ['CURRENT_PROJECT_HANDOFF', handoff, [
     '当前版本：0.168.0-beta.1',
     'Beta 1：已发布并完成远端资产校验',
-    'U35-A：完成',
-    'U35-B：完成',
-    'U36-A：完成',
-    'U36-B：完成',
-    'U36-C：完成',
-    '目标版本：0.169.0-beta.2',
+    'U37-C：完成',
+    '当前任务：U37-D 音乐库与详情 UI',
     '用户只接收最终成果',
   ]],
 ]) requireMarkers(label, text, markers);
@@ -175,4 +173,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('U33 completed Beta 1 release contract verifier PASS');
+console.log('U33 completed Beta 1 release capability verifier PASS');
