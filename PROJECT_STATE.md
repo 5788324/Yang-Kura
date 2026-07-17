@@ -14,11 +14,12 @@ U37-C：RJ 详情 UI 完成
 U37-D：音乐库与详情 UI 完成
 U38-A：播放器 Queue/History/Persistence 分离完成
 U38-B：播放器 Controller/Backend 分离完成
-当前任务：U38-C Subtitle loader 与字幕状态
+U38-C：播放器字幕加载与状态边界完成
+当前任务：日常体验与真实 Bug 优先
 大型功能：长期冻结，除非用户明确重新解冻
 ```
 
-Yang-Kura 已完成本地媒体库主要日常页面的正式 UI 迁移，并发布 `v0.169.0-beta.2` 个人日用 prerelease。portable、NSIS、安装卸载、用户数据保留、目标提交、远端资产名、大小和 SHA-256 均已自动校验。播放器 Queue/History/Persistence 与 mpv/HTMLAudio Backend 已完成渐进式分离，当前继续处理 Subtitle loader，不改变已经发布的用户行为。
+Yang-Kura 已完成本地媒体库主要日常页面的正式 UI 迁移，并发布 `v0.169.0-beta.2` 个人日用 prerelease。portable、NSIS、安装卸载、用户数据保留、目标提交、远端资产名、大小和 SHA-256 均已自动校验。播放器 Queue/History/Persistence、mpv/HTMLAudio Backend 以及字幕加载生命周期均已完成渐进式分离，U38 播放器连续结构治理到此收口。
 
 ## 发布事实
 
@@ -51,21 +52,28 @@ Yang-Kura 已完成本地媒体库主要日常页面的正式 UI 迁移，并发
 | 核心功能完整度 | 高，个人本地媒体库主链已完成 |
 | Windows 可交付性 | Beta 2 已发布并完成远端资产验证 |
 | UI 状态 | 主要日常页面和详情均已正式迁移 |
-| 当前重点 | Subtitle loader 与字幕状态边界 |
-| 技术债 | 持续解决，采用渐进式拆分，不推倒重写 |
+| 当前重点 | 真实 Bug、字幕实际体验、日常 UI 和用户可感知功能 |
+| 技术债 | 持续解决，但不再连续进行纯内部播放器拆分 |
 | 大功能 | 长期冻结，不从历史待办自动恢复 |
 
-## 当前任务：U38-C Subtitle loader 与字幕状态
+## U38 播放器治理结论
 
 ```text
-字幕请求与取消
-→ 格式归一结果映射
-→ 当前曲目/Queue 字幕状态同步
-→ missing/error 状态门禁
-→ U38 播放器治理收口
+U38-A：Queue / History / Persistence
+→ U38-B：Controller / Backend
+→ U38-C：Subtitle lifecycle / state
+→ 播放器连续结构治理收口
 ```
 
-U38-A 已将 Queue、History、续播点、旧兼容键和节流写入从 `useAudioPlayer.ts` 抽离；U38-B 已将 HTMLAudio 生命周期、mpv 事件/命令、媒体 URL 解析、fallback 和后端同步抽离到 `usePlayerBackend.ts`。U38-C 只拆 Subtitle loader 和字幕状态更新，不更改真实后端、Seek、完成策略、Queue、History 或续播行为。
+U38-C 新增 `usePlayerSubtitles.ts`，集中字幕请求代次、过期结果丢弃、字幕来源变更重载、格式结果映射和当前曲目/Queue 状态同步。切歌或重新绑定字幕后，旧请求不能覆盖新曲目，也不会继续显示旧字幕。真实后端、Seek、完成策略、Queue、History 和续播行为保持不变。
+
+## 快速开发模式
+
+- 普通 UI、Hook 和状态管理改动：TypeScript、生产构建、相关功能 E2E 和定向 verifier。
+- 播放器 Renderer 改动进入 `Player Fast Validation`，重点执行 U29。
+- portable、NSIS、安装和卸载仅在 Electron Main、安装器、依赖、打包配置或正式发布发生变化时执行。
+- 一个任务使用一个 PR，功能和必要文档同一 PR 收口。
+- 不再为历史文件位置或旧文案重复执行发布级验证。
 
 ## 技术债治理
 
@@ -74,12 +82,11 @@ U38-A 已将 Queue、History、续播点、旧兼容键和节流写入从 `useAu
 - `electron/main.ts` 继续按领域下沉实现；
 - `SettingsPage.tsx` 拆分日常设置与 AI 维护；
 - `DiagnosticsPage.tsx` 归档历史运行时内容；
-- `useAudioPlayer.ts` 继续拆分 Subtitle loader 与字幕状态；
 - `src/types.ts` 按领域拆分；
 - 历史 MVP verifier 和 package 元数据退出日常运行时；
 - 新目录与迁移目录逐步收紧 TypeScript strict。
 
-处理方式：修改哪个用户链路，就同步整理该链路。禁止为了目录整齐搬代码，也禁止长期保留旧实现和新实现双轨。
+处理方式：真实 Bug 和用户体验优先；修改哪个用户链路，再同步整理该链路。禁止为了目录整齐搬代码，也禁止长期保留旧实现和新实现双轨。
 
 ## 长期冻结
 
