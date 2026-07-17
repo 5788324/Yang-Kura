@@ -16,6 +16,7 @@ const checks = [
   ['src/services/librarySessionService.ts', 'PERSISTED_ROOT_SESSION_KEY'],
   ['scripts/test-u28-electron-e2e.mjs', 'restart-persisted-authorization-reread'],
   ['scripts/test-u28-electron-e2e.mjs', 'restart-persisted-authorization-playback'],
+  ['scripts/test-u29-electron-e2e.mjs', 'restart-persisted-authorization-real-resume'],
 ];
 
 const failures = [];
@@ -30,8 +31,18 @@ for (const file of ['src/components/SettingsPage.tsx', 'src/services/librarySess
   if (/absolutePath\s*:/.test(source)) failures.push(`${file} must not persist absolutePath in Renderer`);
 }
 
-if (fs.readFileSync('scripts/test-u28-electron-e2e.mjs', 'utf8').includes('restart-reauthorize-reread')) {
+const u28Source = fs.readFileSync('scripts/test-u28-electron-e2e.mjs', 'utf8');
+if (u28Source.includes('restart-reauthorize-reread')) {
   failures.push('U28 still treats restart reauthorization as the expected behavior');
+}
+
+const u29Source = fs.readFileSync('scripts/test-u29-electron-e2e.mjs', 'utf8');
+for (const obsoleteToken of [
+  'restart-reauthorize-token-reconcile-real-resume',
+  '重启授权必须生成新的当前窗口 token',
+  '需要重新授权资源库并读取 Index',
+]) {
+  if (u29Source.includes(obsoleteToken)) failures.push(`U29 retains obsolete restart behavior: ${obsoleteToken}`);
 }
 
 if (!fs.existsSync('dist-electron/rootAuthorizationStore.js')) {
