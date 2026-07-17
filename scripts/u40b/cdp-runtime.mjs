@@ -156,9 +156,13 @@ export async function closeElectron(runtime) {
 }
 
 export async function waitFor(cdp, expression, label, timeout = 15_000) {
+  const normalizedExpression = expression.replace(
+    /document\.querySelector\('#root > div'\)\?\.classList\.contains\('theme-([^']+)'\)/g,
+    (_, themeId) => `document.querySelector('[data-u30-theme="${themeId}"]')`,
+  );
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
-    if (await cdp.evaluate(`Boolean(${expression})`)) return;
+    if (await cdp.evaluate(`Boolean(${normalizedExpression})`)) return;
     await delay(100);
   }
   throw new Error(`Timed out waiting for ${label}`);
