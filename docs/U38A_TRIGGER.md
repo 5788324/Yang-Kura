@@ -1,5 +1,5 @@
 # U38-A orchestration trigger
 
-Temporary marker used to rerun the branch refactor workflow. It is removed automatically after a successful transformation.
+Temporary marker used to export the transformed workspace for connector-backed commit.
 
-Diagnostic rerun: 2
+Export rerun: 3
