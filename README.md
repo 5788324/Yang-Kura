@@ -2,7 +2,7 @@
 
 > 当前版本：`0.169.0-beta.2`  
 > 代码事实来源：GitHub `main`  
-> 当前阶段：U39-F 增量架构防回退门禁完成；准备综合收尾
+> 当前阶段：U39-G 最终综合验收完成；进入按需日常维护
 
 Yang-Kura 是 Windows 本地音频媒体库，面向 ASMR/RJ 音声和普通本地音乐。技术栈为 React、Vite、TypeScript、Electron；当前索引为 Local JSON Index。
 
@@ -51,12 +51,16 @@ Issue #66：渐进式结构治理与质量提升。
 - U39-D：雾光象牙文字至少 `4.5:1`、交互边界至少 `3:1`，并通过真实 Electron 验收。
 - U39-E：空音乐库不显示工具空壳；导入器未选来源时不展示误导性示例结果。
 - U39-F：新增增量架构门禁，禁止新显式 `any`、Renderer 裸 IPC、实现层跨层导入和新相对导入循环。
+- U39-G：同一候选提交重跑 U28～U32、U39-A～F、stable regression、portable、NSIS、安装卸载和用户数据保留验收。
 
 U39-F 使用 PR base/head 比较。当前仓库已有 1 个历史相对导入环，作为基线保留；后续只在触碰对应链路时清理。解析器自测和临时 Git 仓库负向测试已覆盖四类违规。
+
+U39-G 收口不代表技术债清零。后续不再预排 U39 轮次，只由真实 Bug、明确体验问题、用户需求或触链技术债启动。
 
 ## 验证与交付
 
 - UI/播放器使用 focused validation；架构增量使用 `Architecture Guardrails`。
+- U39 阶段最终证据由 `U39 Final Acceptance` 在同一 Windows 候选提交生成。
 - 纯门禁变更不重复运行 U28～U32 或安装包链。
 - Electron Main、安装器、依赖、用户数据目录和正式发布变化仍执行高风险完整验收。
 - 一个任务一个 PR，功能和必要文档同一 PR 收口。
@@ -78,5 +82,6 @@ U39-F 使用 PR base/head 比较。当前仓库已有 1 个历史相对导入环
 - `PROJECT_ROADMAP.md`
 - `AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md`
 - `AI_HANDOFF/WORKLOG.md`
+- `docs/U39_FINAL_ACCEPTANCE.md`
 - `docs/architecture/U39_ARCHITECTURE_GUARDRAILS.md`
 - `docs/DESIGN.md`
