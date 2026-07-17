@@ -89,6 +89,7 @@
 ### U37-D — 音乐库与详情 UI
 
 - PR：#69
+- 合并提交：`731b3a0e2e727a98d9a33b7ab7080b830dca5777`
 - 新增 `src/features/library/MusicLibraryPage.tsx`，替换旧音乐库生产路由。
 - 完成歌曲、专辑、艺术家、文件夹四种正式视图。
 - 专辑、艺术家和文件夹支持钻取详情、返回导航、播放全部和全部加入队列。
@@ -97,7 +98,8 @@
 - 保留播放、队列、收藏、外部打开、文件定位、音乐元数据覆盖和大库渲染窗口。
 - 新增语义主题样式、窄窗口响应布局、键盘激活和 reduced-motion。
 - 删除旧 `src/components/MusicLibrary.tsx`，不保留新旧实现双轨。
-- U32 Electron 审计升级为验证四视图、钻取详情、批量队列、收藏筛选和窄窗口。
+- U32 Electron 审计验证四视图、钻取详情、批量队列、收藏筛选和窄窗口。
+- TypeScript、U28～U32、focused verifiers、stable regression、最终生产构建、portable、NSIS、安装卸载与数据保留全部通过。
 - 当前任务推进到 Windows 发布候选与个人日用版发布。
 
 ## 当前结论
