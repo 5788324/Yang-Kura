@@ -1,0 +1,42 @@
+/*
+ * U39-D light-theme accessibility bridge.
+ *
+ * The production UI still contains both canonical --yk-* tokens and legacy
+ * Tailwind aliases. Keep both contracts aligned until the legacy variables are
+ * retired, otherwise old pages regress while newer surfaces remain readable.
+ */
+.theme-mist-ivory {
+  /* Visible component boundaries: >= 3:1 against every light surface. */
+  --yk-border-subtle: #8f8074;
+  --yk-border-strong: #78685c;
+
+  /* Small secondary copy: >= 4.5:1 against every light surface. */
+  --yk-text-3: #6f6055;
+
+  /* Accent and status text: >= 4.5:1 on light surfaces. */
+  --yk-accent: #9c482f;
+  --yk-accent-hover: #873b27;
+  --yk-accent-soft: rgb(156 72 47 / 14%);
+  --yk-success: #456a50;
+  --yk-warning: #8a5b17;
+  --yk-danger: #9b4745;
+  --yk-info: #48667f;
+  --yk-focus: #9c482f;
+
+  /* Legacy variables used by existing Tailwind utilities. */
+  --border-color: #8f8074;
+  --border-color-hover: #78685c;
+  --text-muted: #6f6055;
+  --brand-color: #9c482f;
+  --brand-color-hover: #873b27;
+  --brand-active: #7f3523;
+}
+
+.theme-mist-ivory select option {
+  background-color: var(--yk-surface-2) !important;
+  color: var(--yk-text-1) !important;
+}
+
+.theme-mist-ivory :where(button, [role="button"], input, select, textarea, a):focus-visible {
+  outline-color: var(--yk-focus);
+}
