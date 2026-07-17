@@ -35,7 +35,20 @@ jobs:
           node-version: '22'
 
       - name: Verify handoff and project facts
-        run: node scripts/verify-handoff.mjs
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          set -o pipefail
+          node scripts/verify-handoff.mjs 2>&1 | tee artifacts/handoff-validation.log
+
+      - name: Upload handoff validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: handoff-validation-log
+          path: artifacts/handoff-validation.log
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Require U34 architecture baseline
         shell: bash
