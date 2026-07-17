@@ -76,3 +76,9 @@ B2-7：U40 历史清理 + U41 Windows 发布
 - 不把旧代码和新代码长期双轨并存；
 - PR 收口时只执行一次完整稳定回归；
 - 合入后仓库保持可运行，不留下“以后再接”的不可用中间态。
+
+## U38 维护进度
+
+- PLY-002 Queue/History/Persistence：U38-A 已完成。
+- ARC-006 中央 Hook 拆分：完成会话持久化切片，Controller、Backend 与 Subtitle 仍按 U38-B/U38-C 继续。
+

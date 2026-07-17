@@ -12,7 +12,8 @@ U37-A：资源库页面状态与错误恢复完成
 U37-B：首页与音声库列表 UI 完成
 U37-C：RJ 详情 UI 完成
 U37-D：音乐库与详情 UI 完成
-当前任务：长期日用维护与 Issue #66 技术债治理
+U38-A：播放器 Queue/History/Persistence 分离完成
+当前任务：U38-B 播放器 Controller 与 Backend 边界
 大型功能：长期冻结，除非用户明确重新解冻
 ```
 

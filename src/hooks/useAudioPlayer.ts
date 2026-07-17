@@ -1,8 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { PlayerState, AudioTrack } from '../types';
 import { playerExperienceService } from '../services/playerExperienceService';
-import { playerQueuePersistenceService } from '../services/playerQueuePersistenceService';
-import { playbackHistoryService } from '../services/playbackHistoryService';
+import {
+  activateQueueTarget,
+  appendTrackToQueue,
+  resolveAdjacentQueueTarget,
+  startTrackQueue,
+} from '../player/playerQueueTransitions';
+import { restorePlayerSessionState, usePlayerSessionPersistence } from './usePlayerSessionPersistence';
 import { mpvPlaybackPreferenceService, type MpvPlaybackPreference } from '../services/mpvPlaybackPreferenceService';
 import {
   clampPlaybackPosition,
@@ -20,7 +25,7 @@ function safeDuration(value: number): number {
 }
 
 export function useAudioPlayer() {
-  const restoredQueueState = playerQueuePersistenceService.getInitialPlayerState();
+  const restoredQueueState = restorePlayerSessionState();
   const [playerState, setPlayerState] = useState<PlayerState>({
     currentTrack: null,
     isPlaying: false,
@@ -46,10 +51,14 @@ export function useAudioPlayer() {
       ? { trackId: restoredQueueState.currentTrack.id, progress: restoredQueueState.progress }
       : null,
   );
-  const lastHistorySaveRef = useRef<{ trackId: string; progress: number; savedAt: number } | null>(null);
-  const lastQueueSaveRef = useRef<{ signature: string; progress: number; savedAt: number } | null>(null);
   const stateRef = useRef(playerState);
   stateRef.current = playerState;
+
+  const {
+    getResumeProgress,
+    recordTrackCompleted,
+    recordTrackStarted,
+  } = usePlayerSessionPersistence(playerState);
 
   useEffect(() => {
     const audio = new Audio();
@@ -120,32 +129,20 @@ export function useAudioPlayer() {
   const handleAutoTrackEndedRef = useRef<(audio?: HTMLAudioElement) => void>(() => {});
 
   const handleNextTrack = useCallback(() => {
-    setPlayerState(prev => {
-      if (prev.queue.length === 0) return prev;
-
-      let nextIndex = prev.currentIndex + 1;
-      if (prev.loopMode === 'shuffle') {
-        nextIndex = Math.floor(Math.random() * prev.queue.length);
-      } else if (nextIndex >= prev.queue.length) {
-        nextIndex = 0;
-      }
-
-      const nextTrack = prev.queue[nextIndex];
-      const resumeProgress = playbackHistoryService.getResumeProgress(nextTrack.id, nextTrack.duration);
-      pendingInitialSeekRef.current = { trackId: nextTrack.id, progress: resumeProgress };
-      return {
-        ...prev,
-        currentIndex: nextIndex,
-        currentTrack: nextTrack,
-        progress: resumeProgress,
-        isPlaying: true,
-        playbackMode: isTokenizedLocalTrack(nextTrack) ? 'resolving-local-media' : 'mock-simulated',
-        playbackError: null,
-        playbackNotice: null,
-        resolvedMediaUrl: null,
-      };
+    setPlayerState((previous) => {
+      const target = resolveAdjacentQueueTarget(previous, 'next');
+      if (!target) return previous;
+      const resumeProgress = getResumeProgress(target.track);
+      pendingInitialSeekRef.current = { trackId: target.track.id, progress: resumeProgress };
+      return activateQueueTarget(
+        previous,
+        target,
+        resumeProgress,
+        isTokenizedLocalTrack(target.track) ? 'resolving-local-media' : 'mock-simulated',
+      );
     });
-  }, []);
+  }, [getResumeProgress]);
+
 
   useEffect(() => {
     handleNextTrackRef.current = handleNextTrack;
@@ -155,7 +152,7 @@ export function useAudioPlayer() {
     handleAutoTrackEndedRef.current = (audio?: HTMLAudioElement) => {
       const current = stateRef.current;
       if (current.currentTrack) {
-        playbackHistoryService.saveProgress(
+        recordTrackCompleted(
           current.currentTrack,
           current.currentTrack.duration || current.progress,
           current.currentTrack.duration,
@@ -198,71 +195,39 @@ export function useAudioPlayer() {
   }, []);
 
   const handlePrevTrack = useCallback(() => {
-    setPlayerState(prev => {
-      if (prev.queue.length === 0) return prev;
-
-      let prevIndex = prev.currentIndex - 1;
-      if (prev.loopMode === 'shuffle') {
-        prevIndex = Math.floor(Math.random() * prev.queue.length);
-      } else if (prevIndex < 0) {
-        prevIndex = prev.queue.length - 1;
-      }
-
-      const prevTrack = prev.queue[prevIndex];
-      const resumeProgress = playbackHistoryService.getResumeProgress(prevTrack.id, prevTrack.duration);
-      pendingInitialSeekRef.current = { trackId: prevTrack.id, progress: resumeProgress };
-      return {
-        ...prev,
-        currentIndex: prevIndex,
-        currentTrack: prevTrack,
-        progress: resumeProgress,
-        isPlaying: true,
-        playbackMode: isTokenizedLocalTrack(prevTrack) ? 'resolving-local-media' : 'mock-simulated',
-        playbackError: null,
-        playbackNotice: null,
-        resolvedMediaUrl: null,
-      };
+    setPlayerState((previous) => {
+      const target = resolveAdjacentQueueTarget(previous, 'previous');
+      if (!target) return previous;
+      const resumeProgress = getResumeProgress(target.track);
+      pendingInitialSeekRef.current = { trackId: target.track.id, progress: resumeProgress };
+      return activateQueueTarget(
+        previous,
+        target,
+        resumeProgress,
+        isTokenizedLocalTrack(target.track) ? 'resolving-local-media' : 'mock-simulated',
+      );
     });
-  }, []);
+  }, [getResumeProgress]);
+
 
   const handlePlayTrack = useCallback((track: AudioTrack, customQueue?: AudioTrack[]) => {
-    const playQueue = customQueue && customQueue.length > 0 ? customQueue : [track];
-    const idx = playQueue.findIndex(t => t.id === track.id);
-
-    if (track.rjId) {
-      localStorage.setItem(`asmr_last_played_${track.rjId}`, Date.now().toString());
-    }
-
-    const resumeProgress = playbackHistoryService.getResumeProgress(track.id, track.duration);
+    const resumeProgress = getResumeProgress(track);
     pendingInitialSeekRef.current = { trackId: track.id, progress: resumeProgress };
-    playbackHistoryService.saveProgress(track, resumeProgress, track.duration);
+    recordTrackStarted(track, resumeProgress);
+    setPlayerState((previous) => startTrackQueue(
+      previous,
+      track,
+      customQueue,
+      resumeProgress,
+      isTokenizedLocalTrack(track) ? 'resolving-local-media' : 'mock-simulated',
+    ));
+  }, [getResumeProgress, recordTrackStarted]);
 
-    setPlayerState(prev => ({
-      ...prev,
-      currentTrack: track,
-      isPlaying: true,
-      progress: resumeProgress,
-      queue: playQueue,
-      currentIndex: idx >= 0 ? idx : 0,
-      playbackMode: isTokenizedLocalTrack(track) ? 'resolving-local-media' : 'mock-simulated',
-      playbackError: null,
-      playbackNotice: null,
-      resolvedMediaUrl: null,
-    }));
-  }, []);
 
   const handleAddToQueue = useCallback((track: AudioTrack) => {
-    setPlayerState(prev => {
-      const isAlreadyInQueue = prev.queue.some(t => t.id === track.id);
-      const updatedQueue = isAlreadyInQueue ? prev.queue : [...prev.queue, track];
-      return {
-        ...prev,
-        queue: updatedQueue,
-        currentIndex: prev.currentIndex === -1 ? 0 : prev.currentIndex,
-        currentTrack: prev.currentTrack ? prev.currentTrack : track,
-      };
-    });
+    setPlayerState((previous) => appendTrackToQueue(previous, track));
   }, []);
+
 
   const handleTogglePlay = useCallback(() => {
     setPlayerState(prev => {
@@ -693,48 +658,6 @@ export function useAudioPlayer() {
     }
   }, [isPlaying, progress, currentTrackId, currentTrackDuration, currentTrackIsRealAudio, playerState.loopMode]);
 
-  useEffect(() => {
-    if (playerState.currentTrack) {
-      localStorage.setItem('last_played_track_id', playerState.currentTrack.id);
-      localStorage.setItem('last_played_progress', playerState.progress.toString());
-      localStorage.setItem('last_played_track_json', JSON.stringify(playerState.currentTrack));
-    }
-  }, [playerState.currentTrack?.id, playerState.progress]);
-
-  useEffect(() => {
-    const now = Date.now();
-    if (playerState.queue.length === 0) {
-      if (lastQueueSaveRef.current) {
-        playerQueuePersistenceService.clear();
-        lastQueueSaveRef.current = null;
-      }
-      return;
-    }
-
-    const signature = playerQueuePersistenceService.getSaveSignature(playerState);
-    const progress = Math.max(0, playerState.progress || 0);
-    const lastSaved = lastQueueSaveRef.current;
-    const shouldSave =
-      !lastSaved ||
-      lastSaved.signature !== signature ||
-      Math.abs(progress - lastSaved.progress) >= 5 ||
-      now - lastSaved.savedAt >= 5000 ||
-      !playerState.isPlaying;
-
-    if (!shouldSave) return;
-    playerQueuePersistenceService.saveFromPlayerState(playerState);
-    lastQueueSaveRef.current = { signature, progress, savedAt: now };
-  }, [
-    playerState.queue,
-    playerState.currentTrack?.id,
-    playerState.currentIndex,
-    playerState.progress,
-    playerState.volume,
-    playerState.isMuted,
-    playerState.loopMode,
-    playerState.playCompletionMode,
-    playerState.isPlaying,
-  ]);
 
 
   const handleReconcileQueueWithLibrary = useCallback((currentLibraryTracks: AudioTrack[]) => {
@@ -747,22 +670,7 @@ export function useAudioPlayer() {
     });
   }, []);
 
-  useEffect(() => {
-    const track = playerState.currentTrack;
-    if (!track) return;
-    const now = Date.now();
-    const lastSaved = lastHistorySaveRef.current;
-    const progress = Math.max(0, playerState.progress || 0);
-    const shouldSave =
-      !lastSaved ||
-      lastSaved.trackId !== track.id ||
-      Math.abs(progress - lastSaved.progress) >= 5 ||
-      now - lastSaved.savedAt >= 5000 ||
-      !playerState.isPlaying;
-    if (!shouldSave) return;
-    playbackHistoryService.saveProgress(track, progress, track.duration);
-    lastHistorySaveRef.current = { trackId: track.id, progress, savedAt: now };
-  }, [playerState.currentTrack?.id, playerState.progress, playerState.isPlaying, playerState.currentTrack?.duration]);
+
 
   return {
     playerState,

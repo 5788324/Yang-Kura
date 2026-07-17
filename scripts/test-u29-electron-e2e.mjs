@@ -12,6 +12,8 @@ const artifactDir = path.join(cwd, 'artifacts', 'u29-electron-e2e');
 fs.mkdirSync(artifactDir, { recursive: true });
 const ROOT_SESSION_KEY = 'yang_kura_u28_authorized_roots_v1';
 const QUEUE_STORAGE_KEY = 'yang_kura_player_queue_v1';
+const HISTORY_STORAGE_KEY = 'yang_kura_playback_history_v1';
+const LEGACY_LAST_TRACK_JSON_KEY = 'last_played_track_json';
 const WORK_TITLE = 'U29 播放器全链路作品';
 const tracks = [
   { id: 'u29-lrc', title: 'U29 LRC 双语音轨', audio: '01-lrc.wav', subtitle: '01-lrc.lrc', text: 'LRC 原文一', translation: 'LRC 译文一', format: 'lrc' },
@@ -283,9 +285,15 @@ try {
   assert.equal(persisted.queue.length, tracks.length);
   assert.ok(persisted.progress >= 5.5, '队列未保存续播进度');
   assert.ok(persisted.queue.every((track) => !track.rootPathToken && !track.mediaUrl && !String(track.coverUrl ?? '').startsWith('yang-kura-media://')), '持久化队列泄露当前窗口 token 或媒体 URL');
+  const history = await runtime.cdp.evaluate(`JSON.parse(localStorage.getItem(${JSON.stringify(HISTORY_STORAGE_KEY)})??'[]')`);
+  const currentHistory = history.find((entry) => entry.trackId === tracks[0].id);
+  assert.ok(currentHistory?.progress >= 5.5, '播放历史未保存续播进度');
+  assert.ok(!currentHistory.track.rootPathToken && !currentHistory.track.mediaUrl && !String(currentHistory.track.coverUrl ?? '').startsWith('yang-kura-media://'), '播放历史泄露当前窗口 token 或媒体 URL');
+  const legacyTrack = await runtime.cdp.evaluate(`JSON.parse(localStorage.getItem(${JSON.stringify(LEGACY_LAST_TRACK_JSON_KEY)})??'null')`);
+  assert.ok(legacyTrack && !legacyTrack.rootPathToken && !legacyTrack.mediaUrl && !String(legacyTrack.coverUrl ?? '').startsWith('yang-kura-media://'), '兼容续播快照未经过隐私清洗');
   await screenshot(runtime.cdp, '01-first-run-player-subtitles');
   assert.deepEqual(runtime.cdp.pageErrors, [], `first run Renderer errors: ${runtime.cdp.pageErrors.join(' | ')}`);
-  report.scenarios.push({ name: 'play-seek-queue-subtitle-formats', status: 'PASS', resumeProgress: persisted.progress });
+  report.scenarios.push({ name: 'play-seek-queue-subtitle-formats', status: 'PASS', resumeProgress: persisted.progress, historyProgress: currentHistory.progress, sanitizedLegacySnapshot: true });
 } finally { await closeApp(runtime); }
 
 runtime = await launchApp(fixtureDir, profileDir);
