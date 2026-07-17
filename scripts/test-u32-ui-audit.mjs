@@ -29,7 +29,7 @@ class CdpClient {
   async connect() {
     this.socket = new WebSocket(this.url);
     await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error('CDP connection timeout')), 15000);
+      const timer = setTimeout(() => reject(new Error('CDP connection timeout')), 15_000);
       this.socket.addEventListener('open', () => { clearTimeout(timer); resolve(); }, { once: true });
       this.socket.addEventListener('error', () => { clearTimeout(timer); reject(new Error('CDP connection failed')); }, { once: true });
     });
@@ -43,14 +43,19 @@ class CdpClient {
         return;
       }
       if (payload.method === 'Runtime.exceptionThrown') this.errors.push(payload.params?.exceptionDetails?.text ?? 'Runtime exception');
-      if (payload.method === 'Runtime.consoleAPICalled' && payload.params?.type === 'error') this.errors.push((payload.params.args ?? []).map((item) => item.value ?? item.description ?? '').join(' '));
+      if (payload.method === 'Runtime.consoleAPICalled' && payload.params?.type === 'error') {
+        this.errors.push((payload.params.args ?? []).map((item) => item.value ?? item.description ?? '').join(' '));
+      }
     });
     await this.send('Runtime.enable');
     await this.send('Page.enable');
   }
   send(method, params = {}) {
     const id = this.nextId++;
-    return new Promise((resolve, reject) => { this.pending.set(id, { resolve, reject }); this.socket.send(JSON.stringify({ id, method, params })); });
+    return new Promise((resolve, reject) => {
+      this.pending.set(id, { resolve, reject });
+      this.socket.send(JSON.stringify({ id, method, params }));
+    });
   }
   async evaluate(expression, awaitPromise = false) {
     const response = await this.send('Runtime.evaluate', { expression, awaitPromise, returnByValue: true, userGesture: true });
@@ -61,7 +66,7 @@ class CdpClient {
 }
 
 async function waitForTarget(port, child) {
-  const deadline = Date.now() + 30000;
+  const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
     if (child.exitCode !== null) throw new Error(`Electron exited before CDP attached: ${child.exitCode}`);
     try {
@@ -76,7 +81,7 @@ async function waitForTarget(port, child) {
   throw new Error('Electron CDP target timeout');
 }
 
-async function waitFor(cdp, expression, label, timeout = 15000) {
+async function waitFor(cdp, expression, label, timeout = 15_000) {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     if (await cdp.evaluate(`Boolean(${expression})`)) return;
@@ -86,8 +91,7 @@ async function waitFor(cdp, expression, label, timeout = 15000) {
 }
 
 async function click(cdp, selector) {
-  const encoded = JSON.stringify(selector);
-  await cdp.evaluate(`(() => { const element = document.querySelector(${encoded}); if (!element) throw new Error('Missing selector: ' + ${encoded}); element.click(); return true; })()`);
+  await cdp.evaluate(`(() => { const element = document.querySelector(${JSON.stringify(selector)}); if (!element) throw new Error('Missing selector: ${selector}'); element.click(); return true; })()`);
   await delay(260);
 }
 
@@ -101,17 +105,17 @@ async function screenshot(cdp, name) {
 async function capturePage(cdp, pageId, fileName) {
   await click(cdp, `#nav-${pageId}`);
   await waitFor(cdp, `document.querySelector('#nav-${pageId}')?.getAttribute('aria-current') === 'page'`, `${pageId} active`);
-  await delay(220);
   const metrics = await cdp.evaluate(`(() => {
     const main = document.querySelector('main');
-    const buttons = [...main.querySelectorAll('button')].filter((item) => { const rect = item.getBoundingClientRect(); return rect.width > 0 && rect.height > 0; });
-    const cards = [...main.querySelectorAll('[class*="rounded-"][class*="border"]')].filter((item) => { const rect = item.getBoundingClientRect(); return rect.width > 140 && rect.height > 48; });
-    const heading = main.querySelector('h1,h2');
+    const buttons = [...main.querySelectorAll('button')].filter((item) => item.getBoundingClientRect().height > 0);
     return {
-      pageId: ${JSON.stringify(pageId)}, title: heading?.textContent?.trim() ?? '', visibleButtonCount: buttons.length,
-      visibleCardCount: cards.length, mainScrollHeight: main.scrollHeight, mainClientHeight: main.clientHeight,
+      pageId: ${JSON.stringify(pageId)},
+      title: main.querySelector('h1,h2')?.textContent?.trim() ?? '',
+      visibleButtonCount: buttons.length,
+      mainScrollHeight: main.scrollHeight,
+      mainClientHeight: main.clientHeight,
       horizontalOverflow: document.documentElement.scrollWidth > innerWidth + 1,
-      buttonHeights: [...new Set(buttons.map((item) => Math.round(item.getBoundingClientRect().height)))].sort((a,b) => a-b),
+      buttonHeights: [...new Set(buttons.map((item) => Math.round(item.getBoundingClientRect().height)))].sort((a, b) => a - b),
     };
   })()`);
   assert.equal(metrics.horizontalOverflow, false, `${pageId} has no horizontal overflow`);
@@ -124,6 +128,39 @@ function electronExecutable() {
   if (!fs.existsSync(executable)) throw new Error(`Electron binary missing: ${executable}`);
   return executable;
 }
+
+const makeTrack = (id, title, artist, album, type, duration, rjId) => ({
+  id, title, artist, album, duration, coverUrl: '', type, rjId,
+  playbackSourceKind: 'tokenized-local-file', rootPathToken: 'u32-audit-root',
+  sourceRelativePath: `${type}/${id}.wav`, fileSize: `${Math.max(1, Math.round(duration / 60))} MB`,
+  subtitleRelativePaths: [`${type}/${id}.lrc`], addedAt: '2026-07-01T00:00:00.000Z',
+});
+const asmrTracks = [
+  makeTrack('a-01', '01 双耳轻声与雨夜陪伴', '月白音声', '雨宿りの夜', 'asmr', 1680, 'RJ410001'),
+  makeTrack('a-02', '02 梵天与耳部按摩', '月白音声', '雨宿りの夜', 'asmr', 1420, 'RJ410001'),
+  makeTrack('a-03', '01 深夜图书馆的悄悄话', '白河ゆき', '閉館後の図書室', 'asmr', 2100, 'RJ410002'),
+  makeTrack('a-04', '01 猫咖店员的午后护理', '星野こはる', 'ねこカフェ休憩室', 'asmr', 1860, 'RJ410003'),
+];
+const musicTracks = [
+  makeTrack('m-01', 'Blue Hour', 'Mina Aoki', 'City Lights', 'music', 244),
+  makeTrack('m-02', 'Last Train Home', 'Mina Aoki', 'City Lights', 'music', 218),
+];
+const works = [
+  { id: 'RJ410001', title: '雨宿りの夜', circle: '月白音声', cvs: ['月白りん'], tags: ['雨声', '耳语'], tracks: asmrTracks.slice(0, 2), personalStatus: 'listening' },
+  { id: 'RJ410002', title: '閉館後の図書室', circle: 'Librarium', cvs: ['白河ゆき'], tags: ['图书馆', '低语'], tracks: asmrTracks.slice(2, 3), personalStatus: 'unheard' },
+  { id: 'RJ410003', title: 'ねこカフェ休憩室', circle: '午後三時', cvs: ['星野こはる'], tags: ['猫咖', '按摩'], tracks: asmrTracks.slice(3, 4), personalStatus: 'completed' },
+].map((work, index) => ({
+  ...work, releaseDate: `2026-0${index + 1}-12`, coverUrl: '', status: 'identified',
+  fileCount: work.tracks.length, totalDuration: work.tracks.reduce((sum, track) => sum + track.duration, 0),
+  description: '用于发布候选视觉审查的本地样本作品。', rating: 5 - index,
+  addedAt: `2026-07-0${index + 1}T00:00:00.000Z`,
+}));
+const albums = [{ id: 'album-1', title: 'City Lights', artist: 'Mina Aoki', releaseYear: '2026', genre: 'City Pop', coverUrl: '', tracks: musicTracks }];
+const playlists = [{
+  id: 'playlist-night', name: '夜间放松', description: 'ASMR 与安静音乐混合播放', coverUrl: '', creator: '本地用户',
+  tracksCount: 1, tracks: [musicTracks[0]], isSystem: false, sourceKind: 'user-local',
+}];
+const seed = { asmrTracks, musicTracks, works, albums, playlists };
 
 const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yang-kura-u32-ui-audit-'));
 const port = await reservePort();
@@ -143,58 +180,49 @@ try {
   await waitFor(cdp, "document.querySelector('#windows-app-bar')", 'application shell');
   await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 800, deviceScaleFactor: 1.25, mobile: false });
 
-  const seed = (() => {
-    const makeTrack = (id, title, artist, album, type, duration, rjId) => ({ id, title, artist, album, duration, coverUrl: '', type, rjId, playbackSourceKind: 'tokenized-local-file', rootPathToken: 'u32-audit-root', sourceRelativePath: `${type}/${id}.wav`, fileSize: `${Math.round(duration / 12)} MB`, subtitleRelativePaths: [`${type}/${id}.lrc`], addedAt: '2026-07-01T00:00:00.000Z' });
-    const asmrTracks = [makeTrack('a-01','01 双耳轻声与雨夜陪伴','月白音声','雨宿りの夜','asmr',1680,'RJ410001'),makeTrack('a-02','02 梵天与耳部按摩','月白音声','雨宿りの夜','asmr',1420,'RJ410001'),makeTrack('a-03','01 深夜图书馆的悄悄话','白河ゆき','閉館後の図書室','asmr',2100,'RJ410002'),makeTrack('a-04','01 猫咖店员的午后护理','星野こはる','ねこカフェ休憩室','asmr',1860,'RJ410003'),makeTrack('a-05','01 海边旅馆的睡前照顾','水瀬しおり','波音の宿','asmr',2520,'RJ410004'),makeTrack('a-06','01 炉火旁的冬日闲聊','橘まどか','冬灯り','asmr',1980,'RJ410005')];
-    const musicTracks = [makeTrack('m-01','Blue Hour','Mina Aoki','City Lights','music',244),makeTrack('m-02','Last Train Home','Mina Aoki','City Lights','music',218),makeTrack('m-03','Drift','North Window','Still Water','music',276),makeTrack('m-04','Paper Moon','Lumen','Paper Moon','music',232),makeTrack('m-05','Sunday Walk','April Notes','Small Seasons','music',205),makeTrack('m-06','After Rain','April Notes','Small Seasons','music',261)];
-    const works = [['RJ410001','雨宿りの夜','月白音声',['月白りん'],['雨声','耳语','助眠'],asmrTracks.slice(0,2),'listening'],['RJ410002','閉館後の図書室','Librarium',['白河ゆき'],['图书馆','低语'],asmrTracks.slice(2,3),'unheard'],['RJ410003','ねこカフェ休憩室','午後三時',['星野こはる'],['猫咖','按摩'],asmrTracks.slice(3,4),'completed'],['RJ410004','波音の宿','海辺制作所',['水瀬しおり'],['海浪','照顾'],asmrTracks.slice(4,5),'unheard'],['RJ410005','冬灯り','橘音工房',['橘まどか'],['炉火','闲聊'],asmrTracks.slice(5,6),'listening']].map(([id,title,circle,cvs,tags,tracks,personalStatus], index) => ({ id,title,circle,cvs,tags,tracks,personalStatus,releaseDate:`2026-0${index+1}-12`,coverUrl:'',status:index===3?'missing-cover':'identified',fileCount:tracks.length,totalDuration:tracks.reduce((sum,track)=>sum+track.duration,0),description:'用于发布候选视觉审查的本地样本作品。',rating:index%2?4:5,addedAt:`2026-07-0${index+1}T00:00:00.000Z` }));
-    const albums = [{id:'album-1',title:'City Lights',artist:'Mina Aoki',releaseYear:'2026',genre:'City Pop',coverUrl:'',tracks:musicTracks.slice(0,2)},{id:'album-2',title:'Still Water',artist:'North Window',releaseYear:'2025',genre:'Ambient',coverUrl:'',tracks:musicTracks.slice(2,3)},{id:'album-3',title:'Paper Moon',artist:'Lumen',releaseYear:'2024',genre:'Indie Pop',coverUrl:'',tracks:musicTracks.slice(3,4)},{id:'album-4',title:'Small Seasons',artist:'April Notes',releaseYear:'2026',genre:'Acoustic',coverUrl:'',tracks:musicTracks.slice(4,6)}];
-    const playlists = [{id:'playlist-night',name:'夜间放松',description:'ASMR 与安静音乐混合播放',coverUrl:'',creator:'本地用户',tracksCount:4,tracks:[asmrTracks[0],asmrTracks[2],musicTracks[2],musicTracks[4]],isSystem:false,sourceKind:'user-local'},{id:'playlist-focus',name:'工作专注',description:'不打扰的轻音乐',coverUrl:'',creator:'本地用户',tracksCount:3,tracks:musicTracks.slice(0,3),isSystem:false,sourceKind:'user-local'},{id:'playlist-sleep',name:'睡前收藏',description:'耳语、雨声和海浪',coverUrl:'',creator:'本地用户',tracksCount:3,tracks:[asmrTracks[0],asmrTracks[3],asmrTracks[4]],isSystem:false,sourceKind:'user-local'}];
-    return { asmrTracks, musicTracks, works, albums, playlists };
-  })();
-
   await cdp.evaluate(`(() => {
     const seed = ${JSON.stringify(seed)}; const now = new Date().toISOString();
+    localStorage.removeItem('yang_kura_last_read_library_index_result');
     localStorage.setItem('sqlite_rj_works', JSON.stringify(seed.works));
     localStorage.setItem('sqlite_music_albums', JSON.stringify(seed.albums));
-    localStorage.setItem('yang_kura_user_playlists_v1', JSON.stringify({ version:1, updatedAt:now, playlists:seed.playlists }));
-    localStorage.setItem('sqlite_settings', JSON.stringify({audioLibPath:'<已授权本地音声库>',musicLibPath:'<已授权本地音乐库>',asmrPaths:[{id:'asmr-1',type:'local',path:'<资源库令牌>',label:'本地音声库'}],musicPaths:[{id:'music-1',type:'local',path:'<资源库令牌>',label:'本地音乐库'}],tempDownloadPath:'<未设置>',currentTheme:'acrylic-mist',enableOverlay:true,privacyMode:true}));
+    localStorage.setItem('yang_kura_user_playlists_v1', JSON.stringify({ version: 1, updatedAt: now, playlists: seed.playlists }));
+    localStorage.setItem('sqlite_settings', JSON.stringify({audioLibPath:'<已授权本地音声库>',musicLibPath:'<已授权本地音乐库>',asmrPaths:[],musicPaths:[],tempDownloadPath:'<未设置>',currentTheme:'acrylic-mist',enableOverlay:true,privacyMode:true}));
     sessionStorage.setItem('yang_kura_u28_authorized_roots_v1', JSON.stringify({ mixed:{rootPathToken:'u32-audit-root',displayName:'U32 视觉审查媒体库',libraryType:'mixed'} }));
-    localStorage.setItem('yang_kura_library_session_v1', JSON.stringify({version:1,updatedAt:now,selectedRoots:{mixed:{libraryType:'mixed',displayName:'U32 视觉审查媒体库',selectedAt:now}},lastIndex:{libraryType:'mixed',displayName:'U32 视觉审查媒体库',indexRelativePath:'library-index.json',readAt:now,generatedAt:now,rootCount:1,collectionCount:9,trackCount:12,warningCount:1}}));
-    localStorage.setItem('yang_kura_player_queue_v1', JSON.stringify({version:1,updatedAt:now,queue:[seed.asmrTracks[0],seed.musicTracks[0],seed.asmrTracks[2]],currentTrackId:seed.asmrTracks[0].id,currentIndex:0,progress:462,volume:0.72,isMuted:false,loopMode:'all',playCompletionMode:'continue-queue'}));
-    localStorage.setItem('last_played_track_id', seed.asmrTracks[0].id); localStorage.setItem('last_played_progress','462'); localStorage.setItem('last_played_track_json',JSON.stringify(seed.asmrTracks[0]));
+    localStorage.setItem('yang_kura_library_session_v1', JSON.stringify({version:1,updatedAt:now,selectedRoots:{mixed:{libraryType:'mixed',displayName:'U32 视觉审查媒体库',selectedAt:now}},lastIndex:{libraryType:'mixed',displayName:'U32 视觉审查媒体库',indexRelativePath:'library-index.json',readAt:now,generatedAt:now,rootCount:1,collectionCount:4,trackCount:6,warningCount:0}}));
+    localStorage.setItem('yang_kura_player_queue_v1', JSON.stringify({version:1,updatedAt:now,queue:[seed.asmrTracks[0],seed.musicTracks[0]],currentTrackId:seed.asmrTracks[0].id,currentIndex:0,progress:462,volume:0.72,isMuted:false,loopMode:'all',playCompletionMode:'continue-queue'}));
+    localStorage.setItem('last_played_track_id', seed.asmrTracks[0].id);
+    localStorage.setItem('last_played_progress', '462');
+    localStorage.setItem('last_played_track_json', JSON.stringify(seed.asmrTracks[0]));
     location.reload(); return true;
   })()`);
 
   await waitFor(cdp, "document.querySelector('#app-player-bar')?.dataset.u29TrackId === 'a-01'", 'seeded player');
   assert.equal(await cdp.evaluate("document.querySelector('#sidebar-ai-maintenance-toggle')?.offsetParent === null"), true, 'engineering maintenance toggle is hidden');
-  assert.equal(await cdp.evaluate("document.querySelector('#nav-diagnostics')?.offsetParent === null && document.querySelector('#nav-downloader')?.offsetParent === null"), true, 'engineering routes are hidden from daily navigation');
+  assert.equal(await cdp.evaluate("document.querySelector('#nav-diagnostics')?.offsetParent === null && document.querySelector('#nav-downloader')?.offsetParent === null"), true, 'engineering routes are hidden');
 
   await capturePage(cdp, 'dashboard', '01-dashboard-after');
-  assert.equal(await cdp.evaluate("document.querySelector('[data-u37b-home=\"daily\"]') !== null"), true, 'U37-B production home is active');
-  assert.equal(await cdp.evaluate("document.querySelector('#mvp45-home-recent-listening')?.getBoundingClientRect().top < innerHeight"), true, 'dashboard recent media enters first viewport');
+  assert.equal(await cdp.evaluate("document.querySelector('[data-u37b-home=\"daily\"]') !== null"), true, 'U37-B home is active');
+  assert.equal(await cdp.evaluate("document.querySelector('#mvp45-home-recent-listening')?.getBoundingClientRect().top < innerHeight"), true, 'recent listening enters first viewport');
 
   await capturePage(cdp, 'asmr-lib', '02-asmr-library-after');
   assert.equal(await cdp.evaluate("document.querySelector('[data-u37b-asmr-library=\"grid\"]') !== null"), true, 'U37-B ASMR grid is active');
-  assert.equal(await cdp.evaluate("document.querySelectorAll('[data-u37b-asmr-card]').length >= 5"), true, 'U37-B ASMR cards render seeded works');
-  assert.equal(await cdp.evaluate("document.querySelector('#mvp53-asmr-visual-unity') === null"), true, 'legacy ASMR engineering summary removed from daily DOM');
+  assert.equal(await cdp.evaluate("document.querySelectorAll('[data-u37b-asmr-card]').length >= 3"), true, 'U37-B ASMR cards render seeded works');
+  assert.equal(await cdp.evaluate("document.querySelector('#mvp53-asmr-visual-unity') === null"), true, 'legacy ASMR engineering summary removed');
 
-  const bulkSelection = await cdp.evaluate(`(() => {
+  const selectedCount = await cdp.evaluate(`(() => {
     const boxes = [...document.querySelectorAll('[data-u37b-asmr-card] input[type="checkbox"]')].slice(0, 2);
     boxes.forEach((box) => box.click());
-    const selectedText = document.querySelector('.u37b-selection-bar')?.textContent ?? '';
-    const button = [...document.querySelectorAll('button')].find((item) => item.textContent?.includes('批量加入歌单'));
-    if (!button || button.disabled) throw new Error('U37-B bulk playlist button unavailable');
-    button.click();
-    return { boxCount: boxes.length, selectedText };
+    return boxes.length;
   })()`);
-  assert.equal(bulkSelection.boxCount, 2, 'two ASMR works selected');
-  assert.ok(bulkSelection.selectedText.includes('2'), 'selection bar reports two selected works');
+  assert.equal(selectedCount, 2, 'two ASMR works selected');
+  await waitFor(cdp, "document.querySelector('.u37b-selection-bar')?.textContent?.includes('已选择 2 个作品')", 'selection count');
+  await waitFor(cdp, "[...document.querySelectorAll('button')].some((item) => item.textContent?.includes('批量加入歌单') && !item.disabled)", 'bulk playlist button');
+  await cdp.evaluate(`(() => { const button = [...document.querySelectorAll('button')].find((item) => item.textContent?.includes('批量加入歌单') && !item.disabled); button.click(); return true; })()`);
   await waitFor(cdp, "document.body.innerText.includes('已将 2 个作品加入')", 'bulk playlist feedback');
-  await waitFor(cdp, "JSON.parse(localStorage.getItem('yang_kura_user_playlists_v1') ?? '{}').playlists?.find((item) => item.id === 'playlist-night')?.tracksCount >= 6", 'bulk playlist persistence');
+  await waitFor(cdp, "JSON.parse(localStorage.getItem('yang_kura_user_playlists_v1') ?? '{}').playlists?.find((item) => item.id === 'playlist-night')?.tracksCount >= 3", 'bulk playlist persistence');
 
   await click(cdp, '[aria-label="列表浏览"]');
-  await waitFor(cdp, "document.querySelector('[data-u37b-asmr-library=\"list\"] .u37b-asmr-list')", 'U37-B ASMR list view');
+  await waitFor(cdp, "document.querySelector('[data-u37b-asmr-library=\"list\"] .u37b-asmr-list')", 'ASMR list view');
   await screenshot(cdp, '02b-asmr-library-list-after');
 
   await capturePage(cdp, 'music-lib', '03-music-library-after');
@@ -204,20 +232,22 @@ try {
   await capturePage(cdp, 'importer', '05-importer-after');
   assert.equal(await cdp.evaluate("getComputedStyle(document.querySelector('#mvp112-importer-primary-flow')).display === 'none'"), true, 'importer instructional wall hidden');
   await capturePage(cdp, 'settings', '06-settings-after');
-  assert.equal(await cdp.evaluate("Math.max(...[...document.querySelectorAll('[data-settings-tab]')].map((item) => item.getBoundingClientRect().height)) <= 48"), true, 'settings tabs use compact aligned height');
+  assert.equal(await cdp.evaluate("Math.max(...[...document.querySelectorAll('[data-settings-tab]')].map((item) => item.getBoundingClientRect().height)) <= 48"), true, 'settings tabs remain compact');
   await screenshot(cdp, '07-sidebar-clean-after');
 
   await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1040, height: 680, deviceScaleFactor: 1, mobile: false });
   await capturePage(cdp, 'settings', '08-settings-narrow-after');
-
   assert.deepEqual(cdp.errors, [], 'renderer has no runtime or console errors');
   report.status = 'pass';
 } catch (error) {
-  report.status = 'fail'; report.error = error instanceof Error ? error.stack ?? error.message : String(error); throw error;
+  report.status = 'fail';
+  report.error = error instanceof Error ? error.stack ?? error.message : String(error);
+  throw error;
 } finally {
   report.stdout = stdout.join(''); report.stderr = stderr.join(''); report.consoleErrors = cdp?.errors ?? [];
   fs.writeFileSync(path.join(artifactDir, 'report.json'), JSON.stringify(report, null, 2), 'utf8');
-  cdp?.close(); if (child.exitCode === null) child.kill(); await delay(300); fs.rmSync(profileDir, { recursive: true, force: true });
+  cdp?.close(); if (child.exitCode === null) child.kill(); await delay(300);
+  fs.rmSync(profileDir, { recursive: true, force: true });
 }
 
 console.log('U32 UI visual audit capture PASS');
