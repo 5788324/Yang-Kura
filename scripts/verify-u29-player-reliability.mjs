@@ -7,7 +7,8 @@ import { createRequire } from 'node:module';
 import ts from 'typescript';
 
 const helperSource = fs.readFileSync('src/player/playerRuntimePolicy.ts', 'utf8');
-const hookSource = fs.readFileSync('src/hooks/useAudioPlayer.ts', 'utf8');
+const controllerSource = fs.readFileSync('src/hooks/useAudioPlayer.ts', 'utf8');
+const backendSource = fs.readFileSync('src/hooks/usePlayerBackend.ts', 'utf8');
 const appSource = fs.readFileSync('src/App.tsx', 'utf8');
 const queueDrawerSource = fs.readFileSync('src/app/QueueDrawer.tsx', 'utf8');
 const playerBarSource = fs.readFileSync('src/components/PlayerBar.tsx', 'utf8');
@@ -19,12 +20,12 @@ const homeSource = fs.readFileSync('src/services/homeRecentListeningService.ts',
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
 for (const [label, ok] of [
-  ['restored progress seeds pending playback start', hookSource.includes('restoredQueueState?.currentTrack') && hookSource.includes('progress: restoredQueueState.progress')],
-  ['HTMLAudio uses resolved playback start', hookSource.includes('const initialSeek = resolvePlaybackStart(currentTrack') && hookSource.includes('audioRef.current.currentTime = initialSeek')],
-  ['mpv uses resolved playback start', hookSource.includes('startSeconds: resolvePlaybackStart(currentTrack')],
-  ['play toggle blocks stale current-window token', hookSource.includes('isLocalTrackAwaitingAuthorization(prev.currentTrack)') && hookSource.includes('需要重新授权资源库并读取 Index')],
-  ['seek clamps to duration', hookSource.includes('clampPlaybackPosition(seconds, stateRef.current.currentTrack?.duration)')],
-  ['queue reconciles after fresh Index', hookSource.includes('handleReconcileQueueWithLibrary') && appSource.includes('handleReconcileQueueWithLibrary(currentLibraryTracks)')],
+  ['restored progress seeds backend pending playback start', controllerSource.includes('initialPendingSeek: restoredQueueState?.currentTrack') && controllerSource.includes('progress: restoredQueueState.progress')],
+  ['HTMLAudio uses resolved playback start', backendSource.includes('const initialSeek = resolvePlaybackStart(') && backendSource.includes('audioRef.current.currentTime = initialSeek')],
+  ['mpv uses resolved playback start', backendSource.includes('startSeconds: resolvePlaybackStart(')],
+  ['play toggle blocks stale current-window token', controllerSource.includes('isLocalTrackAwaitingAuthorization(previous.currentTrack)') && controllerSource.includes('需要重新授权资源库并读取 Index')],
+  ['seek clamps to duration', backendSource.includes('clampPlaybackPosition(seconds, current.currentTrack?.duration)')],
+  ['queue reconciles after fresh Index', controllerSource.includes('handleReconcileQueueWithLibrary') && appSource.includes('handleReconcileQueueWithLibrary(currentLibraryTracks)')],
   ['playlist tracks reconcile after fresh Index', appSource.includes('reconcileTracksWithLibrary(playlist.tracks, currentLibraryTracks)')],
   ['persistent queue strips current-window token', queueSource.includes('sanitizePersistedPlayerTrack(track)')],
   ['playback history strips current-window token', historySource.includes('sanitizePersistedPlayerTrack(track)')],
@@ -35,6 +36,8 @@ for (const [label, ok] of [
   ['PlayerBar exposes stable non-path runtime state', playerBarSource.includes('data-u29-playback-mode') && playerBarSource.includes('data-u29-source-ready') && !playerBarSource.includes('data-u29-root-path-token')],
   ['queue drawer has stable item selectors', queueDrawerSource.includes('id="u29-queue-drawer"') && queueDrawerSource.includes('data-queue-track-id={track.id}') && appSource.includes('<QueueDrawer')],
   ['lyrics panel exposes stable status only', lyricsPanelSource.includes('data-u29-lyrics-status') && lyricsPanelSource.includes('data-u29-lyrics-path')],
+  ['backend owns mpv and HTMLAudio coordination', backendSource.includes('requestMpvPlaybackStart') && backendSource.includes('requestResolveTrackMediaUrl') && backendSource.includes('new Audio()')],
+  ['controller does not own backend side effects', !controllerSource.includes('requestMpvPlaybackStart') && !controllerSource.includes('requestResolveTrackMediaUrl') && !controllerSource.includes('new Audio(')],
   ['U29 Electron E2E command exists', pkg.scripts?.['test:u29:electron-e2e'] === 'node scripts/test-u29-electron-e2e.mjs'],
 ]) {
   assert.equal(ok, true, label);
