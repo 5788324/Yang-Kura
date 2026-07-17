@@ -8,6 +8,9 @@ on:
       - '**/*.md'
       - 'docs/**'
       - 'AI_HANDOFF/**'
+      - 'src/hooks/useAudioPlayer.ts'
+      - 'src/hooks/usePlayerSubtitles.ts'
+      - 'scripts/verify-u38c-player-subtitles.mjs'
   workflow_dispatch:
 
 permissions:
