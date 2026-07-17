@@ -28,9 +28,21 @@ jobs:
         id: patch
         shell: bash
         run: |
+          cp scripts/apply-u39c-root-authorization-persistence.mjs /tmp/u39c-patch-source.mjs
+          python - <<'PY'
+          from pathlib import Path
+          target = Path('scripts/apply-u39c-root-authorization-persistence.mjs')
+          source = target.read_text(encoding='utf-8')
+          old = '- U39-B：设置页顶部新增独立 AI 维护入口；Diagnostics 继续两阶段按需加载，并可返回设置。\\n'
+          new = '- U39-B：设置页提供独立 AI 维护入口；维护概览、性能诊断和完整历史诊断逐级按需加载。\\n'
+          if old not in source:
+              raise SystemExit('handoff anchor workaround source missing')
+          target.write_text(source.replace(old, new), encoding='utf-8')
+          PY
           set +e
           node scripts/apply-u39c-root-authorization-persistence.mjs > u39c-patch.log 2>&1
           code=$?
+          mv /tmp/u39c-patch-source.mjs scripts/apply-u39c-root-authorization-persistence.mjs
           cat u39c-patch.log
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           exit 0
