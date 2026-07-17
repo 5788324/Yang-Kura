@@ -63,10 +63,10 @@ if (failures.length === 0) {
     '[data-u37c-metadata-editor=\\"ready\\"]', 'provider preview remains available',
   ]);
 
-  requireIncludes('PROJECT_STATE.md', state, ['U37-C：RJ 详情 UI 完成', '当前任务：U37-D 音乐库与详情 UI']);
-  requireIncludes('CURRENT_PROJECT_HANDOFF.md', handoff, ['U37-C：完成', '当前任务：U37-D 音乐库与详情 UI']);
-  requireIncludes('WORKLOG.md', worklog, ['### U37-C', '当前任务：U37-D 音乐库与详情 UI']);
-  requireIncludes('U37 execution plan', plan, ['### U37-C：RJ 详情 — 已完成', '### U37-D：音乐库、专辑与艺术家详情 — 当前任务']);
+  requireIncludes('PROJECT_STATE.md', state, ['U37-C：RJ 详情 UI 完成', '当前任务：Windows 发布候选与个人日用版发布']);
+  requireIncludes('CURRENT_PROJECT_HANDOFF.md', handoff, ['U37-C：完成', '当前任务：Windows 发布候选与个人日用版发布']);
+  requireIncludes('WORKLOG.md', worklog, ['### U37-C', '当前任务：Windows 发布候选与个人日用版发布']);
+  requireIncludes('U37 execution plan', plan, ['### U37-C：RJ 详情 — 已完成', '### U37-D：音乐库、专辑与艺术家详情 — 已完成']);
 }
 
 if (failures.length) {
