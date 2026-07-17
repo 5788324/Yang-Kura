@@ -171,16 +171,16 @@ async function captureReadyPage(executable, label, profileRoot) {
     await waitFor(cdp, "document.querySelector('#windows-app-bar')", `${label} shell`);
     await waitFor(
       cdp,
-      "document.querySelector('main') && !document.body?.innerText.includes('正在打开页面') && document.querySelector('main')?.innerText.includes('开始建立你的本地媒体库')",
-      `${label} complete home content`,
+      "document.querySelector('main [data-u37b-home=\"daily\"]') && !document.body?.innerText.includes('正在打开页面') && document.querySelector('main')?.innerText.includes('尚未选择资源库') && document.querySelector('main')?.innerText.includes('继续播放') && document.querySelector('main')?.innerText.includes('常用入口')",
+      `${label} production home content`,
     );
     assert.deepEqual(cdp.errors, [], `${label}: renderer errors: ${cdp.errors.join(' | ')}`);
     const bodyText = await cdp.evaluate("document.querySelector('main')?.innerText ?? ''");
-    assert.ok(bodyText.length > 100, `${label}: complete home content is unexpectedly short`);
+    assert.ok(bodyText.length > 100, `${label}: production home content is unexpectedly short`);
     const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png', fromSurface: true });
     const fileName = `${label}-ready.png`;
     fs.writeFileSync(path.join(artifactDir, fileName), Buffer.from(screenshot.data, 'base64'));
-    report.captures.push({ label, fileName, bodyTextLength: bodyText.length });
+    report.captures.push({ label, fileName, bodyTextLength: bodyText.length, page: 'u37b-production-home' });
     await cdp.evaluate('window.close(); true');
   } finally {
     cdp?.close();
@@ -243,4 +243,4 @@ try {
   fs.writeFileSync(path.join(artifactDir, 'page-readiness-report.json'), JSON.stringify(report, null, 2), 'utf8');
 }
 
-console.log('U32 packaged complete-page readiness PASS');
+console.log('U32 packaged production-home readiness PASS');
