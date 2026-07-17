@@ -9,7 +9,7 @@ on:
       - 'docs/U38A_TRIGGER.md'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   apply:
@@ -22,34 +22,13 @@ jobs:
       - name: Execute U38-A branch transformation
         shell: bash
         run: python scripts/apply-u38a-refactor.py
-      - name: Assemble transformed workspace
+      - name: Commit generated source and documentation
         shell: bash
         run: |
-          mkdir -p artifacts/u38a-transformed-workspace
-          while IFS= read -r path; do
-            mkdir -p "artifacts/u38a-transformed-workspace/$(dirname "$path")"
-            cp "$path" "artifacts/u38a-transformed-workspace/$path"
-          done <<'EOF'
-          src/player/playerQueueTransitions.ts
-          src/hooks/usePlayerSessionPersistence.ts
-          src/hooks/useAudioPlayer.ts
-          scripts/test-u29-electron-e2e.mjs
-          scripts/verify-u38a-player-session-boundaries.mjs
-          package.json
-          scripts/run-stable-regression.mjs
-          .github/workflows/branch-validation.yml
-          docs/architecture/U38_PLAYER_SESSION_BOUNDARIES.md
-          PROJECT_STATE.md
-          PROJECT_ROADMAP.md
-          AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md
-          AI_HANDOFF/WORKLOG.md
-          README.md
-          docs/architecture/REFACTOR_BACKLOG.md
-          EOF
-      - name: Upload transformed workspace
-        uses: actions/upload-artifact@v4
-        with:
-          name: u38a-transformed-workspace
-          path: artifacts/u38a-transformed-workspace
-          if-no-files-found: error
-          retention-days: 7
+          git checkout -- .github/workflows/branch-validation.yml
+          rm -f docs/U38A_TRIGGER.md scripts/apply-u38a-refactor.py
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src package.json scripts docs README.md PROJECT_STATE.md PROJECT_ROADMAP.md AI_HANDOFF
+          git commit -m 'U38-A: split player queue history and persistence'
+          git push origin HEAD:agent/player-session-boundaries
