@@ -1,7 +1,18 @@
-import type { HTMLAttributes, Key, ReactNode } from 'react';
+import type {
+  HTMLAttributes,
+  Key,
+  KeyboardEventHandler,
+  MouseEventHandler,
+  ReactNode,
+} from 'react';
 
 export interface MediaCardProps extends HTMLAttributes<HTMLElement> {
   key?: Key;
+  role?: string;
+  tabIndex?: number;
+  onClick?: MouseEventHandler<HTMLElement>;
+  onKeyDown?: KeyboardEventHandler<HTMLElement>;
+  [dataAttribute: `data-${string}`]: string | undefined;
   title: string;
   subtitle?: string;
   visual?: ReactNode;
