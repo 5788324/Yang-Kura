@@ -86,6 +86,9 @@ class CdpClient {
   }
 
   close() {
+    const error = new Error('CDP client closed');
+    for (const pending of this.pending.values()) pending.reject(error);
+    this.pending.clear();
     try { this.socket?.close(); } catch {}
   }
 }
@@ -136,6 +139,14 @@ function stopPids(pids) {
   }
 }
 
+async function waitForChildExit(child, timeout = 8_000) {
+  if (child.exitCode !== null || child.signalCode !== null) return true;
+  return Promise.race([
+    new Promise((resolve) => child.once('exit', () => resolve(true))),
+    delay(timeout).then(() => false),
+  ]);
+}
+
 async function waitForNoNewProcesses(baseline, timeout = 15_000) {
   const original = new Set(baseline);
   const deadline = Date.now() + timeout;
@@ -181,11 +192,12 @@ async function captureReadyPage(executable, label, profileRoot) {
     const fileName = `${label}-ready.png`;
     fs.writeFileSync(path.join(artifactDir, fileName), Buffer.from(screenshot.data, 'base64'));
     report.captures.push({ label, fileName, bodyTextLength: bodyText.length, page: 'u37b-production-home' });
-    await cdp.evaluate('window.close(); true');
+    const closeRequest = cdp.evaluate('window.close(); true').catch(() => undefined);
+    await Promise.race([closeRequest, waitForChildExit(child, 2_000), delay(1_000)]);
   } finally {
     cdp?.close();
-    await delay(1000);
-    if (child.exitCode === null) child.kill();
+    const exited = await waitForChildExit(child);
+    if (!exited && child.exitCode === null) child.kill();
     const residual = await waitForNoNewProcesses(baseline);
     if (residual.length) {
       report.residualProcesses.push({ label, pids: residual });
