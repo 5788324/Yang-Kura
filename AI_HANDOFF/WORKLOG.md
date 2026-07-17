@@ -69,15 +69,29 @@
 - 合并提交：`8aadcc4bdd995f45d47eddf1d1d966f9c27d4b1c`
 - 工作日志与 U37 执行计划同步到最终验收事实。
 
-### Beta 2 个人日用版发布准备 — 当前
+### Beta 2 个人日用版发布准备
 
-- 目标版本：`0.169.0-beta.2`
-- 目标 tag：`v0.169.0-beta.2`
-- 发布标题：`Yang-Kura 0.169.0 Beta 2 · 个人日用版`
-- package.json 与 package-lock 已同步。
-- 发布计划、Release Notes、预检、构建、发布和远端资产验证升级为 Beta 2。
-- Beta 1 的 publication state 继续作为历史记录保留，不覆盖旧 Release。
-- 当前任务：发布 0.169.0 Beta 2 个人日用版。
+- PR：#71
+- 合并提交：`14bc78a81c827882efc232c6c6c12f0d8ed04542`
+- 版本升级为 `0.169.0-beta.2`。
+- 发布计划、Release Notes、预检、Windows 构建、main-only 发布和资产回读升级为 Personal Beta Release。
+- 旧 Beta 1 自动恢复工作流改为只读手动历史审计。
+- U02～U27 历史字符串 verifier 退出当前 focused gate，U28～U37 当前结构 verifier 全部通过。
+- PR 阶段 TypeScript、U28～U32、stable regression、portable、NSIS、安装卸载和发布资产组装全部通过。
+
+### Beta 2 个人日用版发布 — 已完成
+
+- tag：`v0.169.0-beta.2`
+- Release ID：`355486824`
+- 标题：`Yang-Kura 0.169.0 Beta 2 · 个人日用版`
+- 目标提交：`14bc78a81c827882efc232c6c6c12f0d8ed04542`
+- 发布时间：`2026-07-17T05:21:02Z`
+- portable：`Yang.Kura-0.169.0-beta.2-portable-x64.exe`，85,261,159 bytes，SHA-256 `2c5fa4be8460a7f591a1f2f4bb5a105e3001ca9dbd944a8a5ae324e4ef77a3e5`
+- setup：`Yang.Kura-0.169.0-beta.2-setup-x64.exe`，85,491,801 bytes，SHA-256 `e6f234606922da9f96d8e6cad3f0b9a4b7adc1d3f74fc42d088ec752192ec885`
+- `SHA256SUMS.txt`：213 bytes，SHA-256 `5ce43fe6bdefbe3036f08e47bcd2ccfcaa89e5b2b3f7c32a17ad948e46dcb9bd`
+- 三个资产的远端文件名、大小、下载文件 SHA-256 和 GitHub digest 全部一致。
+- 冻结记录：`release/beta2-publication-state.json`。
+- Issue #65 完成并关闭。
 
 ## 当前结论
 
@@ -88,7 +102,7 @@ U37-B：完成
 U37-C：完成
 U37-D：完成
 当前版本：0.169.0-beta.2
-当前任务：发布 0.169.0 Beta 2 个人日用版
-技术债：持续治理
+Beta 2：已发布并完成远端资产校验
+当前任务：长期日用维护与 Issue #66 技术债治理
 大型功能：长期冻结
 ```
