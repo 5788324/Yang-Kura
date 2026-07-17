@@ -9,7 +9,7 @@ on:
       - 'docs/U38A_TRIGGER.md'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   apply:
@@ -20,38 +20,36 @@ jobs:
         with:
           ref: agent/player-session-boundaries
       - name: Execute U38-A branch transformation
-        id: transform
-        continue-on-error: true
+        shell: bash
+        run: python scripts/apply-u38a-refactor.py
+      - name: Assemble transformed workspace
         shell: bash
         run: |
-          set +e
-          python scripts/apply-u38a-refactor.py > /tmp/u38a-refactor.log 2>&1
-          status=$?
-          set -e
-          echo "$status" > /tmp/u38a-refactor.status
-          cat /tmp/u38a-refactor.log
-          exit "$status"
-      - name: Upload transformation diagnostics
-        if: always()
+          mkdir -p artifacts/u38a-transformed-workspace
+          while IFS= read -r path; do
+            mkdir -p "artifacts/u38a-transformed-workspace/$(dirname "$path")"
+            cp "$path" "artifacts/u38a-transformed-workspace/$path"
+          done <<'EOF'
+          src/player/playerQueueTransitions.ts
+          src/hooks/usePlayerSessionPersistence.ts
+          src/hooks/useAudioPlayer.ts
+          scripts/test-u29-electron-e2e.mjs
+          scripts/verify-u38a-player-session-boundaries.mjs
+          package.json
+          scripts/run-stable-regression.mjs
+          .github/workflows/branch-validation.yml
+          docs/architecture/U38_PLAYER_SESSION_BOUNDARIES.md
+          PROJECT_STATE.md
+          PROJECT_ROADMAP.md
+          AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md
+          AI_HANDOFF/WORKLOG.md
+          README.md
+          docs/architecture/REFACTOR_BACKLOG.md
+          EOF
+      - name: Upload transformed workspace
         uses: actions/upload-artifact@v4
         with:
-          name: u38a-refactor-diagnostics
-          path: |
-            scripts/apply-u38a-refactor.py
-            /tmp/u38a-refactor.log
-            /tmp/u38a-refactor.status
+          name: u38a-transformed-workspace
+          path: artifacts/u38a-transformed-workspace
           if-no-files-found: error
           retention-days: 7
-      - name: Commit transformed branch
-        shell: bash
-        run: |
-          status=$(cat /tmp/u38a-refactor.status)
-          if [ "$status" -ne 0 ]; then
-            exit "$status"
-          fi
-          rm -f docs/U38A_TRIGGER.md scripts/apply-u38a-refactor.py .github/workflows/player-session-boundary-sync.yml
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'U38-A: split player queue history and persistence'
-          git push origin HEAD:agent/player-session-boundaries
