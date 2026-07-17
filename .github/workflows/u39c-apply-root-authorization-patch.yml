@@ -1,0 +1,38 @@
+name: U39-C Apply Root Authorization Patch
+
+on:
+  push:
+    branches:
+      - agent/u39c-root-authorization-persistence
+    paths:
+      - 'scripts/apply-u39c-root-authorization-persistence.mjs'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/u39c-root-authorization-persistence
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply deterministic patch
+        run: node scripts/apply-u39c-root-authorization-persistence.mjs
+      - name: Commit generated changes
+        shell: bash
+        run: |
+          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
+            echo "No generated changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix root authorization persistence"
+          git push origin HEAD:agent/u39c-root-authorization-persistence
