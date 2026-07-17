@@ -15,6 +15,7 @@ const required = [
   'docs/architecture/U38_PLAYER_SESSION_BOUNDARIES.md',
   'docs/architecture/U38_PLAYER_BACKEND_BOUNDARY.md',
   'docs/architecture/U38_PLAYER_SUBTITLE_BOUNDARY.md',
+  'docs/architecture/U39_PLAYERBAR_THEME.md',
   'docs/U29_PLAYER_RELIABILITY_ACCEPTANCE.md',
   'docs/U30_UI_FAST_TRACK_ACCEPTANCE.md',
   'docs/U31_IMPORTER_TRANSACTION_ACCEPTANCE.md',
@@ -24,29 +25,36 @@ const required = [
   'scripts/verify-u38a-player-session-boundaries.mjs',
   'scripts/verify-u38b-player-backend-boundary.mjs',
   'scripts/verify-u38c-player-subtitles.mjs',
+  'scripts/verify-u39a-playerbar-theme.mjs',
   '.github/workflows/player-fast-validation.yml',
   'archive/legacy-mvp-history/README.md',
 ];
 
 const tokens = [
   ['README.md', 'U38-C：`usePlayerSubtitles.ts`'],
+  ['README.md', 'U39-A 播放器底栏主题一致性'],
   ['README.md', 'Player Fast Validation'],
   ['PROJECT_STATE.md', '核心版本：0.169.0-beta.2'],
   ['PROJECT_STATE.md', 'U38-C：播放器字幕加载与状态边界完成'],
+  ['PROJECT_STATE.md', 'U39-A：播放器底栏语义主题一致性完成'],
   ['PROJECT_STATE.md', '当前任务：日常体验与真实 Bug 优先'],
   ['PROJECT_STATE.md', 'Release ID：`355486824`'],
   ['PROJECT_ROADMAP.md', 'U38-C：播放器 Subtitle lifecycle/state 分离完成'],
   ['PROJECT_ROADMAP.md', '当前任务：真实 Bug、字幕体验与日常 UI 优先'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前版本：0.169.0-beta.2'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U38-C：完成'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U39-A：播放器底栏主题一致性完成'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'Player Fast Validation'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'Release ID：355486824'],
   ['AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md', '用户只接收最终成果'],
   ['AI_HANDOFF/WORKLOG.md', '### U38-C — 播放器字幕加载与状态边界'],
+  ['AI_HANDOFF/WORKLOG.md', '### U39-A — 播放器底栏语义主题一致性'],
   ['docs/architecture/U38_PLAYER_SESSION_BOUNDARIES.md', '# U38-A 播放器会话边界'],
   ['docs/architecture/U38_PLAYER_BACKEND_BOUNDARY.md', '# U38-B 播放器 Controller 与 Backend 边界'],
   ['docs/architecture/U38_PLAYER_SUBTITLE_BOUNDARY.md', '# U38-C 播放器字幕加载与状态边界'],
   ['docs/architecture/U38_PLAYER_SUBTITLE_BOUNDARY.md', '过期结果丢弃'],
+  ['docs/architecture/U39_PLAYERBAR_THEME.md', '# U39-A 播放器底栏语义主题一致性'],
+  ['docs/architecture/U39_PLAYERBAR_THEME.md', 'Player Fast Validation'],
   ['docs/DESIGN.md', '暮夜琥珀'],
   ['docs/DESIGN.md', '雾光象牙'],
   ['docs/architecture/ARCHITECTURE_AUDIT.md', '结论：GO'],
@@ -113,4 +121,4 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log('[verify-handoff] U38 complete; fast maintenance handoff PASS');
+console.log('[verify-handoff] U39-A player theme handoff PASS');
