@@ -1,0 +1,57 @@
+name: U39-C Add E2E User Data Override
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/u39c-add-e2e-userdata-override.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/u39c-root-authorization-persistence
+          fetch-depth: 0
+      - name: Add deterministic E2E user-data root
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          main = Path('electron/main.ts')
+          source = main.read_text(encoding='utf-8')
+          old = "const stableUserDataPath = path.join(app.getPath('appData'), 'Yang-Kura');"
+          new = "const e2eUserDataPath = process.env.YANG_KURA_E2E_MODE === '1'\n  ? process.env.YANG_KURA_E2E_USER_DATA_ROOT?.trim()\n  : undefined;\nconst stableUserDataPath = e2eUserDataPath\n  ? path.resolve(e2eUserDataPath)\n  : path.join(app.getPath('appData'), 'Yang-Kura');"
+          if source.count(old) != 1:
+              raise SystemExit('main stableUserDataPath anchor mismatch')
+          main.write_text(source.replace(old, new), encoding='utf-8')
+
+          u28 = Path('scripts/test-u28-electron-e2e.mjs')
+          source = u28.read_text(encoding='utf-8')
+          old = "      YANG_KURA_E2E_LIBRARY_ROOT: fixtureDir,\n      ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',"
+          new = "      YANG_KURA_E2E_LIBRARY_ROOT: fixtureDir,\n      YANG_KURA_E2E_USER_DATA_ROOT: path.join(profileDir, 'Yang-Kura'),\n      ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',"
+          if source.count(old) != 1:
+              raise SystemExit('U28 launch env anchor mismatch')
+          u28.write_text(source.replace(old, new), encoding='utf-8')
+
+          u29 = Path('scripts/test-u29-electron-e2e.mjs')
+          source = u29.read_text(encoding='utf-8')
+          old = "YANG_KURA_E2E_LIBRARY_ROOT: fixtureDir, ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'"
+          new = "YANG_KURA_E2E_LIBRARY_ROOT: fixtureDir, YANG_KURA_E2E_USER_DATA_ROOT: path.join(profileDir, 'Yang-Kura'), ELECTRON_DISABLE_SECURITY_WARNINGS: 'true'"
+          if source.count(old) != 1:
+              raise SystemExit('U29 launch env anchor mismatch')
+          u29.write_text(source.replace(old, new), encoding='utf-8')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add electron/main.ts scripts/test-u28-electron-e2e.mjs scripts/test-u29-electron-e2e.mjs
+          git commit -m "isolate E2E root authorization storage"
+          git push origin HEAD:agent/u39c-root-authorization-persistence
