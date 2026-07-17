@@ -254,6 +254,7 @@ async function launchApp(fixtureDir, profileDir) {
       YANG_KURA_ELECTRON_DEV: '0',
       YANG_KURA_E2E_MODE: '1',
       YANG_KURA_E2E_LIBRARY_ROOT: fixtureDir,
+      YANG_KURA_E2E_USER_DATA_ROOT: path.join(profileDir, 'Yang-Kura'),
       ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -458,9 +459,10 @@ async function runEmptyAndRestartScenario(root) {
     await assertLayout(runtime.cdp, '空 Index 音乐库');
     await screenshot(runtime.cdp, '06-empty-index-music');
 
-    await clickSelector(runtime.cdp, '#sidebar-ai-maintenance-toggle');
-    await navigate(runtime.cdp, 'diagnostics');
-    await waitForBodyText(runtime.cdp, '日常状态');
+    await navigate(runtime.cdp, 'settings');
+    await waitForBodyText(runtime.cdp, '应用设置');
+    await clickVisibleText(runtime.cdp, '打开 AI 维护', 'button');
+    await waitForBodyText(runtime.cdp, '真实资源状态与诊断');
     await waitForBodyText(runtime.cdp, '已加载真实 library-index.json：0 个音声集合，0 个音乐集合，0 条轨道。');
     assert.equal(await runtime.cdp.evaluate(`document.querySelector('#u28-diagnostics-asmr-count')?.textContent?.trim()`), '0', '诊断页音声作品计数应为 0');
     assert.equal(await runtime.cdp.evaluate(`document.querySelector('#u28-diagnostics-music-count')?.textContent?.trim()`), '0', '诊断页音乐专辑计数应为 0');
@@ -475,27 +477,31 @@ async function runEmptyAndRestartScenario(root) {
     await closeApp(runtime);
   }
 
+  const authorizationFile = path.join(profileDir, 'Yang-Kura', 'root-authorizations.json');
+  assert.ok(fs.existsSync(authorizationFile), '主进程未持久化 root authorization 文件');
+  const authorizationState = JSON.parse(fs.readFileSync(authorizationFile, 'utf8'));
+  assert.equal(authorizationState.schemaVersion, 1, 'root authorization schemaVersion 异常');
+  assert.equal(authorizationState.records?.length, 1, 'root authorization 记录数量异常');
+  assert.ok(authorizationState.records[0].rootPathToken.startsWith('yk-root-'), '持久化 token 格式异常');
+
   runtime = await launchApp(fixtureDir, profileDir);
   try {
-    await waitForBodyText(runtime.cdp, '资源库待重新连接');
-    await expectBodyExcludes(runtime.cdp, '已加载 0 条音轨');
-    await expectBodyExcludes(runtime.cdp, '已连接空资源库');
-    await screenshot(runtime.cdp, '08-restart-reauthorization-required');
-
-    await selectAsmrRoot(runtime.cdp);
-    await navigate(runtime.cdp, 'dashboard');
-    await waitForBodyText(runtime.cdp, '等待读取资源库');
-    await expectBodyExcludes(runtime.cdp, '已连接空资源库');
+    await waitForBodyText(runtime.cdp, '已连接空资源库');
+    await expectBodyContains(runtime.cdp, '已加载 0 条音轨');
+    await screenshot(runtime.cdp, '08-restart-authorization-restored');
 
     await openSettingsPaths(runtime.cdp);
+    await waitForBodyText(runtime.cdp, '已选择目录，可读取已有记录或重新扫描');
+    const enabled = await runtime.cdp.evaluate(`(() => [...document.querySelectorAll('button')].some((button) => button.offsetParent !== null && button.textContent?.trim() === '读取已有记录' && !button.disabled))()`);
+    assert.equal(enabled, true, '重启后读取按钮必须直接可用');
     await readAsmrIndex(runtime.cdp);
     await waitForBodyText(runtime.cdp, '文件编码：utf8-bom');
     await navigate(runtime.cdp, 'dashboard');
     await waitForBodyText(runtime.cdp, '已连接空资源库');
     await expectBodyContains(runtime.cdp, '已加载 0 条音轨');
     await screenshot(runtime.cdp, '09-restart-reread-empty-index');
-    await assertNoRendererExceptions(runtime, 'restart');
-    report.scenarios.push({ name: 'restart-reauthorize-reread', status: 'PASS' });
+    await assertNoRendererExceptions(runtime, 'restart persisted authorization');
+    report.scenarios.push({ name: 'restart-persisted-authorization-reread', status: 'PASS' });
   } finally {
     await closeApp(runtime);
   }
@@ -535,10 +541,11 @@ async function runPopulatedPlaybackScenario(root) {
   const wavSize = writeSilentWav(path.join(fixtureDir, 'sample.wav'));
   writeJsonWithBom(path.join(fixtureDir, 'library-index.json'), emptyIndex());
 
-  const runtime = await launchApp(fixtureDir, profileDir);
+  let rootPathToken = '';
+  let runtime = await launchApp(fixtureDir, profileDir);
   try {
     await selectAsmrRoot(runtime.cdp);
-    const rootPathToken = await runtime.cdp.evaluate(`(() => { const value = JSON.parse(sessionStorage.getItem(${JSON.stringify(ROOT_SESSION_KEY)}) ?? '{}'); return value.asmr?.rootPathToken ?? ''; })()`);
+    rootPathToken = await runtime.cdp.evaluate(`(() => { const value = JSON.parse(sessionStorage.getItem(${JSON.stringify(ROOT_SESSION_KEY)}) ?? '{}'); return value.asmr?.rootPathToken ?? ''; })()`);
     assert.ok(rootPathToken.startsWith('yk-root-'), 'E2E 未取得主进程生成的 rootPathToken');
     writeJsonWithBom(path.join(fixtureDir, 'library-index.json'), populatedIndex(rootPathToken, wavSize));
 
@@ -578,15 +585,48 @@ async function runPopulatedPlaybackScenario(root) {
     await assertLayout(runtime.cdp, '真实音轨播放');
     await screenshot(runtime.cdp, '13-populated-playback');
 
-    await clickSelector(runtime.cdp, '#sidebar-ai-maintenance-toggle');
-    await navigate(runtime.cdp, 'diagnostics');
-    await waitForBodyText(runtime.cdp, '日常状态');
+    await navigate(runtime.cdp, 'settings');
+    await waitForBodyText(runtime.cdp, '应用设置');
+    await clickVisibleText(runtime.cdp, '打开 AI 维护', 'button');
+    await waitForBodyText(runtime.cdp, '真实资源状态与诊断');
     await waitForBodyText(runtime.cdp, '已加载真实 library-index.json：1 个音声集合，0 个音乐集合，1 条轨道。');
     await clickVisibleText(runtime.cdp, '刷新真实资源状态', 'button');
     await waitForBodyText(runtime.cdp, '已加载真实 library-index.json：1 个音声集合，0 个音乐集合，1 条轨道。');
     await screenshot(runtime.cdp, '14-populated-diagnostics');
     await assertNoRendererExceptions(runtime, 'populated playback');
     report.scenarios.push({ name: 'populated-index-media-playback', status: 'PASS', mediaProbe });
+  } finally {
+    await closeApp(runtime);
+  }
+
+  runtime = await launchApp(fixtureDir, profileDir);
+  try {
+    await waitForBodyText(runtime.cdp, '已连接本地资源库');
+    await expectBodyContains(runtime.cdp, '已加载 1 条音轨');
+    const restartMediaProbe = await runtime.cdp.evaluate(`(async () => {
+      const url = 'yang-kura-media://track/' + encodeURIComponent(${JSON.stringify(rootPathToken)}) + '/' + encodeURIComponent('sample.wav');
+      const response = await fetch(url);
+      const body = new Uint8Array(await response.arrayBuffer());
+      return { ok: response.ok, status: response.status, byteLength: body.byteLength, riff: String.fromCharCode(...body.slice(0, 4)) };
+    })()`, true);
+    assert.equal(restartMediaProbe.ok, true, '重启后受控媒体协议读取失败');
+    assert.equal(restartMediaProbe.status, 200, '重启后媒体协议状态码异常');
+    assert.equal(restartMediaProbe.byteLength, wavSize, '重启后媒体协议字节数不一致');
+    assert.equal(restartMediaProbe.riff, 'RIFF', '重启后媒体协议未返回 WAV');
+
+    await navigate(runtime.cdp, 'asmr-lib');
+    await waitForBodyText(runtime.cdp, WORK_TITLE);
+    await clickVisibleText(runtime.cdp, WORK_TITLE, '*');
+    await waitForBodyText(runtime.cdp, '播放全部音声');
+    await clickSelector(runtime.cdp, '#play-all-asmr');
+    await waitForBodyText(runtime.cdp, TRACK_TITLE);
+    await delay(900);
+    const restartPlayerText = await runtime.cdp.evaluate(`document.querySelector('#app-player-bar')?.innerText ?? ''`);
+    assert.ok(restartPlayerText.includes(TRACK_TITLE), '重启后 PlayerBar 未显示真实音轨');
+    assert.ok(!restartPlayerText.includes('播放失败：'), `重启后真实 WAV 播放失败：${restartPlayerText}`);
+    await screenshot(runtime.cdp, '15-populated-restart-playback');
+    await assertNoRendererExceptions(runtime, 'populated restart playback');
+    report.scenarios.push({ name: 'restart-persisted-authorization-playback', status: 'PASS', restartMediaProbe });
   } finally {
     await closeApp(runtime);
   }

@@ -33,6 +33,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { clearDlsiteMetadataCache, fetchDlsiteMetadata, type DlsiteMetadataCacheClearRequest, type DlsiteMetadataRequest } from './dlsiteMetadataProvider.js';
 import { MpvPlaybackBackend, type MpvPlaybackCommand } from './mpvPlaybackBackend.js';
 import { MpvSettingsStore } from './mpvSettingsStore.js';
+import { RootAuthorizationStore } from './rootAuthorizationStore.js';
 import { applyLibraryIndexRemovalOperations, buildLibraryIndexRemovalPreview, collectLibraryIndexHealthReferences, type LibraryIndexHealthReference, type LibraryIndexHealthStatus, type LibraryIndexRemovalPreviewOperation } from './libraryIndexHealthService.js';
 import { appendMaintenanceHistory, buildLibraryIndexBackupRetentionPreview, inspectLibraryIndexBackups, readMaintenanceHistory, restoreLibraryIndexFromBackup, type MaintenanceHistoryEntry } from './libraryIndexMaintenanceService.js';
 import { describeLibraryIndexReadError, parseLibraryIndexJsonBuffer } from './libraryIndexJsonReader.js';
@@ -50,7 +51,12 @@ const appRoot = path.resolve(__dirname, '..');
 
 const isDevShell = process.env.YANG_KURA_ELECTRON_DEV === '1';
 const viteDevUrl = process.env.YANG_KURA_VITE_DEV_URL ?? 'http://127.0.0.1:3000';
-const stableUserDataPath = path.join(app.getPath('appData'), 'Yang-Kura');
+const e2eUserDataPath = process.env.YANG_KURA_E2E_MODE === '1'
+  ? process.env.YANG_KURA_E2E_USER_DATA_ROOT?.trim()
+  : undefined;
+const stableUserDataPath = e2eUserDataPath
+  ? path.resolve(e2eUserDataPath)
+  : path.join(app.getPath('appData'), 'Yang-Kura');
 const stableSessionDataPath = path.join(stableUserDataPath, 'session');
 const stableCachePath = path.join(stableUserDataPath, 'cache');
 const stableLogsPath = path.join(stableUserDataPath, 'logs');
@@ -71,6 +77,7 @@ function configureStableAppStorage(): void {
 configureStableAppStorage();
 
 const mpvSettingsStore = new MpvSettingsStore(path.join(stableUserDataPath, 'mpv-settings.json'));
+const rootAuthorizationStore = new RootAuthorizationStore(path.join(stableUserDataPath, 'root-authorizations.json'));
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -2949,15 +2956,14 @@ function registerDirectoryDialogIpc(mainWindow: BrowserWindow): void {
 
     const absolutePath = result.filePaths[0];
     const displayName = path.basename(absolutePath) || getDefaultDisplayName(libraryType);
-    const rootPathToken = `yk-root-${crypto.randomUUID()}`;
-
-    rootTokenMap.set(rootPathToken, {
-      rootPathToken,
+    const rootRecord = await rootAuthorizationStore.authorize({
       absolutePath,
       displayName,
       libraryType,
-      selectedAt: new Date().toISOString(),
+      createToken: () => `yk-root-${crypto.randomUUID()}`,
     });
+    const { rootPathToken } = rootRecord;
+    rootTokenMap.set(rootPathToken, rootRecord);
 
     return {
       ok: true,
@@ -4856,6 +4862,8 @@ async function createMainWindow(): Promise<BrowserWindow> {
 
 app.whenReady().then(async () => {
   await mpvSettingsStore.initialize();
+  const restoredRootRecords = await rootAuthorizationStore.initialize();
+  restoredRootRecords.forEach((record) => rootTokenMap.set(record.rootPathToken, record));
   registerMediaProtocol();
   await createMainWindow();
 
