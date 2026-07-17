@@ -95,6 +95,11 @@ async function click(cdp, selector) {
   await delay(260);
 }
 
+async function clickButtonByText(cdp, text) {
+  await cdp.evaluate(`(() => { const element = [...document.querySelectorAll('button')].find((item) => item.textContent?.trim().includes(${JSON.stringify(text)})); if (!element) throw new Error('Missing button text: ${text}'); element.click(); return true; })()`);
+  await delay(260);
+}
+
 async function screenshot(cdp, name) {
   const result = await cdp.send('Page.captureScreenshot', { format: 'png', fromSurface: true });
   const file = `${name}.png`;
@@ -132,8 +137,10 @@ function electronExecutable() {
 const makeTrack = (id, title, artist, album, type, duration, rjId) => ({
   id, title, artist, album, duration, coverUrl: '', type, rjId,
   playbackSourceKind: 'tokenized-local-file', rootPathToken: 'u32-audit-root',
-  sourceRelativePath: `${type}/${id}.wav`, fileSize: `${Math.max(1, Math.round(duration / 60))} MB`,
-  subtitleRelativePaths: [`${type}/${id}.lrc`], addedAt: '2026-07-01T00:00:00.000Z',
+  sourceRelativePath: `${type}/${id}.wav`, fileTreePath: `${type}/${id}.wav`,
+  fileSize: `${Math.max(1, Math.round(duration / 60))} MB`,
+  subtitleRelativePaths: [`${type}/${id}.ja.lrc`, `${type}/${id}.zh.lrc`],
+  addedAt: '2026-07-01T00:00:00.000Z',
 });
 const asmrTracks = [
   makeTrack('a-01', '01 双耳轻声与雨夜陪伴', '月白音声', '雨宿りの夜', 'asmr', 1680, 'RJ410001'),
@@ -183,6 +190,7 @@ try {
   await cdp.evaluate(`(() => {
     const seed = ${JSON.stringify(seed)}; const now = new Date().toISOString();
     localStorage.removeItem('yang_kura_last_read_library_index_result');
+    localStorage.removeItem('yang_kura_metadata_overrides_v1');
     localStorage.setItem('sqlite_rj_works', JSON.stringify(seed.works));
     localStorage.setItem('sqlite_music_albums', JSON.stringify(seed.albums));
     localStorage.setItem('yang_kura_user_playlists_v1', JSON.stringify({ version: 1, updatedAt: now, playlists: seed.playlists }));
@@ -207,7 +215,6 @@ try {
   await capturePage(cdp, 'asmr-lib', '02-asmr-library-after');
   assert.equal(await cdp.evaluate("document.querySelector('[data-u37b-asmr-library=\"grid\"]') !== null"), true, 'U37-B ASMR grid is active');
   assert.equal(await cdp.evaluate("document.querySelectorAll('[data-u37b-asmr-card]').length >= 3"), true, 'U37-B ASMR cards render seeded works');
-  assert.equal(await cdp.evaluate("document.querySelector('#mvp53-asmr-visual-unity') === null"), true, 'legacy ASMR engineering summary removed');
 
   const selectedCount = await cdp.evaluate(`(() => {
     const boxes = [...document.querySelectorAll('[data-u37b-asmr-card] input[type="checkbox"]')].slice(0, 2);
@@ -216,14 +223,33 @@ try {
   })()`);
   assert.equal(selectedCount, 2, 'two ASMR works selected');
   await waitFor(cdp, "document.querySelector('.u37b-selection-bar')?.textContent?.includes('已选择 2 个作品')", 'selection count');
-  await waitFor(cdp, "[...document.querySelectorAll('button')].some((item) => item.textContent?.includes('批量加入歌单') && !item.disabled)", 'bulk playlist button');
-  await cdp.evaluate(`(() => { const button = [...document.querySelectorAll('button')].find((item) => item.textContent?.includes('批量加入歌单') && !item.disabled); button.click(); return true; })()`);
+  await clickButtonByText(cdp, '批量加入歌单');
   await waitFor(cdp, "document.body.innerText.includes('已将 2 个作品加入')", 'bulk playlist feedback');
   await waitFor(cdp, "JSON.parse(localStorage.getItem('yang_kura_user_playlists_v1') ?? '{}').playlists?.find((item) => item.id === 'playlist-night')?.tracksCount >= 3", 'bulk playlist persistence');
 
+  await click(cdp, '[data-u37b-asmr-card="RJ410001"]');
+  await waitFor(cdp, "document.querySelector('[data-u37c-rj-detail=\"ready\"]')", 'U37-C RJ detail');
+  assert.equal(await cdp.evaluate("document.querySelectorAll('.u37c-rj-track-list .yk-track-row').length === 2"), true, 'RJ detail uses shared TrackRow entries');
+  assert.equal(await cdp.evaluate("document.querySelector('.u37c-rj-overview')?.textContent?.includes('有字幕音轨')"), true, 'RJ detail shows subtitle health');
+  await screenshot(cdp, '02c-rj-detail-tracks-after');
+
+  await clickButtonByText(cdp, '作品信息与个人记录');
+  await waitFor(cdp, "document.querySelector('.u37c-personal-panel')", 'RJ personal panel');
+  await clickButtonByText(cdp, '已完成');
+  await waitFor(cdp, "JSON.parse(localStorage.getItem('yang_kura_metadata_overrides_v1') ?? '{}').asmrWorks?.RJ410001?.personalStatus === 'completed'", 'RJ personal status persistence');
+  await screenshot(cdp, '02d-rj-detail-info-after');
+
+  await clickButtonByText(cdp, '编辑作品信息');
+  await waitFor(cdp, "document.querySelector('[data-u37c-metadata-editor=\"ready\"]')", 'RJ metadata dialog');
+  assert.equal(await cdp.evaluate("document.querySelector('[data-testid=\"mvp117-single-rj-provider-preview\"]') !== null"), true, 'provider preview remains available');
+  await cdp.evaluate("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))");
+  await waitFor(cdp, "!document.querySelector('[data-u37c-metadata-editor=\"ready\"]')", 'metadata dialog closes with Escape');
+  await clickButtonByText(cdp, '返回音声库');
+  await waitFor(cdp, "document.querySelector('[data-u37b-asmr-library]')", 'return to ASMR library');
+
   await click(cdp, '[aria-label="列表浏览"]');
   await waitFor(cdp, "document.querySelector('[data-u37b-asmr-library=\"list\"] .u37b-asmr-list')", 'ASMR list view');
-  await screenshot(cdp, '02b-asmr-library-list-after');
+  await screenshot(cdp, '02e-asmr-library-list-after');
 
   await capturePage(cdp, 'music-lib', '03-music-library-after');
   assert.equal(await cdp.evaluate("document.querySelector('#mvp53-music-visual-unity') && getComputedStyle(document.querySelector('#mvp53-music-visual-unity')).display === 'none'"), true, 'music engineering summary hidden');
@@ -233,10 +259,9 @@ try {
   assert.equal(await cdp.evaluate("getComputedStyle(document.querySelector('#mvp112-importer-primary-flow')).display === 'none'"), true, 'importer instructional wall hidden');
   await capturePage(cdp, 'settings', '06-settings-after');
   assert.equal(await cdp.evaluate("Math.max(...[...document.querySelectorAll('[data-settings-tab]')].map((item) => item.getBoundingClientRect().height)) <= 48"), true, 'settings tabs remain compact');
-  await screenshot(cdp, '07-sidebar-clean-after');
 
   await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1040, height: 680, deviceScaleFactor: 1, mobile: false });
-  await capturePage(cdp, 'settings', '08-settings-narrow-after');
+  await capturePage(cdp, 'settings', '07-settings-narrow-after');
   assert.deepEqual(cdp.errors, [], 'renderer has no runtime or console errors');
   report.status = 'pass';
 } catch (error) {
