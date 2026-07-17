@@ -33,16 +33,30 @@ jobs:
           from pathlib import Path
           target = Path('scripts/apply-u39c-root-authorization-persistence.mjs')
           source = target.read_text(encoding='utf-8')
-          old = '- U39-B：设置页顶部新增独立 AI 维护入口；Diagnostics 继续两阶段按需加载，并可返回设置。\\n'
-          new = '- U39-B：设置页提供独立 AI 维护入口；维护概览、性能诊断和完整历史诊断逐级按需加载。\\n'
-          if old not in source:
-              raise SystemExit('handoff anchor workaround source missing')
-          target.write_text(source.replace(old, new), encoding='utf-8')
+          replacements = {
+              '- U39-B：设置页顶部新增独立 AI 维护入口；Diagnostics 继续两阶段按需加载，并可返回设置。\\n': '- U39-B：设置页提供独立 AI 维护入口；维护概览、性能诊断和完整历史诊断逐级按需加载。\\n',
+              "  '8. `docs/architecture/U39_MAINTENANCE_ENTRY.md`\\n',": "  '9. `docs/architecture/U39_MAINTENANCE_ENTRY.md`\\n',",
+              "  '9. `docs/architecture/U39_ROOT_AUTHORIZATION_PERSISTENCE.md`\\n',": "  '10. `docs/architecture/U39_ROOT_AUTHORIZATION_PERSISTENCE.md`\\n',",
+          }
+          for old, new in replacements.items():
+              if old not in source:
+                  raise SystemExit(f'patch compatibility source missing: {old}')
+              source = source.replace(old, new)
+          target.write_text(source, encoding='utf-8')
           PY
           set +e
           node scripts/apply-u39c-root-authorization-persistence.mjs > u39c-patch.log 2>&1
           code=$?
           mv /tmp/u39c-patch-source.mjs scripts/apply-u39c-root-authorization-persistence.mjs
+          if [ "$code" -eq 0 ]; then
+            python - <<'PY'
+            from pathlib import Path
+            target = Path('AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md')
+            source = target.read_text(encoding='utf-8')
+            source = source.replace('10. `docs/DESIGN.md`\n11. `AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md`\n12. `MVP130_EXPERIMENTAL_DO_NOT_MERGE.md`', '11. `docs/DESIGN.md`\n12. `AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md`\n13. `MVP130_EXPERIMENTAL_DO_NOT_MERGE.md`')
+            target.write_text(source, encoding='utf-8')
+            PY
+          fi
           cat u39c-patch.log
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           exit 0
