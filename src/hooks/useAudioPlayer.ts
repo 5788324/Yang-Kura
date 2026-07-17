@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { PlayerState, AudioTrack } from '../types';
+import type { PlayerState, AudioTrack } from '../types';
 import { playerExperienceService } from '../services/playerExperienceService';
 import {
   activateQueueTarget,
@@ -8,21 +8,13 @@ import {
   startTrackQueue,
 } from '../player/playerQueueTransitions';
 import { restorePlayerSessionState, usePlayerSessionPersistence } from './usePlayerSessionPersistence';
-import { mpvPlaybackPreferenceService, type MpvPlaybackPreference } from '../services/mpvPlaybackPreferenceService';
+import { usePlayerBackend } from './usePlayerBackend';
 import {
   clampPlaybackPosition,
   isLocalTrackAwaitingAuthorization,
+  isTokenizedLocalTrack,
   reconcilePlayerStateWithLibrary,
-  resolvePlaybackStart,
 } from '../player/playerRuntimePolicy';
-
-function isTokenizedLocalTrack(track: AudioTrack | null | undefined): track is AudioTrack & { rootPathToken: string; sourceRelativePath: string } {
-  return Boolean(track?.rootPathToken && track?.sourceRelativePath && track.playbackSourceKind === 'tokenized-local-file');
-}
-
-function safeDuration(value: number): number {
-  return Number.isFinite(value) && value > 0 ? value : 0;
-}
 
 export function useAudioPlayer() {
   const restoredQueueState = restorePlayerSessionState();
@@ -43,14 +35,6 @@ export function useAudioPlayer() {
     ...restoredQueueState,
   });
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const mpvPreferenceRef = useRef<MpvPlaybackPreference>(mpvPlaybackPreferenceService.getPreference());
-  const forceHtmlFallbackTrackRef = useRef<{ trackId: string; reason: string } | null>(null);
-  const pendingInitialSeekRef = useRef<{ trackId: string; progress: number } | null>(
-    restoredQueueState?.currentTrack
-      ? { trackId: restoredQueueState.currentTrack.id, progress: restoredQueueState.progress }
-      : null,
-  );
   const stateRef = useRef(playerState);
   stateRef.current = playerState;
 
@@ -60,80 +44,26 @@ export function useAudioPlayer() {
     recordTrackStarted,
   } = usePlayerSessionPersistence(playerState);
 
-  useEffect(() => {
-    const audio = new Audio();
-    audio.preload = 'metadata';
-    audioRef.current = audio;
-
-    const handleTimeUpdate = () => {
-      setPlayerState((prev) => {
-        if (prev.playbackMode !== 'html-audio') return prev;
-        return { ...prev, progress: audio.currentTime || 0 };
-      });
-    };
-
-    const handleLoadedMetadata = () => {
-      const current = stateRef.current.currentTrack;
-      if (current) {
-        const target = resolvePlaybackStart(current, pendingInitialSeekRef.current, stateRef.current.progress);
-        if (target > 0 && Math.abs(audio.currentTime - target) > 0.1) audio.currentTime = target;
-        if (pendingInitialSeekRef.current?.trackId === current.id) pendingInitialSeekRef.current = null;
-      }
-      setPlayerState((prev) => {
-        if (!prev.currentTrack || prev.playbackMode !== 'html-audio') return prev;
-        const duration = safeDuration(audio.duration);
-        if (!duration) return prev;
-        const updatedTrack = { ...prev.currentTrack, duration };
-        const updatedQueue = prev.queue.map((track) => (track.id === updatedTrack.id ? { ...track, duration } : track));
-        return { ...prev, currentTrack: updatedTrack, queue: updatedQueue };
-      });
-    };
-
-    const handleEnded = () => {
-      handleAutoTrackEndedRef.current(audio);
-    };
-
-    const handleError = () => {
-      const message = audio.error ? `HTMLAudio 播放失败：${audio.error.message || `错误码 ${audio.error.code}`}` : 'HTMLAudio 播放失败。';
-      setPlayerState((prev) => ({ ...prev, isPlaying: false, playbackError: message, playbackMode: 'unsupported-local-media' }));
-    };
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('error', handleError);
-
-    return () => {
-      audio.pause();
-      audio.removeAttribute('src');
-      audio.load();
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('error', handleError);
-      audioRef.current = null;
-    };
-  }, []);
-
-
-  useEffect(() => {
-    const handlePreferenceChanged = (event: Event) => {
-      const custom = event as CustomEvent<MpvPlaybackPreference>;
-      mpvPreferenceRef.current = custom.detail ?? mpvPlaybackPreferenceService.getPreference();
-    };
-    window.addEventListener(mpvPlaybackPreferenceService.updateEventName, handlePreferenceChanged);
-    return () => window.removeEventListener(mpvPlaybackPreferenceService.updateEventName, handlePreferenceChanged);
-  }, []);
-
   const handleNextTrackRef = useRef<() => void>(() => {});
-  const handleAutoTrackEndedRef = useRef<(audio?: HTMLAudioElement) => void>(() => {});
+  const handleAutoTrackEndedRef = useRef<() => void>(() => {});
+  const backend = usePlayerBackend({
+    playerState,
+    setPlayerState,
+    initialPendingSeek: restoredQueueState?.currentTrack
+      ? {
+          trackId: restoredQueueState.currentTrack.id,
+          progress: restoredQueueState.progress,
+        }
+      : null,
+    onEnded: () => handleAutoTrackEndedRef.current(),
+  });
 
   const handleNextTrack = useCallback(() => {
     setPlayerState((previous) => {
       const target = resolveAdjacentQueueTarget(previous, 'next');
       if (!target) return previous;
       const resumeProgress = getResumeProgress(target.track);
-      pendingInitialSeekRef.current = { trackId: target.track.id, progress: resumeProgress };
+      backend.prepareInitialSeek(target.track.id, resumeProgress);
       return activateQueueTarget(
         previous,
         target,
@@ -141,15 +71,14 @@ export function useAudioPlayer() {
         isTokenizedLocalTrack(target.track) ? 'resolving-local-media' : 'mock-simulated',
       );
     });
-  }, [getResumeProgress]);
-
+  }, [backend.prepareInitialSeek, getResumeProgress]);
 
   useEffect(() => {
     handleNextTrackRef.current = handleNextTrack;
   }, [handleNextTrack]);
 
   useEffect(() => {
-    handleAutoTrackEndedRef.current = (audio?: HTMLAudioElement) => {
+    handleAutoTrackEndedRef.current = () => {
       const current = stateRef.current;
       if (current.currentTrack) {
         recordTrackCompleted(
@@ -160,31 +89,16 @@ export function useAudioPlayer() {
       }
 
       if (current.loopMode === 'one') {
-        if (current.playbackMode === 'mpv' && window.yangKura?.requestMpvPlaybackCommand) {
-          void window.yangKura.requestMpvPlaybackCommand({ mode: 'mpv-playback-command', command: 'seek', seconds: 0 });
-          void window.yangKura.requestMpvPlaybackCommand({ mode: 'mpv-playback-command', command: 'resume' });
-          setPlayerState((prev) => ({ ...prev, progress: 0, isPlaying: true }));
-        } else if (audio) {
-          audio.currentTime = 0;
-          void audio.play().catch((error) => {
-            setPlayerState((prev) => ({
-              ...prev,
-              isPlaying: false,
-              playbackError: error instanceof Error ? error.message : String(error),
-            }));
-          });
-        } else {
-          setPlayerState((prev) => ({ ...prev, progress: 0 }));
-        }
+        backend.restartCurrentTrack();
         return;
       }
 
       if (playerExperienceService.shouldStopAtTrackEnd(current)) {
-        if (audio) audio.pause();
-        setPlayerState((prev) => ({
-          ...prev,
+        backend.pauseHtmlAudio();
+        setPlayerState((previous) => ({
+          ...previous,
           isPlaying: false,
-          progress: prev.currentTrack?.duration ?? prev.progress,
+          progress: previous.currentTrack?.duration ?? previous.progress,
           playbackError: null,
         }));
         return;
@@ -192,14 +106,14 @@ export function useAudioPlayer() {
 
       handleNextTrackRef.current();
     };
-  }, []);
+  }, [backend.pauseHtmlAudio, backend.restartCurrentTrack, recordTrackCompleted]);
 
   const handlePrevTrack = useCallback(() => {
     setPlayerState((previous) => {
       const target = resolveAdjacentQueueTarget(previous, 'previous');
       if (!target) return previous;
       const resumeProgress = getResumeProgress(target.track);
-      pendingInitialSeekRef.current = { trackId: target.track.id, progress: resumeProgress };
+      backend.prepareInitialSeek(target.track.id, resumeProgress);
       return activateQueueTarget(
         previous,
         target,
@@ -207,12 +121,11 @@ export function useAudioPlayer() {
         isTokenizedLocalTrack(target.track) ? 'resolving-local-media' : 'mock-simulated',
       );
     });
-  }, [getResumeProgress]);
-
+  }, [backend.prepareInitialSeek, getResumeProgress]);
 
   const handlePlayTrack = useCallback((track: AudioTrack, customQueue?: AudioTrack[]) => {
     const resumeProgress = getResumeProgress(track);
-    pendingInitialSeekRef.current = { trackId: track.id, progress: resumeProgress };
+    backend.prepareInitialSeek(track.id, resumeProgress);
     recordTrackStarted(track, resumeProgress);
     setPlayerState((previous) => startTrackQueue(
       previous,
@@ -221,78 +134,70 @@ export function useAudioPlayer() {
       resumeProgress,
       isTokenizedLocalTrack(track) ? 'resolving-local-media' : 'mock-simulated',
     ));
-  }, [getResumeProgress, recordTrackStarted]);
-
+  }, [backend.prepareInitialSeek, getResumeProgress, recordTrackStarted]);
 
   const handleAddToQueue = useCallback((track: AudioTrack) => {
     setPlayerState((previous) => appendTrackToQueue(previous, track));
   }, []);
 
-
   const handleTogglePlay = useCallback(() => {
-    setPlayerState(prev => {
-      if (!prev.currentTrack) return prev;
-      const willPlay = !prev.isPlaying;
-      if (willPlay && isLocalTrackAwaitingAuthorization(prev.currentTrack)) {
+    setPlayerState((previous) => {
+      if (!previous.currentTrack) return previous;
+      const willPlay = !previous.isPlaying;
+      if (willPlay && isLocalTrackAwaitingAuthorization(previous.currentTrack)) {
         return {
-          ...prev,
+          ...previous,
           isPlaying: false,
           playbackMode: 'idle',
           playbackError: '当前音轨需要重新授权资源库并读取 Index 后才能播放。',
           playbackNotice: null,
         };
       }
-      if (willPlay && prev.playbackMode === 'idle') {
-        pendingInitialSeekRef.current = {
-          trackId: prev.currentTrack.id,
-          progress: clampPlaybackPosition(prev.progress, prev.currentTrack.duration),
-        };
+      if (willPlay && previous.playbackMode === 'idle') {
+        backend.prepareInitialSeek(
+          previous.currentTrack.id,
+          clampPlaybackPosition(previous.progress, previous.currentTrack.duration),
+        );
       }
-      const nextPlaybackMode = willPlay && prev.playbackMode === 'idle'
-        ? (isTokenizedLocalTrack(prev.currentTrack) ? 'resolving-local-media' : 'mock-simulated')
-        : prev.playbackMode;
-      return { ...prev, isPlaying: willPlay, playbackMode: nextPlaybackMode, playbackError: null };
+      const nextPlaybackMode = willPlay && previous.playbackMode === 'idle'
+        ? (isTokenizedLocalTrack(previous.currentTrack) ? 'resolving-local-media' : 'mock-simulated')
+        : previous.playbackMode;
+      return {
+        ...previous,
+        isPlaying: willPlay,
+        playbackMode: nextPlaybackMode,
+        playbackError: null,
+      };
     });
-  }, []);
+  }, [backend.prepareInitialSeek]);
 
-  const handleSeek = useCallback((seconds: number) => {
-    const normalized = clampPlaybackPosition(seconds, stateRef.current.currentTrack?.duration);
-    const audio = audioRef.current;
-    if (stateRef.current.playbackMode === 'mpv' && window.yangKura?.requestMpvPlaybackCommand) {
-      void window.yangKura.requestMpvPlaybackCommand({ mode: 'mpv-playback-command', command: 'seek', seconds: normalized });
-    } else if (audio && stateRef.current.playbackMode === 'html-audio') {
-      audio.currentTime = normalized;
-    }
-    setPlayerState(prev => ({ ...prev, progress: normalized }));
-  }, []);
-
-  const handleVolumeChange = useCallback((vol: number) => {
-    const normalized = Math.max(0, Math.min(1, vol));
-    setPlayerState(prev => ({ ...prev, volume: normalized, isMuted: normalized === 0 }));
+  const handleVolumeChange = useCallback((volume: number) => {
+    const normalized = Math.max(0, Math.min(1, volume));
+    setPlayerState((previous) => ({
+      ...previous,
+      volume: normalized,
+      isMuted: normalized === 0,
+    }));
   }, []);
 
   const handleToggleMute = useCallback(() => {
-    setPlayerState(prev => ({ ...prev, isMuted: !prev.isMuted }));
+    setPlayerState((previous) => ({ ...previous, isMuted: !previous.isMuted }));
   }, []);
 
   const handleToggleLoopMode = useCallback(() => {
-    setPlayerState(prev => {
+    setPlayerState((previous) => {
       let nextMode: 'all' | 'one' | 'shuffle' = 'all';
-      if (prev.loopMode === 'all') nextMode = 'one';
-      else if (prev.loopMode === 'one') nextMode = 'shuffle';
-      return { ...prev, loopMode: nextMode };
+      if (previous.loopMode === 'all') nextMode = 'one';
+      else if (previous.loopMode === 'one') nextMode = 'shuffle';
+      return { ...previous, loopMode: nextMode };
     });
   }, []);
 
   const handleToggleCompletionMode = useCallback(() => {
-    setPlayerState(prev => ({
-      ...prev,
-      playCompletionMode: playerExperienceService.getNextCompletionMode(prev.playCompletionMode),
+    setPlayerState((previous) => ({
+      ...previous,
+      playCompletionMode: playerExperienceService.getNextCompletionMode(previous.playCompletionMode),
     }));
-  }, []);
-
-  const setPlayerProgress = useCallback((seconds: number) => {
-    setPlayerState(prev => ({ ...prev, progress: seconds }));
   }, []);
 
   const currentTrack = playerState.currentTrack;
@@ -301,213 +206,17 @@ export function useAudioPlayer() {
   const currentTrackRelativePath = currentTrack?.sourceRelativePath;
 
   useEffect(() => {
-    if (!window.yangKura?.onMpvPlaybackEvent) return;
-    return window.yangKura.onMpvPlaybackEvent((event) => {
-      const current = stateRef.current.currentTrack;
-      if (!current || event.trackId !== current.id) return;
-
-      if (event.type === 'ready') {
-        forceHtmlFallbackTrackRef.current = null;
-        setPlayerState((prev) => ({ ...prev, playbackMode: 'mpv', playbackError: null, playbackNotice: null, resolvedMediaUrl: null }));
-      } else if (event.type === 'time') {
-        setPlayerState((prev) => prev.playbackMode === 'mpv' ? { ...prev, progress: Math.max(0, event.positionSeconds) } : prev);
-      } else if (event.type === 'duration') {
-        setPlayerState((prev) => {
-          if (!prev.currentTrack || prev.currentTrack.id !== event.trackId) return prev;
-          const duration = safeDuration(event.durationSeconds);
-          if (!duration) return prev;
-          const updatedTrack = { ...prev.currentTrack, duration };
-          return {
-            ...prev,
-            currentTrack: updatedTrack,
-            queue: prev.queue.map((track) => track.id === updatedTrack.id ? { ...track, duration } : track),
-          };
-        });
-      } else if (event.type === 'pause-state') {
-        setPlayerState((prev) => prev.playbackMode === 'mpv' ? { ...prev, isPlaying: !event.paused } : prev);
-      } else if (event.type === 'ended') {
-        handleAutoTrackEndedRef.current();
-      } else if (event.type === 'fallback-requested') {
-        forceHtmlFallbackTrackRef.current = { trackId: event.trackId, reason: event.reason };
-        pendingInitialSeekRef.current = { trackId: event.trackId, progress: Math.max(0, event.resumeSeconds) };
-        setPlayerState((prev) => ({
-          ...prev,
-          isPlaying: true,
-          progress: Math.max(0, event.resumeSeconds),
-          playbackMode: 'resolving-local-media',
-          playbackError: null,
-          playbackNotice: `${event.message} 正在从上次位置切换到 HTMLAudio。`,
-          resolvedMediaUrl: null,
-        }));
-      } else if (event.type === 'error') {
-        setPlayerState((prev) => ({
-          ...prev,
-          isPlaying: false,
-          playbackMode: 'unsupported-local-media',
-          playbackError: event.message,
-        }));
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    const audio = audioRef.current;
-
-    const clearHtmlAudio = () => {
-      if (!audio) return;
-      audio.pause();
-      audio.removeAttribute('src');
-      audio.load();
-    };
-
-    const startHtmlAudioFallback = async (mpvMessage?: string) => {
-      if (!window.yangKura?.requestResolveTrackMediaUrl || !currentTrack || !isTokenizedLocalTrack(currentTrack)) {
-        throw new Error(mpvMessage || '当前 Electron preload 未提供本地音频解析接口。');
-      }
-      const result = await window.yangKura.requestResolveTrackMediaUrl({
-        rootPathToken: currentTrack.rootPathToken,
-        relativePath: currentTrack.sourceRelativePath,
-        trackId: currentTrack.id,
-        expectedKind: 'audio',
-      });
-      if (!result.ok) throw new Error([mpvMessage, result.message].filter(Boolean).join('；'));
-      if (cancelled || !audioRef.current) return;
-
-      audioRef.current.src = result.mediaUrl;
-      audioRef.current.volume = stateRef.current.volume;
-      audioRef.current.muted = stateRef.current.isMuted;
-      const initialSeek = resolvePlaybackStart(currentTrack, pendingInitialSeekRef.current, stateRef.current.progress);
-      audioRef.current.load();
-      if (audioRef.current.readyState < 1) {
-        await new Promise<void>((resolve, reject) => {
-          const target = audioRef.current;
-          if (!target) return reject(new Error('HTMLAudio 实例已释放。'));
-          const cleanup = () => {
-            target.removeEventListener('loadedmetadata', handleReady);
-            target.removeEventListener('error', handleFailure);
-          };
-          const handleReady = () => { cleanup(); resolve(); };
-          const handleFailure = () => { cleanup(); reject(new Error('HTMLAudio 无法读取音频元数据。')); };
-          target.addEventListener('loadedmetadata', handleReady, { once: true });
-          target.addEventListener('error', handleFailure, { once: true });
-        });
-      }
-      if (cancelled || !audioRef.current) return;
-      audioRef.current.currentTime = initialSeek;
-      if (pendingInitialSeekRef.current?.trackId === currentTrack.id) pendingInitialSeekRef.current = null;
-      setPlayerState((prev) => ({
-        ...prev,
-        playbackMode: 'html-audio',
-        playbackError: null,
-        playbackNotice: mpvMessage ? (mpvMessage.startsWith('已按设置') ? mpvMessage : `mpv 不可用，已切换 HTMLAudio：${mpvMessage}`) : prev.playbackNotice,
-        resolvedMediaUrl: result.mediaUrl,
-        currentTrack: prev.currentTrack ? { ...prev.currentTrack, mediaUrl: result.mediaUrl } : prev.currentTrack,
-      }));
-      if (stateRef.current.isPlaying) {
-        await audioRef.current.play();
-      }
-    };
-
-    if (!currentTrack) {
-      clearHtmlAudio();
-      if (window.yangKura?.requestMpvPlaybackCommand) {
-        void window.yangKura.requestMpvPlaybackCommand({ mode: 'mpv-playback-command', command: 'stop' });
-      }
-      return;
-    }
-
-    if (!isTokenizedLocalTrack(currentTrack)) {
-      clearHtmlAudio();
-      if (window.yangKura?.requestMpvPlaybackCommand) {
-        void window.yangKura.requestMpvPlaybackCommand({ mode: 'mpv-playback-command', command: 'stop' });
-      }
-      setPlayerState((prev) => ({
-        ...prev,
-        playbackMode: prev.isPlaying ? 'mock-simulated' : 'idle',
-        resolvedMediaUrl: null,
-        playbackError: null,
-        playbackNotice: null,
-      }));
-      return;
-    }
-
-    if (!playerState.isPlaying || playerState.playbackMode === 'mpv' || playerState.playbackMode === 'html-audio') return;
-
-    const start = async () => {
-      setPlayerState((prev) => ({ ...prev, playbackMode: 'resolving-local-media', playbackError: null, resolvedMediaUrl: null }));
-      let mpvFailureMessage: string | undefined;
-      const forcedHtmlFallback = forceHtmlFallbackTrackRef.current?.trackId === currentTrack.id;
-      const shouldAttemptMpv = mpvPlaybackPreferenceService.shouldAttemptMpv(mpvPreferenceRef.current) && !forcedHtmlFallback;
-      if (shouldAttemptMpv && window.yangKura?.requestMpvPlaybackStart) {
-        try {
-          const mpvResult = await window.yangKura.requestMpvPlaybackStart({
-            rootPathToken: currentTrack.rootPathToken,
-            relativePath: currentTrack.sourceRelativePath,
-            trackId: currentTrack.id,
-            mode: 'mpv-playback-start',
-            startSeconds: resolvePlaybackStart(currentTrack, pendingInitialSeekRef.current, stateRef.current.progress),
-            volume: stateRef.current.volume,
-            muted: stateRef.current.isMuted,
-          });
-          if (cancelled) {
-            if (mpvResult.ok) void window.yangKura.requestMpvPlaybackCommand?.({ mode: 'mpv-playback-command', command: 'stop' });
-            return;
-          }
-          if (mpvResult.ok) {
-            forceHtmlFallbackTrackRef.current = null;
-            if (pendingInitialSeekRef.current?.trackId === currentTrack.id) pendingInitialSeekRef.current = null;
-            clearHtmlAudio();
-            setPlayerState((prev) => ({ ...prev, playbackMode: 'mpv', playbackError: null, playbackNotice: null, resolvedMediaUrl: null }));
-            return;
-          }
-          mpvFailureMessage = mpvResult.message;
-        } catch (error) {
-          mpvFailureMessage = error instanceof Error ? error.message : String(error);
-        }
-      }
-
-      if (!shouldAttemptMpv && !forcedHtmlFallback) {
-        mpvFailureMessage = '已按设置仅使用 HTMLAudio。';
-      } else if (forcedHtmlFallback && !mpvFailureMessage) {
-        mpvFailureMessage = forceHtmlFallbackTrackRef.current?.reason || 'mpv 运行中断。';
-      }
-
-      try {
-        await startHtmlAudioFallback(mpvFailureMessage);
-        forceHtmlFallbackTrackRef.current = null;
-      } catch (error) {
-        if (cancelled) return;
-        setPlayerState((prev) => ({
-          ...prev,
-          isPlaying: false,
-          playbackMode: 'unsupported-local-media',
-          playbackError: error instanceof Error ? error.message : String(error),
-          playbackNotice: null,
-          resolvedMediaUrl: null,
-        }));
-      }
-    };
-
-    void start();
-    return () => {
-      cancelled = true;
-    };
-  }, [currentTrackId, currentTrackRootToken, currentTrackRelativePath, playerState.isPlaying, playerState.playbackMode]);
-
-
-  useEffect(() => {
     let cancelled = false;
 
     if (!currentTrack || !isTokenizedLocalTrack(currentTrack)) return;
 
     if (!window.yangKura?.requestReadTrackLyrics) {
-      setPlayerState((prev) => {
-        if (!prev.currentTrack || prev.currentTrack.id !== currentTrack.id) return prev;
+      setPlayerState((previous) => {
+        if (!previous.currentTrack || previous.currentTrack.id !== currentTrack.id) return previous;
         return {
-          ...prev,
+          ...previous,
           currentTrack: {
-            ...prev.currentTrack,
+            ...previous.currentTrack,
             lyricsLoadStatus: 'error',
             lyricsLoadError: '当前 Electron preload 未暴露字幕读取接口。',
           },
@@ -516,17 +225,19 @@ export function useAudioPlayer() {
       return;
     }
 
-    setPlayerState((prev) => {
-      if (!prev.currentTrack || prev.currentTrack.id !== currentTrack.id) return prev;
+    setPlayerState((previous) => {
+      if (!previous.currentTrack || previous.currentTrack.id !== currentTrack.id) return previous;
       const updatedTrack = {
-        ...prev.currentTrack,
+        ...previous.currentTrack,
         lyricsLoadStatus: 'loading' as const,
         lyricsLoadError: undefined,
       };
       return {
-        ...prev,
+        ...previous,
         currentTrack: updatedTrack,
-        queue: prev.queue.map((track) => (track.id === updatedTrack.id ? { ...track, ...updatedTrack } : track)),
+        queue: previous.queue.map((track) => (
+          track.id === updatedTrack.id ? { ...track, ...updatedTrack } : track
+        )),
       };
     });
 
@@ -538,41 +249,49 @@ export function useAudioPlayer() {
       subtitleRelativePaths: currentTrack.subtitleRelativePaths ?? [],
     }).then((result) => {
       if (cancelled) return;
-      setPlayerState((prev) => {
-        if (!prev.currentTrack || prev.currentTrack.id !== currentTrack.id) return prev;
+      setPlayerState((previous) => {
+        if (!previous.currentTrack || previous.currentTrack.id !== currentTrack.id) return previous;
         const updatedTrack = result.ok
           ? {
-              ...prev.currentTrack,
+              ...previous.currentTrack,
               lyrics: result.normalizedLrcLines.length > 0 ? result.normalizedLrcLines : undefined,
               lyricsSourceKind: 'local-file' as const,
               lyricsRelativePath: result.subtitleRelativePath,
-              lyricsLoadStatus: result.normalizedLrcLines.length > 0 ? ('loaded' as const) : ('missing' as const),
+              lyricsLoadStatus: result.normalizedLrcLines.length > 0
+                ? ('loaded' as const)
+                : ('missing' as const),
               lyricsLoadError: result.normalizedLrcLines.length > 0 ? undefined : result.message,
             }
           : {
-              ...prev.currentTrack,
-              lyricsLoadStatus: result.status === 'mvp26-track-lyrics-missing-file' ? ('missing' as const) : ('error' as const),
+              ...previous.currentTrack,
+              lyricsLoadStatus: result.status === 'mvp26-track-lyrics-missing-file'
+                ? ('missing' as const)
+                : ('error' as const),
               lyricsLoadError: result.message,
             };
         return {
-          ...prev,
+          ...previous,
           currentTrack: updatedTrack,
-          queue: prev.queue.map((track) => (track.id === updatedTrack.id ? { ...track, ...updatedTrack } : track)),
+          queue: previous.queue.map((track) => (
+            track.id === updatedTrack.id ? { ...track, ...updatedTrack } : track
+          )),
         };
       });
     }).catch((error) => {
       if (cancelled) return;
-      setPlayerState((prev) => {
-        if (!prev.currentTrack || prev.currentTrack.id !== currentTrack.id) return prev;
+      setPlayerState((previous) => {
+        if (!previous.currentTrack || previous.currentTrack.id !== currentTrack.id) return previous;
         const updatedTrack = {
-          ...prev.currentTrack,
+          ...previous.currentTrack,
           lyricsLoadStatus: 'error' as const,
           lyricsLoadError: error instanceof Error ? error.message : String(error),
         };
         return {
-          ...prev,
+          ...previous,
           currentTrack: updatedTrack,
-          queue: prev.queue.map((track) => (track.id === updatedTrack.id ? { ...track, ...updatedTrack } : track)),
+          queue: previous.queue.map((track) => (
+            track.id === updatedTrack.id ? { ...track, ...updatedTrack } : track
+          )),
         };
       });
     });
@@ -582,95 +301,15 @@ export function useAudioPlayer() {
     };
   }, [currentTrackId, currentTrackRootToken, currentTrackRelativePath]);
 
-  useEffect(() => {
-    if (playerState.playbackMode === 'mpv' && window.yangKura?.requestMpvPlaybackCommand) {
-      void window.yangKura.requestMpvPlaybackCommand({ mode: 'mpv-playback-command', command: 'set-volume', volume: playerState.volume });
-      void window.yangKura.requestMpvPlaybackCommand({ mode: 'mpv-playback-command', command: 'set-muted', muted: playerState.isMuted });
-      return;
-    }
-    const audio = audioRef.current;
-    if (!audio || playerState.playbackMode !== 'html-audio') return;
-    audio.volume = playerState.volume;
-    audio.muted = playerState.isMuted;
-  }, [playerState.volume, playerState.isMuted, playerState.playbackMode]);
-
-  useEffect(() => {
-    if (playerState.playbackMode === 'mpv' && window.yangKura?.requestMpvPlaybackCommand) {
-      void window.yangKura.requestMpvPlaybackCommand({
-        mode: 'mpv-playback-command',
-        command: playerState.isPlaying ? 'resume' : 'pause',
-      });
-      return;
-    }
-    const audio = audioRef.current;
-    if (!audio || playerState.playbackMode !== 'html-audio') return;
-
-    if (playerState.isPlaying) {
-      void audio.play().catch((error) => {
-        setPlayerState((prev) => ({
-          ...prev,
-          isPlaying: false,
-          playbackMode: 'unsupported-local-media',
-          playbackError: error instanceof Error ? error.message : String(error),
-        }));
-      });
-    } else {
-      audio.pause();
-    }
-  }, [playerState.isPlaying, playerState.playbackMode, playerState.resolvedMediaUrl]);
-
-  // Simulated fallback progress for mock data and browser preview mode.
-  useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    if (playerState.isPlaying && playerState.currentTrack && playerState.playbackMode === 'mock-simulated') {
-      timer = setInterval(() => {
-        setPlayerState(prev => {
-          if (!prev.currentTrack || !prev.isPlaying || prev.playbackMode !== 'mock-simulated') return prev;
-          const duration = safeDuration(prev.currentTrack.duration);
-          const nextProgress = prev.progress + 1;
-
-          if (duration > 0 && nextProgress >= duration) {
-            return { ...prev, progress: duration };
-          }
-          return { ...prev, progress: nextProgress };
-        });
-      }, 1000);
-    }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [playerState.isPlaying, playerState.currentTrack?.id, playerState.playbackMode]);
-
-  const progress = playerState.progress;
-  const isPlaying = playerState.isPlaying;
-  const currentTrackDuration = playerState.currentTrack?.duration;
-  const currentTrackIsRealAudio = isTokenizedLocalTrack(playerState.currentTrack);
-
-  useEffect(() => {
-    if (
-      !currentTrackIsRealAudio &&
-      isPlaying &&
-      currentTrackId &&
-      currentTrackDuration &&
-      progress >= currentTrackDuration
-    ) {
-      handleAutoTrackEndedRef.current();
-    }
-  }, [isPlaying, progress, currentTrackId, currentTrackDuration, currentTrackIsRealAudio, playerState.loopMode]);
-
-
-
   const handleReconcileQueueWithLibrary = useCallback((currentLibraryTracks: AudioTrack[]) => {
     setPlayerState((previous) => {
       const next = reconcilePlayerStateWithLibrary(previous, currentLibraryTracks);
       if (next.currentTrack && next.currentTrack !== previous.currentTrack && next.progress > 0) {
-        pendingInitialSeekRef.current = { trackId: next.currentTrack.id, progress: next.progress };
+        backend.prepareInitialSeek(next.currentTrack.id, next.progress);
       }
       return next;
     });
-  }, []);
-
-
+  }, [backend.prepareInitialSeek]);
 
   return {
     playerState,
@@ -680,7 +319,7 @@ export function useAudioPlayer() {
     handleTogglePlay,
     handleNextTrack,
     handlePrevTrack,
-    handleSeek,
+    handleSeek: backend.seek,
     handleVolumeChange,
     handleToggleMute,
     handleToggleLoopMode,
