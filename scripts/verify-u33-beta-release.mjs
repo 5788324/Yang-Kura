@@ -61,19 +61,12 @@ for (const asset of publication.assets) {
 }
 
 requireMarkers('Release Notes', notes, [
-  `# ${title}`,
-  'Windows x64',
-  '正式媒体库界面',
-  '自动验收',
-  '已知限制',
-  '未进行商业代码签名',
-  '不包含自动更新',
+  `# ${title}`, 'Windows x64', '正式媒体库界面', '自动验收', '已知限制',
+  '未进行商业代码签名', '不包含自动更新',
 ]);
 requireMarkers('README', readme, [
-  '> 当前版本：`0.169.0-beta.2`',
-  'Beta 2 个人日用版已发布',
-  'Release ID：`355486824`',
-  'release/beta2-publication-state.json',
+  '> 当前版本：`0.169.0-beta.2`', 'Beta 2 个人日用版已发布',
+  'Release ID：`355486824`', 'release/beta2-publication-state.json',
 ]);
 requireMarkers('PROJECT_STATE', state, [
   'Beta 2：个人日用版已发布并完成远端资产回读',
@@ -88,19 +81,29 @@ requireMarkers('CURRENT_PROJECT_HANDOFF', handoff, [
   'Release ID：355486824',
   '当前任务：长期日用维护与 Issue #66 技术债治理',
 ]);
-requireMarkers('preflight workflow', preflightWorkflow, [
-  'name: Personal Beta Release Preflight',
+
+requireMarkers('publication record audit workflow', preflightWorkflow, [
+  'name: Beta 2 Publication Record Audit',
+  'workflow_dispatch:',
   'permissions:\n  contents: read',
+  "U33_ALLOW_EXISTING_TARGET: '1'",
   'node scripts/verify-u33-release-preflight.mjs',
 ]);
-requireMarkers('release workflow', releaseWorkflow, [
-  'name: Personal Beta Release',
-  "github.event_name == 'push' && github.ref == 'refs/heads/main'",
-  'permissions:\n      contents: write',
-  'gh release create "$RELEASE_TAG"',
+if (preflightWorkflow.includes('contents: write') || preflightWorkflow.includes('pull_request:') || preflightWorkflow.includes('push:')) {
+  failures.push('publication record audit must be manual and read-only');
+}
+
+requireMarkers('published release audit workflow', releaseWorkflow, [
+  'name: Beta 2 Published Release Audit',
+  'workflow_dispatch:',
+  'permissions:\n  contents: read',
+  'gh release download v0.169.0-beta.2',
   'node scripts/verify-u33-published-release.mjs',
+  '--remote-only',
 ]);
-if (releaseWorkflow.includes('permissions:\n  contents: write')) failures.push('release workflow top-level permissions must remain read-only');
+if (releaseWorkflow.includes('contents: write') || releaseWorkflow.includes('gh release create') || releaseWorkflow.includes('pull_request:') || releaseWorkflow.includes('push:')) {
+  failures.push('published release audit must be manual, read-only and non-publishing');
+}
 
 for (const temporary of [
   '.github/workflows/beta2-version-sync.yml',
