@@ -1,0 +1,41 @@
+name: U39-C Fix U28 Maintenance Heading
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/u39c-fix-u28-heading.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/u39c-root-authorization-persistence
+          fetch-depth: 0
+      - name: Align maintenance heading expectation
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          target = Path('scripts/test-u28-electron-e2e.mjs')
+          source = target.read_text(encoding='utf-8')
+          old = "await waitForBodyText(runtime.cdp, '日常状态');"
+          new = "await waitForBodyText(runtime.cdp, '真实资源状态与诊断');"
+          count = source.count(old)
+          if count != 2:
+              raise SystemExit(f'expected 2 old heading assertions, found {count}')
+          target.write_text(source.replace(old, new), encoding='utf-8')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/test-u28-electron-e2e.mjs
+          git commit -m "align U28 maintenance heading"
+          git push origin HEAD:agent/u39c-root-authorization-persistence
