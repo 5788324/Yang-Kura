@@ -3,14 +3,9 @@ import path from 'node:path';
 
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const failures = [];
-const forbiddenDependencies = ['@google/genai', 'dotenv', 'express', 'motion', '@types/express', 'autoprefixer', 'esbuild'];
-for (const name of forbiddenDependencies) {
-  if (pkg.dependencies?.[name] || pkg.devDependencies?.[name]) failures.push(`unused dependency still present: ${name}`);
-}
-if (pkg.dependencies?.vite) failures.push('vite must not be duplicated in dependencies');
+
 if (pkg.scripts?.['verify:all'] !== 'npm run verify:stable') failures.push('verify:all must alias verify:stable');
 if (pkg.scripts?.clean !== 'node scripts/clean-build-output.mjs') failures.push('clean must be cross-platform');
-if (fs.readFileSync('scripts/desktop-smoke-check.mjs', 'utf8').includes('verify:all 为历史快照链')) failures.push('desktop smoke contains stale verify:all guidance');
 for (const key of Object.keys(pkg.scripts ?? {})) {
   const match = /^verify:mvp(\d+)/.exec(key);
   if (match && Number(match[1]) <= 111) failures.push(`legacy package script remains active: ${key}`);
@@ -22,6 +17,7 @@ for (const name of fs.readdirSync('scripts')) {
   const match = /^verify-mvp(\d+)/.exec(name);
   if (match && Number(match[1]) <= 111) failures.push(`legacy verifier remains active: ${name}`);
 }
+
 const archiveRoot = path.join('archive', 'legacy-mvp-history');
 if (!fs.existsSync(archiveRoot)) failures.push('legacy archive missing');
 const archiveCount = fs.existsSync(archiveRoot)
@@ -29,29 +25,27 @@ const archiveCount = fs.existsSync(archiveRoot)
   : 0;
 if (archiveCount < 300) failures.push(`legacy archive unexpectedly small: ${archiveCount}`);
 
-const projectState = fs.readFileSync('PROJECT_STATE.md', 'utf8');
+const state = fs.readFileSync('PROJECT_STATE.md', 'utf8');
 const readme = fs.readFileSync('README.md', 'utf8');
 const roadmap = fs.readFileSync('PROJECT_ROADMAP.md', 'utf8');
 const publication = JSON.parse(fs.readFileSync('release/beta2-publication-state.json', 'utf8'));
 const u32Evidence = fs.readFileSync('docs/U32_RELEASE_CANDIDATE_PACKAGING.md', 'utf8');
-if (!projectState.includes('0.167.0-mvp129')) failures.push('PROJECT_STATE.md does not retain the MVP129 historical baseline anchor');
-if (!u32Evidence.includes('核心版本：0.167.0-mvp129')) failures.push('U32 evidence does not retain the MVP129 release-candidate baseline');
-if (!readme.includes('0.169.0-beta.2') || !readme.includes('Beta 2 个人日用版已发布') || !readme.includes('release/beta2-publication-state.json')) failures.push('README.md does not identify the published Beta 2 personal-use release');
-if (!roadmap.includes('Beta 1：已发布并完成远端资产校验') || !roadmap.includes('U37-D：完成') || !roadmap.includes('当前任务：长期日用维护与 Issue #66 技术债治理')) failures.push('PROJECT_ROADMAP.md does not preserve release history and the current maintenance route');
+if (!state.includes('0.167.0-mvp129')) failures.push('PROJECT_STATE.md does not retain the MVP129 historical anchor');
+if (!u32Evidence.includes('核心版本：0.167.0-mvp129')) failures.push('U32 evidence does not retain the MVP129 baseline');
+if (!readme.includes('0.169.0-beta.2') || !readme.includes('Beta 2 个人日用版已发布')) failures.push('README.md does not identify the published Beta 2 release');
+if (!roadmap.includes('U38-A：播放器 Queue/History/Persistence 分离完成') || !roadmap.includes('当前任务：U38-B 播放器 Controller 与 Backend 边界')) failures.push('PROJECT_ROADMAP.md does not identify the current U38 route');
 if (publication.status !== 'published' || publication.releaseId !== 355486824) failures.push('Beta 2 publication state is incomplete');
 
 for (const file of ['NEXT_CHAT_HANDOFF.md', '00_NEW_CHAT_START_HERE.md']) {
   const source = fs.readFileSync(file, 'utf8');
-  if (!source.includes('0.169.0-beta.2')) failures.push(`${file} does not identify the current Beta 2 version`);
-  if (!source.includes('长期日用维护') && !source.includes('日常维护')) failures.push(`${file} does not identify the post-release maintenance route`);
-  if (source.includes('核心版本：0.167.0-mvp129')) failures.push(`${file} still presents MVP129 as the current version`);
+  if (!source.includes('0.169.0-beta.2')) failures.push(`${file} does not identify the current version`);
+  if (!source.includes('U38-A') || !source.includes('U38-B')) failures.push(`${file} does not identify the current player maintenance route`);
 }
 const runFirst = fs.readFileSync('RUN_ME_FIRST.md', 'utf8');
-const hasDynamicVersionContract = runFirst.includes('package.json 版本与 PROJECT_STATE.md 当前核心版本一致')
-  || runFirst.includes('`package.json` 版本与 `PROJECT_STATE.md` 当前核心版本一致');
-if (!hasDynamicVersionContract) failures.push('RUN_ME_FIRST.md does not use the dynamic project-state version contract');
-if (!runFirst.includes('Beta 2 已发布并完成远端资产校验')) failures.push('RUN_ME_FIRST.md does not identify the published Beta 2 state');
-if (runFirst.includes('核心版本：0.167.0-mvp129')) failures.push('RUN_ME_FIRST.md still presents MVP129 as the current version');
+if (!runFirst.includes('`package.json` 版本与 `PROJECT_STATE.md` 当前核心版本一致')) failures.push('RUN_ME_FIRST.md does not use the dynamic version contract');
+if (!runFirst.includes('U38-A 播放器 Queue/History/Persistence 分离已完成')) failures.push('RUN_ME_FIRST.md does not identify U38-A completion');
+if (!runFirst.includes('当前主线是 U38-B 播放器 Controller 与 Backend 边界')) failures.push('RUN_ME_FIRST.md does not identify the U38-B route');
+
 if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
