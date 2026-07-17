@@ -129,6 +129,9 @@ class CdpClient {
   }
 
   close() {
+    const error = new Error('CDP client closed');
+    for (const pending of this.pending.values()) pending.reject(error);
+    this.pending.clear();
     try { this.socket?.close(); } catch {}
   }
 }
@@ -264,8 +267,9 @@ async function launchAndInspect(executable, label, profileRoot) {
     });
     checkpoint(`launch:${label}:verified`);
 
-    await cdp.evaluate('window.close(); true');
+    const closeRequest = cdp.evaluate('window.close(); true').catch(() => undefined);
     requestedClose = true;
+    await Promise.race([closeRequest, waitForChildExit(child, 2_000), delay(1_000)]);
   } finally {
     cdp?.close();
     appendProcessLog('packaged-stdout.log', label, stdout);

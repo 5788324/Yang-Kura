@@ -35,6 +35,7 @@ const requiredFiles = [
   'scripts/verify-u39e-empty-state-truthfulness.mjs',
   'scripts/verify-u39f-architecture-guardrails.mjs',
   'scripts/test-u39f-architecture-guardrails.mjs',
+  'scripts/test-u32-release-candidate-packaging.mjs',
   '.github/workflows/u39-final-acceptance.yml',
   '.github/workflows/architecture-guardrails.yml',
   '.github/workflows/branch-validation.yml',
@@ -52,6 +53,7 @@ const allowedCloseoutChanges = [
   'docs/U39_FINAL_ACCEPTANCE.md',
   'scripts/verify-handoff.mjs',
   'scripts/verify-u39-final-acceptance.mjs',
+  'scripts/test-u32-release-candidate-packaging.mjs',
 ];
 
 function git(args, options = {}) {
