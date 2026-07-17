@@ -44,7 +44,9 @@ for (const file of ['NEXT_CHAT_HANDOFF.md', '00_NEW_CHAT_START_HERE.md']) {
   if (source.includes('核心版本：0.167.0-mvp129')) failures.push(`${file} still presents MVP129 as the current version`);
 }
 const runFirst = fs.readFileSync('RUN_ME_FIRST.md', 'utf8');
-if (!runFirst.includes('package.json 版本与 PROJECT_STATE.md 当前核心版本一致')) failures.push('RUN_ME_FIRST.md does not use the dynamic project-state version contract');
+const hasDynamicVersionContract = runFirst.includes('package.json 版本与 PROJECT_STATE.md 当前核心版本一致')
+  || runFirst.includes('`package.json` 版本与 `PROJECT_STATE.md` 当前核心版本一致');
+if (!hasDynamicVersionContract) failures.push('RUN_ME_FIRST.md does not use the dynamic project-state version contract');
 if (runFirst.includes('核心版本：0.167.0-mvp129')) failures.push('RUN_ME_FIRST.md still presents MVP129 as the current version');
 if (failures.length) {
   console.error(failures.join('\n'));
