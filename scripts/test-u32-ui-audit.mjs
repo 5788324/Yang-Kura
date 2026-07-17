@@ -107,9 +107,10 @@ async function screenshot(cdp, name) {
   report.screenshots.push(file);
 }
 
-async function capturePage(cdp, pageId, fileName) {
+async function capturePage(cdp, pageId, fileName, readyExpression) {
   await click(cdp, `#nav-${pageId}`);
   await waitFor(cdp, `document.querySelector('#nav-${pageId}')?.getAttribute('aria-current') === 'page'`, `${pageId} active`);
+  if (readyExpression) await waitFor(cdp, readyExpression, `${pageId} ready`);
   const metrics = await cdp.evaluate(`(() => {
     const main = document.querySelector('main');
     const buttons = [...main.querySelectorAll('button')].filter((item) => item.getBoundingClientRect().height > 0);
@@ -136,7 +137,7 @@ function electronExecutable() {
 
 const makeTrack = (id, title, artist, album, type, duration, rjId) => ({
   id, title, artist, album, duration, coverUrl: '', type, rjId,
-  playbackSourceKind: 'tokenized-local-file', rootPathToken: 'u32-audit-root',
+  playbackSourceKind: 'tokenized-local-file', externalOpenSourceKind: 'tokenized-local-file', rootPathToken: 'u32-audit-root',
   sourceRelativePath: `${type}/${id}.wav`, fileTreePath: `${type}/${id}.wav`,
   fileSize: `${Math.max(1, Math.round(duration / 60))} MB`,
   subtitleRelativePaths: [`${type}/${id}.ja.lrc`, `${type}/${id}.zh.lrc`],
@@ -151,6 +152,8 @@ const asmrTracks = [
 const musicTracks = [
   makeTrack('m-01', 'Blue Hour', 'Mina Aoki', 'City Lights', 'music', 244),
   makeTrack('m-02', 'Last Train Home', 'Mina Aoki', 'City Lights', 'music', 218),
+  makeTrack('m-03', 'Pine Echo', 'Kaito Mori', 'Forest Signals', 'music', 201),
+  makeTrack('m-04', 'Dawn Path', 'Kaito Mori', 'Forest Signals', 'music', 232),
 ];
 const works = [
   { id: 'RJ410001', title: '雨宿りの夜', circle: '月白音声', cvs: ['月白りん'], tags: ['雨声', '耳语'], tracks: asmrTracks.slice(0, 2), personalStatus: 'listening' },
@@ -162,7 +165,10 @@ const works = [
   description: '用于发布候选视觉审查的本地样本作品。', rating: 5 - index,
   addedAt: `2026-07-0${index + 1}T00:00:00.000Z`,
 }));
-const albums = [{ id: 'album-1', title: 'City Lights', artist: 'Mina Aoki', releaseYear: '2026', genre: 'City Pop', coverUrl: '', tracks: musicTracks }];
+const albums = [
+  { id: 'album-1', title: 'City Lights', artist: 'Mina Aoki', releaseYear: '2026', genre: 'City Pop', coverUrl: '', tracks: musicTracks.slice(0, 2) },
+  { id: 'album-2', title: 'Forest Signals', artist: 'Kaito Mori', releaseYear: '2025', genre: 'Ambient', coverUrl: '', tracks: musicTracks.slice(2, 4) },
+];
 const playlists = [{
   id: 'playlist-night', name: '夜间放松', description: 'ASMR 与安静音乐混合播放', coverUrl: '', creator: '本地用户',
   tracksCount: 1, tracks: [musicTracks[0]], isSystem: false, sourceKind: 'user-local',
@@ -193,10 +199,11 @@ try {
     localStorage.removeItem('yang_kura_metadata_overrides_v1');
     localStorage.setItem('sqlite_rj_works', JSON.stringify(seed.works));
     localStorage.setItem('sqlite_music_albums', JSON.stringify(seed.albums));
+    localStorage.setItem('sqlite_favorites', JSON.stringify(['m-01']));
     localStorage.setItem('yang_kura_user_playlists_v1', JSON.stringify({ version: 1, updatedAt: now, playlists: seed.playlists }));
     localStorage.setItem('sqlite_settings', JSON.stringify({audioLibPath:'<已授权本地音声库>',musicLibPath:'<已授权本地音乐库>',asmrPaths:[],musicPaths:[],tempDownloadPath:'<未设置>',currentTheme:'acrylic-mist',enableOverlay:true,privacyMode:true}));
     sessionStorage.setItem('yang_kura_u28_authorized_roots_v1', JSON.stringify({ mixed:{rootPathToken:'u32-audit-root',displayName:'U32 视觉审查媒体库',libraryType:'mixed'} }));
-    localStorage.setItem('yang_kura_library_session_v1', JSON.stringify({version:1,updatedAt:now,selectedRoots:{mixed:{libraryType:'mixed',displayName:'U32 视觉审查媒体库',selectedAt:now}},lastIndex:{libraryType:'mixed',displayName:'U32 视觉审查媒体库',indexRelativePath:'library-index.json',readAt:now,generatedAt:now,rootCount:1,collectionCount:4,trackCount:6,warningCount:0}}));
+    localStorage.setItem('yang_kura_library_session_v1', JSON.stringify({version:1,updatedAt:now,selectedRoots:{mixed:{libraryType:'mixed',displayName:'U32 视觉审查媒体库',selectedAt:now}},lastIndex:{libraryType:'mixed',displayName:'U32 视觉审查媒体库',indexRelativePath:'library-index.json',readAt:now,generatedAt:now,rootCount:1,collectionCount:5,trackCount:8,warningCount:0}}));
     localStorage.setItem('yang_kura_player_queue_v1', JSON.stringify({version:1,updatedAt:now,queue:[seed.asmrTracks[0],seed.musicTracks[0]],currentTrackId:seed.asmrTracks[0].id,currentIndex:0,progress:462,volume:0.72,isMuted:false,loopMode:'all',playCompletionMode:'continue-queue'}));
     localStorage.setItem('last_played_track_id', seed.asmrTracks[0].id);
     localStorage.setItem('last_played_progress', '462');
@@ -208,12 +215,10 @@ try {
   assert.equal(await cdp.evaluate("document.querySelector('#sidebar-ai-maintenance-toggle')?.offsetParent === null"), true, 'engineering maintenance toggle is hidden');
   assert.equal(await cdp.evaluate("document.querySelector('#nav-diagnostics')?.offsetParent === null && document.querySelector('#nav-downloader')?.offsetParent === null"), true, 'engineering routes are hidden');
 
-  await capturePage(cdp, 'dashboard', '01-dashboard-after');
-  assert.equal(await cdp.evaluate("document.querySelector('[data-u37b-home=\"daily\"]') !== null"), true, 'U37-B home is active');
+  await capturePage(cdp, 'dashboard', '01-dashboard-after', "document.querySelector('[data-u37b-home=\"daily\"]')");
   assert.equal(await cdp.evaluate("document.querySelector('#mvp45-home-recent-listening')?.getBoundingClientRect().top < innerHeight"), true, 'recent listening enters first viewport');
 
-  await capturePage(cdp, 'asmr-lib', '02-asmr-library-after');
-  assert.equal(await cdp.evaluate("document.querySelector('[data-u37b-asmr-library=\"grid\"]') !== null"), true, 'U37-B ASMR grid is active');
+  await capturePage(cdp, 'asmr-lib', '02-asmr-library-after', "document.querySelector('[data-u37b-asmr-library=\"grid\"]')");
   assert.equal(await cdp.evaluate("document.querySelectorAll('[data-u37b-asmr-card]').length >= 3"), true, 'U37-B ASMR cards render seeded works');
 
   const selectedCount = await cdp.evaluate(`(() => {
@@ -251,16 +256,56 @@ try {
   await waitFor(cdp, "document.querySelector('[data-u37b-asmr-library=\"list\"] .u37b-asmr-list')", 'ASMR list view');
   await screenshot(cdp, '02e-asmr-library-list-after');
 
-  await capturePage(cdp, 'music-lib', '03-music-library-after');
-  assert.equal(await cdp.evaluate("document.querySelector('#mvp53-music-visual-unity') && getComputedStyle(document.querySelector('#mvp53-music-visual-unity')).display === 'none'"), true, 'music engineering summary hidden');
+  await capturePage(cdp, 'music-lib', '03-music-library-tracks-after', "document.querySelector('[data-u37d-music-library=\"tracks\"]')");
+  assert.equal(await cdp.evaluate("document.querySelectorAll('[data-u37d-track-row]').length === 4"), true, 'U37-D music track list renders seeded tracks');
+
+  const selectedMusicCount = await cdp.evaluate(`(() => {
+    const buttons = [...document.querySelectorAll('[data-u37d-track-row] button[aria-label^="选择 "]')].slice(0, 2);
+    buttons.forEach((button) => button.click());
+    return buttons.length;
+  })()`);
+  assert.equal(selectedMusicCount, 2, 'two music tracks selected');
+  await waitFor(cdp, "document.querySelector('.u37d-selection-bar')?.textContent?.includes('已选择 2 首')", 'music selection count');
+  await clickButtonByText(cdp, '批量加入队列');
+  await waitFor(cdp, "JSON.parse(localStorage.getItem('yang_kura_player_queue_v1') ?? '{}').queue?.some((track) => track.id === 'm-02')", 'music batch queue persistence');
+
+  await click(cdp, '[data-u37d-view="albums"]');
+  await waitFor(cdp, "document.querySelectorAll('[data-u37d-collection-grid=\"albums\"] [data-u37d-collection-card]').length === 2", 'album cards');
+  await screenshot(cdp, '03b-music-albums-after');
+  await click(cdp, '[data-u37d-collection-card="album:album-1"]');
+  await waitFor(cdp, "document.querySelector('[data-u37d-detail=\"album\"]')", 'album detail');
+  assert.equal(await cdp.evaluate("document.querySelectorAll('[data-u37d-detail=\"album\"] ~ .u37d-selection-bar + .u37d-content [data-u37d-track-row]').length === 2 || document.querySelectorAll('[data-u37d-track-row]').length === 2"), true, 'album detail shows two tracks');
+  await screenshot(cdp, '03c-music-album-detail-after');
+  await clickButtonByText(cdp, '返回专辑');
+  await waitFor(cdp, "document.querySelector('[data-u37d-music-library=\"albums\"]')", 'return to albums');
+
+  await click(cdp, '[data-u37d-view="artists"]');
+  await waitFor(cdp, "document.querySelectorAll('[data-u37d-collection-grid=\"artists\"] [data-u37d-collection-card]').length === 2", 'artist cards');
+  await click(cdp, '[data-u37d-collection-card="artist:Mina Aoki"]');
+  await waitFor(cdp, "document.querySelector('[data-u37d-detail=\"artist\"]')", 'artist detail');
+  await screenshot(cdp, '03d-music-artist-detail-after');
+  await clickButtonByText(cdp, '返回艺术家');
+
+  await click(cdp, '[data-u37d-view="folders"]');
+  await waitFor(cdp, "document.querySelectorAll('[data-u37d-collection-grid=\"folders\"] [data-u37d-collection-card]').length === 2", 'folder cards');
+  await click(cdp, '[data-u37d-collection-card="folder:album-2"]');
+  await waitFor(cdp, "document.querySelector('[data-u37d-detail=\"folder\"]')", 'folder detail');
+  await screenshot(cdp, '03e-music-folder-detail-after');
+  await clickButtonByText(cdp, '返回文件夹');
+
+  await click(cdp, '[data-u37d-view="tracks"]');
+  await clickButtonByText(cdp, '仅看收藏');
+  await waitFor(cdp, "document.querySelectorAll('[data-u37d-track-row]').length === 1", 'favorite-only track filter');
+  await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1040, height: 680, deviceScaleFactor: 1, mobile: false });
+  await waitFor(cdp, "document.querySelector('[data-u37d-music-library=\"tracks\"]') && document.documentElement.scrollWidth <= innerWidth + 1", 'narrow music library');
+  await screenshot(cdp, '03f-music-library-narrow-after');
+
   await capturePage(cdp, 'playlists', '04-playlists-after');
   assert.equal(await cdp.evaluate("getComputedStyle(document.querySelector('#mvp53-playlist-visual-unity')).display === 'none'"), true, 'playlist engineering summary hidden');
   await capturePage(cdp, 'importer', '05-importer-after');
   assert.equal(await cdp.evaluate("getComputedStyle(document.querySelector('#mvp112-importer-primary-flow')).display === 'none'"), true, 'importer instructional wall hidden');
   await capturePage(cdp, 'settings', '06-settings-after');
   assert.equal(await cdp.evaluate("Math.max(...[...document.querySelectorAll('[data-settings-tab]')].map((item) => item.getBoundingClientRect().height)) <= 48"), true, 'settings tabs remain compact');
-
-  await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1040, height: 680, deviceScaleFactor: 1, mobile: false });
   await capturePage(cdp, 'settings', '07-settings-narrow-after');
   assert.deepEqual(cdp.errors, [], 'renderer has no runtime or console errors');
   report.status = 'pass';
