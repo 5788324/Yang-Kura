@@ -461,7 +461,7 @@ async function runEmptyAndRestartScenario(root) {
     await navigate(runtime.cdp, 'settings');
     await waitForBodyText(runtime.cdp, '应用设置');
     await clickVisibleText(runtime.cdp, '打开 AI 维护', 'button');
-    await waitForBodyText(runtime.cdp, '日常状态');
+    await waitForBodyText(runtime.cdp, '真实资源状态与诊断');
     await waitForBodyText(runtime.cdp, '已加载真实 library-index.json：0 个音声集合，0 个音乐集合，0 条轨道。');
     assert.equal(await runtime.cdp.evaluate(`document.querySelector('#u28-diagnostics-asmr-count')?.textContent?.trim()`), '0', '诊断页音声作品计数应为 0');
     assert.equal(await runtime.cdp.evaluate(`document.querySelector('#u28-diagnostics-music-count')?.textContent?.trim()`), '0', '诊断页音乐专辑计数应为 0');
@@ -587,7 +587,7 @@ async function runPopulatedPlaybackScenario(root) {
     await navigate(runtime.cdp, 'settings');
     await waitForBodyText(runtime.cdp, '应用设置');
     await clickVisibleText(runtime.cdp, '打开 AI 维护', 'button');
-    await waitForBodyText(runtime.cdp, '日常状态');
+    await waitForBodyText(runtime.cdp, '真实资源状态与诊断');
     await waitForBodyText(runtime.cdp, '已加载真实 library-index.json：1 个音声集合，0 个音乐集合，1 条轨道。');
     await clickVisibleText(runtime.cdp, '刷新真实资源状态', 'button');
     await waitForBodyText(runtime.cdp, '已加载真实 library-index.json：1 个音声集合，0 个音乐集合，1 条轨道。');
