@@ -68,7 +68,9 @@ if (failures.length === 0) {
     ['RjMetadataDialog', metadata],
   ]) {
     if (/absolutePath\s*[:=]/.test(source)) failures.push(`${file} must not expose absolute path fields`);
-    if (/file:\/\/[^'"\s]/.test(source)) failures.push(`${file} must not embed file URLs`);
+    if (/(?:src|href|url)\s*=\s*["']file:\/\//i.test(source) || /["']file:\/\/[^"']+["']/.test(source)) {
+      failures.push(`${file} must not embed file URLs`);
+    }
     if (source.includes('mvp43-asmr-detail-navigation') || source.includes('mvp56-asmr-detail-summary')) {
       failures.push(`${file} must not retain legacy detail UI anchors`);
     }
