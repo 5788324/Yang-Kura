@@ -1,0 +1,64 @@
+name: Player Fast Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/hooks/useAudioPlayer.ts'
+      - 'src/hooks/usePlayerSubtitles.ts'
+      - 'scripts/verify-u38c-player-subtitles.mjs'
+      - '.github/workflows/player-fast-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: player-fast-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-player:
+    name: Player TypeScript, build and U29
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Rebuild Electron runtime
+        run: npm rebuild electron
+
+      - name: Validate TypeScript and builds
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run lint
+          npm run build
+          npm run build:electron
+
+      - name: Verify U38-C subtitle boundary
+        run: node scripts/verify-u38c-player-subtitles.mjs
+
+      - name: Run U29 player Electron E2E
+        run: npm run test:u29:electron-e2e
+
+      - name: Upload U29 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: player-fast-validation-evidence
+          path: artifacts/u29-electron-e2e
+          if-no-files-found: warn
+          retention-days: 7

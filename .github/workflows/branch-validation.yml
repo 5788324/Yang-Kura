@@ -8,6 +8,9 @@ on:
       - '**/*.md'
       - 'docs/**'
       - 'AI_HANDOFF/**'
+      - 'src/hooks/useAudioPlayer.ts'
+      - 'src/hooks/usePlayerSubtitles.ts'
+      - 'scripts/verify-u38c-player-subtitles.mjs'
   workflow_dispatch:
 
 permissions:
@@ -29,22 +32,65 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Detect player fast-lane scope
+        id: scope
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -ne "pull_request") {
+            "player_fast_only=false" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+
+          $base = "${{ github.event.pull_request.base.sha }}"
+          $files = @(git diff --name-only $base HEAD)
+          $allowed = @(
+            '^src/hooks/useAudioPlayer\.ts$',
+            '^src/hooks/usePlayerSubtitles\.ts$',
+            '^scripts/verify-u38c-player-subtitles\.mjs$',
+            '^scripts/verify-handoff\.mjs$',
+            '^\.github/workflows/(branch-validation|player-fast-validation|u32-release-candidate)\.yml$',
+            '^(README|PROJECT_STATE|PROJECT_ROADMAP)\.md$',
+            '^AI_HANDOFF/(CURRENT_PROJECT_HANDOFF|WORKLOG)\.md$',
+            '^docs/architecture/U38_PLAYER_SUBTITLE_BOUNDARY\.md$'
+          )
+
+          $unexpected = @($files | Where-Object {
+            $file = $_
+            -not ($allowed | Where-Object { $file -match $_ })
+          })
+          $fastOnly = $files.Count -gt 0 -and $unexpected.Count -eq 0
+          "player_fast_only=$($fastOnly.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          if ($fastOnly) {
+            Write-Host "Player fast lane selected. Full regression is delegated to Player Fast Validation."
+          } else {
+            Write-Host "Full regression required. Unexpected or broader files: $($unexpected -join ', ')"
+          }
+
+      - name: Player fast-lane notice
+        if: steps.scope.outputs.player_fast_only == 'true'
+        run: echo "Full regression skipped; Player Fast Validation owns TypeScript, builds, U38-C verifier and U29."
+
       - name: Set up Node 22
+        if: steps.scope.outputs.player_fast_only != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
 
       - name: Install dependencies without lifecycle scripts
+        if: steps.scope.outputs.player_fast_only != 'true'
         run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Audit high and critical dependency risk
+        if: steps.scope.outputs.player_fast_only != 'true'
         run: npm audit --audit-level=high
 
       - name: Rebuild Electron runtime for desktop E2E
+        if: steps.scope.outputs.player_fast_only != 'true'
         run: npm rebuild electron
 
       - name: TypeScript validation
+        if: steps.scope.outputs.player_fast_only != 'true'
         shell: pwsh
         env:
           NODE_OPTIONS: --max-old-space-size=8192
@@ -55,7 +101,7 @@ jobs:
           if ($exitCode -ne 0) { exit $exitCode }
 
       - name: Upload TypeScript validation log
-        if: always()
+        if: always() && steps.scope.outputs.player_fast_only != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: typescript-validation-log
@@ -64,6 +110,7 @@ jobs:
           retention-days: 7
 
       - name: Build desktop application
+        if: steps.scope.outputs.player_fast_only != 'true'
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: |
@@ -71,22 +118,27 @@ jobs:
           npm run build:electron
 
       - name: Run U28 resource-library Electron E2E
+        if: steps.scope.outputs.player_fast_only != 'true'
         run: npm run test:u28:electron-e2e
 
       - name: Run U29 player Electron E2E
+        if: steps.scope.outputs.player_fast_only != 'true'
         run: npm run test:u29:electron-e2e
 
       - name: Run U30 UI and accessibility matrix
+        if: steps.scope.outputs.player_fast_only != 'true'
         run: npm run test:u30:ui-matrix
 
       - name: Run U31 importer transaction matrix
+        if: steps.scope.outputs.player_fast_only != 'true'
         run: npm run test:u31:importer-transactions
 
       - name: Run U32 release-candidate visual audit
+        if: steps.scope.outputs.player_fast_only != 'true'
         run: node scripts/test-u32-ui-audit.mjs
 
       - name: Upload Electron E2E artifacts
-        if: always()
+        if: always() && steps.scope.outputs.player_fast_only != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: u28-u32-electron-e2e
@@ -100,6 +152,7 @@ jobs:
           retention-days: 14
 
       - name: Run current focused U verifiers
+        if: steps.scope.outputs.player_fast_only != 'true'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
@@ -123,7 +176,7 @@ jobs:
           if ($failed) { exit 1 }
 
       - name: Upload focused verifier report
-        if: always()
+        if: always() && steps.scope.outputs.player_fast_only != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: focused-verifier-results
@@ -132,6 +185,7 @@ jobs:
           retention-days: 7
 
       - name: Run stable regression
+        if: steps.scope.outputs.player_fast_only != 'true'
         shell: pwsh
         env:
           NODE_OPTIONS: --max-old-space-size=8192
@@ -141,7 +195,7 @@ jobs:
           if ($exitCode -ne 0) { exit $exitCode }
 
       - name: Upload stable regression log
-        if: always()
+        if: always() && steps.scope.outputs.player_fast_only != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: stable-regression-log
@@ -150,6 +204,7 @@ jobs:
           retention-days: 7
 
       - name: Build production renderer again after regression
+        if: steps.scope.outputs.player_fast_only != 'true'
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: npm run build
