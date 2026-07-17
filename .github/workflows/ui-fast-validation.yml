@@ -5,11 +5,15 @@ on:
     branches:
       - main
     paths:
+      - 'src/main.tsx'
       - 'src/app/AppRouter.tsx'
       - 'src/app/navigation.ts'
       - 'src/components/SettingsMaintenanceEntry.tsx'
       - 'src/components/DiagnosticsPageShell.tsx'
+      - 'src/styles/theme-contrast-bridge.css'
       - 'scripts/verify-u39b-maintenance-entry.mjs'
+      - 'scripts/verify-u39d-light-theme-contrast.mjs'
+      - 'scripts/test-u39d-light-theme-contrast.mjs'
       - '.github/workflows/ui-fast-validation.yml'
   workflow_dispatch:
 
@@ -22,7 +26,7 @@ concurrency:
 
 jobs:
   validate-ui:
-    name: UI TypeScript, build and U30
+    name: UI TypeScript, build, U30 and contrast
     runs-on: windows-latest
     timeout-minutes: 45
 
@@ -53,14 +57,22 @@ jobs:
       - name: Verify U39-B maintenance boundary
         run: node scripts/verify-u39b-maintenance-entry.mjs
 
+      - name: Verify U39-D light theme contrast tokens
+        run: node scripts/verify-u39d-light-theme-contrast.mjs
+
       - name: Run U30 UI and accessibility matrix
         run: npm run test:u30:ui-matrix
 
-      - name: Upload U30 evidence
+      - name: Run U39-D Electron contrast acceptance
+        run: node scripts/test-u39d-light-theme-contrast.mjs
+
+      - name: Upload UI evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ui-fast-validation-evidence
-          path: artifacts/u30-ui-matrix
+          path: |
+            artifacts/u30-ui-matrix
+            artifacts/u39d-light-theme-contrast
           if-no-files-found: warn
           retention-days: 7
