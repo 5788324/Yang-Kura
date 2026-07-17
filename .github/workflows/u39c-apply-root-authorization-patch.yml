@@ -48,15 +48,6 @@ jobs:
           node scripts/apply-u39c-root-authorization-persistence.mjs > u39c-patch.log 2>&1
           code=$?
           mv /tmp/u39c-patch-source.mjs scripts/apply-u39c-root-authorization-persistence.mjs
-          if [ "$code" -eq 0 ]; then
-            python - <<'PY'
-            from pathlib import Path
-            target = Path('AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md')
-            source = target.read_text(encoding='utf-8')
-            source = source.replace('10. `docs/DESIGN.md`\n11. `AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md`\n12. `MVP130_EXPERIMENTAL_DO_NOT_MERGE.md`', '11. `docs/DESIGN.md`\n12. `AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md`\n13. `MVP130_EXPERIMENTAL_DO_NOT_MERGE.md`')
-            target.write_text(source, encoding='utf-8')
-            PY
-          fi
           cat u39c-patch.log
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           exit 0
