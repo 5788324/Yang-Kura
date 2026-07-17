@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "status": "published",
+  "version": "0.169.0-beta.2",
+  "tag": "v0.169.0-beta.2",
+  "title": "Yang-Kura 0.169.0 Beta 2 · 个人日用版",
+  "releaseId": 355486824,
+  "targetCommitish": "14bc78a81c827882efc232c6c6c12f0d8ed04542",
+  "publishedAt": "2026-07-17T05:21:02Z",
+  "url": "https://github.com/5788324/Yang-Kura/releases/tag/v0.169.0-beta.2",
+  "prerelease": true,
+  "draft": false,
+  "assets": [
+    {
+      "localName": "Yang Kura-0.169.0-beta.2-portable-x64.exe",
+      "publishedName": "Yang.Kura-0.169.0-beta.2-portable-x64.exe",
+      "sizeBytes": 85261159,
+      "sha256": "2c5fa4be8460a7f591a1f2f4bb5a105e3001ca9dbd944a8a5ae324e4ef77a3e5",
+      "downloadUrl": "https://github.com/5788324/Yang-Kura/releases/download/v0.169.0-beta.2/Yang.Kura-0.169.0-beta.2-portable-x64.exe"
+    },
+    {
+      "localName": "Yang Kura-0.169.0-beta.2-setup-x64.exe",
+      "publishedName": "Yang.Kura-0.169.0-beta.2-setup-x64.exe",
+      "sizeBytes": 85491801,
+      "sha256": "e6f234606922da9f96d8e6cad3f0b9a4b7adc1d3f74fc42d088ec752192ec885",
+      "downloadUrl": "https://github.com/5788324/Yang-Kura/releases/download/v0.169.0-beta.2/Yang.Kura-0.169.0-beta.2-setup-x64.exe"
+    },
+    {
+      "localName": "SHA256SUMS.txt",
+      "publishedName": "SHA256SUMS.txt",
+      "sizeBytes": 213,
+      "sha256": "5ce43fe6bdefbe3036f08e47bcd2ccfcaa89e5b2b3f7c32a17ad948e46dcb9bd",
+      "downloadUrl": "https://github.com/5788324/Yang-Kura/releases/download/v0.169.0-beta.2/SHA256SUMS.txt"
+    }
+  ]
+}
