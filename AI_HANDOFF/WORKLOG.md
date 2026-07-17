@@ -101,9 +101,10 @@ U37-A：完成
 U37-B：完成
 U37-C：完成
 U37-D：完成
+U38-A：播放器 Queue/History/Persistence 分离完成
 当前版本：0.169.0-beta.2
 Beta 2：已发布并完成远端资产校验
-当前任务：长期日用维护与 Issue #66 技术债治理
+当前任务：U38-B 播放器 Controller 与 Backend 边界
 大型功能：长期冻结
 ```
 
@@ -115,4 +116,3 @@ Beta 2：已发布并完成远端资产校验
 - 旧 `last_played_track_json` 使用隐私清洗后的音轨快照。
 - U29 Electron E2E 增加 Queue、History 和兼容快照的数据安全断言。
 - 当前任务：U38-B 播放器 Controller 与 Backend 边界。
-
