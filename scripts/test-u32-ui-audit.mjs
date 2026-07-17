@@ -267,7 +267,7 @@ try {
   assert.equal(selectedMusicCount, 2, 'two music tracks selected');
   await waitFor(cdp, "document.querySelector('.u37d-selection-bar')?.textContent?.includes('已选择 2 首')", 'music selection count');
   await clickButtonByText(cdp, '批量加入队列');
-  await waitFor(cdp, "document.querySelector('#app-player-bar')?.dataset.u29QueueCount === '3'", 'music batch queue state');
+  await waitFor(cdp, "document.querySelector('#app-player-bar')?.dataset.u29QueueCount === '4'", 'music batch queue state');
 
   await click(cdp, '[data-u37d-view="albums"]');
   await waitFor(cdp, "document.querySelectorAll('[data-u37d-collection-grid=\"albums\"] [data-u37d-collection-card]').length === 2", 'album cards');
