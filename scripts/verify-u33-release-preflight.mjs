@@ -7,80 +7,44 @@ const root = process.cwd();
 const artifactDir = path.join(root, 'artifacts', 'u33-release-preflight');
 const plan = JSON.parse(fs.readFileSync(path.join(root, 'release', 'u33-release-plan.json'), 'utf8'));
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+const lock = JSON.parse(fs.readFileSync(path.join(root, 'package-lock.json'), 'utf8'));
 const notes = fs.readFileSync(path.join(root, plan.releaseNotesPath), 'utf8');
 const normalizeLines = (text) => text.replace(/\r\n/g, '\n');
 const preflightWorkflow = normalizeLines(fs.readFileSync('.github/workflows/u33-release-preflight.yml', 'utf8'));
 const releaseWorkflow = normalizeLines(fs.readFileSync('.github/workflows/u33-beta-release.yml', 'utf8'));
 const tagsPath = path.join(artifactDir, 'tags-pages.json');
 const releasesPath = path.join(artifactDir, 'releases-pages.json');
-const publicationStatePath = path.join(root, 'release', 'u33-publication-state.json');
-const publicationState = fs.existsSync(publicationStatePath)
-  ? JSON.parse(fs.readFileSync(publicationStatePath, 'utf8'))
-  : null;
-const allowExistingTarget = process.env.U33_ALLOW_EXISTING_TARGET === '1' || Boolean(publicationState);
 
-const parseCore = (value) => {
-  const match = String(value).match(/^(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z.-]+)?$/);
+const parseVersion = (value) => {
+  const match = String(value).match(/^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/);
   assert.ok(match, `invalid semantic version: ${value}`);
-  return match.slice(1).map(Number);
+  return { core: match.slice(1, 4).map(Number), prerelease: match[4] ?? '' };
 };
-
-const compareCore = (left, right) => {
+const compareVersion = (left, right) => {
   for (let index = 0; index < 3; index += 1) {
-    if (left[index] !== right[index]) return left[index] - right[index];
+    if (left.core[index] !== right.core[index]) return left.core[index] - right.core[index];
   }
-  return 0;
+  if (left.prerelease === right.prerelease) return 0;
+  if (!left.prerelease) return 1;
+  if (!right.prerelease) return -1;
+  return left.prerelease.localeCompare(right.prerelease, undefined, { numeric: true });
 };
 
 assert.equal(plan.schemaVersion, 1, 'release plan schema mismatch');
 assert.equal(plan.channel, 'beta');
 assert.equal(plan.prerelease, true);
 assert.equal(plan.draft, false);
-assert.equal(plan.version, '0.168.0-beta.1');
 assert.equal(plan.tag, `v${plan.version}`);
-assert.equal(plan.previousVersion, '0.167.0-mvp129');
-assert.ok(compareCore(parseCore(plan.version), parseCore(plan.previousVersion)) > 0, 'target version core must advance');
-assert.ok([plan.previousVersion, plan.version].includes(pkg.version), `package version must be previous or target during U33: ${pkg.version}`);
-assert.ok(notes.includes('# Yang-Kura 0.168.0 Beta 1'), 'release notes title mismatch');
+assert.ok(compareVersion(parseVersion(plan.version), parseVersion(plan.previousVersion)) > 0, 'target version must advance');
+assert.equal(pkg.version, plan.version, `package version mismatch: ${pkg.version}`);
+assert.equal(lock.version, plan.version, `package-lock top version mismatch: ${lock.version}`);
+assert.equal(lock.packages?.['']?.version, plan.version, `package-lock root version mismatch: ${lock.packages?.['']?.version}`);
+assert.ok(notes.includes(`# ${plan.title}`), 'release notes title mismatch');
 assert.deepEqual(plan.assets, [
   `Yang Kura-${plan.version}-portable-x64.exe`,
   `Yang Kura-${plan.version}-setup-x64.exe`,
   'SHA256SUMS.txt',
 ]);
-
-if (publicationState) {
-  assert.deepEqual(publicationState, {
-    schemaVersion: 1,
-    status: 'published',
-    tag: plan.tag,
-    releaseId: 354560465,
-    targetCommitish: '47f3cfc0e6fbf4dd4616add1ef8675160f90d04d',
-    title: plan.title,
-    prerelease: true,
-    draft: false,
-    publishedAt: '2026-07-15T16:11:13Z',
-    assets: [
-      {
-        localName: `Yang Kura-${plan.version}-portable-x64.exe`,
-        publishedName: `Yang.Kura-${plan.version}-portable-x64.exe`,
-        sizeBytes: 85258927,
-        sha256: '90c6913749c52ac88aa4c1e32a144c092f7f263d5f198ae912f0c0184170b0b9',
-      },
-      {
-        localName: `Yang Kura-${plan.version}-setup-x64.exe`,
-        publishedName: `Yang.Kura-${plan.version}-setup-x64.exe`,
-        sizeBytes: 85489497,
-        sha256: 'a83e2e07e018dbedfd955928ba9ef6c2de42b08b748066d8bbe6ad2cdbde15a0',
-      },
-      {
-        localName: 'SHA256SUMS.txt',
-        publishedName: 'SHA256SUMS.txt',
-        sizeBytes: 213,
-        sha256: '121a882b101ad585e0207d2aa2e0ac821ae5f3c6b88dee045bdcd74274c6a14d',
-      },
-    ],
-  }, 'U33 publication state mismatch');
-}
 
 for (const marker of [
   'permissions:',
@@ -92,14 +56,15 @@ assert.ok(!preflightWorkflow.includes('contents: write'), 'preflight workflow mu
 
 for (const marker of [
   "github.event_name == 'push' && github.ref == 'refs/heads/main'",
-  'contents: write',
+  'permissions:\n      contents: write',
   'gh release create "$RELEASE_TAG"',
   '--target "$GITHUB_SHA"',
+  '--notes-file "$RELEASE_NOTES"',
   '--prerelease',
 ]) assert.ok(releaseWorkflow.includes(marker), `release workflow missing: ${marker}`);
 
 if (!fs.existsSync(tagsPath) || !fs.existsSync(releasesPath)) {
-  console.log(`U33 release preflight static contract PASS: ${plan.tag}`);
+  console.log(`Personal Beta release preflight static contract PASS: ${plan.tag}`);
   process.exit(0);
 }
 
@@ -107,37 +72,14 @@ const tagsPages = JSON.parse(fs.readFileSync(tagsPath, 'utf8'));
 const releasesPages = JSON.parse(fs.readFileSync(releasesPath, 'utf8'));
 const tags = tagsPages.flatMap((page) => Array.isArray(page) ? page : []);
 const releases = releasesPages.flatMap((page) => Array.isArray(page) ? page : []);
-const tagNames = tags.map((item) => item?.name).filter(Boolean);
-const releaseTitles = releases.map((item) => item?.name).filter(Boolean);
-const existingRelease = releases.find((item) => item?.tag_name === plan.tag) ?? null;
 const existingTag = tags.find((item) => item?.name === plan.tag) ?? null;
+const existingRelease = releases.find((item) => item?.tag_name === plan.tag) ?? null;
+const allowExistingTarget = process.env.U33_ALLOW_EXISTING_TARGET === '1';
 
 if (!allowExistingTarget) {
   assert.equal(existingTag, null, `target tag already exists: ${plan.tag}`);
   assert.equal(existingRelease, null, `target release already exists: ${plan.tag}`);
-  assert.ok(!releaseTitles.includes(plan.title), `target release title already exists: ${plan.title}`);
-} else if (publicationState) {
-  assert.ok(existingTag, `published target tag missing: ${plan.tag}`);
-  assert.ok(existingRelease, `published target release missing: ${plan.tag}`);
-  assert.equal(existingTag.commit?.sha, publicationState.targetCommitish, 'published tag target mismatch');
-  assert.equal(existingRelease.id, publicationState.releaseId, 'published release id mismatch');
-  assert.equal(existingRelease.name, publicationState.title, 'existing release title mismatch');
-  assert.equal(existingRelease.target_commitish, publicationState.targetCommitish, 'existing release target mismatch');
-  assert.equal(Boolean(existingRelease.prerelease), publicationState.prerelease, 'existing release must remain prerelease');
-  assert.equal(Boolean(existingRelease.draft), publicationState.draft, 'existing release must not be draft');
-  assert.equal(existingRelease.published_at, publicationState.publishedAt, 'existing release published timestamp mismatch');
-  const releaseAssets = new Map((existingRelease.assets ?? []).map((asset) => [asset.name, asset]));
-  assert.deepEqual(
-    [...releaseAssets.keys()].sort(),
-    publicationState.assets.map((asset) => asset.publishedName).sort(),
-    'existing release asset names mismatch',
-  );
-  for (const expectedAsset of publicationState.assets) {
-    const actualAsset = releaseAssets.get(expectedAsset.publishedName);
-    assert.ok(actualAsset, `published asset missing: ${expectedAsset.publishedName}`);
-    assert.equal(actualAsset.size, expectedAsset.sizeBytes, `published asset size mismatch: ${expectedAsset.publishedName}`);
-    assert.equal(actualAsset.digest, `sha256:${expectedAsset.sha256}`, `published asset SHA-256 mismatch: ${expectedAsset.publishedName}`);
-  }
+  assert.ok(!releases.some((item) => item?.name === plan.title), `target release title already exists: ${plan.title}`);
 } else if (existingRelease) {
   assert.equal(existingRelease.name, plan.title, 'existing release title mismatch');
   assert.equal(Boolean(existingRelease.prerelease), true, 'existing release must remain prerelease');
@@ -148,9 +90,9 @@ const report = {
   status: 'pass',
   plan,
   packageVersion: pkg.version,
+  packageLockVersion: lock.version,
   allowExistingTarget,
-  publicationState,
-  existingTagCount: tagNames.length,
+  existingTagCount: tags.length,
   existingReleaseCount: releases.length,
   targetAlreadyExists: Boolean(existingTag || existingRelease),
   targetRelease: existingRelease ? {
@@ -167,17 +109,9 @@ const report = {
       digest: asset.digest ?? null,
     })),
   } : null,
-  latestTags: tagNames.slice(0, 20),
-  latestReleases: releases.slice(0, 20).map((item) => ({
-    tag: item?.tag_name ?? null,
-    name: item?.name ?? null,
-    prerelease: Boolean(item?.prerelease),
-    draft: Boolean(item?.draft),
-    publishedAt: item?.published_at ?? null,
-  })),
   collision: false,
 };
 
 fs.mkdirSync(artifactDir, { recursive: true });
 fs.writeFileSync(path.join(artifactDir, 'preflight-report.json'), JSON.stringify(report, null, 2), 'utf8');
-console.log(`U33 release preflight live PASS: ${plan.tag} ${report.targetAlreadyExists ? 'already exists and matches frozen publication manifest' : 'is available'}`);
+console.log(`Personal Beta release preflight live PASS: ${plan.tag} ${report.targetAlreadyExists ? 'already exists and matches release contract' : 'is available'}`);
