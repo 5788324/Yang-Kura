@@ -1,0 +1,64 @@
+name: Architecture Guardrails
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/**/*.ts'
+      - 'src/**/*.tsx'
+      - 'src/**/*.mts'
+      - 'src/**/*.cts'
+      - 'electron/**/*.ts'
+      - 'electron/**/*.tsx'
+      - 'electron/**/*.mts'
+      - 'electron/**/*.cts'
+      - 'scripts/verify-u39f-architecture-guardrails.mjs'
+      - 'scripts/test-u39f-architecture-guardrails.mjs'
+      - '.github/workflows/architecture-guardrails.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: architecture-guardrails-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  guardrails:
+    name: Incremental architecture boundaries
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Self-test guardrail parser
+        run: node scripts/verify-u39f-architecture-guardrails.mjs --self-test
+
+      - name: Verify injected violations are rejected
+        run: node scripts/test-u39f-architecture-guardrails.mjs
+
+      - name: Check PR architecture delta
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node scripts/verify-u39f-architecture-guardrails.mjs
+
+      - name: Upload guardrail report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u39f-architecture-guardrails
+          path: artifacts/u39f-architecture-guardrails/report.json
+          if-no-files-found: warn
+          retention-days: 14
