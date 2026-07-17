@@ -72,9 +72,12 @@ requireMarkers('packaged page readiness', readiness, [
   'portable-complete-home',
   'nsis-complete-home',
   '正在打开页面',
-  '开始建立你的本地媒体库',
+  'data-u37b-home',
+  '尚未选择资源库',
+  '继续播放',
+  '常用入口',
   'page-readiness-report.json',
-  'complete home content',
+  'production home content',
   '中文 空格',
   'Stop-Process',
 ]);
@@ -87,6 +90,8 @@ requireMarkers('PROJECT_STATE', state, [
   'U36-A：导航注册表与 Preload IPC 统一完成',
   'U36-B：App Shell、Router 与 Overlay 拆分完成',
   'U36-C：Main IPC 分域注册完成',
+  'U37-B：首页与音声库列表 UI 完成',
+  '当前阶段：U37-C RJ 详情 UI',
   '目标版本：0.169.0-beta.2',
   'MVP130',
   '用户不承担测试',
@@ -120,4 +125,4 @@ if (failures.length) {
 }
 
 assert.ok(true);
-console.log('U32 release-candidate packaging historical verifier PASS');
+console.log('U32 release-candidate packaging production-home verifier PASS');
