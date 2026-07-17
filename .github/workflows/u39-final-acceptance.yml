@@ -1,22 +1,6 @@
 name: U39 Final Acceptance
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/u39-final-acceptance.yml'
-      - '.github/workflows/branch-validation.yml'
-      - 'scripts/verify-u39-final-acceptance.mjs'
-      - 'scripts/verify-handoff.mjs'
-      - 'scripts/test-u32-release-candidate-packaging.mjs'
-      - 'scripts/test-u32-packaged-page-readiness.mjs'
-      - 'docs/U39_FINAL_ACCEPTANCE.md'
-      - 'README.md'
-      - 'PROJECT_STATE.md'
-      - 'PROJECT_ROADMAP.md'
-      - 'AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md'
-      - 'AI_HANDOFF/WORKLOG.md'
   workflow_dispatch:
 
 permissions:
