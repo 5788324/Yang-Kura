@@ -15,11 +15,12 @@ U37-D：音乐库与详情 UI 完成
 U38-A：播放器 Queue/History/Persistence 分离完成
 U38-B：播放器 Controller/Backend 分离完成
 U38-C：播放器字幕加载与状态边界完成
+U39-A：播放器底栏语义主题一致性完成
 当前任务：日常体验与真实 Bug 优先
 大型功能：长期冻结，除非用户明确重新解冻
 ```
 
-Yang-Kura 已完成本地媒体库主要日常页面的正式 UI 迁移，并发布 `v0.169.0-beta.2` 个人日用 prerelease。portable、NSIS、安装卸载、用户数据保留、目标提交、远端资产名、大小和 SHA-256 均已自动校验。播放器 Queue/History/Persistence、mpv/HTMLAudio Backend 以及字幕加载生命周期均已完成渐进式分离，U38 播放器连续结构治理到此收口。
+Yang-Kura 已完成本地媒体库主要日常页面的正式 UI 迁移，并发布 `v0.169.0-beta.2` 个人日用 prerelease。portable、NSIS、安装卸载、用户数据保留、目标提交、远端资产名、大小和 SHA-256 均已自动校验。播放器 Queue/History/Persistence、mpv/HTMLAudio Backend 以及字幕加载生命周期均已完成渐进式分离；底部播放器、播放控制、进度条和临时弹层现在统一跟随语义主题 Token。
 
 ## 发布事实
 
@@ -44,6 +45,7 @@ Yang-Kura 已完成本地媒体库主要日常页面的正式 UI 迁移，并发
 - 50,000 曲目生成数据性能基准。
 - portable、NSIS、安装、重复安装、卸载、数据保留和进程回收。
 - 首页、音声库、RJ 详情、音乐库及专辑/艺术家/文件夹钻取页面完成正式迁移。
+- 底部播放器和播放弹层已使用主题语义色，不再固定为深黑 zinc 表面。
 
 ## 当前产品判断
 
@@ -51,7 +53,7 @@ Yang-Kura 已完成本地媒体库主要日常页面的正式 UI 迁移，并发
 |---|---|
 | 核心功能完整度 | 高，个人本地媒体库主链已完成 |
 | Windows 可交付性 | Beta 2 已发布并完成远端资产验证 |
-| UI 状态 | 主要日常页面和详情均已正式迁移 |
+| UI 状态 | 主要页面、详情与底部播放器均进入正式主题体系 |
 | 当前重点 | 真实 Bug、字幕实际体验、日常 UI 和用户可感知功能 |
 | 技术债 | 持续解决，但不再连续进行纯内部播放器拆分 |
 | 大功能 | 长期冻结，不从历史待办自动恢复 |
@@ -67,10 +69,18 @@ U38-A：Queue / History / Persistence
 
 U38-C 新增 `usePlayerSubtitles.ts`，集中字幕请求代次、过期结果丢弃、字幕来源变更重载、格式结果映射和当前曲目/Queue 状态同步。切歌或重新绑定字幕后，旧请求不能覆盖新曲目，也不会继续显示旧字幕。真实后端、Seek、完成策略、Queue、History 和续播行为保持不变。
 
+## U39-A 播放器底栏主题一致性
+
+- `PlayerBar` 根表面改用 `player-bg`、`border-color` 和 `text-primary`。
+- 曲目信息、主控制区、辅助控制、进度条、歌单菜单、音量弹层、跳转预览、歌词浮窗和 Toast 使用语义 Token。
+- 保留品牌强调、错误、警告和收藏状态色，不再用固定 zinc 深色承担结构层级。
+- 新增全局播放器 region 语义和统一品牌色焦点反馈。
+- 不修改播放状态、mpv/HTMLAudio、Queue、字幕、Seek 或续播逻辑。
+
 ## 快速开发模式
 
 - 普通 UI、Hook 和状态管理改动：TypeScript、生产构建、相关功能 E2E 和定向 verifier。
-- 播放器 Renderer 改动进入 `Player Fast Validation`，重点执行 U29。
+- 播放器 Renderer 改动进入 `Player Fast Validation`：运行时变更执行 U29，视觉/无障碍变更执行 U30。
 - portable、NSIS、安装和卸载仅在 Electron Main、安装器、依赖、打包配置或正式发布发生变化时执行。
 - 一个任务使用一个 PR，功能和必要文档同一 PR 收口。
 - 不再为历史文件位置或旧文案重复执行发布级验证。
