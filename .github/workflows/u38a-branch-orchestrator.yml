@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - '.github/workflows/player-session-boundary-sync.yml'
-      - 'u38a-trigger.txt'
+      - 'docs/U38A_TRIGGER.md'
 
 permissions:
   contents: write
@@ -38,7 +38,7 @@ jobs:
             git push origin HEAD:agent/player-session-boundaries
             exit "$status"
           fi
-          rm -f u38a-trigger.txt .github/workflows/player-session-boundary-sync.yml
+          rm -f docs/U38A_TRIGGER.md .github/workflows/player-session-boundary-sync.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
