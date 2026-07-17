@@ -175,7 +175,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Run current focused U verifiers
+      - name: Run current behavior verifiers
         if: steps.scope.outputs.player_fast_only != 'true'
         shell: pwsh
         run: |
@@ -183,18 +183,30 @@ jobs:
           $results = [System.Collections.Generic.List[string]]::new()
           $results.Add("verifier`tstatus`texit_code")
           $failed = $false
+          $verifiers = @(
+            'scripts/verify-u28-index-read-runtime.mjs',
+            'scripts/verify-u28-library-reconciliation.mjs',
+            'scripts/verify-u29-player-reliability.mjs',
+            'scripts/verify-u30-ui-fast-track.mjs',
+            'scripts/verify-u31-importer-transaction-hardening.mjs',
+            'scripts/verify-u39a-playerbar-theme.mjs',
+            'scripts/verify-u39b-maintenance-entry.mjs',
+            'scripts/verify-u39c-root-authorization-persistence.mjs'
+          )
 
-          Get-ChildItem -Path scripts -Filter 'verify-u*.mjs' |
-            Where-Object { $_.Name -match '^verify-u(?:2[89]|3[0-9])' } |
-            Sort-Object Name |
-            ForEach-Object {
-              Write-Host "Running $($_.Name)"
-              node $_.FullName
-              $exitCode = $LASTEXITCODE
-              $status = if ($exitCode -eq 0) { 'PASS' } else { 'FAIL' }
-              $results.Add("$($_.Name)`t$status`t$exitCode")
-              if ($exitCode -ne 0) { $failed = $true }
+          foreach ($verifier in $verifiers) {
+            if (-not (Test-Path $verifier)) {
+              $results.Add("$verifier`tMISSING`t1")
+              $failed = $true
+              continue
             }
+            Write-Host "Running $verifier"
+            node $verifier
+            $exitCode = $LASTEXITCODE
+            $status = if ($exitCode -eq 0) { 'PASS' } else { 'FAIL' }
+            $results.Add("$verifier`t$status`t$exitCode")
+            if ($exitCode -ne 0) { $failed = $true }
+          }
 
           $results | Set-Content -Path artifacts/focused-verifier-results.tsv -Encoding utf8
           if ($failed) { exit 1 }
