@@ -9,6 +9,8 @@ on:
       - '.github/workflows/branch-validation.yml'
       - 'scripts/verify-u39-final-acceptance.mjs'
       - 'scripts/verify-handoff.mjs'
+      - 'scripts/test-u32-release-candidate-packaging.mjs'
+      - 'scripts/test-u32-packaged-page-readiness.mjs'
       - 'docs/U39_FINAL_ACCEPTANCE.md'
       - 'README.md'
       - 'PROJECT_STATE.md'
@@ -138,7 +140,48 @@ jobs:
       - name: Run packaged install, uninstall and data-retention acceptance
         run: node scripts/test-u32-release-candidate-packaging.mjs
 
-      - name: Require complete packaged page content
+      - name: Upload base U39 evidence and packaged candidates
+        uses: actions/upload-artifact@v4
+        with:
+          name: u39-final-acceptance-base
+          path: |
+            artifacts/u39-final-acceptance
+            artifacts/u28-electron-e2e
+            artifacts/u29-electron-e2e
+            artifacts/u30-ui-matrix
+            artifacts/u31-importer-transactions
+            artifacts/u32-ui-audit
+            artifacts/u32-release-candidate
+            artifacts/u39f-architecture-guardrails
+            release/*.exe
+          if-no-files-found: error
+          retention-days: 30
+
+  packaged-page-readiness:
+    name: Fresh Windows packaged page readiness
+    needs: final-acceptance
+    runs-on: windows-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Download base evidence and packaged candidates
+        uses: actions/download-artifact@v4
+        with:
+          name: u39-final-acceptance-base
+          path: .
+
+      - name: Require complete packaged page content on fresh runner
         run: node scripts/test-u32-packaged-page-readiness.mjs
 
       - name: Record final acceptance result
@@ -146,7 +189,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: node scripts/verify-u39-final-acceptance.mjs --record-pass
 
-      - name: Upload U39 final acceptance evidence
+      - name: Upload final U39 acceptance evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
