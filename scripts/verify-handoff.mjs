@@ -98,8 +98,12 @@ const tokens = [
   ['release/beta2-publication-state.json', '"status": "published"'],
   ['release/beta2-publication-state.json', '"releaseId": 355486824'],
   ['release/beta2-publication-state.json', '14bc78a81c827882efc232c6c6c12f0d8ed04542'],
-  ['.github/workflows/u33-beta-release.yml', "github.event_name == 'push' && github.ref == 'refs/heads/main'"],
-  ['.github/workflows/u33-beta-release.yml', 'contents: write'],
+  ['.github/workflows/u33-release-preflight.yml', 'name: Beta 2 Publication Record Audit'],
+  ['.github/workflows/u33-release-preflight.yml', 'workflow_dispatch:'],
+  ['.github/workflows/u33-release-preflight.yml', 'contents: read'],
+  ['.github/workflows/u33-beta-release.yml', 'name: Beta 2 Published Release Audit'],
+  ['.github/workflows/u33-beta-release.yml', 'workflow_dispatch:'],
+  ['.github/workflows/u33-beta-release.yml', 'contents: read'],
   ['MVP130_EXPERIMENTAL_DO_NOT_MERGE.md', '824c914f844b1ac57391df8ebb5c1f30c8b40903145b3a66e6a13e95e5413efe'],
 ];
 
