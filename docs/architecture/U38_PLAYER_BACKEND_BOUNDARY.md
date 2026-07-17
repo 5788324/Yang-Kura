@@ -1,5 +1,12 @@
 # U38-B 播放器 Controller 与 Backend 边界
 
+## 交付状态
+
+- 状态：完成
+- PR：#75
+- 合并提交：`4e7105386c2057bdcff95183b45b56aa6ceb5513`
+- 下一任务：U38-C Subtitle loader 与字幕状态
+
 ## 目标
 
 在不改变用户可见播放行为的前提下，把 `useAudioPlayer.ts` 中的 mpv、HTMLAudio、本地媒体解析和 fallback 副作用集中到独立 Backend Hook。U38-B 不重写播放器内核，也不提前拆字幕。
@@ -37,13 +44,16 @@ Controller 不得直接创建 `Audio`，不得直接调用 mpv start/command/eve
 - LRC、SRT、VTT、ASS 与双语字幕仍由现有 Controller 协调，留待 U38-C。
 - Renderer 不持久化当前窗口 root token、临时 media URL 或 tokenized cover URL。
 
-## 自动验收
+## 最终自动验收
 
-- TypeScript、Renderer 和 Electron 构建。
-- U29 Electron E2E：真实后端、Seek、暂停、Queue、四种字幕、重启、重新授权、续播、上一首和下一首。
-- U38-B verifier：Controller 不再持有后端副作用，Backend Hook 保留完整 fallback 契约。
-- U28～U32 current E2E/视觉/事务链、stable regression 和最终生产构建。
-- portable、NSIS、安装、重复安装、卸载、数据保留和页面完整性。
+- Documentation Validation：PASS。
+- 依赖高危审计：PASS。
+- TypeScript、Renderer、Electron 与最终生产构建：PASS。
+- U28～U32 Electron E2E、UI/视觉和导入事务链：PASS。
+- U29：真实后端、Seek、暂停、Queue、四种字幕、重启、重新授权、续播、上一首和下一首：PASS。
+- U28～U38 current focused verifiers：PASS。
+- stable regression：PASS；MVP122 与 MVP124 历史 mpv verifier 已迁移到新 Backend Hook。
+- portable、NSIS、首次安装、重复安装、卸载、数据保留、进程退出和页面完整性：PASS。
 
 ## 下一步
 
