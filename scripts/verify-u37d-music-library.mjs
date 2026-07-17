@@ -94,7 +94,7 @@ if (failures.length === 0) {
   requireIncludes('U32 Electron audit', audit, [
     '[data-u37d-music-library=\\"tracks\\"]',
     'U37-D music track list renders seeded tracks',
-    'music batch queue persistence',
+    'music batch queue state',
     '[data-u37d-detail=\\"album\\"]',
     '[data-u37d-detail=\\"artist\\"]',
     '[data-u37d-detail=\\"folder\\"]',
