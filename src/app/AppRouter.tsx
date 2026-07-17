@@ -1,6 +1,7 @@
 import type React from 'react';
 import { Suspense, lazy } from 'react';
 import DiagnosticsRuntimeBoundary from '../components/DiagnosticsRuntimeBoundary';
+import SettingsMaintenanceEntry from '../components/SettingsMaintenanceEntry';
 import LibraryPageState, { type LibraryPageKind } from '../features/library/LibraryPageState';
 import LibraryRouteBoundary from '../features/library/LibraryRouteBoundary';
 import type { LibrarySessionSnapshot } from '../services/librarySessionService';
@@ -214,7 +215,10 @@ export default function AppRouter(props: AppRouterProps) {
       {props.currentPage === 'downloader' && <DownloaderPage onPlayTrack={props.onPlayTrack} />}
 
       {props.currentPage === 'settings' && (
-        <SettingsPage settings={props.settings} updateSettings={props.updateSettings} />
+        <div className="space-y-5">
+          <SettingsMaintenanceEntry onOpenMaintenance={() => props.setCurrentPage('diagnostics')} />
+          <SettingsPage settings={props.settings} updateSettings={props.updateSettings} />
+        </div>
       )}
 
       {props.currentPage === 'diagnostics' && (
@@ -228,6 +232,7 @@ export default function AppRouter(props: AppRouterProps) {
             setMusicAlbums={props.setMusicAlbums}
             setAsmrDetailId={props.setAsmrDetailId}
             onRefetchRjMetadata={props.onRefetchRjMetadata}
+            onBackToSettings={() => props.setCurrentPage('settings')}
           />
         </DiagnosticsRuntimeBoundary>
       )}
