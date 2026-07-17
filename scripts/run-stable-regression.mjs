@@ -12,6 +12,7 @@ const stableScripts = [
   'verify:mvp129-stabilization-round4',
   'verify:mvp129-stabilization-round5',
   'verify:handoff',
+  'verify:u38a-player-session-boundaries',
   'verify:mvp112-ui-audit-bugfix',
   'verify:mvp113-accessibility-label-hotfix',
   'verify:mvp114-local-metadata-overrides',

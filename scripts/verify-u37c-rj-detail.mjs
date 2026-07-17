@@ -45,7 +45,7 @@ if (failures.length === 0) {
   ]);
   for (const [file, source] of [['RjDetailPage', detail], ['RjMetadataDialog', metadata]]) {
     if (/absolutePath\s*[:=]/.test(source)) failures.push(`${file} must not expose absolute path fields`);
-    if (/(?:src|href|url)\s*=\s*["']file:\/\//i.test(source) || /["']file:\/\/[^"']+["']/.test(source)) failures.push(`${file} must not embed file URLs`);
+    if (/(?:src|href|url)\s*=\s*["']file:\/\//i.test(source) || /["']file:\/\/[^"']+['"]/.test(source)) failures.push(`${file} must not embed file URLs`);
   }
   requireIncludes('AppRouter', router, ["const RjDetailPage = lazy(() => import('../features/library/RjDetailPage'));", '<RjDetailPage']);
   if (router.includes("const AsmrDetail = lazy(() => import('../components/AsmrDetail'))")) failures.push('AppRouter still routes production RJ details to the legacy component');
@@ -59,9 +59,16 @@ if (failures.length === 0) {
     '[data-u37c-rj-detail=\\"ready\\"]', 'RJ detail uses shared TrackRow entries',
     'RJ personal status persistence', '[data-u37c-metadata-editor=\\"ready\\"]', 'provider preview remains available',
   ]);
-  requireIncludes('PROJECT_STATE.md', state, ['U37-C：RJ 详情 UI 完成', '当前任务：长期日用维护与 Issue #66 技术债治理']);
-  requireIncludes('CURRENT_PROJECT_HANDOFF.md', handoff, ['U37-C：完成', '当前任务：长期日用维护与 Issue #66 技术债治理']);
-  requireIncludes('WORKLOG.md', worklog, ['### U37-C — RJ 详情 UI', 'Beta 2：已发布并完成远端资产校验']);
+  requireIncludes('PROJECT_STATE.md', state, [
+    'U37-C：RJ 详情 UI 完成',
+    'U38-A：播放器 Queue/History/Persistence 分离完成',
+    '当前任务：U38-B 播放器 Controller 与 Backend 边界',
+  ]);
+  requireIncludes('CURRENT_PROJECT_HANDOFF.md', handoff, [
+    'U37-C：完成', 'U38-A：完成',
+    '当前任务：U38-B 播放器 Controller 与 Backend 边界',
+  ]);
+  requireIncludes('WORKLOG.md', worklog, ['### U37-C — RJ 详情 UI', '### U38-A — 播放器会话边界']);
   requireIncludes('U37 execution plan', plan, ['### U37-C：RJ 详情 — 已完成', '### U37-D：音乐库、专辑与艺术家详情 — 已完成']);
 }
 

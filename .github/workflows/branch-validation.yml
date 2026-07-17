@@ -108,7 +108,7 @@ jobs:
           $failed = $false
 
           Get-ChildItem -Path scripts -Filter 'verify-u*.mjs' |
-            Where-Object { $_.Name -match '^verify-u(?:2[89]|3[0-7])' } |
+            Where-Object { $_.Name -match '^verify-u(?:2[89]|3[0-8])' } |
             Sort-Object Name |
             ForEach-Object {
               Write-Host "Running $($_.Name)"

@@ -67,19 +67,23 @@ requireMarkers('Release Notes', notes, [
 requireMarkers('README', readme, [
   '> 当前版本：`0.169.0-beta.2`', 'Beta 2 个人日用版已发布',
   'Release ID：`355486824`', 'release/beta2-publication-state.json',
+  'U38-A 已完成 Queue、History 与 Persistence 分离',
 ]);
 requireMarkers('PROJECT_STATE', state, [
   'Beta 2：个人日用版已发布并完成远端资产回读',
-  '当前任务：长期日用维护与 Issue #66 技术债治理',
+  'U38-A：播放器 Queue/History/Persistence 分离完成',
+  '当前任务：U38-B 播放器 Controller 与 Backend 边界',
 ]);
 requireMarkers('PROJECT_ROADMAP', roadmap, [
   'Beta 2：个人日用版已发布并完成远端资产校验',
   '### Beta 2 个人日用版发布 — 已完成',
+  'U38-A：播放器 Queue/History/Persistence 分离完成',
 ]);
 requireMarkers('CURRENT_PROJECT_HANDOFF', handoff, [
   'Beta 2：个人日用版已发布并完成远端资产校验',
   'Release ID：355486824',
-  '当前任务：长期日用维护与 Issue #66 技术债治理',
+  'U38-A：完成',
+  '当前任务：U38-B 播放器 Controller 与 Backend 边界',
 ]);
 
 requireMarkers('publication record audit workflow', preflightWorkflow, [

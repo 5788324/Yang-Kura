@@ -64,7 +64,8 @@
     "test:u30:ui-matrix": "node scripts/test-u30-ui-matrix.mjs",
     "verify:u30-ui-fast-track": "node scripts/verify-u30-ui-fast-track.mjs",
     "test:u31:importer-transactions": "node scripts/test-u31-importer-transactions.mjs",
-    "verify:u31-importer-transaction-hardening": "node scripts/verify-u31-importer-transaction-hardening.mjs"
+    "verify:u31-importer-transaction-hardening": "node scripts/verify-u31-importer-transaction-hardening.mjs",
+    "verify:u38a-player-session-boundaries": "node scripts/verify-u38a-player-session-boundaries.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.546.0",
