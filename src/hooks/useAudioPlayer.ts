@@ -9,6 +9,7 @@ import {
 } from '../player/playerQueueTransitions';
 import { restorePlayerSessionState, usePlayerSessionPersistence } from './usePlayerSessionPersistence';
 import { usePlayerBackend } from './usePlayerBackend';
+import { usePlayerSubtitles } from './usePlayerSubtitles';
 import {
   clampPlaybackPosition,
   isLocalTrackAwaitingAuthorization,
@@ -200,106 +201,10 @@ export function useAudioPlayer() {
     }));
   }, []);
 
-  const currentTrack = playerState.currentTrack;
-  const currentTrackId = currentTrack?.id;
-  const currentTrackRootToken = currentTrack?.rootPathToken;
-  const currentTrackRelativePath = currentTrack?.sourceRelativePath;
-
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!currentTrack || !isTokenizedLocalTrack(currentTrack)) return;
-
-    if (!window.yangKura?.requestReadTrackLyrics) {
-      setPlayerState((previous) => {
-        if (!previous.currentTrack || previous.currentTrack.id !== currentTrack.id) return previous;
-        return {
-          ...previous,
-          currentTrack: {
-            ...previous.currentTrack,
-            lyricsLoadStatus: 'error',
-            lyricsLoadError: '当前 Electron preload 未暴露字幕读取接口。',
-          },
-        };
-      });
-      return;
-    }
-
-    setPlayerState((previous) => {
-      if (!previous.currentTrack || previous.currentTrack.id !== currentTrack.id) return previous;
-      const updatedTrack = {
-        ...previous.currentTrack,
-        lyricsLoadStatus: 'loading' as const,
-        lyricsLoadError: undefined,
-      };
-      return {
-        ...previous,
-        currentTrack: updatedTrack,
-        queue: previous.queue.map((track) => (
-          track.id === updatedTrack.id ? { ...track, ...updatedTrack } : track
-        )),
-      };
-    });
-
-    window.yangKura.requestReadTrackLyrics({
-      rootPathToken: currentTrack.rootPathToken,
-      trackId: currentTrack.id,
-      trackRelativePath: currentTrack.sourceRelativePath,
-      mode: 'read-track-lyrics',
-      subtitleRelativePaths: currentTrack.subtitleRelativePaths ?? [],
-    }).then((result) => {
-      if (cancelled) return;
-      setPlayerState((previous) => {
-        if (!previous.currentTrack || previous.currentTrack.id !== currentTrack.id) return previous;
-        const updatedTrack = result.ok
-          ? {
-              ...previous.currentTrack,
-              lyrics: result.normalizedLrcLines.length > 0 ? result.normalizedLrcLines : undefined,
-              lyricsSourceKind: 'local-file' as const,
-              lyricsRelativePath: result.subtitleRelativePath,
-              lyricsLoadStatus: result.normalizedLrcLines.length > 0
-                ? ('loaded' as const)
-                : ('missing' as const),
-              lyricsLoadError: result.normalizedLrcLines.length > 0 ? undefined : result.message,
-            }
-          : {
-              ...previous.currentTrack,
-              lyricsLoadStatus: result.status === 'mvp26-track-lyrics-missing-file'
-                ? ('missing' as const)
-                : ('error' as const),
-              lyricsLoadError: result.message,
-            };
-        return {
-          ...previous,
-          currentTrack: updatedTrack,
-          queue: previous.queue.map((track) => (
-            track.id === updatedTrack.id ? { ...track, ...updatedTrack } : track
-          )),
-        };
-      });
-    }).catch((error) => {
-      if (cancelled) return;
-      setPlayerState((previous) => {
-        if (!previous.currentTrack || previous.currentTrack.id !== currentTrack.id) return previous;
-        const updatedTrack = {
-          ...previous.currentTrack,
-          lyricsLoadStatus: 'error' as const,
-          lyricsLoadError: error instanceof Error ? error.message : String(error),
-        };
-        return {
-          ...previous,
-          currentTrack: updatedTrack,
-          queue: previous.queue.map((track) => (
-            track.id === updatedTrack.id ? { ...track, ...updatedTrack } : track
-          )),
-        };
-      });
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [currentTrackId, currentTrackRootToken, currentTrackRelativePath]);
+  usePlayerSubtitles({
+    currentTrack: playerState.currentTrack,
+    setPlayerState,
+  });
 
   const handleReconcileQueueWithLibrary = useCallback((currentLibraryTracks: AudioTrack[]) => {
     setPlayerState((previous) => {
