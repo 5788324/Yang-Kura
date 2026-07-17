@@ -171,8 +171,8 @@ try {
     return true;
   })()`);
 
-  await waitFor(cdp, "document.documentElement.dataset.ykTheme === 'mist-ivory'", 'mist ivory html theme');
-  await waitFor(cdp, "document.body.dataset.ykTheme === 'mist-ivory'", 'mist ivory body theme');
+  await waitFor(cdp, "document.documentElement?.dataset?.ykTheme === 'mist-ivory'", 'mist ivory html theme');
+  await waitFor(cdp, "document.body?.dataset?.ykTheme === 'mist-ivory'", 'mist ivory body theme');
   await waitFor(cdp, "document.querySelector('.u32-release-ui')?.dataset.ykTheme === 'mist-ivory'", 'mist ivory app theme');
 
   const runtime = await cdp.evaluate(`(() => {
