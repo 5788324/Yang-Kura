@@ -10,6 +10,7 @@ import './index.css';
 import './accessibility.css';
 import './playerThemeBridge.css';
 import './styles/production-shell.css';
+import './styles/library-pages.css';
 
 installRuntimeAccessibility();
 
