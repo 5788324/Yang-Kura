@@ -35,12 +35,13 @@ const makeDraft = (work: RJWork): MetadataDraft => ({
   tags: [...work.tags],
 });
 
-const parseList = (value: string) => [...new Set(
-  value
+const parseList = (value: string): string[] => {
+  const items: string[] = value
     .split(/[,，]/)
     .map((item) => item.trim())
-    .filter(Boolean),
-)];
+    .filter((item): item is string => item.length > 0);
+  return Array.from(new Set<string>(items));
+};
 
 export default function RjMetadataDialog({
   open,
@@ -107,7 +108,7 @@ export default function RjMetadataDialog({
       cvs: parseList(draft.cvs),
       releaseDate: draft.releaseDate.trim(),
       description: draft.description.trim(),
-      tags: [...new Set(draft.tags.map((tag) => tag.trim()).filter(Boolean))],
+      tags: Array.from(new Set<string>(draft.tags.map((tag) => tag.trim()).filter((tag): tag is string => tag.length > 0))),
     }, pendingSource);
     onClose();
   };
