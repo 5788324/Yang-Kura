@@ -1,6 +1,7 @@
-import type { KeyboardEvent, ReactNode } from 'react';
+import type { Key, KeyboardEvent, ReactNode } from 'react';
 
 export interface TrackRowProps {
+  key?: Key;
   title: string;
   subtitle?: string;
   leading?: ReactNode;

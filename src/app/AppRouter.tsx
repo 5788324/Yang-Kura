@@ -16,8 +16,8 @@ import type {
   RJWork,
 } from '../types';
 
-const Dashboard = lazy(() => import('../components/Dashboard'));
-const AsmrLibrary = lazy(() => import('../components/AsmrLibrary'));
+const Dashboard = lazy(() => import('../features/library/HomeLibraryPage'));
+const AsmrLibrary = lazy(() => import('../features/library/AsmrLibraryPage'));
 const AsmrDetail = lazy(() => import('../components/AsmrDetail'));
 const MusicLibrary = lazy(() => import('../components/MusicLibrary'));
 const PlaylistPage = lazy(() => import('../components/PlaylistPage'));

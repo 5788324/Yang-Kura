@@ -51,8 +51,15 @@ if (failures.length === 0) {
   const appLines = app.split(/\r?\n/).length;
   if (appLines > 620) failures.push(`App.tsx remains too large after U36-B: ${appLines} lines`);
 
-  for (const marker of [
+  const dashboardRouteCandidates = [
     "const Dashboard = lazy(() => import('../components/Dashboard'));",
+    "const Dashboard = lazy(() => import('../features/library/HomeLibraryPage'));",
+  ];
+  if (!dashboardRouteCandidates.some((marker) => router.includes(marker))) {
+    failures.push('AppRouter missing lazy dashboard route contract');
+  }
+
+  for (const marker of [
     "const DiagnosticsPageShell = lazy(() => import('../components/DiagnosticsPageShell'));",
     "props.currentPage === 'dashboard'",
     "props.currentPage === 'downloader'",

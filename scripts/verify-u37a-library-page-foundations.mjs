@@ -67,7 +67,7 @@ if (failures.length === 0) {
     '返回音声库',
   ]);
   for (const kind of ['dashboard', 'asmr', 'music']) {
-    const pattern = new RegExp(`renderLibraryPage\\(\\s*['\"]${kind}['\"]`);
+    const pattern = new RegExp(`renderLibraryPage\\(\\s*['"]${kind}['"]`);
     if (!pattern.test(router)) failures.push(`AppRouter missing ${kind} page boundary`);
   }
   if (router.includes('window.location.reload')) failures.push('U37-A recovery must not reload the whole application');
@@ -88,15 +88,15 @@ if (failures.length === 0) {
   ]);
   requireIncludes('PROJECT_STATE.md', state, [
     'U37-A：资源库页面状态与错误恢复完成',
-    '当前阶段：U37-B 首页与音声库列表 UI',
+    'U37-B：首页与音声库列表 UI 完成',
   ]);
   requireIncludes('AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', handoff, [
     'U37-A：完成',
-    '当前任务：U37-B 首页与音声库列表 UI',
+    'U37-B：完成',
   ]);
   requireIncludes('AI_HANDOFF/WORKLOG.md', worklog, [
     '### U37-A',
-    '当前任务：U37-B 首页与音声库列表 UI',
+    '### U37-B',
   ]);
 }
 

@@ -42,13 +42,10 @@
 
 - PR：#60
 - 合并提交：`00a2bad8ca24f68048aa4d48d5cc20a0407ecb1a`
-- 新增 `TopBar.tsx`，集中顶部资源库状态。
-- 新增 `AppRouter.tsx`，集中页面 lazy loading、日常路由和内部维护路由。
-- 新增 `QueueDrawer.tsx`，集中队列摘要、列表、清空和 Escape 关闭行为。
-- 新增 `PlayerOverlayHost.tsx`，集中 Lyrics 与断点续播覆盖层。
+- 新增 `TopBar.tsx`、`AppRouter.tsx`、`QueueDrawer.tsx` 和 `PlayerOverlayHost.tsx`。
 - `App.tsx` 仅保留顶层状态、业务协调与壳组合。
 - 保持 Index、播放、字幕、元数据、导入事务和路径安全行为不变。
-- PR #60 的完整 Electron、稳定回归、portable/NSIS 与 Beta 资产门禁通过。
+- 完整 Electron、稳定回归、portable/NSIS 与 Beta 资产门禁通过。
 
 ### U36-C — Main IPC 分域注册
 
@@ -61,13 +58,25 @@
 
 ### U37-A — 资源库页面状态与错误恢复
 
-- 分支：`agent/u37a-library-page-foundations`。
-- 新增 `LibraryPageState`，统一首页、音声库和音乐库的未连接、已连接但为空、正常内容状态。
+- PR：#62
+- 合并提交：`63fcd76121f82be024f93ac0d7f11a8edee067ff`
+- 新增 `LibraryPageState`，统一页面连接状态分类。
 - 新增 `LibraryRouteBoundary`，把渲染异常限制在当前页面并提供原地重试。
 - AppRouter 为首页、音声库、RJ 详情和音乐库建立页面边界。
 - RJ 详情 ID 失效时提供明确返回入口，不再留下空白内容区。
 - 新增 `docs/architecture/U37_EXECUTION_PLAN.md`，将 U37 拆为 A～D 四个连续子轮次。
-- 当前任务：U37-B 首页与音声库列表 UI。
+- TypeScript、U28～U32、稳定回归、portable/NSIS 与冻结 Beta 资产验证全部通过。
+
+### U37-B — 首页与音声库列表 UI
+
+- 分支：`agent/u37b-home-asmr-library`。
+- 新增 `HomeLibraryPage.tsx`，统一资源库状态、继续播放、最近播放、常用入口、最近加入和歌单入口。
+- 新增 `AsmrLibraryPage.tsx`，迁移综合搜索、字段搜索、排序和社团/声优/标签/来源/字幕/播放/个人状态筛选。
+- 网格和列表分别接入共享 `MediaCard`、`TrackRow`，支持键盘激活。
+- 新增作品多选、全选当前结果与批量加入歌单；保留单作品编辑、刷新、喜欢和非破坏性移除。
+- 保留大库搜索索引和渲染窗口，不改 Index、播放、字幕、元数据覆盖和文件安全语义。
+- U32 视觉审计改为真实验证正式首页、音声库、多选、批量歌单持久化与列表切换。
+- 当前任务：U37-C RJ 详情 UI。
 
 ## 当前结论
 
@@ -78,8 +87,9 @@ U35-B：完成
 U36-A：完成
 U36-B：完成
 U36-C：完成
-U37-A：代码完成，等待本分支最终门禁与合并
-当前任务：U37-B 首页与音声库列表 UI
+U37-A：完成
+U37-B：首页与音声库列表 UI 完成
+当前任务：U37-C RJ 详情 UI
 目标版本：0.169.0-beta.2
 大型功能：继续冻结
 ```
