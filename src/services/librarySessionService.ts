@@ -20,11 +20,13 @@ export interface LibrarySessionIndexSnapshot {
   sha256?: string;
 }
 
-export type LibrarySessionReadAttemptStatus = 'loaded' | 'failed';
+export type LibrarySessionReadAttemptStatus = 'reading' | 'loaded' | 'failed' | 'timed-out' | 'interrupted';
 
 export interface LibrarySessionReadAttemptSnapshot {
   status: LibrarySessionReadAttemptStatus;
+  operationId?: string;
   attemptedAt: string;
+  completedAt?: string;
   message: string;
   libraryType?: YangKuraLibraryType;
   displayName?: string;
@@ -45,6 +47,7 @@ const UPDATE_EVENT_NAME = 'yang-kura-library-session-updated';
 const INDEX_READ_EVENT_NAME = 'yang-kura-library-index-loaded';
 const CURRENT_WINDOW_ROOT_SESSION_KEY = 'yang_kura_u28_authorized_roots_v1';
 const PERSISTED_ROOT_SESSION_KEY = 'yang_kura_persisted_authorized_roots_v1';
+const INTERRUPTED_AFTER_MS = 60_000;
 let indexReadEventDispatchDepth = 0;
 
 const emptySnapshot = (): LibrarySessionSnapshot => ({
@@ -53,20 +56,31 @@ const emptySnapshot = (): LibrarySessionSnapshot => ({
   selectedRoots: {},
 });
 
+const normalizeReadAttempt = (value: LibrarySessionReadAttemptSnapshot | undefined): LibrarySessionReadAttemptSnapshot | undefined => {
+  if (!value) return undefined;
+  if (value.status !== 'reading') return value;
+  const started = Date.parse(value.attemptedAt);
+  if (!Number.isFinite(started) || Date.now() - started <= INTERRUPTED_AFTER_MS) return value;
+  return {
+    ...value,
+    status: 'interrupted',
+    completedAt: new Date().toISOString(),
+    message: '上一次资源库读取未正常结束。可以重新点击“读取已有记录”。',
+  };
+};
+
 const safeJsonParse = (value: string | null): LibrarySessionSnapshot => {
   if (!value) return emptySnapshot();
   try {
     const parsed = JSON.parse(value) as Partial<LibrarySessionSnapshot>;
-    if (parsed.version !== 1 || typeof parsed !== 'object' || parsed === null) {
-      return emptySnapshot();
-    }
+    if (parsed.version !== 1 || typeof parsed !== 'object' || parsed === null) return emptySnapshot();
     return {
       version: 1,
       updatedAt: typeof parsed.updatedAt === 'string' ? parsed.updatedAt : new Date(0).toISOString(),
       selectedRoots: parsed.selectedRoots || {},
       lastIndex: parsed.lastIndex,
       lastWrite: parsed.lastWrite,
-      lastReadAttempt: parsed.lastReadAttempt,
+      lastReadAttempt: normalizeReadAttempt(parsed.lastReadAttempt),
     };
   } catch {
     return emptySnapshot();
@@ -93,15 +107,9 @@ const hasCurrentWindowAuthorization = (): boolean => {
   return false;
 };
 
-const applyCurrentWindowAuthorizationBoundary = (
-  snapshot: LibrarySessionSnapshot,
-): LibrarySessionSnapshot => {
+const applyCurrentWindowAuthorizationBoundary = (snapshot: LibrarySessionSnapshot): LibrarySessionSnapshot => {
   if (hasCurrentWindowAuthorization()) return snapshot;
-  return {
-    ...snapshot,
-    lastIndex: undefined,
-    lastReadAttempt: undefined,
-  };
+  return { ...snapshot, lastIndex: undefined, lastReadAttempt: undefined };
 };
 
 const emitUpdated = () => {
@@ -128,9 +136,7 @@ const saveSnapshot = (snapshot: LibrarySessionSnapshot) => {
 const safeCount = (value: unknown): number =>
   typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : 0;
 
-const toIndexSnapshotFromRead = (
-  result: YangKuraReadLibraryIndexSuccessResult,
-): LibrarySessionIndexSnapshot => ({
+const toIndexSnapshotFromRead = (result: YangKuraReadLibraryIndexSuccessResult): LibrarySessionIndexSnapshot => ({
   libraryType: result.libraryType,
   displayName: result.displayName,
   indexRelativePath: result.indexRelativePath,
@@ -144,9 +150,7 @@ const toIndexSnapshotFromRead = (
   sha256: result.sha256,
 });
 
-const toIndexSnapshotFromWrite = (
-  result: YangKuraWriteLibraryIndexSuccessResult,
-): LibrarySessionIndexSnapshot => ({
+const toIndexSnapshotFromWrite = (result: YangKuraWriteLibraryIndexSuccessResult): LibrarySessionIndexSnapshot => ({
   libraryType: result.libraryType,
   displayName: result.displayName,
   indexRelativePath: result.indexRelativePath,
@@ -171,9 +175,8 @@ export const librarySessionService = {
 
   getSnapshot(): LibrarySessionSnapshot {
     if (typeof localStorage === 'undefined') return emptySnapshot();
-    return applyCurrentWindowAuthorizationBoundary(
-      safeJsonParse(localStorage.getItem(STORAGE_KEY)),
-    );
+    const snapshot = applyCurrentWindowAuthorizationBoundary(safeJsonParse(localStorage.getItem(STORAGE_KEY)));
+    return snapshot;
   },
 
   recordRootSelected(result: YangKuraSelectLibraryRootResult): void {
@@ -184,7 +187,6 @@ export const librarySessionService = {
       ...previous,
       version: 1,
       updatedAt: now,
-      lastIndex: undefined,
       lastReadAttempt: undefined,
       selectedRoots: {
         ...previous.selectedRoots,
@@ -197,8 +199,47 @@ export const librarySessionService = {
     });
   },
 
-  recordIndexRead(result: YangKuraReadLibraryIndexResult): void {
+  recordIndexReadStarted(input: { operationId: string; libraryType: YangKuraLibraryType; displayName: string }): void {
     const previous = this.getSnapshot();
+    const now = new Date().toISOString();
+    saveSnapshot({
+      ...previous,
+      version: 1,
+      updatedAt: now,
+      lastReadAttempt: {
+        status: 'reading',
+        operationId: input.operationId,
+        attemptedAt: now,
+        message: `正在读取「${input.displayName}」的资源库记录…`,
+        libraryType: input.libraryType,
+        displayName: input.displayName,
+      },
+    });
+  },
+
+  recordIndexReadTimedOut(input: { operationId: string; libraryType: YangKuraLibraryType; displayName: string; message: string }): void {
+    const previous = this.getSnapshot();
+    if (previous.lastReadAttempt?.operationId && previous.lastReadAttempt.operationId !== input.operationId) return;
+    const now = new Date().toISOString();
+    saveSnapshot({
+      ...previous,
+      updatedAt: now,
+      lastReadAttempt: {
+        status: 'timed-out',
+        operationId: input.operationId,
+        attemptedAt: previous.lastReadAttempt?.attemptedAt ?? now,
+        completedAt: now,
+        message: input.message,
+        libraryType: input.libraryType,
+        displayName: input.displayName,
+      },
+    });
+  },
+
+  recordIndexRead(result: YangKuraReadLibraryIndexResult, operationId?: string): void {
+    const previous = this.getSnapshot();
+    const activeOperationId = previous.lastReadAttempt?.operationId;
+    if (operationId && activeOperationId && activeOperationId !== operationId) return;
     const now = new Date().toISOString();
 
     if (!result.ok) {
@@ -206,14 +247,16 @@ export const librarySessionService = {
         ...previous,
         version: 1,
         updatedAt: now,
-        lastIndex: undefined,
         lastReadAttempt: {
           status: 'failed',
-          attemptedAt: now,
+          operationId,
+          attemptedAt: previous.lastReadAttempt?.attemptedAt ?? now,
+          completedAt: now,
           message: result.message,
+          libraryType: previous.lastReadAttempt?.libraryType,
+          displayName: previous.lastReadAttempt?.displayName,
         },
       });
-      emitIndexReadUpdated();
       return;
     }
 
@@ -225,8 +268,10 @@ export const librarySessionService = {
       lastIndex,
       lastReadAttempt: {
         status: 'loaded',
-        attemptedAt: result.readAt || now,
-        message: result.message,
+        operationId,
+        attemptedAt: previous.lastReadAttempt?.attemptedAt ?? result.readAt || now,
+        completedAt: now,
+        message: `读取完成：${lastIndex.collectionCount} 个作品或专辑，${lastIndex.trackCount} 条音轨。`,
         libraryType: result.libraryType,
         displayName: result.displayName,
         trackCount: lastIndex.trackCount,
@@ -264,16 +309,16 @@ export const librarySessionService = {
   },
 
   getUserFacingStatus(snapshot: LibrarySessionSnapshot = this.getSnapshot()): string {
-    if (snapshot.lastReadAttempt?.status === 'failed') {
-      return `最近一次资源库记录读取失败：${snapshot.lastReadAttempt.message}`;
-    }
+    const attempt = snapshot.lastReadAttempt;
+    if (attempt?.status === 'reading') return attempt.message;
+    if (attempt?.status === 'timed-out') return `读取等待超时：${attempt.message}`;
+    if (attempt?.status === 'interrupted') return attempt.message;
+    if (attempt?.status === 'failed') return `最近一次资源库读取失败：${attempt.message}`;
     if (snapshot.lastIndex) {
-      return `上次已读取「${snapshot.lastIndex.displayName}」：${snapshot.lastIndex.collectionCount} 个集合，${snapshot.lastIndex.trackCount} 条音轨。授权已保存在本机，可在重启后继续读取和播放。`;
+      return `已读取「${snapshot.lastIndex.displayName}」：${snapshot.lastIndex.collectionCount} 个作品或专辑，${snapshot.lastIndex.trackCount} 条音轨。重启应用后仍可继续读取和播放。`;
     }
     const selectedRoots = Object.values(snapshot.selectedRoots).filter(Boolean) as LibrarySessionRootSnapshot[];
-    if (selectedRoots.length > 0) {
-      return `上次选择过「${selectedRoots.map((root) => root.displayName).join('、')}」。授权已保存在本机，重启后会自动恢复。`;
-    }
+    if (selectedRoots.length > 0) return `已选择「${selectedRoots.map((root) => root.displayName).join('、')}」，可以读取已有记录。`;
     return '尚未导入本地资源库。请到设置页选择音声库或音乐库目录。';
   },
 };
