@@ -14,10 +14,10 @@ Beta 2：已发布，Release ID 355486824
 U34～U40-D3：完成
 Issue #66：已关闭
 Git Fast Lane v2：已生效
-当前任务：Beta 3 正式日用发布收口
+当前任务：Beta 3 播放阻断最终实机复测
 ```
 
-必须从最新 `origin/main` 接手。状态见 `PROJECT_STATE.md`，路线见 `PROJECT_ROADMAP.md`，日志见 `AI_HANDOFF/WORKLOG.md`，Git 规则见 `docs/GIT_FAST_LANE_V2.md`，U40-D 系列证据见 `docs/U40D_FINAL_EVIDENCE.md`。
+必须从最新 `origin/main` 或任务明确指定的 PR 分支接手。状态见 `PROJECT_STATE.md`，路线见 `PROJECT_ROADMAP.md`，日志见 `AI_HANDOFF/WORKLOG.md`，Git 规则见 `docs/GIT_FAST_LANE_V2.md`，U40-D 系列证据见 `docs/U40D_FINAL_EVIDENCE.md`。
 
 ## 当前运行时边界
 
@@ -30,6 +30,7 @@ Git Fast Lane v2：已生效
 - 队列有效性：`src/player/playerRuntimePolicy.ts`。
 - 历史有效性：`src/services/playbackHistoryService.ts`。
 - 播放后端：`src/hooks/usePlayerBackend.ts`。
+- 详情页行级播放入口：`src/shared/ui/TrackRow.tsx`、`src/features/library/RjDetailPage.tsx`。
 - 自动验收 profile 标记：`electron/preload.ts`。
 
 旧 `SettingsPage.tsx` 和 `DiagnosticsPage.tsx` 只保留历史追溯，不得重新接回生产路由。
@@ -44,13 +45,36 @@ Git Fast Lane v2：已生效
 - U40-D2：显式 `YANG_KURA_USER_DATA_ROOT`、单实例、歌单 `$0`、主题同步和导入页工程术语已修复并实测。
 - U40-D3：HTMLAudio 元数据读取和启动各有 10 秒超时；失败后清除伪播放状态，并引导到“设置 → 播放方式”选择 mpv。
 
+## Beta 3 播放阻断当前结论
+
+两次 Codex 专项报告均为有效基线，均证明 `B3-MAJ-001` 在当时候选上仍为 `FAIL / NO-GO`。第二次报告使用合法 38.009 秒 WAV，扫描与作品命名通过，但详情页主区域和行尾播放按钮均没有进入播放器。
+
+当前 PR #91 已完成两层修复：
+
+1. TrackRow 捕获阶段统一处理主区域和行尾播放按钮，避免可见点击未进入 `onPlayTrack`；
+2. HTMLAudio `loadedmetadata` 早于模式切换时仍按当前 track ID 写回真实时长，且 fallback 完成后再次兜底同步当前音轨和队列时长。
+
+专项自动化使用真实 CDP 鼠标事件和 `durationSeconds = 0` 的 WAV，验证两个入口都进入 `html-audio`、队列为 2，并分别回填 8 秒和 9 秒。页面错误和控制台错误均为 0。
+
+```text
+行级入口修复：94d5ca0a07f84e060997214ef58e574b3355b2de
+HTMLAudio 时长竞态修复：1655bcce63fffefa13dbd162693b2425173d9345
+最终代码候选：b5327d68d69966fb4e4358cf667aac1aba6270ba
+Player Fast Validation：29640816385 PASS
+Beta 3 Windows 候选构建：29640816414 PASS
+```
+
+PR #91 仍保持开放，Release 未创建。下一步只允许 Codex 在最新分支上复测 B3-MAJ-001；A 通过后才继续临时副本事务和真实音乐目录只读链。
+
 ## 当前提交事实
 
 ```text
 U40-D 合并提交：5daa0102b1114b6213d3240aa7cb4e66285ca7ab
 U40-D2 合并提交：b13a9149d1fcaf4ee409326c0fc4e219806aad88
 U40-D3 合并提交：03a3b75f95974b3370e12cb34dde20a4429e17fb
-U40-D3 Run：29636584817
+Beta 3 播放入口修复：94d5ca0a07f84e060997214ef58e574b3355b2de
+Beta 3 时长竞态修复：1655bcce63fffefa13dbd162693b2425173d9345
+Beta 3 最终代码候选：b5327d68d69966fb4e4358cf667aac1aba6270ba
 相对导入循环：0
 ```
 
@@ -58,10 +82,11 @@ U40-D3 Run：29636584817
 
 已实测 `E:\arsm`：75 个集合、3540 条轨道；日常 profile 不受影响；三主题、歌单、导入页语言、单实例、三次重启、进程回收、mpv 真实播放、Seek 和 33 行歌词均有证据。HTMLAudio 不支持编码时由 U40-D3 在 10 秒内明确失败，不再伪播放。
 
-Beta 3 发布前只补两个实机范围：
+Beta 3 当前剩余实机范围：
 
-1. `D:\CloudMusic\VipSongsDownload` 真实音乐库只读链；
-2. `%TEMP%\YangKura-Beta3-Acceptance` 临时副本中的 Index 写入/备份恢复、copy-only、move-only、失败回滚和 OperationLog。
+1. 最新候选上的 B3-MAJ-001 双播放入口、真实时长、进度、暂停/继续、Seek、队列和重启；
+2. A 通过后，`%TEMP%\YangKura-Beta3-Acceptance` 临时副本中的 Index 写入/备份恢复、copy-only、move-only、冲突、失败回滚和 OperationLog；
+3. `D:\CloudMusic\VipSongsDownload` 真实音乐库只读链，禁止在真实目录生成 Index。
 
 ## Git Fast Lane v2
 
@@ -78,7 +103,7 @@ Beta 3 发布前只补两个实机范围：
 
 ## Codex 报告有效性规则
 
-- 开头记录 fetch 后的 `HEAD`、`origin/main` 和任务指定提交。
+- 开头记录 fetch 后的分支、`HEAD`、远端分支和任务指定提交。
 - 任务提交不在历史中只能报告 `BASELINE_INVALID`。
 - 必须使用任务文档规定入口，不能以“等价入口”代替。
 - `NOT TESTED` 必须保留，不得推断。
@@ -96,6 +121,6 @@ Beta 3 发布前只补两个实机范围：
 
 ## GPT/AI 项目记忆
 
-后续对话默认记住并执行：用户不参与 Git、测试、构建和发布；ChatGPT 自主管理；Git Fast Lane v2 优先；当前唯一主线为 Beta 3 正式日用发布收口；不得扩展为新功能或连续治理轮次。
+后续对话默认记住并执行：用户不参与 Git、测试、构建和发布；ChatGPT 自主管理；Git Fast Lane v2 优先；当前唯一主线为 Beta 3 播放阻断最终实机复测；不得扩展为新功能或连续治理轮次。
 
 <!-- 历史验证锚点：U39-G：最终综合验收完成。 -->

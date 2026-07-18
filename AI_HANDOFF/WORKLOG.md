@@ -35,9 +35,14 @@
 - PR 候选只构建验证；合入 main 后自动创建 prerelease。
 - Beta 2 发布记录保持冻结；大型功能继续冻结。
 - 首次 Codex 专项基线有效：真实音乐目录因无既有 Index 保持只读；临时音声样本扫描、Index 写入、重启后读取和进程回收通过。
-- 首次专项发现阻断项 `B3-MAJ-001`：已索引 WAV 点击播放后未进入全局播放器；同时记录根目录作品显示 `root` 的 Observation。报告结论为 `PARTIAL / NO-GO`，因此 PR #91 未合并、Release 未创建。
-- 修复策略：播放器先进入 currentTrack/queue 可见状态，再执行可失败的历史与续播持久化；续播读取异常回退到 0 秒；根目录单样本以音轨标题替代 `root`。
-- 下一证据：只复测 B3-MAJ-001，随后补完临时副本备份、copy/move、冲突、失败回滚和 OperationLog；不重跑全产品或打包链。
+- 首次专项发现阻断项 `B3-MAJ-001`：已索引 WAV 点击播放后未进入全局播放器；同时记录根目录作品显示 `root`。报告结论为 `PARTIAL / NO-GO`，因此 PR #91 未合并、Release 未创建。
+- 首轮修复完成作品命名和播放状态优先写入，但第二次 Codex 专项仍在正确基线 `0cc9779e...` 上复现：合法 38.009 秒 WAV 显示 1 条可播放音轨，主区域与行尾播放按钮均未进入播放器，队列为 0；结论 `FAIL / NO-GO` 有效。
+- 补齐此前缺失的详情页行级真实鼠标 E2E。验证证明点击入口修复后音轨和队列可进入播放器，但 HTMLAudio 已处于 `html-audio` 时真实 duration 仍为 0。
+- 根因定位为 `loadedmetadata` 时序竞态：事件早于 `playbackMode = html-audio`，旧回调因此丢弃真实时长。修复按 audio dataset 中的当前 track ID 写回 duration，并在 fallback 完成时再次同步当前音轨和队列。
+- 修复提交：行级入口 `94d5ca0a...`；HTMLAudio 时长竞态 `1655bcce...`；最终代码候选 `b5327d68...`。
+- Player Fast Validation `29640816385` PASS：两份 Index 时长为 0 的 WAV 通过真实 CDP 鼠标点击两个入口，HTMLAudio 分别回填 8 秒、9 秒，队列均为 2，页面/控制台错误为 0。
+- Beta 3 Windows 候选构建 `29640816414` PASS：TypeScript、Renderer/Electron build、focused regressions、portable、NSIS、安装和页面 readiness 全部通过；PR 上发布 Job 按设计跳过。
+- 下一证据：只复测最新候选的 B3-MAJ-001；通过后补完临时副本备份、copy/move、冲突、失败回滚、OperationLog 和真实音乐目录只读链。不得重跑全产品或发布打包链。
 
 ## 当前结论
 
@@ -45,7 +50,9 @@
 U34～U40-D3：完成
 公开版本：0.169.0-beta.2
 候选版本：0.170.0-beta.3
-当前任务：Beta 3 阻断修复专项复测
+当前任务：Beta 3 播放阻断最终实机复测
+PR #91：开放，禁止提前合并
+Beta 3 Release：尚未创建
 Issue #66：已关闭
 大型功能：长期冻结
 ```
