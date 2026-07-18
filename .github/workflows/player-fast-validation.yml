@@ -93,7 +93,14 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts/beta3-rj-detail-playback-entry | Out-Null
-          node scripts/test-beta3-rj-detail-playback-entry.mjs 2>&1 | Tee-Object -FilePath artifacts/beta3-rj-detail-playback-entry/console.log
+          $testPath = 'scripts/test-beta3-rj-detail-playback-entry.mjs'
+          $source = Get-Content $testPath -Raw
+          $needle = '  const mainBackend = await waitForPlayer('
+          $injected = "  await delay(3000);`n  console.log('BETA3_MAIN_PLAYER_STATE', JSON.stringify(await playerState(runtime.cdp)));`n  const mainBackend = await waitForPlayer("
+          if (-not $source.Contains($needle)) { throw 'Beta 3 diagnostic injection anchor missing.' }
+          $source = $source.Replace($needle, $injected)
+          [System.IO.File]::WriteAllText((Resolve-Path $testPath), $source, [System.Text.UTF8Encoding]::new($false))
+          node $testPath 2>&1 | Tee-Object -FilePath artifacts/beta3-rj-detail-playback-entry/console.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Verify U39-A player theme boundary
