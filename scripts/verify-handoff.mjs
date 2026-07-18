@@ -16,17 +16,23 @@ const required = [
 ];
 
 const tokens = [
-  ['README.md', '当前阶段：Beta 3 正式日用发布收口'],
-  ['README.md', 'Git Fast Lane v2'],
-  ['PROJECT_STATE.md', '当前任务：Beta 3 播放阻断最终实机复测'],
-  ['PROJECT_STATE.md', 'Git Fast Lane v2：项目级默认规则已生效'],
+  ['README.md', '正式稳定版目标：`1.0.0`'],
+  ['README.md', '当前阶段：Beta 3 播放阻断第一轮诊断'],
+  ['README.md', '锁定远端基线并拉取一次'],
+  ['PROJECT_STATE.md', '当前任务：第一轮诊断增强，等待 Windows E2E 证据'],
+  ['PROJECT_STATE.md', 'Git 工作方式：本地集中开发与验证完成后统一推送'],
+  ['PROJECT_STATE.md', '全项目 UI / 功能 / 按钮全链路审查'],
   ['PROJECT_ROADMAP.md', '0.170.0-beta.3'],
-  ['PROJECT_ROADMAP.md', 'Beta 3 正式日用发布收口'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'Git Fast Lane v2：已生效'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：Beta 3 播放阻断最终实机复测'],
-  ['AI_HANDOFF/WORKLOG.md', '### Git Fast Lane v2'],
-  ['AI_HANDOFF/WORKLOG.md', '### Beta 3 正式日用发布收口 — 进行中'],
+  ['PROJECT_ROADMAP.md', '正式稳定版目标：1.0.0'],
+  ['PROJECT_ROADMAP.md', '阶段 D：1.0 全产品审查'],
+  ['PROJECT_ROADMAP.md', '阶段 E：Codex 1.0 实机验收'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：第一轮诊断增强，等待 Windows E2E 证据'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '锁定 branch/SHA 并拉取一次'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '正式发布 1.0.0'],
+  ['AI_HANDOFF/WORKLOG.md', '### Git Fast Lane v2.1'],
+  ['AI_HANDOFF/WORKLOG.md', '### 用户确认 1.0 最终路线'],
   ['docs/GIT_FAST_LANE_V2.md', '一个任务只使用一个分支、一个 PR'],
+  ['docs/GIT_FAST_LANE_V2.md', '拉取源码一次'],
   ['docs/CODEX_BETA3_RELEASE_ACCEPTANCE.md', 'D:\\CloudMusic\\VipSongsDownload'],
   ['docs/CODEX_BETA3_RELEASE_ACCEPTANCE.md', '%TEMP%\\YangKura-Beta3-Acceptance'],
   ['docs/RELEASE_NOTES_0.170.0-beta.3.md', '# Yang-Kura 0.170.0 Beta 3 · 正式日用候选'],
@@ -39,6 +45,8 @@ const staleTokens = [
   '当前任务：按需日常维护',
   '当前任务：综合收尾与剩余问题重新核对',
   '当前任务：发布 0.169.0 Beta 2 个人日用版',
+  'Beta 3 已完成',
+  '1.0.0 已发布',
 ];
 const activeDocs = required.slice(0, 5);
 const forbiddenTemporaryFiles = [
@@ -71,4 +79,4 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log('[verify-handoff] Beta 3 and Git Fast Lane v2 handoff PASS');
+console.log('[verify-handoff] Beta 3 → 1.0 roadmap and Git Fast Lane v2.1 handoff PASS');

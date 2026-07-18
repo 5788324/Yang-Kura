@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - 'electron/preload.ts'
       - 'src/hooks/useAudioPlayer.ts'
       - 'src/hooks/usePlayerSubtitles.ts'
       - 'src/components/PlayerBar.tsx'
@@ -14,6 +15,7 @@ on:
       - 'src/components/PlayerTransientPresenters.tsx'
       - 'src/shared/ui/TrackRow.tsx'
       - 'src/features/library/RjDetailPage.tsx'
+      - 'scripts/beta3-playback-diagnostic-probe.mjs'
       - 'scripts/test-beta3-rj-detail-playback-entry.mjs'
       - 'scripts/verify-u38c-player-subtitles.mjs'
       - 'scripts/verify-u39a-playerbar-theme.mjs'
@@ -54,7 +56,7 @@ jobs:
           $files = @(git diff --name-only $base HEAD)
           $runtimeChanged = @($files | Where-Object { $_ -match '^src/hooks/use(AudioPlayer|PlayerSubtitles)\.ts$|^scripts/verify-u38c-player-subtitles\.mjs$' }).Count -gt 0
           $uiChanged = @($files | Where-Object { $_ -match '^src/components/Player(Bar|BarPrimarySections|BarAuxiliaryControls|ProgressTrack|TransientPresenters)\.tsx$|^scripts/verify-u39a-playerbar-theme\.mjs$' }).Count -gt 0
-          $entryChanged = @($files | Where-Object { $_ -match '^src/shared/ui/TrackRow\.tsx$|^src/features/library/RjDetailPage\.tsx$|^scripts/test-beta3-rj-detail-playback-entry\.mjs$' }).Count -gt 0
+          $entryChanged = @($files | Where-Object { $_ -match '^electron/preload\.ts$|^src/shared/ui/TrackRow\.tsx$|^src/features/library/RjDetailPage\.tsx$|^scripts/(beta3-playback-diagnostic-probe|test-beta3-rj-detail-playback-entry)\.mjs$' }).Count -gt 0
           "runtime_changed=$($runtimeChanged.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
           "ui_changed=$($uiChanged.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
           "entry_changed=$($entryChanged.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
@@ -93,7 +95,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts/beta3-rj-detail-playback-entry | Out-Null
-          node scripts/test-beta3-rj-detail-playback-entry.mjs 2>&1 | Tee-Object -FilePath artifacts/beta3-rj-detail-playback-entry/console.log
+          node --import ./scripts/beta3-playback-diagnostic-probe.mjs scripts/test-beta3-rj-detail-playback-entry.mjs 2>&1 | Tee-Object -FilePath artifacts/beta3-rj-detail-playback-entry/console.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Verify U39-A player theme boundary

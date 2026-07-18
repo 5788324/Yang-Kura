@@ -9,6 +9,7 @@
 发布：NO-GO
 PR：#91，草稿阻断
 Beta 3 Release：不存在
+当前阶段：第一轮诊断增强
 ```
 
 ## 最新有效失败
@@ -17,7 +18,6 @@ Beta 3 Release：不存在
 
 ```text
 branch = release/beta3-daily-closeout
-HEAD = origin/release/beta3-daily-closeout
 HEAD = 69fe73b794d467d619ffbcfa5d794c0af23359f7
 ```
 
@@ -67,23 +67,36 @@ AppRouter
 - 不能确认测试读取的 PlayerBar 状态正确；
 - 不能用旧 CI 绿灯判定实机通过。
 
-## 下一轮必须补齐的诊断
+## 第一轮诊断候选
 
-第二条行尾播放点击后，保存：
+新增 `scripts/beta3-playback-diagnostic-probe.mjs`，通过 Node `--import` 在原 E2E 启动前加载。它不改变产品行为，也不改变测试通过条件。
 
-- currentTrack id；
-- currentIndex 和 queue；
-- playbackMode；
-- progress 和 duration；
-- resolvedMediaUrl；
-- playbackError / playbackNotice；
-- HTMLAudio src、dataset trackId、readyState、networkState、duration；
-- loadedmetadata、durationchange、canplay、error；
-- mpv ready、duration、time、fallback、error；
-- requestMpvPlaybackStart / requestResolveTrackMediaUrl 返回；
-- renderer console 和 page error。
+保存内容：
 
-只有证据明确后才修改代码。
+- trackId、playbackMode、progress、duration、queueCount、currentIndex；
+- HTMLAudio load/play/pause 和 loadedmetadata、durationchange、canplay、error 等事件；
+- requestMpvPlaybackStart、requestResolveTrackMediaUrl、requestMpvPlaybackCommand 请求和结果；
+- mpv ready、duration、time、fallback、error 事件；
+- Renderer console 和 page exception；
+- Electron stdout/stderr；
+- 状态变化时间线和最后快照。
+
+证据文件：
+
+```text
+artifacts/beta3-rj-detail-playback-entry/diagnostic-probe.json
+```
+
+判定规则：
+
+- 若第二条点击后没有 trackId/currentIndex 变化，检查入口或 PlayerState；
+- 若停在 resolving 且无 IPC 请求，检查 Hook/Effect 启动条件；
+- 若 IPC 返回失败，检查 token、路径解析或 mpv 启动；
+- 若 mpv 返回成功但没有 ready/duration，检查 mpv 事件和 observer；
+- 若 HTMLAudio load 后无 metadata/duration，检查连续换源和媒体事件；
+- 若后端已有有效 duration 而 PlayerBar 仍为 0，检查状态同步或测试观测。
+
+只有 Windows artifact 提供明确证据后才修改播放器代码。
 
 ## 候选清理
 
@@ -91,4 +104,4 @@ AppRouter
 - v2：自动专项失败，作废。
 - v3：未执行、未验证、未推送，作废。
 
-下一对话从 GitHub PR 最新 HEAD 开始，不从任何压缩包继续。
+后续只从 GitHub PR 最新 HEAD 继续，不从任何压缩包叠加补丁。

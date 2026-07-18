@@ -2,7 +2,7 @@
 
 ## 0. 本次交接结论
 
-当前开发继续暂停。Beta 3 没有得到有效修复，保持 `FAIL / NO-GO`。本轮仅更新项目路线、Git 工作方式和 1.0 收口计划，不包含产品代码修复。
+Beta 3 仍为 `FAIL / NO-GO`。第一轮工作已从“暂停等待”进入“诊断增强候选”阶段；本轮只增强 Windows E2E 证据采集，并修正文档校验规则，不修改播放器业务行为，不代表缺陷已修复。
 
 ```text
 仓库：https://github.com/5788324/Yang-Kura.git
@@ -12,12 +12,13 @@
 正式稳定版目标：1.0.0
 PR：#91
 候选分支：release/beta3-daily-closeout
+本轮起始 HEAD：7f088a077afb8f172511f291309c461db6fe8a56
 交接前产品代码基线：69fe73b794d467d619ffbcfa5d794c0af23359f7
 平台：Windows x64
 技术栈：React + Vite + TypeScript + Electron
 索引：Local JSON Index
 Issue #66：已关闭
-当前任务：Beta 3 播放阻断重新诊断
+当前任务：第一轮诊断增强，等待 Windows E2E 证据
 发布状态：NO-GO
 ```
 
@@ -68,7 +69,8 @@ Issue #66：已关闭
 - 多文件必须批量提交。
 - 通常一次推送；真实 CI 失败最多追加一次修复推送。
 - 文档与代码在同一轮最终推送前同步。
-- Codex 验收前必须有固定远端 branch/SHA，测试后由 ChatGPT处理报告和后续 Git。
+- Codex 验收前必须有固定远端 branch/SHA，测试后由 ChatGPT 处理报告和后续 Git。
+- 当前执行环境若无法解析 `github.com`，使用 GitHub 连接器读取固定 SHA 和创建单一 tree/commit，不退回逐文件提交。
 
 ## 4. 当前 Git 与发布事实
 
@@ -78,6 +80,7 @@ Issue #66：已关闭
 - PR 分支在交接前的产品代码 HEAD 为 `69fe73b794d467d619ffbcfa5d794c0af23359f7`。
 - 该 HEAD 含多轮播放器和测试尝试，但最新 Windows 专项未通过，只能视为未验收候选。
 - `package.json` 和 `package-lock.json` 仍为 Beta 2；Beta 3 正式发布前必须在仓库中同步版本。
+- 上一轮文档提交 `7f088a0...` 的 Documentation Validation 因校验脚本仍要求旧路线文案而失败；其余主要工作流通过。本轮同步更新校验规则。
 
 ## 5. 最新有效实机报告
 
@@ -110,10 +113,9 @@ Electron build：PASS
 GUI：NOT TESTED
 重启恢复：NOT TESTED
 临时导入事务：NOT TESTED
-Git：未提交、未推送
 ```
 
-## 6. 已确认生产链与缺失证据
+## 6. 已确认生产链
 
 ```text
 src/app/AppRouter.tsx
@@ -126,54 +128,45 @@ src/app/AppRouter.tsx
 
 旧 `src/components/AsmrDetail.tsx` 不进入生产路由。
 
-第二条行尾按钮失败后仍需观测：
+## 7. 第一轮诊断增强内容
 
-- currentTrack、queue、currentIndex；
-- playbackMode、progress、duration；
-- resolvedMediaUrl；
-- playbackError / playbackNotice；
-- HTMLAudio src、trackId、readyState、networkState 和事件；
-- mpv ready、duration、time、fallback、error；
-- IPC start/result；
-- renderer console 和 page error。
+本轮新增独立 Node 预加载探针 `scripts/beta3-playback-diagnostic-probe.mjs`，由 Player Fast Validation 在原 E2E 之前加载。原测试的点击、队列、模式和 duration 判定保持不变。
 
-不能提前断言根因属于 TrackRow、HTMLAudio、mpv、IPC 或测试观测。
+探针保存：
 
-## 7. 作废候选
+- PlayerBar 的 trackId、playbackMode、progress、duration、queueCount、currentIndex；
+- HTMLAudio 的 load/play/pause 调用和 metadata、duration、canplay、error 等事件；
+- `requestMpvPlaybackStart`、`requestResolveTrackMediaUrl`、`requestMpvPlaybackCommand` 请求与结果；
+- mpv ready、duration、time、fallback、error 等事件；
+- Renderer console、page exception；
+- Electron stdout/stderr；
+- 状态变化时间线和最后快照。
+
+输出文件：
+
+```text
+artifacts/beta3-rj-detail-playback-entry/diagnostic-probe.json
+```
+
+该文件随现有 `player-fast-validation-evidence` artifact 上传。只有读取这份 Windows 证据后，才决定未验收改动是保留、局部重写还是回退。
+
+## 8. 作废候选
 
 - v1：修改旧 AsmrDetail，作废。
 - v2：生产链正确但 E2E 失败，临时改动已恢复，作废。
 - v3：未执行、未验证、未推送，作废。
 - 后续从 GitHub PR #91 最新 HEAD 开始，不复制或叠加旧压缩包。
 
-## 8. 下一批执行任务
+## 9. 下一步
 
-### A. Beta 3
-
-1. 拉取并锁定 PR #91 最新 HEAD。
-2. 比较 `0cc9779e...` 到最新 HEAD 的播放器、TrackRow、E2E 和 workflow。
-3. 先增强诊断，再制作一个证据驱动的最小候选。
-4. 自动专项通过后生成 Codex 播放器验收提示词。
-5. 播放通过后执行临时导入事务和真实音乐目录只读链。
-6. 同步 Beta 3 版本，运行最终 L3，合并并发布。
-
-### B. 1.0 全产品收口
-
-1. 建立生产页面、按钮、菜单、快捷键和功能入口清单。
-2. 审查每个入口的 UI → Hook/Service → IPC/Main → 后端/文件系统 → 状态反馈与失败恢复链。
-3. 完成自动化功能矩阵、缺陷修复和回归。
-4. 生成 Codex 固定 branch/SHA 的全量 Windows 实机验收提示词。
-5. Blocker/Major 清零后清理无用组件、脚本、工作流、历史报告、临时候选和构建遗留。
-6. 执行 1.0 L3 发布链，发布 `1.0.0` 并校验远端资产。
-
-## 9. 1.0 验收边界
-
-- 所有生产页面和主要按钮有清单、有对应结果、有失败反馈。
-- 播放、字幕、资源库、Index、导入、元数据、歌单、设置、主题和窗口主链通过。
-- 安装、升级、重复安装、卸载、用户数据保留和进程回收通过。
-- 无 Blocker/Major；关键项不得以 NOT TESTED 结束。
-- Codex 必须使用固定 branch/SHA，并提供完整证据。
-- 最终 CI 和远端 Release 资产校验通过。
+1. 等待本轮唯一推送触发 Documentation Validation 和 Player Fast Validation。
+2. 下载 `player-fast-validation-evidence`。
+3. 读取原 `report.json`、`console.log` 和新 `diagnostic-probe.json`。
+4. 明确第二条音轨实际停在哪一层。
+5. 若根因明确，再制作单一最小修复候选。
+6. 自动专项通过后生成 Codex 播放器验收提示词。
+7. 播放通过后执行导入事务、真实音乐目录只读链并发布 Beta 3。
+8. Beta 3 后进入全项目 UI/功能/按钮审查和 1.0 收口。
 
 ## 10. 禁止事项
 
@@ -181,5 +174,6 @@ src/app/AppRouter.tsx
 - 不把旧 CI 绿灯替代最新实机失败。
 - 不要求用户亲自测试。
 - 不逐文件提交或反复推送。
+- 不在诊断证据明确前修改播放器行为。
 - 不在 1.0 前插入未经确认的大型功能。
 - 不因清理项目而删除仍被生产、测试、构建或发布链引用的文件。
