@@ -7,7 +7,7 @@ const read = (file) => {
     failures.push(`missing ${file}`);
     return '';
   }
-  return fs.readFileSync(file, 'utf8');
+  return fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
 };
 
 const playlist = read('src/components/PlaylistPage.tsx');
