@@ -1,58 +1,80 @@
 # PROJECT_ROADMAP
 
-> 长期路线真源。代码事实以最新 GitHub `main` 为准；当前状态见 `PROJECT_STATE.md`。
+> 长期路线真源。公开代码事实以 GitHub `main` 为准；Beta 3 候选状态以 PR #91 和最新有效 Codex 报告为准。
 
 ## 1. 当前基线
 
 ```text
 公开版本：0.169.0-beta.2
-下一版本：0.170.0-beta.3
-U34～U40-D3：核心能力、真实库稳定性和缺陷收口完成
-Issue #66：已关闭
-Git Fast Lane v2：已生效
-当前主线：Beta 3 正式日用发布收口
+下一版本目标：0.170.0-beta.3
+PR：#91
+候选分支：release/beta3-daily-closeout
+交接前产品代码基线：69fe73b794d467d619ffbcfa5d794c0af23359f7
+当前主线：暂停开发并交接 B3-MAJ-001
+发布状态：NO-GO
 大型功能：长期冻结
 ```
 
-## 2. 产品目标
-
-Yang-Kura 是个人使用的 Windows 本地音频媒体库，覆盖 ASMR/RJ、普通音乐、播放器、字幕、歌单、Queue、History、续播、导入、元数据和资源维护。
-
-## 3. 已完成主线
+## 2. 已完成主线
 
 - U34～U37：统一 IPC、语义 Token、AppShell 和正式媒体库页面。
 - U38：Queue/Persistence、Player Backend、Subtitle lifecycle 分域。
 - U39：日常体验、授权持久化、架构门禁和完整 Windows/打包验收。
-- U40-A：风险分级验证与单 PR 收口。
-- U40-B：6/6 全产品旅程、635 个可见控件状态、未覆盖 0、运行时错误 0。
-- U40-C：UI 细节收口。
-- U40-D～D3：真实库读取/分组、独立 Profile、单实例、主题/歌单/导入页、mpv 和 HTMLAudio 停滞状态收口。
+- U40-A～C：快速维护、全产品旅程和 UI 收口。
+- U40-D～D3：真实库读取、分组、独立 Profile、单实例、主题、歌单、导入页、mpv 和 HTMLAudio 停滞状态收口。
+- Beta 2：已发布并完成远端资产校验。
 
-## 4. Beta 3 正式日用发布收口
+## 3. 下一对话的第一阶段：重新诊断
 
-1. 固化 `0.170.0-beta.3` 发布合同、Release Notes 和资产名称；
-2. PR 候选完成 U28/U29/U31、portable/NSIS 和安装验收；
-3. Codex 只读验证 `D:\CloudMusic\VipSongsDownload`；
-4. Codex 在 `%TEMP%` 小型副本验证 Index、备份恢复、copy/move、失败回滚和 OperationLog；
-5. 合入 `main` 后创建 prerelease；
-6. 回读目标提交、资产名、大小和 SHA-256；
-7. 发布事实同步后进入真实日用观察。
+1. 读取 `AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md` 和 `docs/BETA3_BLOCKER_STATUS.md`。
+2. 拉取 PR #91 最新分支并确认当前 HEAD。
+3. 比较 `0cc9779e...` 到当前 HEAD 的播放器、TrackRow、测试和工作流改动。
+4. 不使用 v1/v2/v3 本地包作为补丁来源。
+5. 让测试在失败时记录完整 PlayerBar 状态、renderer console、HTMLAudio 事件、mpv 事件和 IPC 结果。
+6. 先判断第二条音轨实际处于：未切换、resolving、mpv、html-audio、unsupported 中的哪一种。
 
-## 5. 验收体系
+## 4. 第二阶段：最小修复
 
-- 普通维护按 `docs/GIT_FAST_LANE_V2.md` 的 L0～L2 分级。
-- Beta 3 属于 L3，只执行一次完整 Windows 打包与发布链。
-- `Personal Beta 3 Release` 是本轮自动化真源。
-- `docs/CODEX_BETA3_RELEASE_ACCEPTANCE.md` 只覆盖自动化不可替代的真实音乐库和临时写入链。
+完成条件：
 
-## 6. 发布后维护
+```text
+第一条主区域播放 PASS
+第二条行尾按钮播放 PASS
+第二条切换后 duration > 0
+progress 推进
+pause / resume / seek PASS
+重启恢复 PASS
+进程回收 PASS
+```
 
-默认顺序：真实 Bug → 数据/Index/导入/双重播放/进程问题 → 字幕/播放/搜索/UI/性能 → 明确小型功能 → 触链技术债。不预排连续治理轮次。
+只允许一个最小修复候选。失败后先分析证据，不连续叠加猜测性补丁。
 
-## 7. 长期冻结
+## 5. 第三阶段：发布前实机范围
 
-正式下载器、SQLite 全面迁移、OpenList/WebDAV、Player Core v2、完整 AI Agent、Arsm_Transcribe 正式接入、云同步、在线账号、插件市场和无关大型 Provider。
+播放器专项通过后才执行：
 
-## 8. 自主管理
+- `%TEMP%\YangKura-Beta3-Acceptance` 中的 Index 备份与恢复；
+- copy-only；
+- move-only；
+- 同名冲突；
+- 人为失败和回滚；
+- OperationLog；
+- `D:\CloudMusic\VipSongsDownload` 真实目录只读核对，禁止写 Index。
 
-用户只接收最终成果。ChatGPT 负责实现、测试、文档、PR、合并和发布；Codex 仅执行自动化无法替代的真实 Windows、显示、声卡、第三方程序和真实媒体库验收。
+## 6. 第四阶段：PR 与发布
+
+1. 同步 package 与 lockfile 到 `0.170.0-beta.3`。
+2. 全部实机 PASS 后更新现有 PR #91。
+3. 只执行一次最终 L3 CI。
+4. 合并到 `main`。
+5. 创建 `v0.170.0-beta.3` prerelease。
+6. 回读目标提交、资产名、大小和 SHA-256。
+7. 同步 README、状态、路线图、工作日志和交接。
+
+## 7. 发布后维护
+
+真实 Bug → 数据/Index/导入/播放/进程 → 字幕/搜索/UI/性能 → 明确的小型功能 → 触链技术债。
+
+## 8. 长期冻结
+
+下载器、SQLite 全面迁移、OpenList/WebDAV、新播放器内核、完整 AI Agent、转录正式接入、云同步、账号和插件市场继续冻结。
