@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { MoonStar, SunMedium } from 'lucide-react';
 import {
   applyBeta2Theme,
-  getBeta2ThemeLabel,
   getLegacyThemeCompatibilityId,
   getLegacyThemeLabel,
   normalizeBeta2Theme,
@@ -89,7 +88,9 @@ export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
   };
 
   const nextTheme: Beta2ThemeId = theme === 'dusk-amber' ? 'mist-ivory' : 'dusk-amber';
+  const nextLegacyTheme = getLegacyThemeCompatibilityId(nextTheme);
   const currentThemeLabel = getLegacyThemeLabel(legacyTheme);
+  const nextThemeLabel = getLegacyThemeLabel(nextLegacyTheme);
 
   return (
     <>
@@ -101,8 +102,8 @@ export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
               type="button"
               data-current-theme={theme}
               data-current-legacy-theme={legacyTheme}
-              aria-label={`当前主题：${currentThemeLabel}。切换为${getBeta2ThemeLabel(nextTheme)}`}
-              title={`当前主题：${currentThemeLabel}；切换为${getBeta2ThemeLabel(nextTheme)}`}
+              aria-label={`当前主题：${currentThemeLabel}。切换为${nextThemeLabel}`}
+              title={`当前主题：${currentThemeLabel}；切换为${nextThemeLabel}`}
               onClick={() => selectTheme(nextTheme)}
               className="yk-theme-toggle"
             >
