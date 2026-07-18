@@ -1,0 +1,99 @@
+name: U40-D Real Library Stability
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'electron/preload.ts'
+      - 'scripts/test-u40d-*.mjs'
+      - 'scripts/run-u40d-focused-tests.mjs'
+      - 'scripts/verify-u40d-real-library-stability.mjs'
+      - 'docs/CODEX_REAL_MACHINE_FULL_ACCEPTANCE.md'
+      - 'docs/U40D_*.md'
+      - '.github/workflows/u40d-real-library-stability.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: u40d-real-library-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  real-library-stability:
+    name: Windows real-library stability and Issue 66 closeout
+    runs-on: windows-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Prepare Electron runtime
+        shell: pwsh
+        run: |
+          npm rebuild electron
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run patch:electron-builder
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: TypeScript and builds
+        shell: pwsh
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run lint
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run build:electron
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Focused U40-D regressions and closeout verification
+        run: node scripts/run-u40d-focused-tests.mjs
+
+      - name: Resource library and restart flow
+        run: npm run test:u28:electron-e2e
+
+      - name: Player, subtitle and persisted session flow
+        run: npm run test:u29:electron-e2e
+
+      - name: Theme, window, keyboard and reduced motion
+        run: npm run test:u30:ui-matrix
+
+      - name: Daily pages and visible controls
+        run: node scripts/test-u32-ui-audit.mjs
+
+      - name: Full product journey regression
+        run: node scripts/test-u40b-full-product-journey.mjs
+
+      - name: Upload U40-D evidence and Codex plan
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u40d-real-library-stability
+          path: |
+            artifacts/u40d-real-library-stability
+            artifacts/u28-electron-e2e
+            artifacts/u29-electron-e2e
+            artifacts/u30-ui-matrix
+            artifacts/u32-ui-audit
+            artifacts/u40b-full-product-acceptance
+            docs/CODEX_REAL_MACHINE_FULL_ACCEPTANCE.md
+            docs/U40D_DEFECT_CLOSEOUT.md
+            docs/U40D_TEST_MATRIX.md
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,6 +1,6 @@
 import type {LibraryCollectionType, LibraryTrackKind, SubtitleSource} from '../types';
-import type {FixtureLibraryKind} from './fixtureLibraryScanner';
 
+export type FixtureLibraryKind = 'asmr' | 'music';
 export type VirtualPathMediaKind = LibraryTrackKind | 'subtitle' | 'directory-marker';
 export type VirtualPathSpecialRole = 'main' | 'bonus' | 'disc' | 'cg' | 'cover' | 'lyrics' | 'unknown';
 

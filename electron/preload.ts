@@ -59,6 +59,7 @@ const subscribe = <T>(channel: IpcChannel, listener: (payload: T) => void) => {
 const shellStatus = {
   status: 'mvp28-shell-runtime-validation-ready',
   hasRealElectronRuntime: true,
+  automationProfile: process.env.YANG_KURA_E2E_MODE === '1',
   hasDirectoryPicker: true,
   hasScannerDryRunIpc: true,
   canReadRealDisk: true,

@@ -2,30 +2,28 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
 
-const settings = fs.readFileSync('src/components/SettingsPage.tsx', 'utf8');
+const settings = fs.readFileSync('src/components/SettingsPageDaily.tsx', 'utf8');
 const app = fs.readFileSync('src/App.tsx', 'utf8');
-const dashboard = fs.readFileSync('src/components/Dashboard.tsx', 'utf8');
+const router = fs.readFileSync('src/app/AppRouter.tsx', 'utf8');
+const topBar = fs.readFileSync('src/app/TopBar.tsx', 'utf8');
 const shell = fs.readFileSync('src/components/DiagnosticsPageShell.tsx', 'utf8');
 const sessionServiceSource = fs.readFileSync('src/services/librarySessionService.ts', 'utf8');
+const coordinator = fs.readFileSync('src/services/libraryReadCoordinatorService.ts', 'utf8');
 
 const checks = [
-  ['session-only root authorization', settings.includes('yang_kura_u28_authorized_roots_v1') && settings.includes('sessionStorage.setItem')],
-  ['settings token fallback', settings.includes('getU28RootSessionEntry(libraryType)?.rootPathToken')],
-  ['root selection is recorded', settings.includes('writeU28RootSession(result)')],
+  ['daily settings owns persisted root authorization', settings.includes('yang_kura_persisted_authorized_roots_v1') && settings.includes('localStorage.setItem(PERSISTED_ROOT_KEY')],
+  ['daily settings uses shared read coordinator', settings.includes('libraryReadCoordinatorService.read')],
   ['stale ASMR state is replaced', app.includes('asmrBase = mapped.rjWorks') && !app.includes('if (mapped.rjWorks.length > 0) asmrBase')],
   ['stale music state is replaced', app.includes('musicBase = mapped.musicAlbums')],
   ['real index refresh replaces both libraries', app.includes('setRjWorks(metadataOverrideService.applyAsmrOverrides(mapped.rjWorks))') && app.includes('setMusicAlbums(metadataOverrideService.applyMusicAlbumOverrides(mapped.musicAlbums))')],
-  ['header reads explicit session index state', app.includes('librarySessionSnapshot.lastIndex')],
-  ['dashboard separates connection from content count', dashboard.includes('const hasLoadedIndex = Boolean(lastIndex)') && dashboard.includes('const hasLibraryTracks = Boolean(lastIndex && lastIndex.trackCount > 0)') && !dashboard.includes('const hasRealLibrary = Boolean(lastIndex && lastIndex.trackCount > 0)')],
-  ['dashboard renders valid loaded-empty state', dashboard.includes('id="u28-home-loaded-empty-state"') && dashboard.includes('资源库已连接，当前没有音轨') && dashboard.includes('已连接空资源库')],
-  ['dashboard distinguishes authorized unread state', dashboard.includes("hasAuthorizedRoot ? '读取资源库'") && dashboard.includes('等待读取资源库')],
-  ['session service records explicit read attempts', sessionServiceSource.includes("status: 'loaded'") && sessionServiceSource.includes("status: 'failed'")],
+  ['router uses shared read state', router.includes('LibraryReadStateNotice') && router.includes("readAttempt?.status === 'reading'")],
+  ['top bar uses shared read state', topBar.includes('data-u40d-library-status') && topBar.includes("attempt?.status === 'reading'")],
+  ['session service records full read lifecycle', ['reading', 'loaded', 'failed', 'timed-out', 'interrupted'].every((status) => sessionServiceSource.includes(`'${status}'`))],
   ['session service owns cross-page index event', sessionServiceSource.includes("const INDEX_READ_EVENT_NAME = 'yang-kura-library-index-loaded'") && sessionServiceSource.includes('emitIndexReadUpdated()')],
-  ['session service enforces current-window authorization', sessionServiceSource.includes("const CURRENT_WINDOW_ROOT_SESSION_KEY = 'yang_kura_u28_authorized_roots_v1'") && sessionServiceSource.includes('applyCurrentWindowAuthorizationBoundary')],
-  ['root reselection clears stale loaded state', sessionServiceSource.includes('lastIndex: undefined') && sessionServiceSource.includes('lastReadAttempt: undefined')],
-  ['demo scanner removed from active handler', !app.includes('Demo 扫描演示：不会读取真实磁盘')],
-  ['diagnostics names real state', shell.includes('刷新真实资源状态') && shell.includes('不再使用 Demo 扫描冒充真实状态')],
-  ['privacy boundary retained', settings.includes('真实路径不会展示') && !settings.includes('absolutePath: result')],
+  ['session service accepts persisted authorization', sessionServiceSource.includes("const PERSISTED_ROOT_SESSION_KEY = 'yang_kura_persisted_authorized_roots_v1'")],
+  ['coordinator has timeout and stale-operation protection', coordinator.includes('DEFAULT_TIMEOUT_MS = 15_000') && coordinator.includes('persistIfCurrent') && coordinator.includes('activeOperationId !== currentOperationId')],
+  ['historical diagnostics runtime is archived', shell.includes('data-u40d-maintenance-runtime="current-only"') && !shell.includes("import('./DiagnosticsPage')")],
+  ['daily settings does not expose implementation terminology', !settings.includes('Renderer') && !settings.includes('contract') && !settings.includes('npm run')],
 ];
 
 const failed = checks.filter(([, ok]) => !ok);
@@ -66,7 +64,6 @@ const makeStorage = (values) => ({
 
 const localStorage = makeStorage(localStorageValues);
 const sessionStorage = makeStorage(sessionStorageValues);
-
 const window = {
   addEventListener(type, listener) {
     const bucket = listeners.get(type) ?? new Set();
@@ -102,121 +99,81 @@ vm.runInNewContext(compiledService, {
 });
 
 const librarySessionService = runtimeModule.exports.librarySessionService;
-let currentReadResult;
 let indexReadEventCount = 0;
-
 window.addEventListener(librarySessionService.indexReadEventName, () => {
   indexReadEventCount += 1;
-  // Mirrors App's synchronous event listener. The service must prevent recursive event loops.
-  librarySessionService.recordIndexRead(currentReadResult);
 });
 
 const selectedRoot = {
   ok: true,
   libraryType: 'asmr',
-  displayName: 'U28 空资源库',
-  rootPathToken: 'session-only-token',
+  displayName: 'U28 资源库',
+  rootPathToken: 'persisted-token',
 };
-
-const authorizeCurrentWindow = () => {
-  sessionStorage.setItem(librarySessionService.currentWindowRootSessionKey, JSON.stringify({
-    asmr: {
-      rootPathToken: selectedRoot.rootPathToken,
-      displayName: selectedRoot.displayName,
-      libraryType: selectedRoot.libraryType,
-      selectedAt: '2026-07-14T11:58:00.000Z',
-    },
-  }));
+const rootEntry = {
+  rootPathToken: selectedRoot.rootPathToken,
+  displayName: selectedRoot.displayName,
+  libraryType: selectedRoot.libraryType,
+  selectedAt: '2026-07-14T11:58:00.000Z',
 };
+localStorage.setItem('yang_kura_persisted_authorized_roots_v1', JSON.stringify({ asmr: rootEntry }));
+librarySessionService.recordRootSelected(selectedRoot);
 
-const emptyIndexResult = {
+const successResult = {
   ok: true,
   libraryType: 'asmr',
-  displayName: 'U28 空资源库',
+  displayName: selectedRoot.displayName,
   indexRelativePath: 'library-index.json',
   readAt: '2026-07-14T12:00:00.000Z',
-  message: '合法空 Index 读取成功。',
-  index: {
-    generatedAt: '2026-07-14T11:59:00.000Z',
-  },
-  summary: {
-    rootCount: 0,
-    collectionCount: 0,
-    trackCount: 0,
-    warningCount: 0,
-  },
-  bytesRead: 2,
-  sha256: 'u28-empty-index',
+  message: '资源库读取成功。',
+  index: { generatedAt: '2026-07-14T11:59:00.000Z' },
+  summary: { rootCount: 1, collectionCount: 3, trackCount: 12, warningCount: 0 },
+  bytesRead: 200,
+  sha256: 'first-index',
 };
 
-librarySessionService.recordRootSelected(selectedRoot);
-authorizeCurrentWindow();
-currentReadResult = emptyIndexResult;
-librarySessionService.recordIndexRead(currentReadResult);
+librarySessionService.recordIndexReadStarted({ operationId: 'read-1', libraryType: 'asmr', displayName: selectedRoot.displayName });
+librarySessionService.recordIndexRead(successResult, 'read-1');
 let snapshot = librarySessionService.getSnapshot();
+if (snapshot.lastReadAttempt?.status !== 'loaded' || snapshot.lastIndex?.trackCount !== 12) {
+  throw new Error('成功读取没有收敛到 loaded。');
+}
+if (indexReadEventCount !== 1) throw new Error(`首次成功读取应触发一次跨页面事件，实际 ${indexReadEventCount}。`);
 
-if (!librarySessionService.hasCurrentWindowAuthorization()) {
-  throw new Error('当前窗口授权未被会话服务识别。');
-}
-if (!snapshot.lastIndex) throw new Error('合法空 Index 被错误视为未读取。');
-if (snapshot.lastIndex.trackCount !== 0 || snapshot.lastIndex.collectionCount !== 0) {
-  throw new Error('合法空 Index 的零计数未被保留。');
-}
-if (snapshot.lastReadAttempt?.status !== 'loaded') {
-  throw new Error('合法空 Index 未记录为 loaded。');
-}
-if (indexReadEventCount !== 1) {
-  throw new Error(`空 Index 跨页面事件应触发一次，实际为 ${indexReadEventCount} 次。`);
+librarySessionService.recordIndexReadStarted({ operationId: 'read-2', libraryType: 'asmr', displayName: selectedRoot.displayName });
+librarySessionService.recordIndexReadTimedOut({ operationId: 'read-2', libraryType: 'asmr', displayName: selectedRoot.displayName, message: '等待超过 15 秒。' });
+snapshot = librarySessionService.getSnapshot();
+if (snapshot.lastReadAttempt?.status !== 'timed-out') throw new Error('读取超时没有收敛到 timed-out。');
+if (snapshot.lastIndex?.sha256 !== 'first-index') throw new Error('超时错误清除了仍可用的上一次成功资源库。');
+
+librarySessionService.recordIndexReadStarted({ operationId: 'read-3', libraryType: 'asmr', displayName: selectedRoot.displayName });
+librarySessionService.recordIndexRead({ ...successResult, sha256: 'stale-read-2' }, 'read-2');
+snapshot = librarySessionService.getSnapshot();
+if (snapshot.lastIndex?.sha256 !== 'first-index' || snapshot.lastReadAttempt?.operationId !== 'read-3') {
+  throw new Error('较旧读取结果覆盖了较新的读取会话。');
 }
 
-// Simulate a full application restart: localStorage persists, sessionStorage authorization does not.
+librarySessionService.recordIndexRead({ ok: false, message: 'library-index.json 暂时不可读。' }, 'read-3');
+snapshot = librarySessionService.getSnapshot();
+if (snapshot.lastReadAttempt?.status !== 'failed') throw new Error('读取失败没有收敛到 failed。');
+if (snapshot.lastIndex?.sha256 !== 'first-index') throw new Error('读取失败错误清除了上一次成功资源库。');
+if (indexReadEventCount !== 1) throw new Error('失败状态不应伪装成新的 Index 加载事件。');
+
+librarySessionService.recordIndexReadStarted({ operationId: 'read-4', libraryType: 'asmr', displayName: selectedRoot.displayName });
+librarySessionService.recordIndexRead({ ...successResult, sha256: 'second-index', summary: { ...successResult.summary, trackCount: 13 } }, 'read-4');
+snapshot = librarySessionService.getSnapshot();
+if (snapshot.lastReadAttempt?.status !== 'loaded' || snapshot.lastIndex?.trackCount !== 13) {
+  throw new Error('重试成功没有覆盖失败状态。');
+}
+if (indexReadEventCount !== 2) throw new Error(`两次成功读取应累计两个事件，实际 ${indexReadEventCount}。`);
+
 sessionStorage.clear();
 snapshot = librarySessionService.getSnapshot();
-if (librarySessionService.hasCurrentWindowAuthorization()) {
-  throw new Error('重启后仍错误保留当前窗口目录授权。');
-}
-if (snapshot.lastIndex !== undefined || snapshot.lastReadAttempt !== undefined) {
-  throw new Error('重启后旧 Index 仍被冒充为当前已连接资源库。');
-}
+if (!librarySessionService.hasCurrentWindowAuthorization()) throw new Error('持久授权在重启模拟后丢失。');
+if (snapshot.lastIndex?.sha256 !== 'second-index') throw new Error('持久授权重启后错误丢失已加载状态。');
 
-// The real UI records root selection before writing the new session token.
-librarySessionService.recordRootSelected(selectedRoot);
-authorizeCurrentWindow();
-snapshot = librarySessionService.getSnapshot();
-if (snapshot.lastIndex !== undefined) {
-  throw new Error('重新授权后未重新读取 Index，却恢复了上一次成功状态。');
-}
-
-currentReadResult = emptyIndexResult;
-librarySessionService.recordIndexRead(currentReadResult);
-snapshot = librarySessionService.getSnapshot();
-if (!snapshot.lastIndex || snapshot.lastReadAttempt?.status !== 'loaded') {
-  throw new Error('重新授权并读取后，空 Index 未恢复为 loaded。');
-}
-if (indexReadEventCount !== 2) {
-  throw new Error(`第二次空 Index 读取后事件累计应为两次，实际为 ${indexReadEventCount} 次。`);
-}
-
-currentReadResult = {
-  ok: false,
-  message: 'library-index.json 不存在或不可读。',
-};
-librarySessionService.recordIndexRead(currentReadResult);
-snapshot = librarySessionService.getSnapshot();
-
-if (snapshot.lastIndex !== undefined) {
-  throw new Error('读取失败后仍残留上一次成功 Index，状态会产生误导。');
-}
-if (snapshot.lastReadAttempt?.status !== 'failed') {
-  throw new Error('读取失败未与合法空 Index 明确区分。');
-}
-if (indexReadEventCount !== 3) {
-  throw new Error(`失败状态跨页面事件累计应为三次，实际为 ${indexReadEventCount} 次。`);
-}
-
-console.log('PASS\tempty index is a loaded resource library');
-console.log('PASS\tfailed read is distinct from an empty index');
-console.log('PASS\tcross-page event is recursion-safe');
-console.log('PASS\trestart requires current-window reauthorization');
-console.log('PASS\treauthorization does not resurrect stale index state');
+console.log('PASS\tshared read lifecycle converges');
+console.log('PASS\ttimeout and failure preserve last usable library');
+console.log('PASS\tstale late results are ignored');
+console.log('PASS\tpersisted authorization survives restart');
 console.log('U28 library reconciliation verifier passed.');
