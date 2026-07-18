@@ -35,6 +35,58 @@ function safeDuration(value: number): number {
   return Number.isFinite(value) && value > 0 ? value : 0;
 }
 
+const HTML_AUDIO_METADATA_TIMEOUT_MS = 10_000;
+const HTML_AUDIO_PLAY_TIMEOUT_MS = 10_000;
+
+function htmlAudioFallbackFailureMessage(extension?: string): string {
+  const format = extension ? `.${extension}` : '当前格式';
+  return `基础播放在 10 秒内无法读取或启动${format}音频。请在“设置 → 播放方式”中选择 mpv，或改用基础播放支持的音频编码。`;
+}
+
+async function waitForHtmlAudioMetadata(audio: HTMLAudioElement, extension?: string): Promise<void> {
+  if (audio.readyState >= 1) return;
+  await new Promise<void>((resolve, reject) => {
+    let timer: number | undefined;
+    const cleanup = () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+      audio.removeEventListener('loadedmetadata', handleReady);
+      audio.removeEventListener('error', handleFailure);
+    };
+    const handleReady = () => {
+      cleanup();
+      resolve();
+    };
+    const handleFailure = () => {
+      cleanup();
+      const detail = audio.error?.message || (audio.error ? `错误码 ${audio.error.code}` : '未知媒体错误');
+      reject(new Error(`基础播放无法读取当前音频元数据：${detail}。请在“设置 → 播放方式”中选择 mpv。`));
+    };
+    timer = window.setTimeout(() => {
+      cleanup();
+      reject(new Error(htmlAudioFallbackFailureMessage(extension)));
+    }, HTML_AUDIO_METADATA_TIMEOUT_MS);
+    audio.addEventListener('loadedmetadata', handleReady, { once: true });
+    audio.addEventListener('error', handleFailure, { once: true });
+  });
+}
+
+async function playHtmlAudioWithTimeout(audio: HTMLAudioElement, extension?: string): Promise<void> {
+  let timer: number | undefined;
+  try {
+    await Promise.race([
+      audio.play(),
+      new Promise<never>((_, reject) => {
+        timer = window.setTimeout(
+          () => reject(new Error(htmlAudioFallbackFailureMessage(extension))),
+          HTML_AUDIO_PLAY_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer !== undefined) window.clearTimeout(timer);
+  }
+}
+
 function clearHtmlAudio(audio: HTMLAudioElement | null): void {
   if (!audio) return;
   audio.pause();
@@ -274,26 +326,7 @@ export function usePlayerBackend({
         stateRef.current.progress,
       );
       audioRef.current.load();
-      if (audioRef.current.readyState < 1) {
-        await new Promise<void>((resolve, reject) => {
-          const target = audioRef.current;
-          if (!target) return reject(new Error('HTMLAudio 实例已释放。'));
-          const cleanup = () => {
-            target.removeEventListener('loadedmetadata', handleReady);
-            target.removeEventListener('error', handleFailure);
-          };
-          const handleReady = () => {
-            cleanup();
-            resolve();
-          };
-          const handleFailure = () => {
-            cleanup();
-            reject(new Error('HTMLAudio 无法读取音频元数据。'));
-          };
-          target.addEventListener('loadedmetadata', handleReady, { once: true });
-          target.addEventListener('error', handleFailure, { once: true });
-        });
-      }
+      await waitForHtmlAudioMetadata(audioRef.current, result.extension);
       if (cancelled || !audioRef.current) return;
       audioRef.current.currentTime = initialSeek;
       if (pendingInitialSeekRef.current?.trackId === currentTrack.id) pendingInitialSeekRef.current = null;
@@ -311,7 +344,7 @@ export function usePlayerBackend({
           ? { ...previous.currentTrack, mediaUrl: result.mediaUrl }
           : previous.currentTrack,
       }));
-      if (stateRef.current.isPlaying) await audioRef.current.play();
+      if (stateRef.current.isPlaying) await playHtmlAudioWithTimeout(audioRef.current, result.extension);
     };
 
     if (!currentTrack) {
@@ -412,6 +445,7 @@ export function usePlayerBackend({
         forceHtmlFallbackTrackRef.current = null;
       } catch (error) {
         if (cancelled) return;
+        clearHtmlAudio(audioRef.current);
         setPlayerState((previous) => ({
           ...previous,
           isPlaying: false,
