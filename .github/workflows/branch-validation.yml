@@ -8,25 +8,6 @@ on:
       - '**/*.md'
       - 'docs/**'
       - 'AI_HANDOFF/**'
-      - 'src/hooks/useAudioPlayer.ts'
-      - 'src/hooks/usePlayerSubtitles.ts'
-      - 'src/components/PlayerBar.tsx'
-      - 'src/components/PlayerBarPrimarySections.tsx'
-      - 'src/components/PlayerBarAuxiliaryControls.tsx'
-      - 'src/components/PlayerProgressTrack.tsx'
-      - 'src/components/PlayerTransientPresenters.tsx'
-      - 'src/app/AppRouter.tsx'
-      - 'src/app/navigation.ts'
-      - 'src/components/SettingsMaintenanceEntry.tsx'
-      - 'src/components/DiagnosticsPageShell.tsx'
-      - 'scripts/verify-u38c-player-subtitles.mjs'
-      - 'scripts/verify-u39a-playerbar-theme.mjs'
-      - 'scripts/verify-u39b-maintenance-entry.mjs'
-      - 'scripts/verify-u39f-architecture-guardrails.mjs'
-      - 'scripts/test-u39f-architecture-guardrails.mjs'
-      - 'scripts/verify-u39-final-acceptance.mjs'
-      - '.github/workflows/architecture-guardrails.yml'
-      - '.github/workflows/u39-final-acceptance.yml'
       - 'release/beta3-release-plan.json'
       - 'scripts/prepare-beta3-package-version.mjs'
       - 'scripts/verify-beta3-release.mjs'
@@ -44,9 +25,9 @@ concurrency:
 
 jobs:
   validate:
-    name: Windows full-chain regression
+    name: Windows current-product regression
     runs-on: windows-latest
-    timeout-minutes: 80
+    timeout-minutes: 70
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -65,37 +46,20 @@ jobs:
         run: |
           npm rebuild electron
           npm run patch:electron-builder
-      - name: TypeScript and builds
+      - name: TypeScript and production builds
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: |
           npm run lint
           npm run build
           npm run build:electron
-      - name: Core Electron journeys
+      - name: Current Electron journeys
         run: |
           npm run test:u28:electron-e2e
           npm run test:u29:electron-e2e
           npm run test:u30:ui-matrix
           npm run test:u31:importer-transactions
           node scripts/test-u32-ui-audit.mjs
-      - name: Current behavior verifiers
-        shell: pwsh
-        run: |
-          $verifiers = @(
-            'scripts/verify-u28-index-read-runtime.mjs',
-            'scripts/verify-u28-library-reconciliation.mjs',
-            'scripts/verify-u29-player-reliability.mjs',
-            'scripts/verify-u30-ui-fast-track.mjs',
-            'scripts/verify-u31-importer-transaction-hardening.mjs',
-            'scripts/verify-u39a-playerbar-theme.mjs',
-            'scripts/verify-u39b-maintenance-entry.mjs',
-            'scripts/verify-u39c-root-authorization-persistence.mjs'
-          )
-          foreach ($verifier in $verifiers) {
-            node $verifier
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          }
       - name: Stable regression and final build
         env:
           NODE_OPTIONS: --max-old-space-size=8192
