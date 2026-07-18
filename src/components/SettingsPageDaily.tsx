@@ -111,7 +111,7 @@ export default function SettingsPageDaily({ settings, updateSettings }: Settings
       setMpvStatus(result);
       setMpvMessage(result.available
         ? '增强播放组件可用。启动失败时仍会自动切回基础播放。'
-        : '未检测到增强播放组件；当前使用基础播放，不影响常见音频格式。');
+        : '未检测到增强播放组件；常见格式将使用基础播放，遇到不支持的编码时请点击“选择播放组件”。');
     } catch (error) {
       setMpvMessage(`播放组件检测失败：${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -284,7 +284,7 @@ export default function SettingsPageDaily({ settings, updateSettings }: Settings
       {activeTab === 'player' && (
         <section id="mvp123-mpv-settings-status" className="space-y-5 rounded-2xl border border-border-color/70 bg-card-bg/35 p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div><h3 className="text-sm font-bold">本地音频播放</h3><p className="mt-1 text-xs text-text-muted">优先使用增强播放组件；不可用时自动使用基础播放。</p></div>
+            <div><h3 className="text-sm font-bold">本地音频播放</h3><p className="mt-1 text-xs text-text-muted">优先使用增强播放组件；不可用时尝试基础播放，不支持的编码会明确提示。</p></div>
             <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold ${mpvStatus?.available ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300' : 'border-amber-500/25 bg-amber-500/10 text-amber-300'}`}>
               {mpvStatus?.available ? <CircleCheck className="h-3.5 w-3.5" /> : <CircleX className="h-3.5 w-3.5" />}
               {mpvStatus?.available ? '增强播放可用' : '使用基础播放'}
