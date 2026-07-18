@@ -52,13 +52,16 @@ function failureResult(context: LibraryReadRequestContext, status: string, messa
   } as YangKuraReadLibraryIndexResult;
 }
 
-function persist(result: YangKuraReadLibraryIndexResult, currentOperationId: string): void {
+function persistIfCurrent(result: YangKuraReadLibraryIndexResult, currentOperationId: string): boolean {
+  const activeOperationId = librarySessionService.getSnapshot().lastReadAttempt?.operationId;
+  if (activeOperationId !== currentOperationId) return false;
   try {
     localStorage.setItem(INDEX_RESULT_KEY, JSON.stringify(result));
   } catch {
     // Shared session state still converges when browser storage is unavailable.
   }
   librarySessionService.recordIndexRead(result, currentOperationId);
+  return true;
 }
 
 export const libraryReadCoordinatorService = {
@@ -75,7 +78,7 @@ export const libraryReadCoordinatorService = {
 
     if (!window.yangKura?.requestReadLibraryIndex) {
       const unavailable = failureResult(context, 'u40d-library-index-read-unavailable', '当前桌面连接不可用，请重新打开应用后重试。');
-      persist(unavailable, currentOperationId);
+      persistIfCurrent(unavailable, currentOperationId);
       return unavailable;
     }
 
@@ -93,7 +96,7 @@ export const libraryReadCoordinatorService = {
       ))
       .then((result) => {
         window.clearTimeout(timeoutHandle);
-        persist(result, currentOperationId);
+        persistIfCurrent(result, currentOperationId);
         return result;
       });
 
