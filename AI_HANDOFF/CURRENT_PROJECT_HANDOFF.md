@@ -15,7 +15,7 @@ Issue #66：已关闭
 当前任务：按需日常维护
 ```
 
-必须从最新 `origin/main` 接手。状态见 `PROJECT_STATE.md`，路线见 `PROJECT_ROADMAP.md`，日志见 `AI_HANDOFF/WORKLOG.md`。
+必须从最新 `origin/main` 接手。状态见 `PROJECT_STATE.md`，路线见 `PROJECT_ROADMAP.md`，日志见 `AI_HANDOFF/WORKLOG.md`，U40-D 最终证据见 `docs/U40D_FINAL_EVIDENCE.md`。
 
 ## U40-D 运行时边界
 
@@ -33,24 +33,27 @@ Issue #66：已关闭
 
 ## 已修复缺陷
 
-- U40-B01：读取不再永久 pending；15 秒超时、失败、重试和中断恢复明确。
+- U40-B01：读取不再永久 pending；15 秒超时、失败、重试、迟到结果和中断恢复明确。
 - U40-B02：设置、顶栏、首页、音声库和音乐库使用同一读取状态。
 - U40-B03：测试 profile 隔离；日常启动清理旧 U29 等测试数据；当前资源库约束队列和历史。
 - U40-M01：旧版一级目录大集合按 RJ 或实际作品/专辑目录重新分组；空集合移除。
 - U40-M02：日常设置不再显示工程实现术语；历史完整诊断退出运行时。
 - U40-O01：mpv 缺失作为环境 Observation；HTMLAudio 回退保持可用。
 
-## 验证事实
+## 最终验证事实
 
 ```text
-候选提交：189c5a65cb024838cb288874e7c78f8e07b0671c
-U40-D Run：29628604275
-Artifact：8424721819
-Digest：sha256:d577eed18e51ce8686149e6ac04c1eb9f6341e30b72d9462c3960ed93d244f37
+PR：#88
+最终 PR head：565097c8fa54b5281b788798dd51266b46a81dd2
+U40-D Run：29629121046
+Artifact：8424882277
+Artifact size：12406081 bytes
+Digest：sha256:fbc7a3d487d0dd20efb0586ff5856f2ddb0431a6d2006301120e342b1ba2ff07
+合并提交：5daa0102b1114b6213d3240aa7cb4e66285ca7ab
 相对导入循环：0
 ```
 
-最终候选的 Documentation、Architecture、UI Fast、U40-C、U40-D、Branch Validation 和 U32 Packaging 全部通过。Branch Validation 内 U28～U32、当前行为 verifier、stable regression 和最终 production build 全部通过。
+最终 PR head 的 Documentation Validation、Architecture Guardrails、UI Fast Validation、U40-C UI Polish、U40-D Real Library Stability、Branch Validation 和 U32 Release Candidate Packaging 全部通过。Branch Validation 内 U28～U32、当前行为 verifier、stable regression 和最终 production build 全部通过。
 
 ## Codex 真实库验收
 
@@ -61,7 +64,7 @@ Digest：sha256:d577eed18e51ce8686149e6ac04c1eb9f6341e30b72d9462c3960ed93d244f37
 音乐库：D:\CloudMusic\VipSongsDownload
 ```
 
-真实库只读。导入、Index 写入、备份恢复和回滚只在 `%TEMP%\YangKura-U40D-RealAcceptance` 临时副本执行。当前自动化未访问用户真实目录，也未替代这一步实机验收。
+真实库只读。导入、Index 写入、备份恢复和回滚只在 `%TEMP%\YangKura-U40D-RealAcceptance` 临时副本执行。自动化未访问用户真实目录，也未替代这一步实机验收。
 
 ## 后续规则
 
