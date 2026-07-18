@@ -6,6 +6,11 @@ on:
       - fix/u40d3-html-audio-stall
     paths:
       - '.github/workflows/apply-u40d3-html-audio-fix.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/apply-u40d3-html-audio-fix.yml'
 
 permissions:
   contents: write
