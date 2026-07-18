@@ -57,8 +57,7 @@ const emptySnapshot = (): LibrarySessionSnapshot => ({
 });
 
 const normalizeReadAttempt = (value: LibrarySessionReadAttemptSnapshot | undefined): LibrarySessionReadAttemptSnapshot | undefined => {
-  if (!value) return undefined;
-  if (value.status !== 'reading') return value;
+  if (!value || value.status !== 'reading') return value;
   const started = Date.parse(value.attemptedAt);
   if (!Number.isFinite(started) || Date.now() - started <= INTERRUPTED_AFTER_MS) return value;
   return {
@@ -175,8 +174,7 @@ export const librarySessionService = {
 
   getSnapshot(): LibrarySessionSnapshot {
     if (typeof localStorage === 'undefined') return emptySnapshot();
-    const snapshot = applyCurrentWindowAuthorizationBoundary(safeJsonParse(localStorage.getItem(STORAGE_KEY)));
-    return snapshot;
+    return applyCurrentWindowAuthorizationBoundary(safeJsonParse(localStorage.getItem(STORAGE_KEY)));
   },
 
   recordRootSelected(result: YangKuraSelectLibraryRootResult): void {
@@ -269,7 +267,7 @@ export const librarySessionService = {
       lastReadAttempt: {
         status: 'loaded',
         operationId,
-        attemptedAt: previous.lastReadAttempt?.attemptedAt ?? result.readAt || now,
+        attemptedAt: previous.lastReadAttempt?.attemptedAt ?? (result.readAt || now),
         completedAt: now,
         message: `读取完成：${lastIndex.collectionCount} 个作品或专辑，${lastIndex.trackCount} 条音轨。`,
         libraryType: result.libraryType,
