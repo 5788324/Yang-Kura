@@ -7,9 +7,13 @@ import type {
   SubtitleSource,
   TrackSource,
 } from '../types';
-import {virtualLibraryPathParser, type ParsedVirtualLibraryPath} from './virtualLibraryPathParser';
+import {
+  virtualLibraryPathParser,
+  type FixtureLibraryKind,
+  type ParsedVirtualLibraryPath,
+} from './virtualLibraryPathParser';
 
-export type FixtureLibraryKind = 'asmr' | 'music';
+export type {FixtureLibraryKind} from './virtualLibraryPathParser';
 
 export interface FixtureLibraryEntry {
   /** Virtual path under the fixture root. Must use forward slashes. */
@@ -146,19 +150,15 @@ export const fixtureLibraryScanner = {
           subtitles.push(...trackSubtitles);
         });
 
-      if (collectionTracks.length === 0) {
-        warnings.push(`Fixture collection has no playable tracks: ${folder}`);
-      }
-      if (collectionCovers.length === 0) {
-        warnings.push(`Fixture collection has no cover: ${folder}`);
-      }
+      if (collectionTracks.length === 0) warnings.push(`Fixture collection has no playable tracks: ${folder}`);
+      if (collectionCovers.length === 0) warnings.push(`Fixture collection has no cover: ${folder}`);
 
       const title = humanizeTitle(folder);
       const firstParsed = collectionEntries[0]?.parsed;
       collections.push({
         id: collectionId,
         rootId,
-        collectionType: firstParsed?.collectionType || (libraryType === 'asmr' ? 'music_folder' : 'music_folder'),
+        collectionType: firstParsed?.collectionType || 'music_folder',
         title,
         sortTitle: title.toLowerCase(),
         codeRaw: rjId,
