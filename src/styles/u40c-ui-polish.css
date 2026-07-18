@@ -1,0 +1,197 @@
+/*
+ * U40-C: low-risk UI detail polish.
+ * Scope is deliberately limited to existing visual surfaces; no player,
+ * library, importer, index, or file-operation behavior is changed here.
+ */
+
+/* AI maintenance: replace pale hard-coded utility colors with theme tokens. */
+#mvp126-diagnostics-two-stage-loader > div:first-child > span {
+  border-color: color-mix(in srgb, var(--yk-warning) 38%, var(--yk-border-subtle));
+  background: color-mix(in srgb, var(--yk-warning) 14%, var(--yk-surface-2));
+  color: color-mix(in srgb, var(--yk-warning) 72%, var(--yk-text-1));
+}
+
+#mvp126-diagnostics-two-stage-loader > section:first-of-type {
+  border-color: color-mix(in srgb, var(--yk-success) 30%, var(--yk-border-subtle));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--yk-success) 13%, transparent), color-mix(in srgb, var(--yk-info) 8%, transparent) 55%, transparent),
+    var(--yk-surface-2);
+  box-shadow: var(--yk-shadow-sm);
+}
+
+#mvp126-diagnostics-two-stage-loader > section:first-of-type > p:first-child,
+#u28-diagnostics-index-status {
+  color: color-mix(in srgb, var(--yk-success) 68%, var(--yk-text-1));
+}
+
+#mvp126-diagnostics-two-stage-loader > section:first-of-type button:nth-of-type(2) {
+  border-color: color-mix(in srgb, var(--yk-info) 40%, var(--yk-border-subtle));
+  background: color-mix(in srgb, var(--yk-info) 14%, var(--yk-surface-2));
+  color: color-mix(in srgb, var(--yk-info) 70%, var(--yk-text-1));
+}
+
+#mvp126-diagnostics-two-stage-loader > section:first-of-type button:nth-of-type(3) {
+  border-color: var(--yk-border-strong);
+  background: var(--yk-surface-3);
+  color: var(--yk-text-1);
+}
+
+#mvp126-diagnostics-two-stage-loader button:disabled {
+  border-color: var(--yk-border-subtle) !important;
+  background: var(--yk-surface-disabled, var(--yk-surface-3)) !important;
+  color: var(--yk-text-3) !important;
+  opacity: 0.72 !important;
+}
+
+/* Music collections: keep small result sets compact instead of stretching cards. */
+.u37d-collection-grid,
+.u37d-collection-grid--people {
+  grid-template-columns: repeat(auto-fit, minmax(12.5rem, 15.5rem));
+  justify-content: start;
+  align-items: stretch;
+}
+
+.u37d-folder-list {
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 28rem));
+  justify-content: start;
+  align-items: stretch;
+}
+
+.u37d-collection-grid[data-u37d-collection-grid],
+.u37d-folder-list[data-u37d-collection-grid] {
+  padding-block: var(--yk-space-1) var(--yk-space-3);
+}
+
+/* Full player: retain an immersive dark stage while using the app's archive surfaces. */
+#full-lyrics-panel {
+  background:
+    radial-gradient(circle at 18% 12%, color-mix(in srgb, var(--yk-accent) 18%, transparent), transparent 34%),
+    radial-gradient(circle at 82% 86%, color-mix(in srgb, var(--yk-info) 11%, transparent), transparent 40%),
+    linear-gradient(180deg, color-mix(in srgb, var(--yk-surface-1) 18%, #09090b 82%), #09090b) !important;
+}
+
+#full-lyrics-panel #mvp78-player-header-wrap-safe {
+  width: calc(100% - 2rem);
+  max-width: 80rem;
+  margin: 1rem auto 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--yk-border-subtle) 72%, rgba(255, 255, 255, 0.12));
+  border-radius: var(--yk-radius-xl);
+  background: color-mix(in srgb, var(--yk-surface-1) 20%, rgba(9, 9, 11, 0.8));
+  box-shadow: var(--yk-shadow-md);
+  backdrop-filter: blur(24px);
+}
+
+#full-lyrics-panel #lyrics-close-btn {
+  border-color: color-mix(in srgb, var(--yk-accent) 28%, rgba(255, 255, 255, 0.12));
+  background: color-mix(in srgb, var(--yk-accent) 12%, rgba(255, 255, 255, 0.05));
+  color: rgba(255, 255, 255, 0.9);
+}
+
+#full-lyrics-panel #lyrics-close-btn:hover {
+  border-color: color-mix(in srgb, var(--yk-accent) 48%, rgba(255, 255, 255, 0.16));
+  background: color-mix(in srgb, var(--yk-accent) 20%, rgba(255, 255, 255, 0.08));
+}
+
+/* Remove decorative desktop-window dots; they do not belong to the app shell. */
+#full-lyrics-panel #lyrics-close-btn + div {
+  display: none !important;
+}
+
+#full-lyrics-panel #mvp78-player-header-wrap-safe > div:nth-child(2) {
+  border-color: color-mix(in srgb, var(--yk-border-subtle) 70%, rgba(255, 255, 255, 0.12));
+  background: color-mix(in srgb, var(--yk-surface-2) 18%, rgba(255, 255, 255, 0.04));
+  box-shadow: none;
+}
+
+#full-lyrics-panel #mvp73-player-daily-visual-focus {
+  max-width: 72rem;
+  margin-inline: auto;
+  border-color: color-mix(in srgb, var(--yk-accent) 24%, rgba(255, 255, 255, 0.12));
+  border-radius: var(--yk-radius-xl) !important;
+  background:
+    linear-gradient(110deg, color-mix(in srgb, var(--yk-accent) 10%, transparent), transparent 52%),
+    color-mix(in srgb, var(--yk-surface-1) 16%, rgba(9, 9, 11, 0.7));
+  box-shadow: var(--yk-shadow-md);
+}
+
+/* Narrow settings: compress the maintenance banner and keep tabs on one row. */
+@media (max-width: 1120px) {
+  #u39b-settings-maintenance-entry {
+    padding: 0.9rem 1rem;
+    border-radius: var(--yk-radius-xl);
+  }
+
+  #u39b-settings-maintenance-entry > div {
+    gap: 0.75rem;
+  }
+
+  #u39b-settings-maintenance-entry h2 {
+    margin-top: 0.2rem;
+    font-size: 0.9rem;
+  }
+
+  #u39b-settings-maintenance-entry p.mt-2 {
+    display: -webkit-box;
+    margin-top: 0.35rem;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  #u39b-settings-maintenance-entry .mt-3.flex.flex-wrap {
+    display: none;
+  }
+
+  #u39b-settings-maintenance-entry button {
+    min-height: 2.25rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  #u39b-settings-maintenance-entry + .mx-auto > * + * {
+    margin-top: 0.8rem !important;
+  }
+
+  #u39b-settings-maintenance-entry + .mx-auto > div:first-child {
+    padding-bottom: 0.55rem;
+  }
+
+  #u39b-settings-maintenance-entry + .mx-auto > .space-y-4 > .grid {
+    display: flex !important;
+    gap: 0.45rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    scrollbar-width: thin;
+  }
+
+  #u39b-settings-maintenance-entry + .mx-auto [data-settings-tab] {
+    width: auto !important;
+    min-width: 8.25rem;
+    height: 2.5rem;
+    flex: 0 0 auto;
+    padding-inline: 0.75rem;
+  }
+}
+
+@media (max-width: 620px) {
+  .u37d-collection-grid,
+  .u37d-collection-grid--people,
+  .u37d-folder-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #full-lyrics-panel #mvp78-player-header-wrap-safe {
+    width: calc(100% - 1rem);
+    margin-top: 0.5rem;
+    padding: 0.6rem;
+    border-radius: var(--yk-radius-lg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #full-lyrics-panel #mvp78-player-header-wrap-safe,
+  #full-lyrics-panel #mvp73-player-daily-visual-focus,
+  #mvp126-diagnostics-two-stage-loader button {
+    transition: none !important;
+  }
+}
