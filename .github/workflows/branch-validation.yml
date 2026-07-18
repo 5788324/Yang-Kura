@@ -13,6 +13,8 @@ on:
       - 'scripts/verify-beta3-release.mjs'
       - 'scripts/verify-beta3-preflight.mjs'
       - 'scripts/verify-beta3-published-release.mjs'
+      - 'scripts/verify-handoff.mjs'
+      - 'scripts/verify-u38c-player-subtitles.mjs'
       - '.github/workflows/beta3-personal-release.yml'
       - '.github/workflows/branch-validation.yml'
       - 'src/hooks/useAudioPlayer.ts'
