@@ -90,7 +90,11 @@ jobs:
 
       - name: Run Beta 3 RJ detail playback-entry E2E
         if: steps.scope.outputs.entry_changed == 'true'
-        run: node scripts/test-beta3-rj-detail-playback-entry.mjs
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts/beta3-rj-detail-playback-entry | Out-Null
+          node scripts/test-beta3-rj-detail-playback-entry.mjs 2>&1 | Tee-Object -FilePath artifacts/beta3-rj-detail-playback-entry/console.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Verify U39-A player theme boundary
         if: steps.scope.outputs.ui_changed == 'true'
