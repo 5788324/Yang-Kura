@@ -107,3 +107,5 @@ Codex 测试文档：`docs/CODEX_REAL_MACHINE_FULL_ACCEPTANCE.md`。
 ## AI 自主管理规则
 
 用户不承担测试、排错、构建、Git、文档或发布操作。ChatGPT 负责规划、开发、自动测试、PR、合并和交付；物理硬件、真实声卡和主观显示效果由 Codex 按专项文档验证。
+
+<!-- 历史验证锚点：U39-G：最终 Windows 回归与打包验收完成。 -->
