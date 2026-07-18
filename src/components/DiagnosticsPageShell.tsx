@@ -38,7 +38,7 @@ export default function DiagnosticsPageShell(props: DiagnosticsPageShellProps) {
 
       <section className="rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-sky-500/5 to-transparent p-6 shadow-sm">
         <p className="text-[10px] font-bold tracking-wider text-emerald-300">AI 维护</p>
-        <h2 className="mt-1 text-xl font-black text-text-primary">当前资源状态与性能检查</h2>
+        <h2 className="mt-1 text-xl font-black text-text-primary">真实资源状态与诊断</h2>
         <p className="mt-2 max-w-3xl text-xs leading-relaxed text-text-muted">这里只显示本次应用会话的真实资源数量、读取状态和按需性能检查。历史开发记录已经归档，不再作为可操作页面加载。</p>
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-4">
           <div className="rounded-2xl border border-border-color/50 bg-card-bg/40 p-4"><p className="text-[10px] text-text-muted">音声作品</p><p id="u28-diagnostics-asmr-count" className="mt-1 text-xl font-black text-text-primary">{workCount}</p></div>
@@ -47,7 +47,7 @@ export default function DiagnosticsPageShell(props: DiagnosticsPageShellProps) {
           <div className="rounded-2xl border border-border-color/50 bg-card-bg/40 p-4"><p className="text-[10px] text-text-muted">当前状态</p><p id="u28-diagnostics-index-status" className="mt-1 text-sm font-bold text-emerald-300">{props.scanStatus || '尚未读取资源库'}</p></div>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" onClick={props.onScanLibrary} className="flex items-center gap-1.5 rounded-xl bg-brand-color px-4 py-2 text-xs font-bold text-white hover:opacity-90"><Activity className="h-3.5 w-3.5" />刷新当前状态</button>
+          <button type="button" onClick={props.onScanLibrary} className="flex items-center gap-1.5 rounded-xl bg-brand-color px-4 py-2 text-xs font-bold text-white hover:opacity-90"><Activity className="h-3.5 w-3.5" />刷新真实资源状态</button>
           <button type="button" onClick={() => setShowPerformance((value) => !value)} className="flex items-center gap-1.5 rounded-xl border border-cyan-500/25 bg-cyan-500/10 px-4 py-2 text-xs font-bold text-cyan-100"><Gauge className="h-3.5 w-3.5" />{showPerformance ? '收起性能检查' : '查看性能检查'}</button>
         </div>
       </section>
