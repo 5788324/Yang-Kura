@@ -84,6 +84,17 @@ export const playbackHistoryService = {
     writeHistory([]);
   },
 
+  pruneToLibrary(allTracks: AudioTrack[]): PlaybackHistoryEntry[] {
+    if (allTracks.length === 0) return this.load();
+    const byId = flattenTrackMap(allTracks);
+    const previous = this.load();
+    const next = previous
+      .filter((entry) => byId.has(entry.trackId))
+      .map((entry) => ({ ...entry, track: sanitizeTrack(byId.get(entry.trackId) ?? entry.track) }));
+    if (next.length !== previous.length || next.some((entry, index) => entry.track.id !== previous[index]?.track.id)) writeHistory(next);
+    return next;
+  },
+
   getResumeProgress(trackId: string, durationHint?: number): number {
     const entry = this.load().find((item) => item.trackId === trackId);
     if (!entry) return 0;
@@ -121,18 +132,16 @@ export const playbackHistoryService = {
 
   getRecentTracks(allTracks: AudioTrack[] = []): AudioTrack[] {
     const byId = flattenTrackMap(allTracks);
-    return this.load().map((entry) => {
+    const entries = allTracks.length > 0 ? this.pruneToLibrary(allTracks) : this.load();
+    return entries.map((entry) => {
       const freshTrack = byId.get(entry.trackId);
       const baseTrack = freshTrack || entry.track;
-      return {
-        ...baseTrack,
-        duration: safeNumber(baseTrack.duration) || entry.duration,
-      };
+      return { ...baseTrack, duration: safeNumber(baseTrack.duration) || entry.duration };
     });
   },
 
   getSummary(allTracks: AudioTrack[] = []): { count: number; playableCount: number; lastUpdatedAt?: string } {
-    const entries = this.load();
+    const entries = allTracks.length > 0 ? this.pruneToLibrary(allTracks) : this.load();
     const byId = flattenTrackMap(allTracks);
     return {
       count: entries.length,
