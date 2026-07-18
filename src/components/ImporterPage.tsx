@@ -552,6 +552,8 @@ export default function ImporterPage() {
 
       <details
         id="mvp107-importer-ai-maintenance-fold"
+        hidden
+        aria-hidden="true"
         className="rounded-3xl border border-violet-500/20 bg-violet-500/5 p-5 shadow-sm"
       >
         <summary className="cursor-pointer select-none text-sm font-extrabold text-violet-100">

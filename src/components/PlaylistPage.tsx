@@ -437,7 +437,7 @@ export default function PlaylistPage({
               <span>歌单</span>
             </h2>
             <p className="text-xs text-text-muted mt-1">
-              共 ${filteredPlaylists.length} 个歌单、${playlistSummary.trackCount} 首音轨；自建歌单保存在本机。
+              共 {filteredPlaylists.length} 个歌单、{playlistSummary.trackCount} 首音轨；自建歌单保存在本机。
             </p>
           </div>
           <button

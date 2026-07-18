@@ -1,0 +1,56 @@
+name: U40-D Codex Retest
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'electron/main.ts'
+      - 'src/app/themeRuntime.ts'
+      - 'src/app/ThemeRuntimeBridge.tsx'
+      - 'src/components/PlaylistPage.tsx'
+      - 'src/components/ImporterPage.tsx'
+      - 'scripts/test-u40d-codex-retest-regressions.mjs'
+      - 'docs/CODEX_U40D_RETEST.md'
+      - '.github/workflows/u40d-codex-retest.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: u40d-codex-retest-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  focused-validation:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: TypeScript and renderer build
+        shell: pwsh
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run lint
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Electron build
+        run: npm run build:electron
+
+      - name: Focused regression checks
+        run: node scripts/test-u40d-codex-retest-regressions.mjs

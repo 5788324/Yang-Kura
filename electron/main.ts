@@ -51,12 +51,15 @@ const appRoot = path.resolve(__dirname, '..');
 
 const isDevShell = process.env.YANG_KURA_ELECTRON_DEV === '1';
 const viteDevUrl = process.env.YANG_KURA_VITE_DEV_URL ?? 'http://127.0.0.1:3000';
+const isolatedUserDataPath = process.env.YANG_KURA_USER_DATA_ROOT?.trim();
 const e2eUserDataPath = process.env.YANG_KURA_E2E_MODE === '1'
   ? process.env.YANG_KURA_E2E_USER_DATA_ROOT?.trim()
   : undefined;
-const stableUserDataPath = e2eUserDataPath
-  ? path.resolve(e2eUserDataPath)
-  : path.join(app.getPath('appData'), 'Yang-Kura');
+const stableUserDataPath = isolatedUserDataPath
+  ? path.resolve(isolatedUserDataPath)
+  : e2eUserDataPath
+    ? path.resolve(e2eUserDataPath)
+    : path.join(app.getPath('appData'), 'Yang-Kura');
 const stableSessionDataPath = path.join(stableUserDataPath, 'session');
 const stableCachePath = path.join(stableUserDataPath, 'cache');
 const stableLogsPath = path.join(stableUserDataPath, 'logs');
@@ -75,6 +78,19 @@ function configureStableAppStorage(): void {
 }
 
 configureStableAppStorage();
+
+const hasSingleInstanceLock = app.requestSingleInstanceLock();
+if (!hasSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    const existingWindow = BrowserWindow.getAllWindows()[0];
+    if (!existingWindow) return;
+    if (existingWindow.isMinimized()) existingWindow.restore();
+    if (!existingWindow.isVisible()) existingWindow.show();
+    existingWindow.focus();
+  });
+}
 
 const mpvSettingsStore = new MpvSettingsStore(path.join(stableUserDataPath, 'mpv-settings.json'));
 const rootAuthorizationStore = new RootAuthorizationStore(path.join(stableUserDataPath, 'root-authorizations.json'));
@@ -4861,6 +4877,7 @@ async function createMainWindow(): Promise<BrowserWindow> {
 }
 
 app.whenReady().then(async () => {
+  if (!hasSingleInstanceLock) return;
   await mpvSettingsStore.initialize();
   const restoredRootRecords = await rootAuthorizationStore.initialize();
   restoredRootRecords.forEach((record) => rootTokenMap.set(record.rootPathToken, record));
