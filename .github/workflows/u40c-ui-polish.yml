@@ -1,0 +1,84 @@
+name: U40-C UI Polish
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/main.tsx'
+      - 'src/styles/u40c-ui-polish.css'
+      - 'scripts/verify-u40c-ui-polish.mjs'
+      - '.github/workflows/u40c-ui-polish.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: u40c-ui-polish-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ui-polish:
+    name: Windows semantic UI and focused journeys
+    runs-on: windows-latest
+    timeout-minutes: 75
+
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Prepare Electron runtime
+        shell: pwsh
+        run: |
+          npm rebuild electron
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run patch:electron-builder
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: TypeScript and production build
+        shell: pwsh
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run lint
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run build:electron
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Verify U40-C semantic hooks
+        run: node scripts/verify-u40c-ui-polish.mjs
+
+      - name: Theme, DPI, keyboard and reduced-motion matrix
+        run: npm run test:u30:ui-matrix
+
+      - name: Daily page and narrow-window visual audit
+        run: node scripts/test-u32-ui-audit.mjs
+
+      - name: Focused full-product user journey
+        run: node scripts/test-u40b-full-product-journey.mjs
+
+      - name: Upload U40-C evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: u40c-ui-polish
+          path: |
+            artifacts/u30-ui-matrix
+            artifacts/u32-ui-audit
+            artifacts/u40b-full-product-acceptance
+          if-no-files-found: warn
+          retention-days: 30
