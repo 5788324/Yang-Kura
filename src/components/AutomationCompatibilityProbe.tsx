@@ -22,6 +22,7 @@ export default function AutomationCompatibilityProbe() {
 
   if (!automationProfile) return null;
   const index = snapshot.lastIndex;
+  const hasSelectedRoot = Object.keys(snapshot.selectedRoots).length > 0;
 
   return (
     <div
@@ -30,7 +31,7 @@ export default function AutomationCompatibilityProbe() {
       style={{ position: 'fixed', left: '-100000px', top: 0, width: '1px', height: '1px', overflow: 'hidden' }}
     >
       <span>选择本地资源库目录</span>
-      <span>已选择目录，可读取已有记录或重新扫描</span>
+      {hasSelectedRoot ? <span>已选择目录，可读取已有记录或重新扫描</span> : null}
       {index ? (
         <>
           <span>文件编码：utf8-bom</span>
