@@ -1,8 +1,8 @@
-# Codex：Yang-Kura Beta 3 正式日用候选专项实机验收
+# Codex：Yang-Kura Beta 3 阻断修复专项复测
 
 ## 任务性质
 
-只验证自动化尚不能替代的两个范围：真实音乐库只读链、临时副本写入/回滚链。不要重跑全部页面、U28～U40 或发布打包链，不修改源码，不提交 Git。
+只复测 B3-MAJ-001，并在播放通过后继续完成上次因阻断而停止的临时副本事务。不要重跑全部页面、U28～U40 或发布打包链，不修改源码，不提交 Git。
 
 ## 基线
 
@@ -21,60 +21,67 @@ $Remote = git rev-parse origin/release/beta3-daily-closeout
 "remote=$Remote"
 ```
 
-必须满足：分支为 `release/beta3-daily-closeout`、`HEAD = remote`、tracked/cached diff 为 0。开始时记录实际 SHA；测试期间远端分支变化则停止并报告 `BASELINE_INVALID`。
+必须满足：分支为 `release/beta3-daily-closeout`、`HEAD = remote`、tracked/cached diff 为 0。开始时记录实际 SHA；不满足则只报告 `BASELINE_INVALID`。
 
 ## 独立环境
 
 ```powershell
 $Root = Join-Path $env:TEMP 'YangKura-Beta3-Acceptance'
-$Profile = Join-Path $Root 'profile'
-$TempLibrary = Join-Path $Root 'library-copy'
-Remove-Item $Root -Recurse -Force -ErrorAction SilentlyContinue
+$Profile = Join-Path $Root 'profile-retest'
+$TempLibrary = Join-Path $Root 'library-retest'
 New-Item -ItemType Directory -Force -Path $Profile,$TempLibrary | Out-Null
 $env:YANG_KURA_USER_DATA_ROOT = $Profile
 npm run desktop:preview
 ```
 
-## A. 真实音乐库只读
+## A. B3-MAJ-001 必测
 
-目录：`D:\CloudMusic\VipSongsDownload`。
+在临时目录创建或复制一份合法、时长大于 5 秒的 WAV。使用音声库“一键扫描并应用”，读取 Index 后进入唯一作品详情。
 
-- 选择音乐库目录并读取已有 Index；没有 Index 时只执行只读预览，不写真实目录。
-- 检查歌曲、专辑、艺术家、文件夹、搜索、筛选和至少一个详情页。
-- 播放一首真实音乐；检查时长大于 0、进度、暂停/继续、Seek、队列和历史。
-- 在设置中选择或确认 mpv；关闭并重启后路径和播放能力仍保持。
-- 禁止在真实目录创建、覆盖、移动、删除、重命名或写回元数据。
+必须验证：
 
-## B. 临时副本写入与回滚
+1. 根目录单文件作品名称不再显示 `root`；
+2. 详情仍识别为可播放音轨；
+3. 点击音轨主区域和右侧“播放”按钮都能进入全局播放器；
+4. 全局播放器显示当前音轨，队列数至少为 1；
+5. mpv 或 HTMLAudio 返回真实时长后，时长大于 0；
+6. 进度持续推进；
+7. 暂停、继续、Seek、上一首/下一首边界和队列可操作；
+8. 如果历史或 localStorage 写入失败，播放状态仍不得被阻断。
 
-从真实库复制少量测试样本到 `%TEMP%\YangKura-Beta3-Acceptance\library-copy`；所有写入只发生在这里。
+任何一项失败均保留 `B3-MAJ-001 = FAIL` 并停止发布。
 
-验证：
+## B. 临时副本事务
 
-1. 扫描预览与 Index 写入；
-2. 自动备份和读取新 Index；
-3. copy-only 导入；
+A 通过后，在 `%TEMP%\YangKura-Beta3-Acceptance` 内继续：
+
+1. 再次扫描写入，确认形成旧 Index 备份；
+2. 备份恢复后统计一致；
+3. copy-only；
 4. 受控 move-only；
-5. 同名/目标已存在冲突；
-6. 人为制造中途失败，确认停止与回滚；
+5. 同名或目标已存在冲突；
+6. 人为制造中途失败并验证停止与回滚；
 7. OperationLog 包含操作、结果和回滚摘要；
-8. 备份恢复后集合和轨道统计一致；
-9. 不出现临时绝对路径泄漏到日常 UI。
+8. 日常 UI 不显示完整临时绝对路径。
 
-## C. 结束状态
+## C. 真实音乐目录
 
-- 关闭应用后相关 Electron、Yang-Kura 和 mpv 进程为 0。
-- 仓库 tracked/cached diff 为 0。
-- 真实音乐库没有写入。
-- 临时目录保留作为证据，不自动清理。
+`D:\CloudMusic\VipSongsDownload` 没有既有 Index，因此保持只读：只记录授权、读取不存在 Index 和只读预览结果，不写真实目录。可以从中复制少量样本到临时目录验证音乐扫描、浏览和播放；不得在真实目录生成 Index。
+
+## D. 结束状态
+
+- 关闭后 Yang-Kura、Electron 和 mpv 进程为 0；
+- tracked/cached diff 为 0；
+- 真实音乐目录无写入；
+- 原有未跟踪资料不删除、不修改。
 
 ## 输出
 
-保存到 `%TEMP%\YangKura-Beta3-Acceptance\report`：
+保存到 `%TEMP%\YangKura-Beta3-Acceptance\report-retest`：
 
-- `BETA3_COMMAND_RESULTS.txt`
-- `BETA3_FINAL_REPORT.md`
-- `BETA3_FUNCTION_MATRIX.md`
-- `BETA3_DEFECTS.md`
+- `BETA3_RETEST_COMMAND_RESULTS.txt`
+- `BETA3_RETEST_FINAL_REPORT.md`
+- `BETA3_RETEST_FUNCTION_MATRIX.md`
+- `BETA3_RETEST_DEFECTS.md`
 
-最终状态：`PASS`、`PARTIAL`、`FAIL` 或 `BASELINE_INVALID`。未执行项必须写 `NOT TESTED`。完成后停止，不修代码、不提交、不扩展范围。
+最终状态：`PASS`、`PARTIAL`、`FAIL` 或 `BASELINE_INVALID`。未执行项必须保留 `NOT TESTED`。完成后停止，不修代码、不提交、不扩展范围。

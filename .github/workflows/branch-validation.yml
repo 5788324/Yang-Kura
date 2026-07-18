@@ -14,6 +14,9 @@ on:
       - 'scripts/verify-beta3-preflight.mjs'
       - 'scripts/verify-beta3-published-release.mjs'
       - '.github/workflows/beta3-personal-release.yml'
+      - '.github/workflows/branch-validation.yml'
+      - 'src/hooks/useAudioPlayer.ts'
+      - 'src/services/libraryIndexNormalizationService.ts'
   workflow_dispatch:
 
 permissions:

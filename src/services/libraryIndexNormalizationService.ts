@@ -47,6 +47,10 @@ function groupLabel(groupPath: string, fallback: string): string {
   return segments[segments.length - 1]?.trim() || fallback;
 }
 
+function isUmbrellaTitle(value: string | undefined): boolean {
+  return UMBRELLA_TITLES.has((value ?? '').trim().toLocaleLowerCase());
+}
+
 function isUmbrellaCollection(collection: LibraryCollection, trackCount: number): boolean {
   const title = collection.title.trim().toLocaleLowerCase();
   const folder = normalizePath(collection.folderPath).toLocaleLowerCase();
@@ -56,6 +60,15 @@ function isUmbrellaCollection(collection: LibraryCollection, trackCount: number)
 function withRootCollectionType(collection: LibraryCollection, isAsmrRoot: boolean): LibraryCollection {
   if (isAsmrRoot && collection.collectionType !== 'rj_work') return { ...collection, collectionType: 'rj_work' };
   return collection;
+}
+
+function rootCollectionTitle(collection: LibraryCollection, tracks: LibraryTrack[], isAsmrRoot: boolean): string {
+  if (!isUmbrellaTitle(collection.title) && !isUmbrellaTitle(collection.folderPath)) return collection.title;
+  if (tracks.length === 1) {
+    const trackTitle = tracks[0]?.title?.trim();
+    if (trackTitle) return trackTitle;
+  }
+  return isAsmrRoot ? '本地音声' : '本地音乐';
 }
 
 function splitCollection(
@@ -77,8 +90,17 @@ function splitCollection(
 
   const shouldSplit = groups.size > 1 && isUmbrellaCollection(collection, sourceTracks.length);
   if (!shouldSplit) {
+    const title = groups.has('root')
+      ? rootCollectionTitle(collection, sourceTracks, isAsmrRoot)
+      : collection.title;
     return [{
-      collection: { ...collection, trackIds: sourceTracks.map((track) => track.id) },
+      collection: {
+        ...collection,
+        title,
+        sortTitle: title.toLocaleLowerCase(),
+        trackIds: sourceTracks.map((track) => track.id),
+        totalDurationSeconds: sourceTracks.reduce((sum, track) => sum + (track.durationSeconds ?? 0), 0),
+      },
       tracks: sourceTracks,
     }];
   }
@@ -130,6 +152,9 @@ export const libraryIndexNormalizationService = {
         pieces.length !== 1 ||
         first.collection.id !== collection.id ||
         first.collection.collectionType !== collection.collectionType ||
+        first.collection.title !== collection.title ||
+        first.collection.sortTitle !== collection.sortTitle ||
+        first.collection.totalDurationSeconds !== collection.totalDurationSeconds ||
         first.collection.trackIds.length !== collection.trackIds.length
       ) {
         changed = true;
@@ -145,7 +170,7 @@ export const libraryIndexNormalizationService = {
       ...index,
       collections: normalizedCollections,
       tracks: index.tracks.map((track) => normalizedTrackById.get(track.id) ?? track),
-      warnings: [...index.warnings, '已按实际作品目录整理旧版资源库分组；媒体文件未发生任何修改。'],
+      warnings: [...index.warnings, '已按实际作品目录整理资源库分组和根目录样本名称；媒体文件未发生任何修改。'],
     };
   },
 };
