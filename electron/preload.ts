@@ -43,7 +43,7 @@ import type {
  * receives absolute paths or file:// URLs, and the existing window.yangKura API
  * remains stable while Main and Renderer are migrated domain by domain.
  */
-const playbackTraceChannels = new Set<IpcChannel>([
+const playbackTraceChannels = new Set<string>([
   IPC_CHANNELS.media.resolveTrackUrl,
   IPC_CHANNELS.player.mpvStart,
   IPC_CHANNELS.player.mpvCommand,
@@ -51,57 +51,61 @@ const playbackTraceChannels = new Set<IpcChannel>([
 ]);
 const shouldTracePlaybackIpc = process.env.YANG_KURA_E2E_MODE === '1';
 
-function summarizePlaybackIpc(value: unknown): unknown {
-  if (!value || typeof value !== 'object') return value;
+function playbackTraceSummary(value: unknown): Record<string, unknown> | string | number | boolean | null {
+  if (value === null || ['string', 'number', 'boolean'].includes(typeof value)) return value as string | number | boolean | null;
+  if (!value || typeof value !== 'object') return typeof value;
+
   const record = value as Record<string, unknown>;
+  const nestedData = record.data && typeof record.data === 'object'
+    ? record.data as Record<string, unknown>
+    : record;
+  const nestedError = record.error && typeof record.error === 'object'
+    ? record.error as Record<string, unknown>
+    : null;
   const relativePath = typeof record.relativePath === 'string'
     ? record.relativePath.split(/[\\/]/).at(-1)
     : undefined;
-  const mediaUrl = typeof record.mediaUrl === 'string'
-    ? (() => {
-        try {
-          const parsed = new URL(record.mediaUrl as string);
-          return `${parsed.protocol}//${parsed.pathname.split('/').at(-1) || ''}`;
-        } catch {
-          return (record.mediaUrl as string).split(/[\\/]/).at(-1);
-        }
-      })()
-    : undefined;
+
   return {
     ok: record.ok,
-    message: record.message,
-    mode: record.mode,
+    mode: record.mode ?? nestedData.mode,
     command: record.command,
-    trackId: record.trackId,
+    trackId: record.trackId ?? nestedData.trackId,
     relativePath,
     startSeconds: record.startSeconds,
-    extension: record.extension,
-    mediaUrl,
+    extension: record.extension ?? nestedData.extension,
+    errorCode: nestedError?.code,
+    message: record.message ?? nestedError?.message,
   };
 }
 
-const invoke = async <T = unknown>(channel: IpcChannel, request?: unknown): Promise<T> => {
+const invoke = <T = unknown>(channel: IpcChannel, request?: unknown): Promise<T> => {
+  const operation = (request === undefined
+    ? ipcRenderer.invoke(channel)
+    : ipcRenderer.invoke(channel, request)) as Promise<T>;
   const trace = shouldTracePlaybackIpc && playbackTraceChannels.has(channel);
-  if (trace) {
-    console.info('[YK_E2E_IPC_REQUEST]', JSON.stringify({ channel, request: summarizePlaybackIpc(request) }));
-  }
-  try {
-    const result = request === undefined
-      ? await ipcRenderer.invoke(channel) as T
-      : await ipcRenderer.invoke(channel, request) as T;
-    if (trace) {
-      console.info('[YK_E2E_IPC_RESULT]', JSON.stringify({ channel, result: summarizePlaybackIpc(result) }));
-    }
-    return result;
-  } catch (error) {
-    if (trace) {
+  if (!trace) return operation;
+
+  console.info('[YK_E2E_IPC_REQUEST]', JSON.stringify({
+    channel,
+    request: playbackTraceSummary(request),
+  }));
+  return operation.then(
+    (result) => {
+      console.info('[YK_E2E_IPC_RESULT]', JSON.stringify({
+        channel,
+        result: playbackTraceSummary(result),
+      }));
+      return result;
+    },
+    (error: unknown) => {
       console.error('[YK_E2E_IPC_ERROR]', JSON.stringify({
         channel,
         message: error instanceof Error ? error.message : String(error),
       }));
-    }
-    throw error;
-  }
+      throw error;
+    },
+  );
 };
 
 const subscribe = <T>(channel: IpcChannel, listener: (payload: T) => void) => {
@@ -189,7 +193,7 @@ const yangKuraApi = {
   },
 
   requestLibraryIndexBackupRestore(request: LibraryIndexBackupRestoreRequest) {
-    return invoke(IPC_CHANELS.library.indexBackupRestore, request);
+    return invoke(IPC_CHANNELS.library.indexBackupRestore, request);
   },
 
   requestLibraryIndexBackupRetentionPreview(request: LibraryIndexBackupRetentionPreviewRequest) {
@@ -201,7 +205,7 @@ const yangKuraApi = {
   },
 
   requestRevealMissingEntryParent(request: RevealMissingEntryParentRequest) {
-    return invoke(IPC_CHANELS.library.revealNearestParent, request);
+    return invoke(IPC_CHANNELS.library.revealNearestParent, request);
   },
 
   requestResolveTrackMediaUrl(request: ResolveTrackMediaUrlRequest) {
@@ -221,19 +225,19 @@ const yangKuraApi = {
   },
 
   getMpvInstallationStatus(): Promise<MpvInstallationStatus> {
-    return invoke<MpvInstallationStatus>(IPC_CHANELS.player.mpvInstallationStatus);
+    return invoke<MpvInstallationStatus>(IPC_CHANNELS.player.mpvInstallationStatus);
   },
 
   selectMpvExecutable(): Promise<MpvExecutableActionResult> {
-    return invoke<MpvExecutableActionResult>(IPC_CHANELS.player.mpvSelectExecutable);
+    return invoke<MpvExecutableActionResult>(IPC_CHANNELS.player.mpvSelectExecutable);
   },
 
   clearMpvExecutable(): Promise<MpvExecutableActionResult> {
-    return invoke<MpvExecutableActionResult>(IPC_CHANELS.player.mpvClearExecutable);
+    return invoke<MpvExecutableActionResult>(IPC_CHANNELS.player.mpvClearExecutable);
   },
 
   onMpvPlaybackEvent(listener: (event: MpvPlaybackEvent) => void) {
-    return subscribe(IPC_CHANELS.player.mpvEvent, listener);
+    return subscribe(IPC_CHANNELS.player.mpvEvent, listener);
   },
 
   requestReadTrackLyrics(request: ReadTrackLyricsRequest) {
@@ -253,11 +257,11 @@ const yangKuraApi = {
   },
 
   clearAsmrMetadataProviderCache(request: AsmrMetadataProviderCacheClearRequest) {
-    return invoke(IPC_CHANELS.metadata.asmrSingleRjCacheClear, request);
+    return invoke(IPC_CHANNELS.metadata.asmrSingleRjCacheClear, request);
   },
 
   requestImportCopyOnlyPreflight(request: ImportCopyOnlyStubRequest) {
-    return invoke(IPC_CHANELS.importer.copyPreflight, request);
+    return invoke(IPC_CHANNELS.importer.copyPreflight, request);
   },
 
   requestImportCopyOnlyConfirm(request: ImportCopyOnlyConfirmStubRequest) {
@@ -267,8 +271,9 @@ const yangKuraApi = {
   requestImportCopyOnlyExecute(request: ImportCopyOnlyStubRequest) {
     return invoke(IPC_CHANNELS.importer.copyExecute, request);
   },
+
   requestImportPostCopyRefreshPreview(request: ImportPostCopyRefreshPreviewRequest) {
-    return invoke(IPC_CHANELS.importer.postCopyRefreshPreview, request);
+    return invoke(IPC_CHANNELS.importer.postCopyRefreshPreview, request);
   },
 
   requestImportLibraryIndexPatchPreview(request: ImportLibraryIndexPatchPreviewRequest) {
@@ -276,7 +281,7 @@ const yangKuraApi = {
   },
 
   requestImportLibraryIndexPatchWriteReadiness(request: ImportLibraryIndexPatchWriteReadinessRequest) {
-    return invoke(IPC_CHANELS.importer.indexPatchWriteReadiness, request);
+    return invoke(IPC_CHANNELS.importer.indexPatchWriteReadiness, request);
   },
 
   requestImportLibraryIndexPatchWrite(request: ImportLibraryIndexPatchWriteRequest) {
@@ -284,11 +289,11 @@ const yangKuraApi = {
   },
 
   requestImportLibraryIndexPatchRefreshAfterWrite(request: ImportLibraryIndexPatchUiRefreshRequest) {
-    return invoke(IPC_CHANELS.importer.indexPatchRefreshAfterWrite, request);
+    return invoke(IPC_CHANNELS.importer.indexPatchRefreshAfterWrite, request);
   },
 
   requestImportMoveOnlyExecute(request: ImportMoveOnlyExecuteRequest) {
-    return invoke(IPC_CHANELS.importer.moveExecute, request);
+    return invoke(IPC_CHANNELS.importer.moveExecute, request);
   },
 
   requestImportCopyOnlyCancel(request: ImportCopyOnlyCancelStubRequest) {
