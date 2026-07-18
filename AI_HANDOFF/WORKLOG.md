@@ -62,21 +62,42 @@
 - 修复 U40-B03：自动化 profile 隔离；日常启动清理旧测试队列、历史、歌单和缓存；真实库加载后移除无效旧队列与历史。
 - 修复 U40-M01：旧版超大一级目录集合按 RJ 或实际作品/专辑目录重新分组，空集合移除。
 - 修复 U40-M02：生产路由切换到轻量日常设置；旧工程设置和旧完整诊断退出运行时。
-- U40-O01 保持环境 Observation；HTMLAudio 回退由 U29 验证。
 - 消除 `fixtureLibraryScanner` 与 `virtualLibraryPathParser` 的历史相对导入循环；当前循环为 0。
-- 新增 `docs/CODEX_REAL_MACHINE_FULL_ACCEPTANCE.md`，指定 `E:\arsm` 和 `D:\CloudMusic\VipSongsDownload` 的只读真实库全链路验收。
-- 最终候选提交：`189c5a65cb024838cb288874e7c78f8e07b0671c`。
-- U40-D Run `29628604275`，Artifact `8424721819`，digest `sha256:d577eed18e51ce8686149e6ac04c1eb9f6341e30b72d9462c3960ed93d244f37`。
-- Documentation、Architecture、UI Fast、U40-C、U40-D、Branch Validation 和 U32 Packaging 全部 PASS。
+- 新增真实库 Codex 验收文档，指定 `E:\arsm` 和 `D:\CloudMusic\VipSongsDownload` 的只读边界。
 - Issue #66 完成并关闭；旧设置/诊断源码只保留历史追溯，不再进入运行时。
+
+### U40-D2 — 正确基线真实库定向复测
+
+- PR：#89；合并提交 `b13a9149d1fcaf4ee409326c0fc4e219806aad88`。
+- 新增 `YANG_KURA_USER_DATA_ROOT` 显式隔离 profile 和 Electron 单实例锁。
+- 修复歌单字面量 `$0`、三主题设置/顶栏文案不同步和导入页历史工程面板暴露。
+- Codex 使用 `main`、规定的 `npm run desktop:preview` 和独立 profile 完成有效复测。
+- 日常 profile 项目计数测试前后均为 776；隔离首次启动为空库。
+- `E:\arsm` 在 15 秒内读取为 75 个集合、3540 条轨道；页面状态一致。
+- 搜索、视图切换、作品详情、轨道、队列、历史、临时歌单、单实例和连续三次重启恢复通过；关闭后相关进程为 0。
+- 临时加入本机 mpv 目录到测试进程 PATH 后，真实播放从 `0:29 / 3:12` 推进到 `0:47 / 3:12`，Seek 和 33 行全屏歌词通过。
+- 第二次启动约 20 秒恢复首页记录为非阻断性能 Observation。
+- 报告仍保留的实机未测项：真实音乐库本轮读取、临时导入、外部打开、物理 DPI/减少动画、完整键盘焦点、损坏 Index 和临时歌单删除确认。
+
+### U40-D3 — HTMLAudio 停滞状态收口
+
+- PR：#90；合并提交 `03a3b75f95974b3370e12cb34dde20a4429e17fb`。
+- 纠正报告解释：mpv PATH 复测成功只证明 mpv 主链可用，不能证明 HTMLAudio 回退正常。
+- 确认基础播放原实现等待 `loadedmetadata` 和 `audio.play()` 均无超时，存在长期停在 `0:00 / 0:00` 的真实状态缺口。
+- HTMLAudio 元数据读取和启动各增加 10 秒超时；失败时停止并清除伪播放状态。
+- 错误信息明确引导用户到“设置 → 播放方式”选择已有的 mpv 可执行文件；设置页不再笼统承诺基础播放兼容全部常见编码。
+- 验证候选 `596358dbc8cb3afc9a87b1967aad260f5db0e29a` 通过 Architecture Guardrails，以及 U40-D Run `29636584817` 中的 TypeScript/构建、定向回归、资源库与重启、播放器/字幕/持久化会话、主题/窗口/键盘和日常页面链。
+- 本轮未运行 portable、NSIS、安装/卸载或 Release 资产链；版本和 Beta 2 Release 不变。
 
 ## 当前结论
 
 ```text
-U34～U40-D：完成
+U34～U40-D3：完成
 当前版本：0.169.0-beta.2
 Beta 2：已发布并完成远端资产校验
 Issue #66：已关闭
+真实音声库主链：读取、分组、mpv 播放、字幕、单实例和三次重启已有实机证据
+HTMLAudio：10 秒内成功或明确失败，不再无限伪播放
 当前任务：按需日常维护
 大型功能：长期冻结
 ```
