@@ -1,0 +1,243 @@
+name: Personal Beta 3 Release
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'release/beta3-release-plan.json'
+      - 'docs/RELEASE_NOTES_0.170.0-beta.3.md'
+      - 'docs/CODEX_BETA3_RELEASE_ACCEPTANCE.md'
+      - 'scripts/prepare-beta3-package-version.mjs'
+      - 'scripts/verify-beta3-release.mjs'
+      - 'scripts/verify-beta3-preflight.mjs'
+      - 'scripts/verify-beta3-published-release.mjs'
+      - '.github/workflows/beta3-personal-release.yml'
+      - 'electron-builder.config.cjs'
+  push:
+    branches:
+      - main
+    paths:
+      - 'release/beta3-release-plan.json'
+      - 'docs/RELEASE_NOTES_0.170.0-beta.3.md'
+      - 'scripts/prepare-beta3-package-version.mjs'
+      - 'scripts/verify-beta3-release.mjs'
+      - 'scripts/verify-beta3-preflight.mjs'
+      - 'scripts/verify-beta3-published-release.mjs'
+      - '.github/workflows/beta3-personal-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: personal-beta3-release-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build and validate Beta 3 assets
+    runs-on: windows-latest
+    timeout-minutes: 120
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      tag: ${{ steps.plan.outputs.tag }}
+      title: ${{ steps.plan.outputs.title }}
+      notes: ${{ steps.plan.outputs.notes }}
+      portable: ${{ steps.plan.outputs.portable }}
+      setup: ${{ steps.plan.outputs.setup }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Read release plan
+        id: plan
+        shell: pwsh
+        run: |
+          $plan = Get-Content release/beta3-release-plan.json -Raw | ConvertFrom-Json
+          "version=$($plan.version)" >> $env:GITHUB_OUTPUT
+          "tag=$($plan.tag)" >> $env:GITHUB_OUTPUT
+          "title=$($plan.title)" >> $env:GITHUB_OUTPUT
+          "notes=$($plan.releaseNotesPath)" >> $env:GITHUB_OUTPUT
+          "portable=$($plan.assets[0])" >> $env:GITHUB_OUTPUT
+          "setup=$($plan.assets[1])" >> $env:GITHUB_OUTPUT
+      - name: Query tags and releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          mkdir -p artifacts/beta3-preflight
+          gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/tags?per_page=100" > artifacts/beta3-preflight/tags-pages.json
+          gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/releases?per_page=100" > artifacts/beta3-preflight/releases-pages.json
+      - name: Prepare package metadata for Beta 3
+        run: node scripts/prepare-beta3-package-version.mjs
+      - name: Verify release contract and live preflight
+        env:
+          BETA3_ALLOW_EXISTING_TARGET: ${{ github.event_name != 'pull_request' && '1' || '0' }}
+        run: |
+          node scripts/verify-beta3-release.mjs
+          node scripts/verify-beta3-preflight.mjs
+      - name: Upload preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta3-preflight-${{ github.sha }}
+          path: artifacts/beta3-preflight
+          if-no-files-found: error
+          retention-days: 14
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Audit high and critical dependency risk
+        run: npm audit --audit-level=high
+      - name: Prepare Electron runtime
+        run: |
+          npm rebuild electron
+          npm run patch:electron-builder
+      - name: Validate sources and focused regressions
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run lint
+          npm run build
+          npm run build:electron
+          node scripts/verify-beta3-release.mjs
+          node scripts/verify-u40d3-html-audio-stall.mjs
+          npm run test:u28:electron-e2e
+          npm run test:u29:electron-e2e
+          npm run test:u31:importer-transactions
+      - name: Build portable and NSIS assets
+        shell: pwsh
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts/beta3-builder | Out-Null
+          $log = 'artifacts/beta3-builder/electron-builder.log'
+          $ok = $false
+          for ($attempt = 1; $attempt -le 2; $attempt++) {
+            if (Test-Path release) {
+              Get-ChildItem release -Force | Where-Object { $_.Name -notlike '*.json' } | Remove-Item -Recurse -Force
+            }
+            node node_modules/electron-builder/cli.js --win portable nsis --config electron-builder.config.cjs --publish never 2>&1 | Tee-Object -FilePath $log -Append
+            if ($LASTEXITCODE -eq 0) { $ok = $true; break }
+            if ($attempt -lt 2) { Start-Sleep -Seconds 20 }
+          }
+          if (-not $ok) { exit 1 }
+      - name: Packaged install and page readiness
+        run: |
+          node scripts/test-u32-release-candidate-packaging.mjs
+          node scripts/test-u32-packaged-page-readiness.mjs
+      - name: Assemble validated bundle
+        shell: pwsh
+        run: |
+          $plan = Get-Content release/beta3-release-plan.json -Raw | ConvertFrom-Json
+          New-Item -ItemType Directory -Force -Path artifacts/beta3-release-bundle | Out-Null
+          Copy-Item (Join-Path release $plan.assets[0]) artifacts/beta3-release-bundle/
+          Copy-Item (Join-Path release $plan.assets[1]) artifacts/beta3-release-bundle/
+          Copy-Item artifacts/u32-release-candidate/SHA256SUMS.txt artifacts/beta3-release-bundle/
+          Copy-Item artifacts/u32-release-candidate/report.json artifacts/beta3-release-bundle/packaging-report.json
+          Copy-Item artifacts/u32-release-candidate/page-readiness-report.json artifacts/beta3-release-bundle/page-readiness-report.json
+          Copy-Item artifacts/beta3-preflight/preflight-report.json artifacts/beta3-release-bundle/preflight-report.json
+      - name: Upload validated Beta 3 bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta3-windows-${{ github.sha }}
+          path: artifacts/beta3-release-bundle
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload builder log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta3-builder-log-${{ github.sha }}
+          path: artifacts/beta3-builder/electron-builder.log
+          if-no-files-found: warn
+          retention-days: 14
+
+  publish:
+    name: Publish Beta 3 after main merge
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - name: Check out published commit
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download validated bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: beta3-windows-${{ github.sha }}
+          path: publish
+      - name: Verify local checksums
+        shell: bash
+        run: |
+          cd publish
+          sha256sum -c SHA256SUMS.txt
+      - name: Create or verify prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.build.outputs.tag }}
+          RELEASE_TITLE: ${{ needs.build.outputs.title }}
+          RELEASE_NOTES: ${{ needs.build.outputs.notes }}
+          PORTABLE_ASSET: ${{ needs.build.outputs.portable }}
+          SETUP_ASSET: ${{ needs.build.outputs.setup }}
+        shell: bash
+        run: |
+          if ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" \
+              "publish/$PORTABLE_ASSET" \
+              "publish/$SETUP_ASSET" \
+              "publish/SHA256SUMS.txt" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "$RELEASE_TITLE" \
+              --notes-file "$RELEASE_NOTES" \
+              --prerelease
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" > publish/release.json
+      - name: Verify remote release and assets
+        run: node scripts/verify-beta3-published-release.mjs publish/release.json publish "$GITHUB_SHA"
+      - name: Upload publication evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta3-published-release-${{ github.sha }}
+          path: |
+            publish/release.json
+            publish/published-release-report.json
+            publish/beta3-publication-state.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  report-failure:
+    name: Report Beta 3 publication failure
+    if: >-
+      always() &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) &&
+      (needs.build.result == 'failure' || needs.publish.result == 'failure')
+    needs: [build, publish]
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Create failure issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+        shell: bash
+        run: |
+          title="Beta 3 发布失败：${GITHUB_SHA}"
+          body="commit: ${GITHUB_SHA}\nbuild: ${BUILD_RESULT}\npublish: ${PUBLISH_RESULT}\nworkflow: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\n用户无需运行命令。"
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body"

@@ -27,6 +27,12 @@ on:
       - 'scripts/verify-u39-final-acceptance.mjs'
       - '.github/workflows/architecture-guardrails.yml'
       - '.github/workflows/u39-final-acceptance.yml'
+      - 'release/beta3-release-plan.json'
+      - 'scripts/prepare-beta3-package-version.mjs'
+      - 'scripts/verify-beta3-release.mjs'
+      - 'scripts/verify-beta3-preflight.mjs'
+      - 'scripts/verify-beta3-published-release.mjs'
+      - '.github/workflows/beta3-personal-release.yml'
   workflow_dispatch:
 
 permissions:
@@ -41,158 +47,41 @@ jobs:
     name: Windows full-chain regression
     runs-on: windows-latest
     timeout-minutes: 80
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Detect focused fast-lane scope
-        id: scope
-        shell: pwsh
-        run: |
-          if ("${{ github.event_name }}" -ne "pull_request") {
-            "player_fast_only=false" >> $env:GITHUB_OUTPUT
-            exit 0
-          }
-
-          $base = "${{ github.event.pull_request.base.sha }}"
-          $files = @(git diff --name-only $base HEAD)
-          $allowed = @(
-            '^src/hooks/useAudioPlayer\.ts$',
-            '^src/hooks/usePlayerSubtitles\.ts$',
-            '^src/components/PlayerBar\.tsx$',
-            '^src/components/PlayerBarPrimarySections\.tsx$',
-            '^src/components/PlayerBarAuxiliaryControls\.tsx$',
-            '^src/components/PlayerProgressTrack\.tsx$',
-            '^src/components/PlayerTransientPresenters\.tsx$',
-            '^src/app/AppRouter\.tsx$',
-            '^src/app/navigation\.ts$',
-            '^src/components/SettingsMaintenanceEntry\.tsx$',
-            '^src/components/DiagnosticsPageShell\.tsx$',
-            '^scripts/verify-u38c-player-subtitles\.mjs$',
-            '^scripts/verify-u39a-playerbar-theme\.mjs$',
-            '^scripts/verify-u39b-maintenance-entry\.mjs$',
-            '^scripts/verify-u39f-architecture-guardrails\.mjs$',
-            '^scripts/test-u39f-architecture-guardrails\.mjs$',
-            '^scripts/verify-u39-final-acceptance\.mjs$',
-            '^scripts/verify-handoff\.mjs$',
-            '^\.github/workflows/(architecture-guardrails|branch-validation|player-fast-validation|u39-final-acceptance|ui-fast-validation|u32-release-candidate)\.yml$',
-            '^(README|PROJECT_STATE|PROJECT_ROADMAP)\.md$',
-            '^AI_HANDOFF/(CURRENT_PROJECT_HANDOFF|WORKLOG)\.md$',
-            '^docs/architecture/U38_PLAYER_SUBTITLE_BOUNDARY\.md$',
-            '^docs/architecture/U39_PLAYERBAR_THEME\.md$',
-            '^docs/architecture/U39_MAINTENANCE_ENTRY\.md$',
-            '^docs/architecture/U39_ARCHITECTURE_GUARDRAILS\.md$',
-            '^docs/U39_FINAL_ACCEPTANCE\.md$'
-          )
-
-          $unexpected = @($files | Where-Object {
-            $file = $_
-            -not ($allowed | Where-Object { $file -match $_ })
-          })
-          $fastOnly = $files.Count -gt 0 -and $unexpected.Count -eq 0
-          "player_fast_only=$($fastOnly.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
-          if ($fastOnly) {
-            Write-Host "Focused fast lane selected. Full regression is delegated to the relevant targeted workflow."
-          } else {
-            Write-Host "Full regression required. Unexpected or broader files: $($unexpected -join ', ')"
-          }
-
-      - name: Focused fast-lane notice
-        if: steps.scope.outputs.player_fast_only == 'true'
-        run: echo "Full regression skipped; the targeted UI, player, architecture or U39 final-acceptance workflow owns the relevant checks."
-
       - name: Set up Node 22
-        if: steps.scope.outputs.player_fast_only != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-
-      - name: Install dependencies without lifecycle scripts
-        if: steps.scope.outputs.player_fast_only != 'true'
+      - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
-
       - name: Audit high and critical dependency risk
-        if: steps.scope.outputs.player_fast_only != 'true'
         run: npm audit --audit-level=high
-
-      - name: Rebuild Electron runtime for desktop E2E
-        if: steps.scope.outputs.player_fast_only != 'true'
-        run: npm rebuild electron
-
-      - name: TypeScript validation
-        if: steps.scope.outputs.player_fast_only != 'true'
-        shell: pwsh
+      - name: Prepare Electron runtime
+        run: |
+          npm rebuild electron
+          npm run patch:electron-builder
+      - name: TypeScript and builds
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: |
-          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
-          npm run lint 2>&1 | Tee-Object -FilePath artifacts/typescript-validation.log
-          $exitCode = $LASTEXITCODE
-          if ($exitCode -ne 0) { exit $exitCode }
-
-      - name: Upload TypeScript validation log
-        if: always() && steps.scope.outputs.player_fast_only != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: typescript-validation-log
-          path: artifacts/typescript-validation.log
-          if-no-files-found: warn
-          retention-days: 7
-
-      - name: Build desktop application
-        if: steps.scope.outputs.player_fast_only != 'true'
-        env:
-          NODE_OPTIONS: --max-old-space-size=8192
-        run: |
+          npm run lint
           npm run build
           npm run build:electron
-
-      - name: Run U28 resource-library Electron E2E
-        if: steps.scope.outputs.player_fast_only != 'true'
-        run: npm run test:u28:electron-e2e
-
-      - name: Run U29 player Electron E2E
-        if: steps.scope.outputs.player_fast_only != 'true'
-        run: npm run test:u29:electron-e2e
-
-      - name: Run U30 UI and accessibility matrix
-        if: steps.scope.outputs.player_fast_only != 'true'
-        run: npm run test:u30:ui-matrix
-
-      - name: Run U31 importer transaction matrix
-        if: steps.scope.outputs.player_fast_only != 'true'
-        run: npm run test:u31:importer-transactions
-
-      - name: Run U32 release-candidate visual audit
-        if: steps.scope.outputs.player_fast_only != 'true'
-        run: node scripts/test-u32-ui-audit.mjs
-
-      - name: Upload Electron E2E artifacts
-        if: always() && steps.scope.outputs.player_fast_only != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: u28-u32-electron-e2e
-          path: |
-            artifacts/u28-electron-e2e
-            artifacts/u29-electron-e2e
-            artifacts/u30-ui-matrix
-            artifacts/u31-importer-transactions
-            artifacts/u32-ui-audit
-          if-no-files-found: warn
-          retention-days: 14
-
-      - name: Run current behavior verifiers
-        if: steps.scope.outputs.player_fast_only != 'true'
+      - name: Core Electron journeys
+        run: |
+          npm run test:u28:electron-e2e
+          npm run test:u29:electron-e2e
+          npm run test:u30:ui-matrix
+          npm run test:u31:importer-transactions
+          node scripts/test-u32-ui-audit.mjs
+      - name: Current behavior verifiers
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
-          $results = [System.Collections.Generic.List[string]]::new()
-          $results.Add("verifier`tstatus`texit_code")
-          $failed = $false
           $verifiers = @(
             'scripts/verify-u28-index-read-runtime.mjs',
             'scripts/verify-u28-library-reconciliation.mjs',
@@ -203,54 +92,13 @@ jobs:
             'scripts/verify-u39b-maintenance-entry.mjs',
             'scripts/verify-u39c-root-authorization-persistence.mjs'
           )
-
           foreach ($verifier in $verifiers) {
-            if (-not (Test-Path $verifier)) {
-              $results.Add("$verifier`tMISSING`t1")
-              $failed = $true
-              continue
-            }
-            Write-Host "Running $verifier"
             node $verifier
-            $exitCode = $LASTEXITCODE
-            $status = if ($exitCode -eq 0) { 'PASS' } else { 'FAIL' }
-            $results.Add("$verifier`t$status`t$exitCode")
-            if ($exitCode -ne 0) { $failed = $true }
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
-
-          $results | Set-Content -Path artifacts/focused-verifier-results.tsv -Encoding utf8
-          if ($failed) { exit 1 }
-
-      - name: Upload focused verifier report
-        if: always() && steps.scope.outputs.player_fast_only != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: focused-verifier-results
-          path: artifacts/focused-verifier-results.tsv
-          if-no-files-found: warn
-          retention-days: 7
-
-      - name: Run stable regression
-        if: steps.scope.outputs.player_fast_only != 'true'
-        shell: pwsh
+      - name: Stable regression and final build
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: |
-          npm run verify:stable 2>&1 | Tee-Object -FilePath artifacts/stable-regression.log
-          $exitCode = $LASTEXITCODE
-          if ($exitCode -ne 0) { exit $exitCode }
-
-      - name: Upload stable regression log
-        if: always() && steps.scope.outputs.player_fast_only != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: stable-regression-log
-          path: artifacts/stable-regression.log
-          if-no-files-found: warn
-          retention-days: 7
-
-      - name: Build production renderer again after regression
-        if: steps.scope.outputs.player_fast_only != 'true'
-        env:
-          NODE_OPTIONS: --max-old-space-size=8192
-        run: npm run build
+          npm run verify:stable
+          npm run build

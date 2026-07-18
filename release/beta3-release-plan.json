@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "channel": "beta",
+  "previousVersion": "0.169.0-beta.2",
+  "version": "0.170.0-beta.3",
+  "tag": "v0.170.0-beta.3",
+  "title": "Yang-Kura 0.170.0 Beta 3 · 正式日用候选",
+  "prerelease": true,
+  "draft": false,
+  "targetPlatform": "Windows x64",
+  "releaseNotesPath": "docs/RELEASE_NOTES_0.170.0-beta.3.md",
+  "assets": [
+    "Yang Kura-0.170.0-beta.3-portable-x64.exe",
+    "Yang Kura-0.170.0-beta.3-setup-x64.exe",
+    "SHA256SUMS.txt"
+  ],
+  "frozen": [
+    "MVP130 downloader",
+    "SQLite full migration",
+    "OpenList/WebDAV",
+    "Player Core v2",
+    "full AI Agent",
+    "Arsm_Transcribe integration",
+    "cloud sync and plugin marketplace",
+    "global architecture rewrite"
+  ]
+}
