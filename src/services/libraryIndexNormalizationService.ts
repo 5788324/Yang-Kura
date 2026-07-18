@@ -43,8 +43,8 @@ function chooseMusicGroupPath(relativePath: string): string {
 
 function groupLabel(groupPath: string, fallback: string): string {
   if (groupPath === 'root') return fallback;
-  const leaf = groupPath.split('/').filter(Boolean).at(-1)?.trim();
-  return leaf || fallback;
+  const segments = groupPath.split('/').filter(Boolean);
+  return segments[segments.length - 1]?.trim() || fallback;
 }
 
 function isUmbrellaCollection(collection: LibraryCollection, trackCount: number): boolean {
@@ -53,24 +53,35 @@ function isUmbrellaCollection(collection: LibraryCollection, trackCount: number)
   return trackCount > MAX_REASONABLE_WORK_TRACKS || UMBRELLA_TITLES.has(title) || UMBRELLA_TITLES.has(folder);
 }
 
+function withRootCollectionType(collection: LibraryCollection, isAsmrRoot: boolean): LibraryCollection {
+  if (isAsmrRoot && collection.collectionType !== 'rj_work') return { ...collection, collectionType: 'rj_work' };
+  return collection;
+}
+
 function splitCollection(
-  collection: LibraryCollection,
+  sourceCollection: LibraryCollection,
   sourceTracks: LibraryTrack[],
+  isAsmrRoot: boolean,
 ): Array<{ collection: LibraryCollection; tracks: LibraryTrack[] }> {
   if (sourceTracks.length === 0) return [];
-  const isAsmr = collection.collectionType === 'rj_work';
+  const collection = withRootCollectionType(sourceCollection, isAsmrRoot);
   const groups = new Map<string, LibraryTrack[]>();
 
   for (const track of sourceTracks) {
     const relativePath = normalizePath(track.source?.relativePath);
-    const groupPath = isAsmr ? chooseAsmrGroupPath(relativePath) : chooseMusicGroupPath(relativePath);
+    const groupPath = isAsmrRoot ? chooseAsmrGroupPath(relativePath) : chooseMusicGroupPath(relativePath);
     const group = groups.get(groupPath) ?? [];
     group.push(track);
     groups.set(groupPath, group);
   }
 
   const shouldSplit = groups.size > 1 && isUmbrellaCollection(collection, sourceTracks.length);
-  if (!shouldSplit) return [{ collection: { ...collection, trackIds: sourceTracks.map((track) => track.id) }, tracks: sourceTracks }];
+  if (!shouldSplit) {
+    return [{
+      collection: { ...collection, trackIds: sourceTracks.map((track) => track.id) },
+      tracks: sourceTracks,
+    }];
+  }
 
   return [...groups.entries()].map(([groupPath, tracks]) => {
     const detectedCode = groupPath.match(RJ_PATTERN)?.[0]?.toUpperCase();
@@ -79,6 +90,7 @@ function splitCollection(
     const nextCollection: LibraryCollection = {
       ...collection,
       id,
+      collectionType: isAsmrRoot ? 'rj_work' : collection.collectionType,
       title,
       sortTitle: title,
       codeRaw: detectedCode ?? collection.codeRaw,
@@ -98,6 +110,7 @@ function splitCollection(
 export const libraryIndexNormalizationService = {
   normalize(index: LocalJsonIndex): LocalJsonIndex {
     const tracksById = new Map(index.tracks.map((track) => [track.id, track]));
+    const rootTypeById = new Map(index.roots.map((root) => [root.id, root.libraryType]));
     const normalizedCollections: LibraryCollection[] = [];
     const normalizedTrackById = new Map(index.tracks.map((track) => [track.id, track]));
     let changed = false;
@@ -106,12 +119,19 @@ export const libraryIndexNormalizationService = {
       const sourceTracks = collection.trackIds
         .map((trackId) => tracksById.get(trackId))
         .filter((track): track is LibraryTrack => Boolean(track));
-      const pieces = splitCollection(collection, sourceTracks);
+      const isAsmrRoot = rootTypeById.get(collection.rootId) === 'asmr';
+      const pieces = splitCollection(collection, sourceTracks, isAsmrRoot);
       if (pieces.length === 0) {
         changed = true;
         continue;
       }
-      if (pieces.length !== 1 || pieces[0].collection.id !== collection.id || pieces[0].collection.trackIds.length !== collection.trackIds.length) {
+      const first = pieces[0];
+      if (
+        pieces.length !== 1 ||
+        first.collection.id !== collection.id ||
+        first.collection.collectionType !== collection.collectionType ||
+        first.collection.trackIds.length !== collection.trackIds.length
+      ) {
         changed = true;
       }
       for (const piece of pieces) {
