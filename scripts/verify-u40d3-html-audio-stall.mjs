@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 
+// U40-D3 verifies that unsupported or stalled base playback cannot remain in a pseudo-playing state.
 const backend = fs.readFileSync('src/hooks/usePlayerBackend.ts', 'utf8').replace(/\r\n/g, '\n');
 const settings = fs.readFileSync('src/components/SettingsPageDaily.tsx', 'utf8').replace(/\r\n/g, '\n');
 const required = [
