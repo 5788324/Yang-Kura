@@ -5,17 +5,19 @@
 ```text
 仓库：https://github.com/5788324/Yang-Kura.git
 主分支：main
-版本：0.169.0-beta.2
+公开版本：0.169.0-beta.2
+下一版本：0.170.0-beta.3
 平台：Windows x64
 技术栈：React + Vite + TypeScript + Electron
 索引：Local JSON Index
 Beta 2：已发布，Release ID 355486824
 U34～U40-D3：完成
 Issue #66：已关闭
-当前任务：按需日常维护
+Git Fast Lane v2：已生效
+当前任务：Beta 3 正式日用发布收口
 ```
 
-必须从最新 `origin/main` 接手。状态见 `PROJECT_STATE.md`，路线见 `PROJECT_ROADMAP.md`，日志见 `AI_HANDOFF/WORKLOG.md`，U40-D 系列证据见 `docs/U40D_FINAL_EVIDENCE.md`。
+必须从最新 `origin/main` 接手。状态见 `PROJECT_STATE.md`，路线见 `PROJECT_ROADMAP.md`，日志见 `AI_HANDOFF/WORKLOG.md`，Git 规则见 `docs/GIT_FAST_LANE_V2.md`，U40-D 系列证据见 `docs/U40D_FINAL_EVIDENCE.md`。
 
 ## 当前运行时边界
 
@@ -48,74 +50,52 @@ Issue #66：已关闭
 U40-D 合并提交：5daa0102b1114b6213d3240aa7cb4e66285ca7ab
 U40-D2 合并提交：b13a9149d1fcaf4ee409326c0fc4e219806aad88
 U40-D3 合并提交：03a3b75f95974b3370e12cb34dde20a4429e17fb
-U40-D3 验证候选：596358dbc8cb3afc9a87b1967aad260f5db0e29a
 U40-D3 Run：29636584817
 相对导入循环：0
 ```
 
-U40-D3 候选通过：Architecture Guardrails、TypeScript/构建、定向 U40-D 回归、资源库与重启、播放器/字幕/持久化会话、主题/窗口/键盘和日常页面链。未运行 portable、NSIS、安装/卸载或新 Release。
-
 ## Codex 真实库实测结论
 
-有效报告基线：
+已实测 `E:\arsm`：75 个集合、3540 条轨道；日常 profile 不受影响；三主题、歌单、导入页语言、单实例、三次重启、进程回收、mpv 真实播放、Seek 和 33 行歌词均有证据。HTMLAudio 不支持编码时由 U40-D3 在 10 秒内明确失败，不再伪播放。
 
-```text
-branch：main
-HEAD = origin/main = b13a9149d1fcaf4ee409326c0fc4e219806aad88
-音声库：E:\arsm
-独立 profile：%TEMP%\YangKura-U40D2-Retest\profile
-```
+Beta 3 发布前只补两个实机范围：
 
-已实测：
+1. `D:\CloudMusic\VipSongsDownload` 真实音乐库只读链；
+2. `%TEMP%\YangKura-Beta3-Acceptance` 临时副本中的 Index 写入/备份恢复、copy-only、move-only、失败回滚和 OperationLog。
 
-- 日常 profile 项目计数测试前后均为 776，隔离有效。
-- `E:\arsm` 在 15 秒内读取为 75 个集合、3540 条轨道。
-- 首页、顶栏、设置和音声库状态一致。
-- 搜索、视图切换、作品详情、轨道、队列、历史和临时歌单恢复有实机证据。
-- 三主题同步并跨重启保持；空歌单不再显示 `$0`；导入首屏不再显示 MVP/IPC/Scanner/Contract 等术语。
-- 单实例通过；连续三次完整重启恢复通过；关闭后相关进程为 0。
-- 临时加入本机 mpv 目录到测试进程 PATH 后，真实播放从 `0:29 / 3:12` 推进到 `0:47 / 3:12`，Seek 和 33 行全屏歌词通过。
+## Git Fast Lane v2
 
-报告内部曾同时保留初始 `FAIL / NO-GO` 和后续撤销结论。正确解释是：mpv 主链通过；无 mpv 时 HTMLAudio 曾停在 `0:00 / 0:00`，不能仅凭 mpv 成功认定回退正常。U40-D3 已把该状态改为 10 秒内成功或明确失败。
+完整规则：`docs/GIT_FAST_LANE_V2.md`。
 
-仍为 `NOT TESTED`：本轮真实音乐库读取、临时导入事务、外部打开、物理 DPI/减少动画、完整键盘焦点、损坏 Index 和临时歌单删除确认。不得推断。
-
-第二次启动约 20 秒恢复首页仅作为非阻断性能 Observation，不自动触发新治理轮次。
-
-## 强制效率规则
-
-以下规则优先于历史流程、旧 verifier 和“所有灯都绿”的惯性做法：
-
-1. **先锁定基线再工作**：任何 Codex、GUI、CI 或实机验收开始前必须执行 `git fetch origin`，并确认 `branch = main`、`HEAD = origin/main = 任务指定提交`。任一不符立即停止，不得在旧提交上继续测试。
-2. **按风险验证**：普通 UI、Renderer、Hook、状态和文档改动只运行 TypeScript、production build、相关 E2E 和定向验证；不得默认运行 portable、NSIS、安装/卸载或发布链。
-3. **完整打包仅限**：Electron Main、依赖、安装器、用户数据格式、升级/卸载、正式 Release 或仅打包环境可复现的问题。
-4. **批量修改后一次推送**：禁止通过 GitHub 内容接口逐文件反复提交并让每个小提交重跑 CI。应先完成相关修改，再以一到两个提交推送。
-5. **CI 只保留一次最终验证**：推送后只检查启动、最终结果和合并结果三个节点；环境波动最多重试一次。专项门禁已提供充分证据后，不继续等待无关发布级工作流。
-6. **旧测试不得绑架当前结构**：历史 verifier 与当前行为冲突时，直接替换为当前行为测试或归档，不为保留旧字符串、旧页面或隐藏兼容文本反复修改产品代码。
-7. **文档最后一次同步**：代码和测试稳定后，一次性更新 `PROJECT_STATE.md`、`WORKLOG.md` 和当前交接；不创建额外文档收口 PR。
-8. **禁止自行扩展范围**：修复 Bug 不得自动扩大为全项目治理、完整发布验收或额外功能。
-9. **个人项目优先级**：真实 Bug、用户可见体验、小型明确功能、稳定性技术债、纯代码整齐依次降低；不追求商业级流程完整度。
-10. **Codex 只做不可替代实机项**：物理声卡、扬声器、真实显示器/DPI、安装器差异和第三方程序界面。自动化能完成的内容不得重复交给 Codex。
+- 一个任务一个分支、一个 PR。
+- 通常一次推送，真实 CI 失败最多再修一次。
+- 通常一个提交；规则准备与产品发布合并任务最多两个提交。
+- 多文件改动使用批量 tree/commit，不逐文件制造提交。
+- 禁止一次性补丁工作流和临时自动提交工作流。
+- CI 只检查启动、最终结果和合并/发布结果。
+- L0 文档、L1 UI、L2 播放/资源库/导入、L3 Main/安装器/正式发布按风险分级。
+- Beta 3 属于 L3，只执行一次完整 Windows 打包、安装升级卸载和远端资产回读。
 
 ## Codex 报告有效性规则
 
-- 报告必须在开头记录 `git fetch` 后的 `HEAD`、`origin/main` 和任务指定提交。
-- 若任务提交不在当前历史中，报告只能标记为 `BASELINE_INVALID`，不得继续输出产品 `NO-GO`。
-- 旧提交上的缺陷只能作为“待在最新 main 复测的线索”，不能直接登记为当前产品 Bug。
-- 启动方式必须按任务文档执行；不得以“等价入口”替代规定命令后仍声称完成对应验收。
-- 补充结果与报告标题/总评冲突时，必须按时间顺序重算最终结论，不得同时保留互斥结论。
-- `NOT TESTED` 必须保留，不得推断为 PASS 或 FAIL。
+- 开头记录 fetch 后的 `HEAD`、`origin/main` 和任务指定提交。
+- 任务提交不在历史中只能报告 `BASELINE_INVALID`。
+- 必须使用任务文档规定入口，不能以“等价入口”代替。
+- `NOT TESTED` 必须保留，不得推断。
+- Codex 只做真实目录、物理设备、第三方程序和安装器差异；自动化能完成的内容不重复执行。
 
-## 后续规则
+## Beta 3 发布边界
 
-- 不预排 U40-E 或连续结构治理。
-- 只由真实 Bug、明确体验问题或小型功能触发新任务。
-- 一个任务一个 PR；必要文档和交接同一轮收口。
-- 新功能不得写回旧巨型设置/诊断页面。
-- Architecture Guardrails 继续禁止新增显式 `any`、Renderer 裸 IPC、跨层实现导入和相对导入循环。
+- 目标版本：`0.170.0-beta.3`。
+- PR 候选构建 portable/NSIS 并完成安装验收，但不发布。
+- 合入 `main` 后才创建 `v0.170.0-beta.3` prerelease。
+- 发布资产：portable、NSIS setup、`SHA256SUMS.txt`。
+- 发布后必须回读目标提交、资产名称、大小和 SHA-256。
+- Beta 2 发布记录保持冻结，不覆盖、不删除。
+- 不解冻下载器、SQLite、OpenList/WebDAV、新播放器内核、完整 AI Agent、转录、云同步、账号或插件市场。
 
-## 冻结
+## GPT/AI 项目记忆
 
-正式下载器、SQLite 全面迁移、OpenList/WebDAV、新播放器内核、完整 AI Agent、Arsm_Transcribe 正式集成、云同步、账号和插件市场保持冻结。
+后续对话默认记住并执行：用户不参与 Git、测试、构建和发布；ChatGPT 自主管理；Git Fast Lane v2 优先；当前唯一主线为 Beta 3 正式日用发布收口；不得扩展为新功能或连续治理轮次。
 
-<!-- 历史验证锚点：U39-G：最终综合验收完成；不再存在预排的下一轮 U39。 -->
+<!-- 历史验证锚点：U39-G：最终综合验收完成。 -->
