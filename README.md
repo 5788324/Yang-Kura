@@ -81,3 +81,5 @@ U40-D 同一候选提交通过：
 - `docs/CODEX_REAL_MACHINE_FULL_ACCEPTANCE.md`
 - `docs/U40B_FULL_PRODUCT_ACCEPTANCE.md`
 - `docs/U39_FINAL_ACCEPTANCE.md`
+
+<!-- 历史验证锚点：U39-G：同一候选提交重跑；不再预排 U39 轮次。 -->
