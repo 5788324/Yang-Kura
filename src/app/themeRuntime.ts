@@ -1,4 +1,5 @@
 export type Beta2ThemeId = 'dusk-amber' | 'mist-ivory';
+export type LegacyThemeCompatibilityId = 'dark' | 'acrylic-mist' | 'ocean-drops';
 
 export const BETA2_THEME_STORAGE_KEY = 'yang_kura_beta2_theme_v1';
 export const LEGACY_SETTINGS_STORAGE_KEY = 'sqlite_settings';
@@ -11,9 +12,14 @@ const LEGACY_THEME_MAP: Record<string, Beta2ThemeId> = {
   'mist-ivory': 'mist-ivory',
 };
 
-const CANONICAL_THEME_TO_LEGACY: Record<Beta2ThemeId, 'dark' | 'ocean-drops'> = {
+const CANONICAL_THEME_TO_LEGACY: Record<Beta2ThemeId, LegacyThemeCompatibilityId> = {
   'dusk-amber': 'dark',
   'mist-ivory': 'ocean-drops',
+};
+
+export const normalizeLegacyThemeCompatibilityId = (value: unknown): LegacyThemeCompatibilityId => {
+  if (value === 'acrylic-mist' || value === 'ocean-drops') return value;
+  return 'dark';
 };
 
 export const normalizeBeta2Theme = (value: unknown): Beta2ThemeId =>
@@ -32,6 +38,9 @@ const readLegacyTheme = (): unknown => {
     return undefined;
   }
 };
+
+export const readLegacyThemeCompatibilityId = (): LegacyThemeCompatibilityId =>
+  normalizeLegacyThemeCompatibilityId(readLegacyTheme());
 
 export const readBeta2Theme = (): Beta2ThemeId => {
   if (typeof localStorage === 'undefined') return 'dusk-amber';
@@ -57,8 +66,14 @@ export const persistLegacyThemeCompatibility = (theme: Beta2ThemeId): void => {
   }
 };
 
-export const getLegacyThemeCompatibilityId = (theme: Beta2ThemeId): string =>
+export const getLegacyThemeCompatibilityId = (theme: Beta2ThemeId): LegacyThemeCompatibilityId =>
   CANONICAL_THEME_TO_LEGACY[theme];
+
+export const getLegacyThemeLabel = (theme: LegacyThemeCompatibilityId): string => {
+  if (theme === 'acrylic-mist') return '云雾亚克力';
+  if (theme === 'ocean-drops') return '微光海洋';
+  return '高雅黑';
+};
 
 export const getBeta2ThemeLabel = (theme: Beta2ThemeId): string =>
   theme === 'dusk-amber' ? '暮夜琥珀' : '雾光象牙';

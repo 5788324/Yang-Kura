@@ -5,11 +5,15 @@ import {
   applyBeta2Theme,
   getBeta2ThemeLabel,
   getLegacyThemeCompatibilityId,
+  getLegacyThemeLabel,
   normalizeBeta2Theme,
+  normalizeLegacyThemeCompatibilityId,
   persistBeta2Theme,
   persistLegacyThemeCompatibility,
   readBeta2Theme,
+  readLegacyThemeCompatibilityId,
   type Beta2ThemeId,
+  type LegacyThemeCompatibilityId,
 } from './themeRuntime';
 
 export interface ThemeRuntimeBridgeProps {
@@ -18,6 +22,7 @@ export interface ThemeRuntimeBridgeProps {
 
 export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
   const [theme, setTheme] = useState<Beta2ThemeId>(() => readBeta2Theme());
+  const [legacyTheme, setLegacyTheme] = useState<LegacyThemeCompatibilityId>(() => readLegacyThemeCompatibilityId());
   const [topbarTarget, setTopbarTarget] = useState<HTMLElement | null>(null);
   const lastLegacyThemeRef = useRef<string | null>(null);
 
@@ -29,16 +34,21 @@ export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
   useEffect(() => {
     const syncTargets = () => {
       const appRoot = document.querySelector<HTMLElement>('.u32-release-ui');
-      const legacyTheme = appRoot?.dataset.u30Theme ?? null;
+      const legacyThemeValue = appRoot?.dataset.u30Theme ?? null;
 
-      if (legacyTheme && lastLegacyThemeRef.current === null) {
-        lastLegacyThemeRef.current = legacyTheme;
-      } else if (legacyTheme && legacyTheme !== lastLegacyThemeRef.current) {
-        lastLegacyThemeRef.current = legacyTheme;
-        const normalized = normalizeBeta2Theme(legacyTheme);
-        if (normalized !== theme) {
-          setTheme(normalized);
-          return;
+      if (legacyThemeValue) {
+        const normalizedLegacy = normalizeLegacyThemeCompatibilityId(legacyThemeValue);
+        setLegacyTheme((current) => current === normalizedLegacy ? current : normalizedLegacy);
+
+        if (lastLegacyThemeRef.current === null) {
+          lastLegacyThemeRef.current = legacyThemeValue;
+        } else if (legacyThemeValue !== lastLegacyThemeRef.current) {
+          lastLegacyThemeRef.current = legacyThemeValue;
+          const normalized = normalizeBeta2Theme(legacyThemeValue);
+          if (normalized !== theme) {
+            setTheme(normalized);
+            return;
+          }
         }
       }
 
@@ -61,6 +71,7 @@ export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
     const handleStorage = (event: StorageEvent) => {
       if (!event.key || event.key === 'yang_kura_beta2_theme_v1' || event.key === 'sqlite_settings') {
         setTheme(readBeta2Theme());
+        setLegacyTheme(readLegacyThemeCompatibilityId());
       }
     };
     window.addEventListener('storage', handleStorage);
@@ -68,15 +79,17 @@ export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
   }, []);
 
   const selectTheme = (nextTheme: Beta2ThemeId) => {
-    const legacyTheme = getLegacyThemeCompatibilityId(nextTheme);
+    const nextLegacyTheme = getLegacyThemeCompatibilityId(nextTheme);
     persistLegacyThemeCompatibility(nextTheme);
-    lastLegacyThemeRef.current = legacyTheme;
+    lastLegacyThemeRef.current = nextLegacyTheme;
+    setLegacyTheme(nextLegacyTheme);
     const appRoot = document.querySelector<HTMLElement>('.u32-release-ui');
-    if (appRoot) appRoot.dataset.u30Theme = legacyTheme;
+    if (appRoot) appRoot.dataset.u30Theme = nextLegacyTheme;
     setTheme(nextTheme);
   };
 
   const nextTheme: Beta2ThemeId = theme === 'dusk-amber' ? 'mist-ivory' : 'dusk-amber';
+  const currentThemeLabel = getLegacyThemeLabel(legacyTheme);
 
   return (
     <>
@@ -87,13 +100,14 @@ export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
               id="beta2-theme-toggle"
               type="button"
               data-current-theme={theme}
-              aria-label={`当前主题：${getBeta2ThemeLabel(theme)}。切换为${getBeta2ThemeLabel(nextTheme)}`}
-              title={`切换为${getBeta2ThemeLabel(nextTheme)}`}
+              data-current-legacy-theme={legacyTheme}
+              aria-label={`当前主题：${currentThemeLabel}。切换为${getBeta2ThemeLabel(nextTheme)}`}
+              title={`当前主题：${currentThemeLabel}；切换为${getBeta2ThemeLabel(nextTheme)}`}
               onClick={() => selectTheme(nextTheme)}
               className="yk-theme-toggle"
             >
               {theme === 'dusk-amber' ? <MoonStar aria-hidden="true" /> : <SunMedium aria-hidden="true" />}
-              <span>{getBeta2ThemeLabel(theme)}</span>
+              <span>{currentThemeLabel}</span>
             </button>,
             topbarTarget,
           )
