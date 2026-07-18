@@ -1,0 +1,48 @@
+name: Persist U40-D3 Patch
+
+on:
+  push:
+    branches:
+      - fix/u40d3-html-audio-stall
+    paths:
+      - '.github/workflows/persist-u40d3-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  persist:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/u40d3-html-audio-stall
+          fetch-depth: 0
+
+      - name: Reuse the already verified patch generator
+        shell: pwsh
+        run: |
+          $Workflow = Get-Content -LiteralPath '.github/workflows/apply-u40d3-html-audio-fix.yml' -Raw
+          $StartMarker = "@'"
+          $EndMarker = "'@ | Set-Content -LiteralPath .u40d3-patch.mjs -Encoding UTF8"
+          $Start = $Workflow.IndexOf($StartMarker)
+          $End = $Workflow.IndexOf($EndMarker)
+          if ($Start -lt 0 -or $End -le $Start) { throw 'Patch generator markers missing.' }
+          $Script = $Workflow.Substring($Start + $StartMarker.Length, $End - ($Start + $StartMarker.Length))
+          $Script = [regex]::Replace($Script, '(?m)^          ', '')
+          Set-Content -LiteralPath '.u40d3-patch.mjs' -Value $Script -Encoding UTF8
+          node .u40d3-patch.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Remove-Item '.u40d3-patch.mjs'
+
+      - name: Commit generated sources
+        shell: bash
+        run: |
+          rm -f .github/workflows/apply-u40d3-html-audio-fix.yml
+          rm -f .github/workflows/persist-u40d3-patch.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "U40-D3: stop HTMLAudio fallback pseudo-playing"
+          git push origin HEAD:fix/u40d3-html-audio-stall
