@@ -46,13 +46,13 @@
 /* Music collections: keep small result sets compact instead of stretching cards. */
 .u37d-collection-grid,
 .u37d-collection-grid--people {
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 18rem));
+  grid-template-columns: repeat(auto-fit, minmax(12.5rem, 15.5rem));
   justify-content: start;
   align-items: stretch;
 }
 
 .u37d-folder-list {
-  grid-template-columns: repeat(auto-fit, minmax(24rem, 34rem));
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 28rem));
   justify-content: start;
   align-items: stretch;
 }
