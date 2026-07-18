@@ -10,6 +10,7 @@
 PR：#91
 候选分支：release/beta3-daily-closeout
 交接前产品代码基线：69fe73b794d467d619ffbcfa5d794c0af23359f7
+原发布主线：Beta 3 正式日用发布收口（暂停）
 当前主线：暂停开发并交接 B3-MAJ-001
 发布状态：NO-GO
 大型功能：长期冻结
