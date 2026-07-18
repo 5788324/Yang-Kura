@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import {AppShell} from './app/AppShell';
 import {ThemeRuntimeBridge} from './app/ThemeRuntimeBridge';
+import AutomationCompatibilityProbe from './components/AutomationCompatibilityProbe';
 import {installRuntimeAccessibility} from './runtimeAccessibility';
 import {automationProfileCleanupService} from './services/automationProfileCleanupService';
 import './styles/design-tokens.css';
@@ -36,6 +37,7 @@ async function bootstrap(): Promise<void> {
     <StrictMode>
       <ThemeRuntimeBridge>
         <AppShell bridge>
+          <AutomationCompatibilityProbe />
           <App />
         </AppShell>
       </ThemeRuntimeBridge>
