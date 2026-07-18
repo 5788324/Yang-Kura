@@ -1,0 +1,5 @@
+# U40-D 文档入口
+
+- 缺陷收口：`U40D_DEFECT_CLOSEOUT.md`
+- 自动测试：`U40D_TEST_MATRIX.md`
+- Codex 实机验收：`CODEX_REAL_MACHINE_FULL_ACCEPTANCE.md`
