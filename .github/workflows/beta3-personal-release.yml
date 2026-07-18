@@ -35,8 +35,57 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  scope:
+    name: Detect Beta 3 release scope
+    runs-on: ubuntu-latest
+    outputs:
+      requires_release: ${{ steps.scope.outputs.requires_release }}
+    steps:
+      - name: Check out repository head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Detect current push scope
+        id: scope
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "requires_release=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          action="${{ github.event.action }}"
+          before="${{ github.event.before }}"
+          if [[ "$action" == "synchronize" && -n "$before" && ! "$before" =~ ^0+$ ]]; then
+            base="$before"
+          else
+            base="${{ github.event.pull_request.base.sha }}"
+          fi
+
+          files="$(git diff --name-only "$base" HEAD)"
+          echo "scope_base=$base"
+          echo "scope_head=$(git rev-parse HEAD)"
+          printf '%s\n' "$files" | sed '/^$/d;s/^/changed_file=/'
+
+          requires_release=false
+          while IFS= read -r file; do
+            case "$file" in
+              release/beta3-release-plan.json|docs/RELEASE_NOTES_0.170.0-beta.3.md|docs/CODEX_BETA3_RELEASE_ACCEPTANCE.md|scripts/prepare-beta3-package-version.mjs|scripts/verify-beta3-release.mjs|scripts/verify-beta3-preflight.mjs|scripts/verify-beta3-published-release.mjs|electron-builder.config.cjs)
+                requires_release=true
+                break
+                ;;
+            esac
+          done <<< "$files"
+
+          echo "requires_release=$requires_release" >> "$GITHUB_OUTPUT"
+          echo "requires_release=$requires_release"
+
   build:
     name: Build and validate Beta 3 assets
+    needs: scope
+    if: needs.scope.outputs.requires_release == 'true'
     runs-on: windows-latest
     timeout-minutes: 120
     outputs:
@@ -47,8 +96,10 @@ jobs:
       portable: ${{ steps.plan.outputs.portable }}
       setup: ${{ steps.plan.outputs.setup }}
     steps:
-      - name: Check out repository
+      - name: Check out repository head
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Set up Node 22
         uses: actions/setup-node@v4
         with:
@@ -161,7 +212,7 @@ jobs:
   publish:
     name: Publish Beta 3 after main merge
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
-    needs: build
+    needs: [scope, build]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -226,7 +277,7 @@ jobs:
       ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) &&
       (needs.build.result == 'failure' || needs.publish.result == 'failure')
-    needs: [build, publish]
+    needs: [scope, build, publish]
     runs-on: ubuntu-latest
     permissions:
       issues: write

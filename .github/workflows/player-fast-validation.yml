@@ -7,6 +7,7 @@ on:
     paths:
       - 'electron/preload.ts'
       - 'src/hooks/useAudioPlayer.ts'
+      - 'src/hooks/usePlayerBackend.ts'
       - 'src/hooks/usePlayerSubtitles.ts'
       - 'src/components/PlayerBar.tsx'
       - 'src/components/PlayerBarPrimarySections.tsx'
@@ -16,6 +17,7 @@ on:
       - 'src/shared/ui/TrackRow.tsx'
       - 'src/features/library/RjDetailPage.tsx'
       - 'scripts/beta3-playback-diagnostic-probe.mjs'
+      - 'scripts/verify-beta3-playback-diagnostic-probe.mjs'
       - 'scripts/test-beta3-rj-detail-playback-entry.mjs'
       - 'scripts/verify-u38c-player-subtitles.mjs'
       - 'scripts/verify-u39a-playerbar-theme.mjs'
@@ -36,12 +38,13 @@ jobs:
     timeout-minutes: 50
 
     steps:
-      - name: Check out repository
+      - name: Check out repository head
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
-      - name: Detect player validation scope
+      - name: Detect current push scope
         id: scope
         shell: pwsh
         run: |
@@ -52,11 +55,29 @@ jobs:
             exit 0
           }
 
-          $base = "${{ github.event.pull_request.base.sha }}"
+          $action = "${{ github.event.action }}"
+          $before = "${{ github.event.before }}"
+          if ($action -eq "synchronize" -and $before -and $before -notmatch '^0+$') {
+            $base = $before
+          } else {
+            $base = "${{ github.event.pull_request.base.sha }}"
+          }
+
           $files = @(git diff --name-only $base HEAD)
-          $runtimeChanged = @($files | Where-Object { $_ -match '^src/hooks/use(AudioPlayer|PlayerSubtitles)\.ts$|^scripts/verify-u38c-player-subtitles\.mjs$' }).Count -gt 0
-          $uiChanged = @($files | Where-Object { $_ -match '^src/components/Player(Bar|BarPrimarySections|BarAuxiliaryControls|ProgressTrack|TransientPresenters)\.tsx$|^scripts/verify-u39a-playerbar-theme\.mjs$' }).Count -gt 0
-          $entryChanged = @($files | Where-Object { $_ -match '^electron/preload\.ts$|^src/shared/ui/TrackRow\.tsx$|^src/features/library/RjDetailPage\.tsx$|^scripts/(beta3-playback-diagnostic-probe|test-beta3-rj-detail-playback-entry)\.mjs$' }).Count -gt 0
+          Write-Host "scope_base=$base"
+          Write-Host "scope_head=$(git rev-parse HEAD)"
+          Write-Host "changed_files=$($files -join ',')"
+
+          $runtimeChanged = @($files | Where-Object {
+            $_ -match '^src/hooks/use(AudioPlayer|PlayerBackend|PlayerSubtitles)\.ts$|^scripts/verify-u38c-player-subtitles\.mjs$'
+          }).Count -gt 0
+          $uiChanged = @($files | Where-Object {
+            $_ -match '^src/components/Player(Bar|BarPrimarySections|BarAuxiliaryControls|ProgressTrack|TransientPresenters)\.tsx$|^scripts/verify-u39a-playerbar-theme\.mjs$'
+          }).Count -gt 0
+          $entryChanged = @($files | Where-Object {
+            $_ -match '^electron/preload\.ts$|^src/shared/ui/TrackRow\.tsx$|^src/features/library/RjDetailPage\.tsx$|^scripts/(beta3-playback-diagnostic-probe|verify-beta3-playback-diagnostic-probe|test-beta3-rj-detail-playback-entry)\.mjs$|^\.github/workflows/player-fast-validation\.yml$'
+          }).Count -gt 0
+
           "runtime_changed=$($runtimeChanged.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
           "ui_changed=$($uiChanged.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
           "entry_changed=$($entryChanged.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
@@ -67,6 +88,13 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+
+      - name: Verify Beta 3 diagnostic probe
+        if: steps.scope.outputs.entry_changed == 'true'
+        run: |
+          node --check scripts/beta3-playback-diagnostic-probe.mjs
+          node --check scripts/verify-beta3-playback-diagnostic-probe.mjs
+          node scripts/verify-beta3-playback-diagnostic-probe.mjs
 
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
@@ -96,7 +124,31 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path artifacts/beta3-rj-detail-playback-entry | Out-Null
           node --import ./scripts/beta3-playback-diagnostic-probe.mjs scripts/test-beta3-rj-detail-playback-entry.mjs 2>&1 | Tee-Object -FilePath artifacts/beta3-rj-detail-playback-entry/console.log
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $exitCode = $LASTEXITCODE
+
+          $probePath = 'artifacts/beta3-rj-detail-playback-entry/diagnostic-probe.json'
+          if (Test-Path $probePath) {
+            $probe = Get-Content $probePath -Raw | ConvertFrom-Json
+            Write-Host '::group::Beta 3 diagnostic summary'
+            Write-Host "install_results=$(@($probe.installResults).Count) snapshots=$(@($probe.snapshots).Count) probe_errors=$(@($probe.probeErrors).Count)"
+            if ($probe.latestSnapshot) {
+              $player = $probe.latestSnapshot.player
+              Write-Host "track_id=$($player.trackId) mode=$($player.mode) duration=$($player.duration) progress=$($player.progress) queue=$($player.queueCount) index=$($player.currentIndex) source_ready=$($player.sourceReady)"
+              $eventTail = @($probe.latestSnapshot.events | Select-Object -Last 12) | ConvertTo-Json -Depth 8 -Compress
+              Write-Host "event_tail=$eventTail"
+            } else {
+              Write-Host 'latest_snapshot=null'
+            }
+            $probeErrorTail = @($probe.probeErrors | Select-Object -Last 5) | ConvertTo-Json -Depth 6 -Compress
+            $rendererErrorTail = @($probe.rendererExceptions | Select-Object -Last 5) | ConvertTo-Json -Depth 6 -Compress
+            Write-Host "probe_error_tail=$probeErrorTail"
+            Write-Host "renderer_exception_tail=$rendererErrorTail"
+            Write-Host '::endgroup::'
+          } else {
+            Write-Host 'diagnostic_probe_missing=true'
+          }
+
+          if ($exitCode -ne 0) { exit $exitCode }
 
       - name: Verify U39-A player theme boundary
         if: steps.scope.outputs.ui_changed == 'true'
@@ -106,7 +158,16 @@ jobs:
         if: steps.scope.outputs.ui_changed == 'true'
         run: npm run test:u30:ui-matrix
 
-      - name: Upload player evidence
+      - name: Prepare source snapshot
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts/source-snapshot | Out-Null
+          $head = git rev-parse HEAD
+          Set-Content -Path artifacts/source-snapshot/HEAD.txt -Value $head -Encoding utf8
+          git archive --format=zip --output="artifacts/source-snapshot/Yang-Kura-$head.zip" HEAD
+
+      - name: Upload player evidence and source snapshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -115,5 +176,6 @@ jobs:
             artifacts/u29-electron-e2e
             artifacts/u30-ui-matrix
             artifacts/beta3-rj-detail-playback-entry
+            artifacts/source-snapshot
           if-no-files-found: warn
           retention-days: 7

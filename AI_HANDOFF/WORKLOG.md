@@ -1,6 +1,6 @@
 # Yang-Kura 工作日志
 
-> 只记录当前有效事实。代码与合并事实以 GitHub 为准，候选验收以最新有效 Codex 报告为准。
+> 只记录当前有效事实。代码与合并事实以 GitHub 为准，候选验收以最新有效 Codex 或 DeepSeek 实机报告为准。
 
 ## 2026-07-16～2026-07-17
 
@@ -44,7 +44,7 @@
 完成 Beta 3
 → 全面审查 UI、功能和所有按钮的全功能链路
 → 自动化修复与回归
-→ Codex Windows 实机全量验收
+→ Codex 或 DeepSeek Windows 实机全量验收
 → 清理无用文件和历史遗留
 → 发布正式 1.0.0
 → 后续只维护 Bug、UI 和明确的小功能
@@ -53,21 +53,21 @@
 - 1.0 前不得因为 Beta 3 发布成功就跳过全产品审查。
 - 全产品审查必须覆盖生产路由、页面、菜单、按钮、快捷键、播放器、资源库、Index、导入、元数据、设置、安装器和数据保留。
 - 每个按钮检查 UI → Hook/Service → IPC/Main → 后端/文件系统 → 成功反馈、失败提示与恢复链。
-- 自动化通过后，ChatGPT 生成固定 branch/SHA 的 Codex 提示词，由用户转发；用户不亲自测试。
-- Codex 无 Blocker/Major 且必要项全部 PASS 后，才允许清理项目并发布 1.0.0。
+- 自动化通过后，ChatGPT 生成固定 branch/SHA 的实机提示词，由用户转发；用户不亲自测试。
+- 实机报告无 Blocker/Major 且必要项全部 PASS 后，才允许清理项目并发布 1.0.0。
 - 1.0 后默认进入维护模式，不主动规划大版本；大型功能仅在用户明确需要时单独立项。
 
 ### Git Fast Lane v2.1
 
 ```text
-锁定并拉取源码一次
+锁定并同步源码一次
 → 本地集中完成分析、开发、批量修改、自动测试和文档
 → 审查完整 diff
 → 1～2 个逻辑提交
 → 统一推送一次
 → 一次必要 CI
-→ 需要实机时输出 Codex 提示词
-→ Codex 固定 SHA 验收
+→ 需要实机时输出固定 SHA 提示词
+→ Codex 或 DeepSeek 实机验收
 → ChatGPT 合并和发布
 ```
 
@@ -75,18 +75,25 @@
 - 多文件任务必须批量提交。
 - 通常一次推送；真实 CI 失败最多追加一次修复推送。
 - 文档与代码在同一轮最终推送前同步。
-- 用户只转发 Codex 提示词，不承担 Git、构建、测试或排错。
+- 用户只转发实机提示词，不承担 Git、构建、测试或排错。
 
 ### 第一轮：B3-MAJ-001 诊断增强
 
 - 起始 HEAD：`7f088a077afb8f172511f291309c461db6fe8a56`。
 - 标准 `git clone` 因当前执行环境无法解析 `github.com` 失败；未改用逐文件提交。
-- 使用 GitHub 连接器按固定 SHA 读取源码，在单一工作区准备完整候选，最终使用单一 tree/commit 统一推送。
-- 审计确认现有 E2E 在第二条行尾按钮后只等待 duration，超时时未保存完整 PlayerState、HTMLAudio、mpv、IPC 和 Electron 证据。
-- 新增独立预加载诊断探针，不修改播放器业务逻辑，也不更改原 E2E 的通过条件。
-- 探针输出 `diagnostic-probe.json`，记录状态时间线、HTMLAudio 事件、mpv/IPC、Renderer 和 Electron 输出。
-- 修正 `verify-handoff.mjs`：旧校验仍要求上轮路线文案，导致文档提交的 Documentation Validation 失败；新规则核对 Beta 3 → 1.0 路线和 Git Fast Lane v2.1。
-- 本轮提交后等待 Windows Player Fast Validation 证据，再决定最小修复。
+- 使用 GitHub 连接器按固定 SHA 读取源码，最终使用单一 tree/commit 统一推送。
+- 新增独立诊断探针，但第一候选在 TypeScript/构建阶段失败；唯一修复推送后构建和 U29 通过。
+- Beta 3 RJ 专项随后因探针变量拼写错误 `SNAPSHOT_EXRESSION` / `SNAPSHOT_EXPRESSION` 提前退出，没有产生播放器根因证据。
+- 第一轮最终 HEAD：`f947dc2cb4182b1a7031575d6b97d5d89bcc3e5d`；PR 保持 Draft / NO-GO。
+
+### 第二轮：诊断修复与增量 CI 试运行
+
+- 起始 HEAD：`f947dc2cb4182b1a7031575d6b97d5d89bcc3e5d`。
+- 用户允许将同链路、简单且验证方式一致的任务合并处理，避免过度拆分和上下文浪费。
+- 用户确认 Codex 和 DeepSeek 都可在实机协助；ChatGPT 负责选择执行端并提供固定 branch/SHA 提示词。
+- 本轮范围：修正探针变量、增加独立静态自检、让 Player Fast Validation 只比较本次推送差异、避免专项诊断触发全产品 Branch Validation、生成固定 HEAD 的源码快照 Artifact。
+- 本轮仍不修改播放器业务行为；只有取得完整 PlayerState、HTMLAudio、mpv 和 IPC 时间线后才决定最小修复。
+- 源码快照和增量 CI 暂按 v2.2 试运行；若下一轮读取、修改和验证速度明显提升，再固定为默认流程。
 
 ## 当前结论
 
@@ -94,9 +101,10 @@
 公开版本：0.169.0-beta.2
 下一版本目标：0.170.0-beta.3
 正式稳定版目标：1.0.0
-当前任务：第一轮诊断增强，等待 Windows E2E 证据
+当前任务：第二轮诊断修复与增量 CI 试运行
 PR #91：草稿、禁止合并
 Beta 3 Release：尚未创建
 大型功能：长期冻结，只有明确需求后启动
-Git：集中修改、单一提交、统一推送
+Git：源码快照试运行、本地集中修改、单一提交、统一推送
+实机执行：Codex 或 DeepSeek，均使用固定 branch/SHA 提示词
 ```

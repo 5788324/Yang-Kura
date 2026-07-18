@@ -4,21 +4,6 @@ on:
   pull_request:
     branches:
       - main
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
-      - 'AI_HANDOFF/**'
-      - 'release/beta3-release-plan.json'
-      - 'scripts/prepare-beta3-package-version.mjs'
-      - 'scripts/verify-beta3-release.mjs'
-      - 'scripts/verify-beta3-preflight.mjs'
-      - 'scripts/verify-beta3-published-release.mjs'
-      - 'scripts/verify-handoff.mjs'
-      - 'scripts/verify-u38c-player-subtitles.mjs'
-      - '.github/workflows/beta3-personal-release.yml'
-      - '.github/workflows/branch-validation.yml'
-      - 'src/hooks/useAudioPlayer.ts'
-      - 'src/services/libraryIndexNormalizationService.ts'
   workflow_dispatch:
 
 permissions:
@@ -29,14 +14,66 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  scope:
+    name: Detect full-regression scope
+    runs-on: ubuntu-latest
+    outputs:
+      requires_full: ${{ steps.scope.outputs.requires_full }}
+    steps:
+      - name: Check out repository head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Detect current push scope
+        id: scope
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "requires_full=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          action="${{ github.event.action }}"
+          before="${{ github.event.before }}"
+          if [[ "$action" == "synchronize" && -n "$before" && ! "$before" =~ ^0+$ ]]; then
+            base="$before"
+          else
+            base="${{ github.event.pull_request.base.sha }}"
+          fi
+
+          git diff --name-only "$base" HEAD > "$RUNNER_TEMP/branch-validation-files.txt"
+          echo "scope_base=$base"
+          echo "scope_head=$(git rev-parse HEAD)"
+          sed 's/^/changed_file=/' "$RUNNER_TEMP/branch-validation-files.txt"
+
+          requires_full=false
+          while IFS= read -r file; do
+            case "$file" in
+              *.md|docs/*|AI_HANDOFF/*|release/beta3-release-plan.json|scripts/prepare-beta3-package-version.mjs|scripts/verify-beta3-release.mjs|scripts/verify-beta3-preflight.mjs|scripts/verify-beta3-published-release.mjs|scripts/verify-handoff.mjs|scripts/verify-u38c-player-subtitles.mjs|scripts/beta3-playback-diagnostic-probe.mjs|scripts/verify-beta3-playback-diagnostic-probe.mjs|scripts/test-beta3-rj-detail-playback-entry.mjs|.github/workflows/beta3-personal-release.yml|.github/workflows/branch-validation.yml|.github/workflows/player-fast-validation.yml|src/hooks/useAudioPlayer.ts|src/hooks/usePlayerBackend.ts|src/services/libraryIndexNormalizationService.ts)
+                ;;
+              *)
+                requires_full=true
+                break
+                ;;
+            esac
+          done < "$RUNNER_TEMP/branch-validation-files.txt"
+
+          echo "requires_full=$requires_full" >> "$GITHUB_OUTPUT"
+          echo "requires_full=$requires_full"
+
   validate:
     name: Windows current-product regression
+    needs: scope
+    if: needs.scope.outputs.requires_full == 'true'
     runs-on: windows-latest
     timeout-minutes: 70
     steps:
-      - name: Check out repository
+      - name: Check out repository head
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
       - name: Set up Node 22
         uses: actions/setup-node@v4

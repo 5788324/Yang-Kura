@@ -3,15 +3,6 @@ name: U40-D Real Library Stability
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'electron/preload.ts'
-      - 'scripts/test-u40d-*.mjs'
-      - 'scripts/run-u40d-focused-tests.mjs'
-      - 'scripts/verify-u40d-real-library-stability.mjs'
-      - 'docs/CODEX_REAL_MACHINE_FULL_ACCEPTANCE.md'
-      - 'docs/U40D_*.md'
-      - '.github/workflows/u40d-real-library-stability.yml'
   workflow_dispatch:
 
 permissions:
@@ -22,15 +13,65 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  scope:
+    name: Detect U40-D scope
+    runs-on: ubuntu-latest
+    outputs:
+      requires_u40d: ${{ steps.scope.outputs.requires_u40d }}
+    steps:
+      - name: Check out repository head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Detect current push scope
+        id: scope
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "requires_u40d=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          action="${{ github.event.action }}"
+          before="${{ github.event.before }}"
+          if [[ "$action" == "synchronize" && -n "$before" && ! "$before" =~ ^0+$ ]]; then
+            base="$before"
+          else
+            base="${{ github.event.pull_request.base.sha }}"
+          fi
+
+          files="$(git diff --name-only "$base" HEAD)"
+          echo "scope_base=$base"
+          echo "scope_head=$(git rev-parse HEAD)"
+          printf '%s\n' "$files" | sed '/^$/d;s/^/changed_file=/'
+
+          requires_u40d=false
+          while IFS= read -r file; do
+            case "$file" in
+              src/*|src/**/*|electron/preload.ts|scripts/test-u40d-*.mjs|scripts/run-u40d-focused-tests.mjs|scripts/verify-u40d-real-library-stability.mjs|docs/CODEX_REAL_MACHINE_FULL_ACCEPTANCE.md|docs/U40D_*.md)
+                requires_u40d=true
+                break
+                ;;
+            esac
+          done <<< "$files"
+
+          echo "requires_u40d=$requires_u40d" >> "$GITHUB_OUTPUT"
+          echo "requires_u40d=$requires_u40d"
+
   real-library-stability:
     name: Windows real-library stability and Issue 66 closeout
+    needs: scope
+    if: needs.scope.outputs.requires_u40d == 'true'
     runs-on: windows-latest
     timeout-minutes: 90
 
     steps:
-      - name: Check out candidate
+      - name: Check out candidate head
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
       - name: Set up Node 22

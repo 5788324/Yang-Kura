@@ -214,7 +214,7 @@ const INSTALL_EXPRESSION = String.raw`(() => {
   return { installed: true, hasYangKura: Boolean(api) };
 })()`;
 
-const SNAPSHOT_EXRESSION = String.raw`(() => {
+const SNAPSHOT_EXPRESSION = String.raw`(() => {
   const bar = document.querySelector('#app-player-bar');
   const state = {
     capturedAt: new Date().toISOString(),
