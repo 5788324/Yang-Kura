@@ -28,6 +28,7 @@ async function bootstrap(): Promise<void> {
     automationProfile = false;
   }
 
+  document.documentElement.dataset.yangKuraAutomationProfile = automationProfile ? 'true' : 'false';
   automationProfileCleanupService.run(automationProfile);
   installRuntimeAccessibility();
 
