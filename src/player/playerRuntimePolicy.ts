@@ -72,9 +72,12 @@ export function sanitizePersistedPlayerTrack(track: AudioTrack): AudioTrack {
 export function reconcileTracksWithLibrary(
   tracks: readonly AudioTrack[],
   currentLibraryTracks: readonly AudioTrack[],
+  options: { dropMissing?: boolean } = {},
 ): AudioTrack[] {
   const freshById = new Map(currentLibraryTracks.map((track) => [track.id, track]));
-  return tracks.map((track) => freshById.get(track.id) ?? track);
+  return tracks
+    .map((track) => freshById.get(track.id) ?? (options.dropMissing ? null : track))
+    .filter((track): track is AudioTrack => Boolean(track));
 }
 
 export function reconcilePlayerStateWithLibrary(
@@ -83,28 +86,45 @@ export function reconcilePlayerStateWithLibrary(
 ): PlayerState {
   if (state.queue.length === 0 || currentLibraryTracks.length === 0) return state;
   const freshById = new Map(currentLibraryTracks.map((track) => [track.id, track]));
-  let changed = false;
-  const queue = state.queue.map((track) => {
-    const fresh = freshById.get(track.id);
-    if (!fresh) return track;
-    if (fresh !== track) changed = true;
-    return fresh;
-  });
-  const currentId = state.currentTrack?.id ?? queue[state.currentIndex]?.id;
-  const currentTrack = currentId ? freshById.get(currentId) ?? state.currentTrack : state.currentTrack;
-  if (currentTrack !== state.currentTrack) changed = true;
-  const currentIndex = currentTrack
-    ? Math.max(0, queue.findIndex((track) => track.id === currentTrack.id))
-    : -1;
-  if (currentIndex !== state.currentIndex) changed = true;
-  if (!changed) return state;
+  const queue = state.queue
+    .map((track) => freshById.get(track.id))
+    .filter((track): track is AudioTrack => Boolean(track));
+  const previousCurrentId = state.currentTrack?.id ?? state.queue[state.currentIndex]?.id;
+  const currentTrack = previousCurrentId ? freshById.get(previousCurrentId) ?? queue[0] ?? null : queue[0] ?? null;
+  const currentIndex = currentTrack ? queue.findIndex((track) => track.id === currentTrack.id) : -1;
+  const currentWasRemoved = Boolean(previousCurrentId && !freshById.has(previousCurrentId));
+  const queueChanged = queue.length !== state.queue.length || queue.some((track, index) => track !== state.queue[index]);
+
+  if (!queueChanged && !currentWasRemoved && currentTrack === state.currentTrack && currentIndex === state.currentIndex) return state;
+  if (!currentTrack) {
+    return {
+      ...state,
+      queue: [],
+      currentTrack: null,
+      currentIndex: -1,
+      progress: 0,
+      isPlaying: false,
+      playbackMode: 'idle',
+      playbackError: null,
+      playbackNotice: '旧播放队列不属于当前资源库，已自动清理。',
+      resolvedMediaUrl: null,
+    };
+  }
+
   return {
     ...state,
     queue,
-    currentTrack: currentTrack ?? null,
+    currentTrack,
     currentIndex,
-    playbackMode: state.isPlaying && currentTrack?.rootPathToken ? 'resolving-local-media' : state.playbackMode,
-    playbackError: currentTrack?.rootPathToken ? null : state.playbackError,
+    progress: currentWasRemoved ? 0 : state.progress,
+    isPlaying: currentWasRemoved ? false : state.isPlaying,
+    playbackMode: currentWasRemoved
+      ? 'idle'
+      : state.isPlaying && currentTrack.rootPathToken
+        ? 'resolving-local-media'
+        : state.playbackMode,
+    playbackError: null,
+    playbackNotice: currentWasRemoved ? '旧播放音轨不属于当前资源库，已切换到当前资源库队列。' : state.playbackNotice,
     resolvedMediaUrl: null,
   };
 }
