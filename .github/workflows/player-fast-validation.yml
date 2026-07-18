@@ -12,6 +12,9 @@ on:
       - 'src/components/PlayerBarAuxiliaryControls.tsx'
       - 'src/components/PlayerProgressTrack.tsx'
       - 'src/components/PlayerTransientPresenters.tsx'
+      - 'src/shared/ui/TrackRow.tsx'
+      - 'src/features/library/RjDetailPage.tsx'
+      - 'scripts/test-beta3-rj-detail-playback-entry.mjs'
       - 'scripts/verify-u38c-player-subtitles.mjs'
       - 'scripts/verify-u39a-playerbar-theme.mjs'
       - '.github/workflows/player-fast-validation.yml'
@@ -43,6 +46,7 @@ jobs:
           if ("${{ github.event_name }}" -ne "pull_request") {
             "runtime_changed=true" >> $env:GITHUB_OUTPUT
             "ui_changed=true" >> $env:GITHUB_OUTPUT
+            "entry_changed=true" >> $env:GITHUB_OUTPUT
             exit 0
           }
 
@@ -50,9 +54,11 @@ jobs:
           $files = @(git diff --name-only $base HEAD)
           $runtimeChanged = @($files | Where-Object { $_ -match '^src/hooks/use(AudioPlayer|PlayerSubtitles)\.ts$|^scripts/verify-u38c-player-subtitles\.mjs$' }).Count -gt 0
           $uiChanged = @($files | Where-Object { $_ -match '^src/components/Player(Bar|BarPrimarySections|BarAuxiliaryControls|ProgressTrack|TransientPresenters)\.tsx$|^scripts/verify-u39a-playerbar-theme\.mjs$' }).Count -gt 0
+          $entryChanged = @($files | Where-Object { $_ -match '^src/shared/ui/TrackRow\.tsx$|^src/features/library/RjDetailPage\.tsx$|^scripts/test-beta3-rj-detail-playback-entry\.mjs$' }).Count -gt 0
           "runtime_changed=$($runtimeChanged.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
           "ui_changed=$($uiChanged.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
-          Write-Host "runtime_changed=$runtimeChanged ui_changed=$uiChanged"
+          "entry_changed=$($entryChanged.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          Write-Host "runtime_changed=$runtimeChanged ui_changed=$uiChanged entry_changed=$entryChanged"
 
       - name: Set up Node 22
         uses: actions/setup-node@v4
@@ -82,6 +88,10 @@ jobs:
         if: steps.scope.outputs.runtime_changed == 'true'
         run: npm run test:u29:electron-e2e
 
+      - name: Run Beta 3 RJ detail playback-entry E2E
+        if: steps.scope.outputs.entry_changed == 'true'
+        run: node scripts/test-beta3-rj-detail-playback-entry.mjs
+
       - name: Verify U39-A player theme boundary
         if: steps.scope.outputs.ui_changed == 'true'
         run: node scripts/verify-u39a-playerbar-theme.mjs
@@ -98,5 +108,6 @@ jobs:
           path: |
             artifacts/u29-electron-e2e
             artifacts/u30-ui-matrix
+            artifacts/beta3-rj-detail-playback-entry
           if-no-files-found: warn
           retention-days: 7
