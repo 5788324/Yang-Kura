@@ -193,7 +193,8 @@ jobs:
           npm run test:u29:electron-e2e
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Commit focused fix
+      - name: Commit focused fix for review
+        if: always()
         shell: bash
         run: |
           rm -f .github/workflows/apply-u40d3-html-audio-fix.yml
