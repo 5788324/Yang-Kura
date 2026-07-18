@@ -6,8 +6,11 @@ on:
     paths:
       - 'src/**'
       - 'electron/preload.ts'
+      - 'scripts/test-u40d-*.mjs'
+      - 'scripts/run-u40d-focused-tests.mjs'
       - 'scripts/verify-u40d-real-library-stability.mjs'
       - 'docs/CODEX_REAL_MACHINE_FULL_ACCEPTANCE.md'
+      - 'docs/U40D_*.md'
       - '.github/workflows/u40d-real-library-stability.yml'
   workflow_dispatch:
 
@@ -59,8 +62,8 @@ jobs:
           npm run build:electron
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Verify U40-D closeout
-        run: node scripts/verify-u40d-real-library-stability.mjs
+      - name: Focused U40-D regressions and closeout verification
+        run: node scripts/run-u40d-focused-tests.mjs
 
       - name: Resource library and restart flow
         run: npm run test:u28:electron-e2e
@@ -77,7 +80,7 @@ jobs:
       - name: Full product journey regression
         run: node scripts/test-u40b-full-product-journey.mjs
 
-      - name: Upload U40-D evidence
+      - name: Upload U40-D evidence and Codex plan
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -89,5 +92,8 @@ jobs:
             artifacts/u30-ui-matrix
             artifacts/u32-ui-audit
             artifacts/u40b-full-product-acceptance
+            docs/CODEX_REAL_MACHINE_FULL_ACCEPTANCE.md
+            docs/U40D_DEFECT_CLOSEOUT.md
+            docs/U40D_TEST_MATRIX.md
           if-no-files-found: warn
           retention-days: 30
