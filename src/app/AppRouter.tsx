@@ -3,6 +3,7 @@ import { Suspense, lazy } from 'react';
 import DiagnosticsRuntimeBoundary from '../components/DiagnosticsRuntimeBoundary';
 import SettingsMaintenanceEntry from '../components/SettingsMaintenanceEntry';
 import LibraryPageState, { type LibraryPageKind } from '../features/library/LibraryPageState';
+import LibraryReadStateNotice from '../features/library/LibraryReadStateNotice';
 import LibraryRouteBoundary from '../features/library/LibraryRouteBoundary';
 import type { LibrarySessionSnapshot } from '../services/librarySessionService';
 import type { AsmrMetadataSaveContext } from '../services/metadataOverrideService';
@@ -25,7 +26,7 @@ const PlaylistPage = lazy(() => import('../components/PlaylistPage'));
 const DiagnosticsPageShell = lazy(() => import('../components/DiagnosticsPageShell'));
 const ImporterPage = lazy(() => import('../components/ImporterPage'));
 const DownloaderPage = lazy(() => import('../components/DownloaderPage'));
-const SettingsPage = lazy(() => import('../components/SettingsPage'));
+const SettingsPage = lazy(() => import('../components/SettingsPageDaily'));
 
 export interface AppRouterProps {
   currentPage: PageType;
@@ -71,6 +72,7 @@ export default function AppRouter(props: AppRouterProps) {
   const selectedAsmrWork = props.rjWorks.find((work) => work.id === props.asmrDetailId);
   const hasConnectedLibrary = Boolean(props.librarySessionSnapshot.lastIndex);
   const dashboardItemCount = props.rjWorks.length + props.musicAlbums.length + props.playlists.length + props.recentTracks.length;
+  const readAttempt = props.librarySessionSnapshot.lastReadAttempt;
 
   const renderLibraryPage = (
     kind: LibraryPageKind,
@@ -78,22 +80,33 @@ export default function AppRouter(props: AppRouterProps) {
     itemCount: number,
     content: React.ReactNode,
     resetKeySuffix = '',
-  ) => (
-    <LibraryRouteBoundary
-      pageTitle={pageTitle}
-      resetKey={`${kind}:${itemCount}:${props.searchQuery}:${resetKeySuffix}`}
-    >
-      <LibraryPageState
-        kind={kind}
-        connected={hasConnectedLibrary}
-        itemCount={itemCount}
-        onOpenSettings={() => props.setCurrentPage('settings')}
-        preserveContentWhenEmpty
+  ) => {
+    const reading = readAttempt?.status === 'reading';
+    const warning = readAttempt && ['failed', 'timed-out', 'interrupted'].includes(readAttempt.status);
+    return (
+      <LibraryRouteBoundary
+        pageTitle={pageTitle}
+        resetKey={`${kind}:${itemCount}:${props.searchQuery}:${resetKeySuffix}:${readAttempt?.status ?? 'idle'}`}
       >
-        {content}
-      </LibraryPageState>
-    </LibraryRouteBoundary>
-  );
+        <LibraryPageState
+          kind={kind}
+          connected={hasConnectedLibrary}
+          itemCount={itemCount}
+          onOpenSettings={() => props.setCurrentPage('settings')}
+          preserveContentWhenEmpty
+        >
+          {reading && readAttempt ? (
+            <LibraryReadStateNotice attempt={readAttempt} onOpenSettings={() => props.setCurrentPage('settings')} blocking />
+          ) : (
+            <>
+              {warning && readAttempt ? <LibraryReadStateNotice attempt={readAttempt} onOpenSettings={() => props.setCurrentPage('settings')} /> : null}
+              {content}
+            </>
+          )}
+        </LibraryPageState>
+      </LibraryRouteBoundary>
+    );
+  };
 
   return (
     <Suspense fallback={<div className="min-h-[240px] rounded-2xl border border-border-color/50 bg-card-bg/30 p-6 text-sm text-text-muted">正在打开页面…</div>}>
@@ -163,12 +176,8 @@ export default function AppRouter(props: AppRouterProps) {
             <Feedback
               tone="warning"
               title="找不到该音声作品"
-              description="作品可能已从 Index 移除、重新扫描后 ID 发生变化，或当前详情链接已经失效。"
-              action={(
-                <Button variant="primary" onClick={() => props.setAsmrDetailId(null)}>
-                  返回音声库
-                </Button>
-              )}
+              description="作品可能已从资源库移除，或重新扫描后作品编号发生变化。"
+              action={<Button variant="primary" onClick={() => props.setAsmrDetailId(null)}>返回音声库</Button>}
             />
           </Surface>
         </div>
