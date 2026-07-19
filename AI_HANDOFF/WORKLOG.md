@@ -152,3 +152,60 @@ Git：源码快照试运行、本地集中修改、单一提交、统一推送
 - 后续不重复全套播放测试，只执行新 SHA 两入口短测、真实多专辑封面核对，以及 `%TEMP%` 小样本导入事务/冲突/失败回滚/OperationLog。
 - Git 分工保持：ChatGPT 只读拉取和交付源码包；Codex / DeepSeek 单一提交和推送；Codex 负责 Windows 实机门禁。
 
+
+## 2026-07-19 — Beta 3 发布与 U41-A 审计
+
+### Beta 3
+
+- PR #91 更新为 R6 PASS，解除 Draft，并以 squash 合并。
+- `main`：`8a92978bbd07aa9f490ec15c9037366793168e2c`。
+- 发布：`v0.170.0-beta.3` prerelease。
+- 真实库播放、重启、封面、导入事务后端和资源保护门禁完成。
+
+### U41-A 全产品审计
+
+- 锁定合并后的 `main`，不做 Git 写入。
+- 枚举 8 个生产路由、268 个静态控件标记、215 个代码模块。
+- 识别 67 个不可达实现模块、15 个 workflow、85 个 verifier。
+- 确认 1 个 Blocker：日常 Importer 没有真实 UI 执行闭环。
+- 确认 Major：伪数据刷新、旧版本字符串、Electron 补丁、Importer bundle、冻结下载器生产路由和旧巨页清理。
+- lint、Renderer/Electron build、U30、50,000 音轨、Index maintenance、Importer transaction backend 和 stable regression PASS。
+- Linux stable 的两个 CRLF mpv fixture 通过临时 LF 转换验证，原文件恢复；后续由 U41-C 正式修复。
+
+### Git Fast Lane v2.1
+
+- ChatGPT 只读拉取 GitHub并交付完整源码包。
+- Codex / DeepSeek 对固定父 SHA 应用源码包，单一提交、一次推送。
+- U41-A 只提交审计和文档，不混入产品修复。
+- 下一轮 U41-B 集中实现真实 Importer、移除伪刷新和统一版本源。
+
+## 2026-07-19 — U41-B 日常用户入口
+
+- 固定父 SHA：`8a92978bbd07aa9f490ec15c9037366793168e2c`；远端无 U41 分支/PR。
+- 日常 Importer 从历史约 4000 行模型页替换为真实四步流程：来源扫描、目标/方式、预检、事务与 Index 刷新。
+- 来源与目标目录选择增加 `selectionRole`，Windows E2E 可用独立临时目录。
+- copy/move 复用 U31 transaction、OperationLog、rollback；Index patch 强制备份。
+- `libraryReadCoordinatorService.acceptResult` 接收写后读回结果，避免 UI 使用旧缓存。
+- 生产音声库移除“刷新卡片显示信息”及随机封面/虚构音轨 handler。
+- Vite 从 `package.json` 注入 `__YANG_KURA_APP_VERSION__`；Settings About 不再硬编码 Beta 2。
+- 源码版本同步为 `0.170.0-beta.3`。
+- Importer production chunk 从约 255 KB 降至 22.03 KB；历史 importer services 退出生产 graph，留 U41-D 批量清理。
+- 新增 U41-B focused verifier、Windows workflow 和可见 Importer Electron E2E。
+- 本地 lint、Renderer/Electron build、U40-D 兼容、U31、U30、runtime hardening、50,000 音轨和 MVP129 PASS。
+- Windows E2E 在当前 Linux 环境 `NOT RUN`，不得视为 PASS；必须由 Draft PR CI 和 Codex 完成。
+- Git 仍由 ChatGPT 只读交付源码包；DeepSeek/Codex 单一提交、一次推送、Draft PR。
+
+## 2026-07-19 — U41-C 运行时与跨平台门禁
+
+- 远端 `main` 仍为 `8a92978bbd07aa9f490ec15c9037366793168e2c`，没有 U41 分支或 PR；U41-C 基于未推送的 U41-B 完整候选继续开发。
+- Electron 依赖范围升级到 `^39.8.10`，lockfile 固定 `39.8.10`；`desktop:setup` 与当前维护模型同步。
+- `npm audit --audit-level=moderate` 结果为 0 vulnerability。
+- BrowserWindow 显式关闭 `nodeIntegrationInWorker`、`nodeIntegrationInSubFrames`、`webviewTag`，并拒绝 Renderer `window.open()`。
+- `yang-kura-media://` 保持 tokenized root、安全相对路径、静态 MIME、Range 和 `corsEnabled=true（Electron 39 renderer fetch 兼容；token 与相对路径校验不变）`；Windows U28/U29 继续作为动态门禁。
+- 两个 mpv executable fixture 永久转换为 LF；新增 `.gitattributes`，Linux stable 不再需要临时转换。
+- TopBar 资源库状态增加 `role=status`、`aria-live=polite`、`aria-atomic=true`。
+- 设置维护入口不再声称拥有完整历史诊断，改为真实资源统计与按需性能检查。
+- 新增 U41-C focused verifier 和单一 Windows runtime/packaging workflow，合并运行 audit、U28、U29、portable、NSIS 和 U32。
+- 本地 lint、Renderer/Electron build、U41-B/U41-C verifier、runtime hardening、U31、U30、50,000 音轨、MVP129 和 stable regression PASS。
+- 当前 Linux 环境在 `npm rebuild electron` 时因 GitHub DNS `EAI_AGAIN` 无法下载 39.8.10 binary；U41-B visible E2E、U28/U29 和打包严格为 `NOT RUN`，等待 Draft PR CI/Codex。
+- 因 U41-B 尚未远端集成，交付改为 U41-A+B+C 累积单一分支/提交，避免两轮依赖链和重复 CI。

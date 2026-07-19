@@ -7,50 +7,66 @@ const required = [
   'PROJECT_ROADMAP.md',
   'AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md',
   'AI_HANDOFF/WORKLOG.md',
+  'AI_HANDOFF/NEXT_CONVERSATION_PROMPT.md',
   'docs/GIT_FAST_LANE_V2.md',
-  'docs/CODEX_BETA3_RELEASE_ACCEPTANCE.md',
-  'docs/RELEASE_NOTES_0.170.0-beta.3.md',
+  'docs/U41_PRODUCT_AUDIT.md',
+  'docs/U41_DEFECT_BACKLOG.md',
+  'docs/U41_UI_FUNCTION_BUTTON_MATRIX.md',
+  'docs/U41_LEGACY_CLEANUP_INVENTORY.md',
+  'docs/U41_CODEX_PUBLIC_PACKAGE_ACCEPTANCE.md',
+  'docs/U41_EXECUTION_PLAN.md',
+  'docs/U41B_DAILY_USER_ENTRY.md',
+  'docs/U41C_RUNTIME_PATCH.md',
+  'scripts/audit-u41-product-surface.mjs',
+  'scripts/verify-u41b-daily-user-entry.mjs',
+  'scripts/verify-u41c-runtime-patch.mjs',
+  '.github/workflows/u41b-daily-user-entry.yml',
+  '.github/workflows/u41c-runtime-patch.yml',
   'release/beta3-release-plan.json',
   'release/beta2-publication-state.json',
-  '.github/workflows/beta3-personal-release.yml',
 ];
 
 const tokens = [
-  ['README.md', '正式稳定版目标：`1.0.0`'],
-  ['README.md', '当前阶段：Beta 3 R6 点击加固与剩余发布门禁'],
-  ['README.md', '锁定远端基线并拉取一次'],
-  ['PROJECT_STATE.md', '当前任务：提交 R6 TrackRow 直接点击加固，并完成封面与导入事务定向验收'],
-  ['PROJECT_STATE.md', 'Git 工作方式：ChatGPT 只读拉取并交付完整源码包，Codex / DeepSeek 单一提交和推送'],
-  ['PROJECT_STATE.md', '全项目 UI / 功能 / 按钮全链路审查'],
-  ['PROJECT_ROADMAP.md', '0.170.0-beta.3'],
-  ['PROJECT_ROADMAP.md', '正式稳定版目标：1.0.0'],
-  ['PROJECT_ROADMAP.md', '阶段 D：1.0 全产品审查'],
-  ['PROJECT_ROADMAP.md', '阶段 E：Codex 1.0 实机验收'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：交付 R6 TrackRow 直接点击加固，并完成封面与导入事务定向门禁'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '锁定 branch/SHA 并只读拉取一次'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '正式发布 1.0.0'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'ChatGPT 只读拉取 GitHub'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'Codex / DeepSeek 负责把完整源码包应用到固定 SHA'],
-  ['AI_HANDOFF/WORKLOG.md', '### Git Fast Lane v2.1'],
-  ['AI_HANDOFF/WORKLOG.md', '### 用户确认 1.0 最终路线'],
-  ['docs/GIT_FAST_LANE_V2.md', '一个任务只使用一个分支、一个 PR'],
-  ['docs/GIT_FAST_LANE_V2.md', '拉取源码一次'],
-  ['docs/CODEX_BETA3_RELEASE_ACCEPTANCE.md', 'D:\\CloudMusic\\VipSongsDownload'],
-  ['docs/CODEX_BETA3_RELEASE_ACCEPTANCE.md', '%TEMP%\\YangKura-Beta3-Acceptance'],
-  ['docs/RELEASE_NOTES_0.170.0-beta.3.md', '# Yang-Kura 0.170.0 Beta 3 · 正式日用候选'],
+  ['README.md', '本地候选：U41-B + U41-C 日常入口与运行时补丁'],
+  ['README.md', 'Importer production chunk 已从约 255 KB 降到约 22 KB'],
+  ['PROJECT_STATE.md', 'U41-B + U41-C 累积候选'],
+  ['PROJECT_STATE.md', 'Electron 从 39.8.1 升至 39.8.10'],
+  ['PROJECT_ROADMAP.md', 'U41-D：生产表面瘦身'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'feat/u41bc-daily-runtime-closeout'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前 Linux 环境无法下载 Electron binary'],
+  ['AI_HANDOFF/WORKLOG.md', '### U41-A 全产品审计'],
+  ['AI_HANDOFF/WORKLOG.md', '## 2026-07-19 — U41-B 日常用户入口'],
+  ['AI_HANDOFF/WORKLOG.md', '## 2026-07-19 — U41-C 运行时与跨平台门禁'],
+  ['AI_HANDOFF/NEXT_CONVERSATION_PROMPT.md', 'feat: connect importer and harden Electron runtime'],
+  ['docs/U41_PRODUCT_AUDIT.md', 'U41-C：LOCAL COMPLETE / WINDOWS VERIFY'],
+  ['docs/U41_DEFECT_BACKLOG.md', 'Electron 升至 39.8.10'],
+  ['docs/U41_UI_FUNCTION_BUTTON_MATRIX.md', '| 设置·播放 | HTMLAudio/mpv | VERIFY |'],
+  ['docs/U41B_DAILY_USER_ENTRY.md', 'YANG_KURA_E2E_IMPORT_SOURCE_ROOT'],
+  ['docs/U41C_RUNTIME_PATCH.md', 'npm audit --audit-level=moderate'],
+  ['docs/U41C_RUNTIME_PATCH.md', 'Windows U28/U29/portable/NSIS：NOT RUN'],
+  ['docs/U41_LEGACY_CLEANUP_INVENTORY.md', 'DiagnosticsPage.tsx'],
+  ['docs/U41_CODEX_PUBLIC_PACKAGE_ACCEPTANCE.md', 'v0.170.0-beta.3'],
+  ['docs/U41_EXECUTION_PLAN.md', 'U41-C：运行时补丁 — LOCAL COMPLETE / WINDOWS VERIFY'],
   ['release/beta3-release-plan.json', '"version": "0.170.0-beta.3"'],
   ['release/beta2-publication-state.json', '"releaseId": 355486824'],
-  ['.github/workflows/beta3-personal-release.yml', 'name: Personal Beta 3 Release'],
 ];
 
 const staleTokens = [
-  '当前任务：按需日常维护',
-  '当前任务：综合收尾与剩余问题重新核对',
-  '当前任务：发布 0.169.0 Beta 2 个人日用版',
-  'Beta 3 已完成',
-  '1.0.0 已发布',
+  'U41-A：审计基线完成，等待单一审计 PR',
+  '当前轮 U41-A',
+  '日常 Importer 页面没有真实来源选择、预览、copy/move 执行和 UI 结果闭环',
+  'audit/u41-product-surface',
+  'branch: feat/u41b-daily-user-entry',
+  'commit: feat: connect daily importer and version source',
+  'U41-MAJ-003 Electron 补丁 | OPEN / U41-C',
 ];
-const activeDocs = required.slice(0, 5);
+const activeDocs = [
+  'README.md',
+  'PROJECT_STATE.md',
+  'PROJECT_ROADMAP.md',
+  'AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md',
+  'AI_HANDOFF/NEXT_CONVERSATION_PROMPT.md',
+];
 const forbiddenTemporaryFiles = [
   '.github/workflows/u39g-closeout-sync.yml',
   '.github/workflows/u40d3-persist-fix.yml',
@@ -59,26 +75,18 @@ const forbiddenTemporaryFiles = [
 ];
 const failures = [];
 
-for (const file of required) {
-  if (!fs.existsSync(file)) failures.push(`missing ${file}`);
-}
+for (const file of required) if (!fs.existsSync(file)) failures.push(`missing ${file}`);
 for (const [file, token] of tokens) {
-  if (!fs.existsSync(file) || !fs.readFileSync(file, 'utf8').includes(token)) {
-    failures.push(`${file} missing token ${token}`);
-  }
+  if (!fs.existsSync(file) || !fs.readFileSync(file, 'utf8').includes(token)) failures.push(`${file} missing token ${token}`);
 }
 for (const file of activeDocs) {
   const source = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
-  for (const token of staleTokens) {
-    if (source.includes(token)) failures.push(`${file} retains stale token ${token}`);
-  }
+  for (const token of staleTokens) if (source.includes(token)) failures.push(`${file} retains stale token ${token}`);
 }
-for (const file of forbiddenTemporaryFiles) {
-  if (fs.existsSync(file)) failures.push(`temporary file remains: ${file}`);
-}
+for (const file of forbiddenTemporaryFiles) if (fs.existsSync(file)) failures.push(`temporary file remains: ${file}`);
 
 if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log('[verify-handoff] Beta 3 R6 click hardening and remaining release gates PASS');
+console.log('[verify-handoff] U41-B importer + U41-C Electron/runtime cumulative candidate PASS');

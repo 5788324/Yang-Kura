@@ -38,7 +38,7 @@ export interface ElectronShellLaunchContract {
   electronDependency: {
     packageName: 'electron';
     dependencyType: 'optionalDependency';
-    minimumSafeRange: '^39.8.1';
+    minimumSafeRange: '^39.8.10';
     validationInstallMode: 'optional-binary';
   };
   launchScripts: ElectronShellLaunchScriptContract[];
@@ -59,7 +59,7 @@ export const electronShellLaunchContractService = {
       electronDependency: {
         packageName: 'electron',
         dependencyType: 'optionalDependency',
-        minimumSafeRange: '^39.8.1',
+        minimumSafeRange: '^39.8.10',
         validationInstallMode: 'optional-binary',
       },
       launchScripts: [

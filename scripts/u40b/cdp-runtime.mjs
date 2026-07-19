@@ -110,7 +110,7 @@ async function waitForTarget(port, child) {
   throw new Error('Electron CDP target timeout');
 }
 
-export async function launchElectron({ cwd, profileDir, fixtureDir }) {
+export async function launchElectron({ cwd, profileDir, fixtureDir, extraEnv = {} }) {
   const port = await reservePort();
   const stdout = [];
   const stderr = [];
@@ -125,6 +125,7 @@ export async function launchElectron({ cwd, profileDir, fixtureDir }) {
       YANG_KURA_E2E_LIBRARY_ROOT: fixtureDir,
       YANG_KURA_E2E_USER_DATA_ROOT: path.join(profileDir, 'Yang-Kura'),
       ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
+      ...extraEnv,
     },
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: false,

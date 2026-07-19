@@ -106,7 +106,9 @@ protocol.registerSchemesAsPrivileged([
       secure: true,
       supportFetchAPI: true,
       stream: true,
-      corsEnabled: false,
+      // Electron 39 requires CORS for renderer fetches to this controlled scheme.
+      // Token and relative-path validation remain enforced by the handler.
+      corsEnabled: true,
     },
   },
 ]);
@@ -122,6 +124,7 @@ type DryRunPlannedAction = 'include-track' | 'attach-cover' | 'attach-subtitle' 
 interface SelectLibraryRootRequest {
   libraryType: YangKuraLibraryType;
   reason: 'user-selected-library-root';
+  selectionRole?: 'library-root' | 'import-source' | 'import-target';
 }
 
 interface ScannerDryRunRequest {
@@ -2967,6 +2970,9 @@ function registerDirectoryDialogIpc(mainWindow: BrowserWindow): void {
   registerLibraryHandler('selectRoot', async (_event, request: unknown) => {
     const payload = request as Partial<SelectLibraryRootRequest> | undefined;
     const libraryType = isValidLibraryType(payload?.libraryType) ? payload.libraryType : 'mixed';
+    const selectionRole = payload?.selectionRole === 'import-source' || payload?.selectionRole === 'import-target'
+      ? payload.selectionRole
+      : 'library-root';
 
     if (payload?.reason !== 'user-selected-library-root') {
       return {
@@ -2983,7 +2989,12 @@ function registerDirectoryDialogIpc(mainWindow: BrowserWindow): void {
     }
 
     const e2eRootPath = process.env.YANG_KURA_E2E_MODE === '1'
-      ? process.env.YANG_KURA_E2E_LIBRARY_ROOT?.trim()
+      ? (selectionRole === 'import-source'
+          ? process.env.YANG_KURA_E2E_IMPORT_SOURCE_ROOT?.trim()
+          : selectionRole === 'import-target'
+            ? process.env.YANG_KURA_E2E_IMPORT_TARGET_ROOT?.trim()
+            : undefined)
+        || process.env.YANG_KURA_E2E_LIBRARY_ROOT?.trim()
       : undefined;
     let result: { canceled: boolean; filePaths: string[] };
     if (e2eRootPath) {
@@ -3006,9 +3017,13 @@ function registerDirectoryDialogIpc(mainWindow: BrowserWindow): void {
         } as const;
       }
     } else {
+      const dialogCopy = selectionRole === 'import-source'
+        ? { title: '选择导入来源目录', buttonLabel: '选择来源目录' }
+        : selectionRole === 'import-target'
+          ? { title: '选择目标资源库目录', buttonLabel: '选择目标目录' }
+          : { title: `选择 ${getDefaultDisplayName(libraryType)} 根目录`, buttonLabel: '选择此目录' };
       result = await dialog.showOpenDialog(mainWindow, {
-        title: `选择 ${getDefaultDisplayName(libraryType)} 根目录`,
-        buttonLabel: '选择此目录',
+        ...dialogCopy,
         properties: ['openDirectory', 'dontAddToRecent'],
       });
     }
@@ -4898,10 +4913,15 @@ async function createMainWindow(): Promise<BrowserWindow> {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      nodeIntegrationInWorker: false,
+      nodeIntegrationInSubFrames: false,
+      webviewTag: false,
       sandbox: false,
       webSecurity: true,
     },
   });
+
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 
   registerDirectoryDialogIpc(mainWindow);
   registerDryRunScannerIpc();

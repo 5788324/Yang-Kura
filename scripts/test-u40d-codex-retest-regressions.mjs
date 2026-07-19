@@ -34,7 +34,9 @@ requireToken(
   'src/components/PlaylistPage.tsx',
 );
 
-requireToken(importer, 'id="mvp107-importer-ai-maintenance-fold"\n        hidden\n        aria-hidden="true"', 'src/components/ImporterPage.tsx');
+requireToken(importer, 'data-u41b-importer-daily="ready"', 'src/components/ImporterPage.tsx');
+requireToken(importer, 'id="mvp107-importer-ai-maintenance-fold"', 'src/components/ImporterPage.tsx');
+forbidToken(importer, 'hidden\n        aria-hidden="true"', 'src/components/ImporterPage.tsx');
 requireToken(themeRuntime, "export type LegacyThemeCompatibilityId = 'dark' | 'acrylic-mist' | 'ocean-drops';", 'src/app/themeRuntime.ts');
 requireToken(themeRuntime, "if (theme === 'acrylic-mist') return '云雾亚克力';", 'src/app/themeRuntime.ts');
 requireToken(themeRuntime, "if (theme === 'ocean-drops') return '微光海洋';", 'src/app/themeRuntime.ts');

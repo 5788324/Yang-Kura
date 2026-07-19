@@ -94,6 +94,20 @@ export const libraryReadCoordinatorService = {
     return readPersistedResult();
   },
 
+  acceptResult(result: YangKuraReadLibraryIndexResult): YangKuraReadLibraryIndexResult {
+    const normalized = normalizeResult(result);
+    latestRuntimeResult = normalized;
+    try {
+      const serialized = JSON.stringify(normalized);
+      if (serialized.length <= MAX_PERSISTED_RESULT_BYTES) localStorage.setItem(INDEX_RESULT_KEY, serialized);
+      else localStorage.removeItem(INDEX_RESULT_KEY);
+    } catch {
+      try { localStorage.removeItem(INDEX_RESULT_KEY); } catch { /* no-op */ }
+    }
+    librarySessionService.recordIndexRead(normalized);
+    return normalized;
+  },
+
   async read(context: LibraryReadRequestContext): Promise<YangKuraReadLibraryIndexResult> {
     const currentOperationId = operationId();
     librarySessionService.recordIndexReadStarted({

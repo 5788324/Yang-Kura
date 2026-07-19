@@ -84,7 +84,7 @@ export const electronRegressionHardeningService = {
           id: 'setup',
           title: '修复 Electron binary',
           command: 'npm run desktop:setup',
-          description: '现在会执行 npm install electron@^39.8.1 --save-dev、npm rebuild electron，并验证 electron --version。',
+          description: '现在会执行 npm install electron@^39.8.10 --save-dev、npm rebuild electron，并验证 electron --version。',
           tone: 'success',
         },
         {

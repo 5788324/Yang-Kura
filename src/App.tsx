@@ -23,7 +23,6 @@ import { playlistPersistenceService } from './services/playlistPersistenceServic
 import { playerQueuePersistenceService } from './services/playerQueuePersistenceService';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
-import { coverArtworkService } from './services/coverArtworkService';
 import { settingsPathPrivacyService } from './services/settingsPathPrivacyService';
 import { reconcileTracksWithLibrary } from './player/playerRuntimePolicy';
 import { metadataOverrideService } from './services/metadataOverrideService';
@@ -362,51 +361,6 @@ export default function App() {
     }));
   };
 
-  const handleRefetchRjMetadata = (rjId: string) => {
-    setRjWorks((previous) => previous.map((item) => {
-      if (item.id !== rjId) return item;
-      const sampleCovers = [
-        coverArtworkService.makeFallbackCover(`${item.title} 风铃`, item.circle, 'asmr'),
-        coverArtworkService.makeFallbackCover(`${item.title} 猫咖`, item.circle, 'asmr'),
-        coverArtworkService.makeFallbackCover(`${item.title} 营火`, item.circle, 'asmr'),
-      ];
-      const randomCover = sampleCovers[Math.floor(Math.random() * sampleCovers.length)];
-      const tracksToSet = item.tracks.length > 0 ? item.tracks : [
-        {
-          id: `track_${item.id.toLowerCase()}_01`,
-          title: '01_【自动恢复】双耳梵天耳かき和極上睡眠導入.flac',
-          artist: item.cvs[0] || '默认声优',
-          album: item.title,
-          rjId: item.id,
-          duration: 900,
-          coverUrl: item.coverUrl || randomCover,
-          type: 'asmr' as const,
-          fileTreePath: `${item.cvs[0] || 'Unknown'}/01_边缘采耳.flac`,
-        },
-        {
-          id: `track_${item.id.toLowerCase()}_02`,
-          title: '02_【自动恢复】碳酸耳穴泡泡清理与按摩.flac',
-          artist: item.cvs[0] || '默认声优',
-          album: item.title,
-          rjId: item.id,
-          duration: 1200,
-          coverUrl: item.coverUrl || randomCover,
-          type: 'asmr' as const,
-          fileTreePath: `${item.cvs[0] || 'Unknown'}/02_碳酸泡泡.flac`,
-        },
-      ];
-      return {
-        ...item,
-        status: 'identified' as const,
-        coverUrl: item.coverUrl || randomCover,
-        tracks: tracksToSet,
-        fileCount: tracksToSet.length,
-        totalDuration: tracksToSet.reduce((sum, track) => sum + track.duration, 0),
-        description: `${item.description} (已刷新本地显示信息（演示数据未联网）。)`,
-      };
-    }));
-  };
-
   const handleCreatePlaylist = (name: string, description: string) => {
     const playlist = playlistPersistenceService.createUserPlaylist(name, description);
     updatePlaylists((previous) => [...previous, playlist]);
@@ -521,7 +475,6 @@ export default function App() {
             onUpdateRjWork={handleUpdateRjWork}
             onClearRjWorkOverride={handleClearRjWorkOverride}
             onDeleteRjWork={handleDeleteRjWork}
-            onRefetchRjMetadata={handleRefetchRjMetadata}
             onAddRjWorkTracksToPlaylist={handleAddRjWorkTracksToPlaylist}
             onUpdateMusicAlbum={handleUpdateMusicAlbum}
             onUpdateMusicTrack={handleUpdateMusicTrack}
