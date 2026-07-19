@@ -2,15 +2,33 @@ import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-if (!['0.164.0-mvp126', '0.165.0-mvp127', '0.166.0-mvp128', '0.167.0-mvp129'].includes(pkg.version)) throw new Error(`unexpected version: ${pkg.version}`);
-if (!fs.readFileSync('scripts/run-stable-regression.mjs', 'utf8').includes('verify:mvp126-large-library-performance')) throw new Error('verify:stable missing MVP126');
+const supportedVersions = new Set([
+  '0.164.0-mvp126',
+  '0.165.0-mvp127',
+  '0.166.0-mvp128',
+  '0.167.0-mvp129',
+  '0.168.0-mvp130',
+  '0.168.0-beta.1',
+  '0.169.0-beta.2',
+  '0.170.0-beta.3',
+]);
+if (!supportedVersions.has(pkg.version)) {
+  throw new Error(`unexpected version: ${pkg.version}; supported versions: ${[...supportedVersions].join(', ')}`);
+}
+const stableRegression = fs.readFileSync('scripts/run-stable-regression.mjs', 'utf8');
+if (
+  !stableRegression.includes('verify:mvp126-large-library-performance')
+  && !stableRegression.includes('test:library:performance')
+) {
+  throw new Error('verify:stable missing MVP126 large-library coverage');
+}
 if (pkg.scripts?.['test:library:performance'] !== 'node scripts/benchmark-mvp126-large-library.mjs') throw new Error('performance benchmark script missing');
 
 const checks = [
   ['src/services/libraryPerformanceService.ts', ['LARGE_LIBRARY_RENDER_LIMITS', 'buildAsmrSearchIndex', 'buildMusicSearchIndex', 'sliceRenderWindow', 'absolutePath', 'file://']],
   ['src/features/library/AsmrLibraryPage.tsx', ['useDeferredValue', 'mvp126-asmr-render-window', 'visibleWorks', 'buildAsmrSearchIndex', 'sliceRenderWindow', 'LARGE_LIBRARY_RENDER_LIMITS.asmrStep']],
   ['src/features/library/MusicLibraryPage.tsx', ['useDeferredValue', 'data-u37d-music-library', 'visibleTracks', 'artistGroups', 'libraryPerformanceService', 'getRenderWindowModel', 'LARGE_LIBRARY_RENDER_LIMITS.musicTracksStep']],
-  ['src/components/DiagnosticsPageShell.tsx', ['mvp126-diagnostics-two-stage-loader', '打开完整诊断', 'LibraryPerformanceDiagnosticsPanel']],
+  ['src/components/DiagnosticsPageShell.tsx', ['mvp126-diagnostics-two-stage-loader', '查看性能检查', 'LibraryPerformanceDiagnosticsPanel']],
   ['src/App.tsx', ["import AppRouter from './app/AppRouter';", '<AppRouter']],
   ['src/app/AppRouter.tsx', [
     "const AsmrLibrary = lazy(() => import('../features/library/AsmrLibraryPage'));",

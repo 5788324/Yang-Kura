@@ -18,6 +18,7 @@ import {
 import { libraryIndexAdapter } from './services/libraryIndexAdapter';
 import { playbackHistoryService } from './services/playbackHistoryService';
 import { librarySessionService, type LibrarySessionSnapshot } from './services/librarySessionService';
+import { libraryReadCoordinatorService } from './services/libraryReadCoordinatorService';
 import { playlistPersistenceService } from './services/playlistPersistenceService';
 import { playerQueuePersistenceService } from './services/playerQueuePersistenceService';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -28,18 +29,52 @@ import { reconcileTracksWithLibrary } from './player/playerRuntimePolicy';
 import { metadataOverrideService } from './services/metadataOverrideService';
 import type { AsmrMetadataSaveContext } from './services/metadataOverrideService';
 
+
+const LEGACY_RJ_WORKS_KEY = 'sqlite_rj_works';
+const LEGACY_MUSIC_ALBUMS_KEY = 'sqlite_music_albums';
+const PERSISTED_ROOTS_KEY = 'yang_kura_persisted_authorized_roots_v1';
+
+function readLegacyLibraryState<T>(key: string, fallback: T): T {
+  try {
+    const hasAuthorizedRoot = Boolean(localStorage.getItem(PERSISTED_ROOTS_KEY));
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    if (hasAuthorizedRoot || raw.length > 1_000_000) {
+      localStorage.removeItem(key);
+      return fallback;
+    }
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function readPersistedLibraryRoot(libraryType: YangKuraLibraryType): { rootPathToken: string; displayName: string } | null {
+  try {
+    const roots = JSON.parse(localStorage.getItem(PERSISTED_ROOTS_KEY) ?? '{}') as Partial<Record<YangKuraLibraryType, { rootPathToken?: string; displayName?: string }>>;
+    const root = roots[libraryType];
+    if (!root?.rootPathToken) return null;
+    return {
+      rootPathToken: root.rootPathToken,
+      displayName: root.displayName || (libraryType === 'asmr' ? '本地音声库' : '本地音乐库'),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('dashboard');
   const mainContentRef = useRef<HTMLElement | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Keep historical localStorage keys for profile compatibility. Clean profiles still start empty.
-  const [rjWorks, setRjWorks] = useLocalStorage<RJWork[]>('sqlite_rj_works', []);
-  const rjWorksBaseRef = useRef<RJWork[]>([]);
+  const [rjWorks, setRjWorks] = useState<RJWork[]>(() => readLegacyLibraryState<RJWork[]>(LEGACY_RJ_WORKS_KEY, []));
+  const rjWorksBaseRef = useRef<RJWork[]>(rjWorks);
   const [playlists, setPlaylists] = useState<Playlist[]>(() =>
     playlistPersistenceService.hydrateInitialPlaylists([]),
   );
-  const [musicAlbums, setMusicAlbums] = useLocalStorage<MusicAlbum[]>('sqlite_music_albums', []);
+  const [musicAlbums, setMusicAlbums] = useState<MusicAlbum[]>(() => readLegacyLibraryState<MusicAlbum[]>(LEGACY_MUSIC_ALBUMS_KEY, []));
   const musicAlbumsBaseRef = useRef<MusicAlbum[]>(musicAlbums);
   const [recentTracks, setRecentTracks] = useState<AudioTrack[]>([]);
   const [librarySessionSnapshot, setLibrarySessionSnapshot] = useState<LibrarySessionSnapshot>(() =>
@@ -101,27 +136,6 @@ export default function App() {
     }
   }, []);
 
-  useEffect(() => {
-    let asmrBase = rjWorks;
-    let musicBase = musicAlbums;
-    try {
-      const cached = localStorage.getItem('yang_kura_last_read_library_index_result');
-      if (cached) {
-        const result = JSON.parse(cached) as YangKuraReadLibraryIndexResult;
-        if (result.ok) {
-          const mapped = libraryIndexAdapter.fromLocalJsonIndexToAppData(result.index as LocalJsonIndex);
-          asmrBase = mapped.rjWorks;
-          musicBase = mapped.musicAlbums;
-        }
-      }
-    } catch {
-      // Keep the current local bases when no readable real index cache exists.
-    }
-    rjWorksBaseRef.current = asmrBase;
-    musicAlbumsBaseRef.current = musicBase;
-    setRjWorks(metadataOverrideService.applyAsmrOverrides(asmrBase));
-    setMusicAlbums(metadataOverrideService.applyMusicAlbumOverrides(musicBase));
-  }, []);
 
   useEffect(() => {
     const main = mainContentRef.current;
@@ -131,12 +145,11 @@ export default function App() {
 
   const applyStoredLibraryIndexToUi = (): boolean => {
     try {
-      const raw = localStorage.getItem('yang_kura_last_read_library_index_result');
-      if (!raw) {
-        setScanStatus('当前没有已读取的真实 library-index.json。请先在设置中完成目录授权和读取。');
+      const result = libraryReadCoordinatorService.getLatestResult();
+      if (!result) {
+        setScanStatus('当前没有已读取的真实 library-index.json。正在尝试从已授权目录重新读取。');
         return false;
       }
-      const result = JSON.parse(raw) as YangKuraReadLibraryIndexResult;
       if (!result.ok) {
         setScanStatus(`最近一次真实 index 读取未成功：${result.message}`);
         return false;
@@ -147,6 +160,12 @@ export default function App() {
       musicAlbumsBaseRef.current = mapped.musicAlbums;
       setRjWorks(metadataOverrideService.applyAsmrOverrides(mapped.rjWorks));
       setMusicAlbums(metadataOverrideService.applyMusicAlbumOverrides(mapped.musicAlbums));
+      try {
+        localStorage.removeItem(LEGACY_RJ_WORKS_KEY);
+        localStorage.removeItem(LEGACY_MUSIC_ALBUMS_KEY);
+      } catch {
+        // Real index remains authoritative even if old derived caches cannot be removed.
+      }
       setScanStatus(
         `已加载真实 library-index.json：${mapped.rjWorks.length} 个音声集合，${mapped.musicAlbums.length} 个音乐集合，${result.summary.trackCount} 条轨道。`,
       );
@@ -158,10 +177,33 @@ export default function App() {
   };
 
   useEffect(() => {
-    applyStoredLibraryIndexToUi();
+    let cancelled = false;
     const listener = () => applyStoredLibraryIndexToUi();
     window.addEventListener('yang-kura-library-index-loaded', listener);
-    return () => window.removeEventListener('yang-kura-library-index-loaded', listener);
+
+    const hydrateAuthorizedLibrary = async () => {
+      if (applyStoredLibraryIndexToUi()) return;
+      if (!window.yangKura?.requestReadLibraryIndex) return;
+      const preferred = readPersistedLibraryRoot('asmr') ?? readPersistedLibraryRoot('music') ?? readPersistedLibraryRoot('mixed');
+      if (!preferred) return;
+      setScanStatus(`正在从已授权目录「${preferred.displayName}」恢复资源库…`);
+      const result = await libraryReadCoordinatorService.read({
+        libraryType: readPersistedLibraryRoot('asmr')?.rootPathToken === preferred.rootPathToken
+          ? 'asmr'
+          : readPersistedLibraryRoot('music')?.rootPathToken === preferred.rootPathToken
+            ? 'music'
+            : 'mixed',
+        displayName: preferred.displayName,
+        rootPathToken: preferred.rootPathToken,
+      });
+      if (!cancelled && !result.ok) setScanStatus(result.message);
+    };
+
+    void hydrateAuthorizedLibrary();
+    return () => {
+      cancelled = true;
+      window.removeEventListener('yang-kura-library-index-loaded', listener);
+    };
   }, []);
 
   useEffect(() => {

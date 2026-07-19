@@ -12,13 +12,13 @@ export const mpvPlaybackPreferenceService = {
   updateEventName: UPDATE_EVENT,
 
   getPreference(): MpvPlaybackPreference {
-    if (typeof window === 'undefined') return 'prefer-mpv';
+    if (typeof window === 'undefined') return 'html-audio-only';
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    return isPreference(stored) ? stored : 'prefer-mpv';
+    return isPreference(stored) ? stored : 'html-audio-only';
   },
 
   setPreference(preference: MpvPlaybackPreference): MpvPlaybackPreference {
-    const next = isPreference(preference) ? preference : 'prefer-mpv';
+    const next = isPreference(preference) ? preference : 'html-audio-only';
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(STORAGE_KEY, next);
       window.dispatchEvent(new CustomEvent<MpvPlaybackPreference>(UPDATE_EVENT, { detail: next }));

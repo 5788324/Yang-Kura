@@ -108,3 +108,23 @@ Beta 3 Release：尚未创建
 Git：源码快照试运行、本地集中修改、单一提交、统一推送
 实机执行：Codex 或 DeepSeek，均使用固定 branch/SHA 提示词
 ```
+
+### 第三轮：真实库边界调整与正式实机结果
+
+- 用户确认 `E:\arsm` 可以作为可写扫描目标；Index 与 backup 更新不属于失败，资源仍在持续下载。
+- 正式 SHA `1f839e5298d96a61ceaf8e4621b17244c0f8946a` 的真实大库扫描 PASS：137 个作品或专辑、7145 条音轨。
+- 媒体本体、字幕、封面和专辑目录数量没有减少。
+- 实机暴露三个阻断：mpv ENOENT、HTMLAudio 真实 WAV duration/progress 为 0、同 Profile 重启后黑屏。
+- 用户补充发现专辑封面重复，加入 B3-MAJ-004。
+
+### 第四轮：真实播放、重启和封面合并修复
+
+- 起点 HEAD：`1f839e5298d96a61ceaf8e4621b17244c0f8946a`。
+- `yang-kura-media://` 改为 main 侧 MIME、Content-Length、Range/206/416 和流式响应。
+- mpv 改为显式可选增强后端；新 Profile 默认 HTMLAudio，未安装 mpv 时不再进入 backend spawn。
+- 大 Index 不再与完整派生 RJWorks/MusicAlbums 一起重复写入 localStorage；启动时从持久化授权目录自动重新读 Index。
+- 修复 umbrella collection 拆分后多个真实 RJ 继承同一封面；扫描和归一化均按实际 collection 目录独立选封面。
+- CoverArtwork 在 `src` 更新后退出旧失败状态。
+- 同轮修正 U32 为当前推送差异门禁，普通 Electron 运行时代码不再触发 portable/NSIS 完整打包。
+- 本地 lint、Renderer build、Electron build、诊断探针和 Beta 3 runtime-hardening verifier PASS。
+- 当前环境缺少可下载的 Electron binary，GUI E2E 等待 GitHub Actions；不因此追加第二次本地补丁推送。

@@ -23,13 +23,14 @@
  * MVP-105 adds the first small-sample move-only executor: CONFIRM_MOVE_IMPORT, overwrite=false, failure-stop, sanitized OperationLog, no index write.
  */
 
-import { app, BrowserWindow, dialog, net, protocol, shell } from 'electron';
+import { app, BrowserWindow, dialog, protocol, shell } from 'electron';
 // Legacy MVP-19 verifier import token: import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 import crypto from 'node:crypto';
 import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
+import { Readable } from 'node:stream';
 import { clearDlsiteMetadataCache, fetchDlsiteMetadata, type DlsiteMetadataCacheClearRequest, type DlsiteMetadataRequest } from './dlsiteMetadataProvider.js';
 import { MpvPlaybackBackend, type MpvPlaybackCommand } from './mpvPlaybackBackend.js';
 import { MpvSettingsStore } from './mpvSettingsStore.js';
@@ -44,6 +45,8 @@ import { registerMediaHandler } from './ipc/domains/media.js';
 import { registerPlayerHandler } from './ipc/domains/player.js';
 import { registerMetadataHandler } from './ipc/domains/metadata.js';
 import { registerImporterHandler } from './ipc/domains/importer.js';
+import { isExplicitCoverFileName, selectPrimaryCoverPaths } from './libraryCoverSelection.js';
+import { mediaMimeType, parseSingleByteRange } from './mediaProtocolSupport.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -570,7 +573,6 @@ const SUBTITLE_EXTENSIONS = new Set(['lrc', 'srt', 'vtt', 'ass', 'txt']);
 const READABLE_SUBTITLE_EXTENSIONS = new Set(['lrc', 'srt', 'vtt', 'ass']);
 const TEXT_EXTENSIONS = new Set(['md', 'nfo', 'cue', 'json', 'pdf']);
 const ARCHIVE_EXTENSIONS = new Set(['zip', '7z', 'rar']);
-const COVER_BASENAMES = new Set(['cover', 'folder', 'front', 'jacket', 'scan', 'package']);
 
 function isValidLibraryType(value: unknown): value is YangKuraLibraryType {
   return value === 'asmr' || value === 'music' || value === 'mixed';
@@ -640,7 +642,7 @@ function classifyEntry(relativePath: string, isDirectory: boolean): { entryKind:
   if (VIDEO_EXTENSIONS.has(extension)) return { entryKind: 'video', plannedAction: 'include-track', warningCodes };
   if (SUBTITLE_EXTENSIONS.has(extension)) return { entryKind: 'subtitle', plannedAction: 'attach-subtitle', warningCodes };
   if (IMAGE_EXTENSIONS.has(extension)) {
-    const isCover = COVER_BASENAMES.has(baseName);
+    const isCover = isExplicitCoverFileName(fileName);
     return { entryKind: isCover ? 'cover' : 'image', plannedAction: isCover ? 'attach-cover' : 'include-track', warningCodes };
   }
   if (TEXT_EXTENSIONS.has(extension)) return { entryKind: 'text', plannedAction: 'warn-only', warningCodes };
@@ -870,6 +872,16 @@ function buildIndexWritePreview(rootRecord: TokenizedRootRecord, dryRun: DryRunS
   const subtitles: any[] = [];
   const tracks: any[] = [];
   const warnings = new Set<string>();
+  const primaryCoverPaths = selectPrimaryCoverPaths(
+    usableEntries
+      .filter((entry) => entry.entryKind === 'cover' || entry.entryKind === 'image')
+      .map((entry) => ({
+        relativePath: entry.relativePath,
+        collectionCandidate: entry.relativePath.includes('/') ? entry.collectionCandidate : 'root',
+        rjIdNorm: entry.rjIdNorm,
+        sizeBytes: entry.sizeBytes,
+      })),
+  );
 
   for (const warning of dryRun.warnings) {
     warnings.add(`${warning.code}: ${warning.message}${warning.affectedRelativePath ? ` (${warning.affectedRelativePath})` : ''}`);
@@ -923,18 +935,21 @@ function buildIndexWritePreview(rootRecord: TokenizedRootRecord, dryRun: DryRunS
 
     const collection = ensureCollection(entryForCollection);
 
-    if (entry.entryKind === 'cover') {
+    const collectionKey = entryForCollection.collectionCandidate || 'root';
+    const selectedCoverPath = primaryCoverPaths.get(collectionKey);
+    const isSelectedPrimaryCover = selectedCoverPath === entry.relativePath;
+    if ((entry.entryKind === 'cover' || entry.entryKind === 'image') && (entry.entryKind === 'cover' || isSelectedPrimaryCover)) {
       const coverId = stablePreviewId('cover', `${collection.id}:${entry.relativePath}`);
       const cover = {
         id: coverId,
         collectionId: collection.id,
         sourceKind: 'local-file',
         relativePath: entry.relativePath,
-        isPrimary: !collection.cover,
+        isPrimary: isSelectedPrimaryCover,
       };
       covers.push(cover);
-      if (!collection.cover) collection.cover = cover;
-      continue;
+      if (isSelectedPrimaryCover) collection.cover = cover;
+      if (entry.entryKind === 'cover') continue;
     }
 
     const isTrackLike = entry.plannedAction === 'include-track';
@@ -2692,6 +2707,19 @@ registerPlayerHandler('mpvStart', async (_event, request: unknown) => {
         fileUrlReturned: false,
       } as const;
     }
+    const installation = await mpvSettingsStore.getInstallationStatus();
+    if (!installation.available) {
+      return {
+        ok: false,
+        status: 'mvp122-mpv-unavailable',
+        backend: 'html-audio-fallback',
+        trackId: payload.trackId,
+        message: '未检测到可用 mpv，已直接使用 HTMLAudio。',
+        executableLabel: installation.executableLabel,
+        absolutePathReturned: false,
+        fileUrlReturned: false,
+      } as const;
+    }
     const resolved = resolveSafeMpvAudioPath(rootRecord, payload.relativePath);
     if (resolved.ok === false) {
       return {
@@ -2869,7 +2897,36 @@ function registerMediaProtocol(): void {
       if (!stat.isFile()) {
         return new Response('Media source is not a regular file.', { status: 404 });
       }
-      return net.fetch(pathToFileURL(resolved.absolutePath).toString());
+
+      const sizeBytes = stat.size;
+      const parsedRange = parseSingleByteRange(request.headers.get('range'), sizeBytes);
+      const baseHeaders = new Headers({
+        'Accept-Ranges': 'bytes',
+        'Cache-Control': 'no-store',
+        'Content-Type': mediaMimeType(resolved.extension),
+      });
+      if (parsedRange.kind === 'invalid') {
+        baseHeaders.set('Content-Range', `bytes */${sizeBytes}`);
+        return new Response(null, { status: 416, headers: baseHeaders });
+      }
+
+      const isHead = request.method.toUpperCase() === 'HEAD';
+      if (parsedRange.kind === 'range') {
+        const { start, end } = parsedRange.range;
+        const contentLength = end - start + 1;
+        baseHeaders.set('Content-Length', String(contentLength));
+        baseHeaders.set('Content-Range', `bytes ${start}-${end}/${sizeBytes}`);
+        const body = isHead
+          ? null
+          : Readable.toWeb(fsSync.createReadStream(resolved.absolutePath, { start, end })) as unknown as BodyInit;
+        return new Response(body, { status: 206, headers: baseHeaders });
+      }
+
+      baseHeaders.set('Content-Length', String(sizeBytes));
+      const body = isHead
+        ? null
+        : Readable.toWeb(fsSync.createReadStream(resolved.absolutePath)) as unknown as BodyInit;
+      return new Response(body, { status: 200, headers: baseHeaders });
     } catch (error) {
       return new Response(error instanceof Error ? error.message : String(error), { status: 500 });
     }

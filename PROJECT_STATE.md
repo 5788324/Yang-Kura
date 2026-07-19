@@ -7,12 +7,12 @@
 下一版本目标：0.170.0-beta.3
 主分支事实来源：GitHub main
 候选分支：release/beta3-daily-closeout
-交接前产品代码基线：69fe73b794d467d619ffbcfa5d794c0af23359f7
+本轮修复起点：1f839e5298d96a61ceaf8e4621b17244c0f8946a
 PR #91：开放并保持阻断草稿
 Beta 3 Release：尚未创建
 发布结论：FAIL / NO-GO
-当前任务：第一轮诊断增强，等待 Windows E2E 证据
-Git 工作方式：本地集中开发与验证完成后统一推送
+当前任务：真实播放、重启黑屏和重复封面合并修复，等待 CI 与固定 SHA 实机复测
+Git 工作方式：源码快照、本地集中开发、单一提交、统一推送
 大型功能：长期冻结，只有用户明确提出后才启动
 ```
 
@@ -25,43 +25,23 @@ Git 工作方式：本地集中开发与验证完成后统一推送
 
 ## Beta 3 阻断状态
 
-最新有效证据来自 Codex v2：
+最新正式 Windows 真实库报告：
 
 | 项目 | 结果 |
 |---|---|
-| 固定分支与 HEAD | PASS |
-| 候选内部哈希 | PASS |
-| 生产路由核对 | PASS |
-| TrackRow 直接激活源码核对 | PASS |
-| TypeScript lint | PASS |
-| Renderer build | PASS |
-| Electron build | PASS |
-| 真实鼠标 E2E 后端时长 | FAIL |
-| Windows GUI 播放复测 | NOT TESTED |
-| 重启恢复 | NOT TESTED |
-| 临时导入事务 | NOT TESTED |
+| 固定 SHA / fresh clone | PASS |
+| `E:\arsm` 大库扫描 | PASS，137 个作品或专辑、7145 条音轨 |
+| 详情、队列切换、上一首/下一首 | PASS |
+| 字幕和全屏歌词 | PASS |
+| 媒体、字幕、封面、目录保护 | PASS |
+| HTMLAudio duration/progress | FAIL |
+| mpv 未安装回退 | FAIL，`spawn mpv.exe ENOENT` |
+| 同 Profile 重启恢复 | FAIL，首页黑屏 |
+| 专辑封面 | FAIL，多个作品显示同一封面 |
 
-阻断错误：
+本轮已制作单一合并修复候选：Range/MIME 流式媒体协议、mpv 可选化、大 Index 启动恢复和 collection 独立封面映射。自动构建与静态/运行时 verifier 已通过；PR 仍需 CI 和新 SHA Windows 实机复测。
 
-```text
-Timed out waiting for player: RJ detail action backend duration
-```
-
-这只证明第二条音轨的后端时长链未完成，不能证明具体是 TrackRow、HTMLAudio、mpv、IPC 或测试观测逻辑中的哪一层。
-
-## 第一轮诊断增强
-
-本轮不修改播放器业务逻辑，只增强现有 Windows E2E 的观测能力：
-
-- 新增独立 Node 预加载诊断探针；
-- 记录 PlayerBar 状态变化和最后状态；
-- 记录 HTMLAudio load/play/pause 与关键媒体事件；
-- 记录 mpv 事件和相关 IPC 请求/结果；
-- 记录 Renderer console、page exception、Electron stdout/stderr；
-- 保持原 E2E 的双入口和 duration 判定不变；
-- 通过同一 `player-fast-validation-evidence` artifact 返回证据。
-
-该候选只能用于定位根因。专项通过前不得改写为“已修复”。
+真实库允许更新 `library-index.json` 和 backup。后续安全检查只保护音频、字幕、封面和专辑目录不被删除或破坏。
 
 ## 已确认的发布终局
 
@@ -98,13 +78,11 @@ Beta 3 播放与发布收口
 
 ## 仍需处理
 
-1. 运行增强后的 Windows 播放专项并读取完整诊断 artifact。
-2. 根据证据判断根因位于入口、状态、HTMLAudio、mpv、IPC 或测试观测中的哪一层。
-3. 找到最小根因后制作单一修复候选，不叠加 v1/v2/v3 补丁。
-4. 播放通过后补做临时导入事务和真实音乐目录只读链。
-5. 发布 Beta 3 前同步 `package.json` 与 `package-lock.json` 到 `0.170.0-beta.3`。
-6. Beta 3 后执行全项目功能/UI/按钮链审计和 Codex 实机验收。
-7. 清理无用文件并发布 `1.0.0`。
+1. 推送本轮单一修复提交并读取定向 CI。
+2. 使用新固定 SHA 在 `E:\arsm` 验证 duration/progress、声卡、pause/resume/seek、重启恢复和独立专辑封面。
+3. 四个 B3-MAJ 全部 PASS 后完成真实库导入事务、冲突、失败回滚和 OperationLog。
+4. 发布 Beta 3 前同步 `package.json` 与 `package-lock.json` 到 `0.170.0-beta.3`。
+5. Beta 3 后执行全项目功能/UI/按钮链审计、清理无用文件并发布 `1.0.0`。
 
 ## 禁止事项
 

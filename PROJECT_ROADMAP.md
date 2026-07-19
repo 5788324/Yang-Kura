@@ -10,8 +10,8 @@
 正式稳定版目标：1.0.0
 PR：#91
 候选分支：release/beta3-daily-closeout
-交接前产品代码基线：69fe73b794d467d619ffbcfa5d794c0af23359f7
-当前主线：暂停开发并重新诊断 B3-MAJ-001
+本轮修复起点：1f839e5298d96a61ceaf8e4621b17244c0f8946a
+当前主线：修复真实播放、重启黑屏和重复封面
 发布状态：NO-GO
 大型功能：长期冻结，按用户明确需求单独启动
 ```
@@ -25,30 +25,39 @@ PR：#91
 - U40-D～D3：真实库读取、分组、独立 Profile、单实例、主题、歌单、导入页、mpv 和 HTMLAudio 停滞状态收口。
 - Beta 2：已发布并完成远端资产校验。
 
-## 3. 阶段 A：Beta 3 阻断诊断
+## 3. 阶段 A：Beta 3 真实库阻断修复
 
-1. 读取 `AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md` 和 `docs/BETA3_BLOCKER_STATUS.md`。
-2. 拉取并锁定 PR #91 最新 branch/SHA。
-3. 比较 `0cc9779e...` 到当前 HEAD 的播放器、TrackRow、测试和工作流改动。
-4. 不使用 v1/v2/v3 本地包作为补丁来源。
-5. 让测试在失败时记录完整 PlayerState、renderer console、HTMLAudio 事件、mpv 事件和 IPC 结果。
-6. 先判断第二条音轨实际处于未切换、resolving、mpv、html-audio 或 unsupported 中的哪一种。
+当前四项阻断：
 
-## 4. 阶段 B：Beta 3 单一最小修复
+- B3-MAJ-001：HTMLAudio 真实 WAV duration/progress 为 0；
+- B3-MAJ-002：未安装 mpv 时触发 ENOENT；
+- B3-MAJ-003：同 Profile 重启后首页黑屏；
+- B3-MAJ-004：归一化拆分后的专辑封面重复。
+
+单一候选合并处理：
+
+- tokenized media Range/MIME/流式响应；
+- mpv 显式可选、未安装时直接 HTMLAudio；
+- 大 Index 不再重复写入 localStorage，启动自动从授权目录读盘；
+- 每个实际 collection 独立选择并映射封面。
+
+## 4. 阶段 B：固定 SHA 实机复测
 
 完成条件：
 
 ```text
+真实大库扫描收敛
 第一条主区域播放 PASS
 第二条行尾按钮播放 PASS
-第二条切换后 duration > 0
-progress 推进
-pause / resume / seek PASS
+duration > 0、progress 推进
+pause / resume / seek / 声卡 PASS
 重启恢复 PASS
+不同专辑显示各自封面
+媒体、字幕、封面和专辑目录无减少
 进程回收 PASS
 ```
 
-只允许一个证据驱动的最小修复候选。失败后先分析证据，不连续叠加猜测性补丁。
+Index 与 backup 更新属于允许行为，不再搭建临时测试库。
 
 ## 5. 阶段 C：Beta 3 发布前实机范围
 

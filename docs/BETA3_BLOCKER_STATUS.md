@@ -1,107 +1,96 @@
-# Beta 3 播放阻断状态
+# Beta 3 阻断状态
 
 ## 当前判定
 
 ```text
-缺陷：B3-MAJ-001
-状态：未修复
-严重度：Blocker
+PR：#91
+分支：release/beta3-daily-closeout
+修复起点：1f839e5298d96a61ceaf8e4621b17244c0f8946a
+状态：修复候选已完成本地验证，等待 CI 与固定 SHA Windows 实机复测
 发布：NO-GO
-PR：#91，草稿阻断
 Beta 3 Release：不存在
-当前阶段：第一轮诊断增强
 ```
 
-## 最新有效失败
+## 最新正式实机证据
 
-基线：
-
-```text
-branch = release/beta3-daily-closeout
-HEAD = 69fe73b794d467d619ffbcfa5d794c0af23359f7
-```
+真实资源库：`E:\arsm`。
 
 通过：
 
-- 候选哈希；
-- 生产路由；
-- TrackRow 直接激活源码核对；
+- 固定 SHA、分支、远端和 clean tracked/cached diff；
+- 真实大库扫描收敛：137 个作品或专辑、7145 条音轨；
+- RJ 详情页、14 条可播放音轨和 14 条字幕轨道；
+- 两个播放入口能更新当前标题和 queue；
+- 上一首、下一首、字幕和全屏歌词；
+- 音频、字幕、封面和专辑目录数量未减少；
+- 进程最终回收。
+
+阻断：
+
+| 编号 | 状态 | 证据 |
+|---|---|---|
+| B3-MAJ-001 | 待复测 | HTMLAudio 回退后真实 WAV `duration=0:00`、progress 不推进 |
+| B3-MAJ-002 | 待复测 | 未安装 mpv 时仍尝试 `spawn mpv.exe` 并产生 ENOENT |
+| B3-MAJ-003 | 待复测 | 同一 Profile 重启后首页加载异常并黑屏 |
+| B3-MAJ-004 | 待复测 | 归一化拆分多个真实 RJ 集合时可能继承同一 umbrella collection 封面 |
+
+## 用户确认的真实库边界
+
+- `E:\arsm` 可以直接扫描、读取和更新 Index；
+- `library-index.json` 与 backup 可创建、覆盖和更新；
+- 用户仍在持续下载资源，Index 和文件总数变化属于正常状态；
+- 大库读取超过 25 秒不作为失败；
+- 只禁止删除、破坏、异常移动或覆盖音频、字幕、封面和专辑目录。
+
+## 本轮修复
+
+### HTMLAudio
+
+- `yang-kura-media://` 不再直接把 `file://` 交给 `net.fetch`；
+- main 侧明确返回 MIME、`Content-Length`、`Accept-Ranges`；
+- 支持单段 `Range`、206 和 416；
+- 音频通过 Node stream 输出，避免读取完整长音频后才返回。
+
+### mpv
+
+- 新 Profile 默认仅使用 HTMLAudio；
+- 用户仍可在设置中显式启用“优先 mpv”；
+- 显式启用时，main 先检测安装状态；未安装则直接回退，不再进入 mpv backend spawn。
+
+### 重启与大 Index
+
+- 真实大 Index 只保留在当前 Renderer 运行时；超过 2 MB 不再写入 localStorage；
+- 不再把由 Index 派生出的完整 RJWorks/MusicAlbums 再复制保存到 localStorage；
+- 启动时从持久化 root token 自动重新读取磁盘上的 `library-index.json`；
+- 旧派生缓存超过 1 MB 或已有真实 root 授权时自动清理；
+- 大库读取等待门限由 15 秒调整为 120 秒。
+
+### 封面
+
+- 扫描器对每个 collection 独立评分封面候选；
+- 支持 `cover/folder/front/jacket`、RJ 编号文件名、作品目录同名图片和普通图片兜底；
+- 小图标、logo、banner 和 sample 图降低优先级；
+- umbrella collection 被归一化拆分时，每个实际 RJ 重新选择自己目录下的封面；
+- 找不到真实封面时使用每个作品独立生成的占位图，不继承其他作品封面；
+- `CoverArtwork` 的 `src` 改变时重置加载失败状态。
+
+## 自动验证
+
+已通过：
+
 - TypeScript lint；
-- Renderer build；
-- Electron build。
+- Renderer production build；
+- Electron build；
+- 诊断探针表达式与伪 CDP 自检；
+- Range 解析、MIME、封面候选唯一性；
+- umbrella collection 拆分后独立封面映射；
+- 大 Index 运行时缓存与启动恢复源码门禁。
 
-失败：
+本执行环境因无法从 GitHub 下载 Electron 二进制，不能完成本地 Electron GUI E2E；该项交由 GitHub Actions 和后续固定 SHA Windows 实机复测。
 
-```text
-node scripts/test-beta3-rj-detail-playback-entry.mjs
-Timed out waiting for player: RJ detail action backend duration
-```
+## 下一门禁
 
-未测试：
-
-- Windows GUI 播放；
-- pause/resume/seek；
-- 重启恢复；
-- 临时导入事务；
-- 真实音乐目录只读完整链。
-
-## 已确认生产链
-
-```text
-AppRouter
-→ RjDetailPage
-→ TrackRow
-→ useAudioPlayer
-→ usePlayerBackend
-→ HTMLAudio 或 mpv
-```
-
-旧 `src/components/AsmrDetail.tsx` 不在生产链。
-
-## 当前不能下的结论
-
-- 不能确认是 TrackRow Bug；
-- 不能确认是 HTMLAudio readyState 竞态；
-- 不能确认是 mpv duration observer；
-- 不能确认是 IPC；
-- 不能确认测试读取的 PlayerBar 状态正确；
-- 不能用旧 CI 绿灯判定实机通过。
-
-## 第一轮诊断候选
-
-新增 `scripts/beta3-playback-diagnostic-probe.mjs`，通过 Node `--import` 在原 E2E 启动前加载。它不改变产品行为，也不改变测试通过条件。
-
-保存内容：
-
-- trackId、playbackMode、progress、duration、queueCount、currentIndex；
-- HTMLAudio load/play/pause 和 loadedmetadata、durationchange、canplay、error 等事件；
-- requestMpvPlaybackStart、requestResolveTrackMediaUrl、requestMpvPlaybackCommand 请求和结果；
-- mpv ready、duration、time、fallback、error 事件；
-- Renderer console 和 page exception；
-- Electron stdout/stderr；
-- 状态变化时间线和最后快照。
-
-证据文件：
-
-```text
-artifacts/beta3-rj-detail-playback-entry/diagnostic-probe.json
-```
-
-判定规则：
-
-- 若第二条点击后没有 trackId/currentIndex 变化，检查入口或 PlayerState；
-- 若停在 resolving 且无 IPC 请求，检查 Hook/Effect 启动条件；
-- 若 IPC 返回失败，检查 token、路径解析或 mpv 启动；
-- 若 mpv 返回成功但没有 ready/duration，检查 mpv 事件和 observer；
-- 若 HTMLAudio load 后无 metadata/duration，检查连续换源和媒体事件；
-- 若后端已有有效 duration 而 PlayerBar 仍为 0，检查状态同步或测试观测。
-
-只有 Windows artifact 提供明确证据后才修改播放器代码。
-
-## 候选清理
-
-- v1：错误文件，作废。
-- v2：自动专项失败，作废。
-- v3：未执行、未验证、未推送，作废。
-
-后续只从 GitHub PR 最新 HEAD 继续，不从任何压缩包叠加补丁。
+1. 单次推送本轮合并修复；
+2. Player Fast 与 Branch Validation 通过；
+3. 固定新 SHA 使用 `E:\arsm` 复测四个 B3-MAJ；
+4. 必要项全部 PASS 后才进行导入事务收口、合并和 Beta 3 发布。

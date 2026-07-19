@@ -17,16 +17,16 @@ const required = [
 
 const tokens = [
   ['README.md', '正式稳定版目标：`1.0.0`'],
-  ['README.md', '当前阶段：Beta 3 播放阻断第一轮诊断'],
+  ['README.md', '当前阶段：Beta 3 真实库阻断合并修复'],
   ['README.md', '锁定远端基线并拉取一次'],
-  ['PROJECT_STATE.md', '当前任务：第一轮诊断增强，等待 Windows E2E 证据'],
-  ['PROJECT_STATE.md', 'Git 工作方式：本地集中开发与验证完成后统一推送'],
+  ['PROJECT_STATE.md', '当前任务：真实播放、重启黑屏和重复封面合并修复，等待 CI 与固定 SHA 实机复测'],
+  ['PROJECT_STATE.md', 'Git 工作方式：源码快照、本地集中开发、单一提交、统一推送'],
   ['PROJECT_STATE.md', '全项目 UI / 功能 / 按钮全链路审查'],
   ['PROJECT_ROADMAP.md', '0.170.0-beta.3'],
   ['PROJECT_ROADMAP.md', '正式稳定版目标：1.0.0'],
   ['PROJECT_ROADMAP.md', '阶段 D：1.0 全产品审查'],
   ['PROJECT_ROADMAP.md', '阶段 E：Codex 1.0 实机验收'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：第一轮诊断增强，等待 Windows E2E 证据'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：真实播放、重启黑屏和重复封面合并修复，等待 CI 与固定 SHA 实机复测'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '锁定 branch/SHA 并拉取一次'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '正式发布 1.0.0'],
   ['AI_HANDOFF/WORKLOG.md', '### Git Fast Lane v2.1'],
@@ -79,4 +79,4 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log('[verify-handoff] Beta 3 → 1.0 roadmap and Git Fast Lane v2.1 handoff PASS');
+console.log('[verify-handoff] Beta 3 real-library blocker handoff and Git Fast Lane PASS');
