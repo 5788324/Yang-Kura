@@ -1,95 +1,168 @@
 # PROJECT_ROADMAP
 
-> 长期路线真源。代码事实以最新 GitHub `main` 为准；当前状态见 `PROJECT_STATE.md`。
+> 长期路线真源。公开代码事实以 GitHub `main` 为准；Beta 3 候选状态以 PR #91 和最新有效 Codex 报告为准。
 
 ## 1. 当前基线
 
 ```text
-版本：0.169.0-beta.2
-Beta 1 / Beta 2：已发布并完成远端资产校验
-U34～U38：架构、媒体库和播放器边界完成
-U39-A～U39-G：体验、门禁和综合验收完成
-U40-A～U40-D：快速维护、全产品验收、UI 收口和真实库稳定性完成
-Issue #66：已关闭
-当前主线：按需日常维护
-大型功能：长期冻结
+公开版本：0.169.0-beta.2
+下一版本目标：0.170.0-beta.3
+正式稳定版目标：1.0.0
+PR：#91
+候选分支：release/beta3-daily-closeout
+本轮修复起点：1f839e5298d96a61ceaf8e4621b17244c0f8946a
+当前主线：修复真实播放、重启黑屏和重复封面
+发布状态：NO-GO
+大型功能：长期冻结，按用户明确需求单独启动
 ```
 
-## 2. 产品目标
+## 2. 已完成主线
 
-Yang-Kura 是个人使用的 Windows 本地音频媒体库，覆盖 ASMR/RJ、普通音乐、播放器、字幕、歌单、Queue、History、续播、导入、元数据和资源维护。
+- U34～U37：统一 IPC、语义 Token、AppShell 和正式媒体库页面。
+- U38：Queue/Persistence、Player Backend、Subtitle lifecycle 分域。
+- U39：日常体验、授权持久化、架构门禁和完整 Windows/打包验收。
+- U40-A～C：快速维护、全产品旅程和 UI 收口。
+- U40-D～D3：真实库读取、分组、独立 Profile、单实例、主题、歌单、导入页、mpv 和 HTMLAudio 停滞状态收口。
+- Beta 2：已发布并完成远端资产校验。
+
+## 3. 阶段 A：Beta 3 真实库阻断修复
+
+当前四项阻断：
+
+- B3-MAJ-001：HTMLAudio 真实 WAV duration/progress 为 0；
+- B3-MAJ-002：未安装 mpv 时触发 ENOENT；
+- B3-MAJ-003：同 Profile 重启后首页黑屏；
+- B3-MAJ-004：归一化拆分后的专辑封面重复。
+
+单一候选合并处理：
+
+- tokenized media Range/MIME/流式响应；
+- mpv 显式可选、未安装时直接 HTMLAudio；
+- 大 Index 不再重复写入 localStorage，启动自动从授权目录读盘；
+- 每个实际 collection 独立选择并映射封面。
+
+## 4. 阶段 B：固定 SHA 实机复测
+
+完成条件：
 
 ```text
-媒体库可长期日用
-+ 状态可信
-+ UI 清晰
-+ 数据安全
-+ AI 可持续维护
+真实大库扫描收敛
+第一条主区域播放 PASS
+第二条行尾按钮播放 PASS
+duration > 0、progress 推进
+pause / resume / seek / 声卡 PASS
+重启恢复 PASS
+不同专辑显示各自封面
+媒体、字幕、封面和专辑目录无减少
+进程回收 PASS
 ```
 
-## 3. 已完成主线
+Index 与 backup 更新属于允许行为，不再搭建临时测试库。
 
-- U34～U37：统一 IPC、语义 Token、AppShell、正式首页、音声库、RJ 详情和音乐库。
-- U38：Queue/Persistence、Player Backend、Subtitle lifecycle 分域完成。
-- U39：播放器主题、AI 维护入口、授权持久化、浅色对比度、真实空状态、架构门禁和最终 Windows/打包验收完成。
-- U40-A：个人项目风险分级验证和单 PR 收口规则。
-- U40-B：全产品自动用户旅程；6/6 套件、635 个可见控件状态、未覆盖 0、运行时错误 0。
-- U40-C：浅色维护页、稀疏音乐集合、全屏歌词和窄设置页视觉收口。
-- U40-D：Index 读取状态、跨页面一致性、自动化污染、真实库分组、日常设置术语和 Issue #66 收口。
+## 5. 阶段 C：Beta 3 发布前实机范围
 
-## 4. U40-D 后的维护原则
+播放器专项通过后才执行：
 
-默认顺序：
+- `%TEMP%\YangKura-Beta3-Acceptance` 中的 Index 备份与恢复；
+- copy-only；
+- move-only；
+- 同名冲突；
+- 人为失败和回滚；
+- OperationLog；
+- `D:\CloudMusic\VipSongsDownload` 真实目录只读核对，禁止写 Index；
+- 同步 package 与 lockfile 到 `0.170.0-beta.3`；
+- 最终 L3 CI、合并 PR #91、创建 Beta 3 prerelease 并回读资产。
 
-1. 修复真实使用 Bug；
-2. 处理字幕、播放、搜索、日常 UI 或性能问题；
-3. 实现用户明确提出的小型功能；
-4. 仅在触碰相关链路时删除剩余历史兼容源码。
+## 6. 阶段 D：1.0 全产品审查
 
-不再预排连续内部治理轮次，不为目录整齐进行大规模搬迁。
+Beta 3 发布后立即进入 1.0 收口，不开展新大型功能。
 
-重大风险优先：数据丢失、Index 损坏、导入回滚失败、双重播放、读取状态不收敛、安装升级失败和进程残留。
+### 6.1 UI 与入口清单
 
-## 5. 验收体系
+- 枚举所有生产路由、页面、详情页、弹窗、菜单、工具栏、列表行操作、播放器控件、设置项、快捷键和外部打开入口。
+- 对照源码与实际界面建立唯一清单，删除或标记不可达的历史入口。
+- 检查中文文案、图标、禁用态、焦点态、加载态、空状态、错误态和恢复动作。
 
-- `U40-B Full Product Acceptance`：全产品页面、控件、播放、字幕、导入、主题、窗口和键盘旅程。
-- `U40-C UI Polish`：UI 表层和主题一致性。
-- `U40-D Real Library Stability`：共享读取状态、旧测试污染、目录分组、轻量设置、0 导入循环及 U28/U29/U30/U32/U40-B 回归。
-- `Branch Validation`：U28～U32、当前行为 verifier、stable regression 和最终 production build。
-- `docs/CODEX_REAL_MACHINE_FULL_ACCEPTANCE.md`：真实 `E:\arsm` 与 `D:\CloudMusic\VipSongsDownload` 实机只读验收。
+### 6.2 全功能链路审查
 
-## 6. 风险分级
-
-### 低风险
+每个按钮和交互必须验证：
 
 ```text
-TypeScript
-→ production build
-→ 相关 E2E
-→ 定向 verifier
+用户动作
+→ Renderer 事件
+→ Hook / Store / Service
+→ IPC / Electron Main
+→ 本地文件系统、Index、播放器或外部程序
+→ 成功结果
+→ 状态刷新
+→ 错误提示、取消、回滚或重试
 ```
 
-### 中风险
+重点覆盖：
 
-播放器后端、真实文件读取、Index 和受控写入增加 Electron E2E、临时目录、失败回滚和重启测试。
+- 首页、音声库、RJ 详情、音乐库及分组详情；
+- 搜索、筛选、收藏、歌单、Queue、History、续播；
+- HTMLAudio、mpv、fallback、Seek、音量、静音、字幕和全屏；
+- Index 扫描、读取、备份、恢复、维护和损坏处理；
+- copy-only、move-only、冲突、失败回滚和 OperationLog；
+- 元数据覆盖、恢复、DLsite Provider；
+- 设置、主题、窗口、单实例、快捷键；
+- portable、NSIS、安装、升级、重复安装、卸载和用户数据保留。
 
-### 高风险
+### 6.3 自动化与缺陷收口
 
-Electron Main、安装器、依赖、用户数据目录和正式发布变化执行完整回归、portable、NSIS、首次安装、重复安装、卸载、数据保留和进程回收。
+- 扩充可重复的定向 E2E，而不是依赖手工逐页观察。
+- Blocker/Major 全部清零；无效按钮、死入口和错误状态必须清理。
+- 只有触及 Electron Main、依赖、安装器或数据格式时才执行对应 L3 全链。
 
-## 7. 历史兼容边界
+## 7. 阶段 E：Codex 1.0 实机验收
 
-- 旧 `SettingsPage.tsx`、`DiagnosticsPage.tsx`、历史 MVP verifier 和 package 元数据仅作追溯。
-- 不得重新接回生产路由。
-- 新领域必须使用独立模块和严格类型。
-- 当前相对导入循环为 0；Architecture Guardrails 继续禁止新增循环、显式 `any`、Renderer 裸 IPC 和实现层跨层导入。
+自动化和代码审查通过后，由 ChatGPT 生成一次完整 Codex 提示词，用户转发即可。
 
-## 8. 长期冻结
+Codex 必须：
 
-正式下载器、SQLite 全面迁移、OpenList/WebDAV、Player Core v2、完整 AI Agent、Arsm_Transcribe 正式接入、云同步、在线账号、插件市场和无关大型 Provider。
+- fetch 指定 branch/SHA，基线不一致时只报告 `BASELINE_INVALID`；
+- 在真实 Windows、真实媒体目录、真实 GUI、声卡和文件系统上验证；
+- 按页面和功能矩阵记录 PASS/FAIL/NOT TESTED；
+- 保存命令、截图、日志、进程状态、安装卸载结果和缺陷清单；
+- 不自行开发、不改变需求、不生成未授权补丁。
 
-## 9. 自主管理
+Codex 报告无 Blocker/Major 且必要项全部 PASS 后，才能进入 1.0 发布。
 
-用户只接收最终成果。ChatGPT 负责实现、测试、文档、PR、合并和发布；Codex 仅执行自动化无法替代的真实 Windows、显示缩放、声卡、驱动和真实媒体库验收。
+## 8. 阶段 F：清理与 1.0.0 发布
 
-<!-- 历史验证锚点：U39-G：最终综合验收完成；当前任务：按需日常维护。 -->
+- 删除不可达旧页面、废弃组件、重复脚本、无效工作流、临时候选、过期报告和构建遗留。
+- 删除前确认没有生产路由、测试、构建或发布链引用。
+- 更新依赖和版本元数据，但不进行无收益的大规模技术迁移。
+- 执行最终 Windows 构建、portable/NSIS、安装升级卸载、数据保留、进程回收和资产校验。
+- 发布 `1.0.0` 正式版，回读目标提交、资产名、大小和 SHA-256。
+- 同步 README、PROJECT_STATE、PROJECT_ROADMAP、WORKLOG、交接文档和 Release Notes。
+
+## 9. 1.0 后维护模式
+
+默认优先级：
+
+```text
+真实 Bug
+→ 数据 / Index / 导入 / 播放 / 进程
+→ 字幕 / 搜索 / UI / 性能
+→ 明确的小功能
+→ 修改链路内的必要技术债
+```
+
+不制定大型版本路线，不主动解冻大型模块。下载器、SQLite 全面迁移、OpenList/WebDAV、新播放器内核、完整 AI Agent、转录正式接入、云同步、账号和插件市场，只有用户明确提出实际需求后才单独评估和立项。
+
+## 10. 执行工作流
+
+```text
+锁定远端基线并拉取一次
+→ 本地完成分析、开发、批量修改、自动测试和文档
+→ 整理 1～2 个逻辑提交
+→ 统一推送一次
+→ 运行必要 CI
+→ 需要实机时输出 Codex 提示词
+→ 用户转发，Codex 按固定 SHA 验收
+→ ChatGPT 处理报告、合并和发布
+```
+
+禁止逐文件远程提交、边改边推、重复触发 CI 和临时补丁分支。真实 CI 失败时最多追加一次修复推送。

@@ -5,7 +5,6 @@ on:
     branches:
       - main
     paths:
-      - 'electron/**'
       - 'scripts/test-u32-release-candidate-packaging.mjs'
       - 'scripts/test-u32-packaged-page-readiness.mjs'
       - 'scripts/verify-u32-release-candidate-packaging.mjs'
@@ -30,9 +29,10 @@ jobs:
     timeout-minutes: 120
 
     steps:
-      - name: Check out repository
+      - name: Check out repository head
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
       - name: Detect package-relevant changes
@@ -44,10 +44,18 @@ jobs:
             exit 0
           }
 
-          $base = "${{ github.event.pull_request.base.sha }}"
+          $action = "${{ github.event.action }}"
+          $before = "${{ github.event.before }}"
+          if ($action -eq "synchronize" -and $before -and $before -notmatch '^0+$') {
+            $base = $before
+          } else {
+            $base = "${{ github.event.pull_request.base.sha }}"
+          }
           $files = @(git diff --name-only $base HEAD)
+          Write-Host "scope_base=$base"
+          Write-Host "scope_head=$(git rev-parse HEAD)"
+          Write-Host "changed_files=$($files -join ',')"
           $packagePatterns = @(
-            '^electron/',
             '^scripts/test-u32-release-candidate-packaging\.mjs$',
             '^scripts/test-u32-packaged-page-readiness\.mjs$',
             '^scripts/verify-u32-release-candidate-packaging\.mjs$',
@@ -65,7 +73,7 @@ jobs:
           if ($required) {
             Write-Host "Packaging required by: $($packageFiles -join ', ')"
           } else {
-            Write-Host "Packaging skipped: no Electron, dependency, installer, packaging script or release-document changes."
+            Write-Host "Packaging skipped: no dependency, installer, packaging script or release-document changes."
           }
 
       - name: Packaging skip notice

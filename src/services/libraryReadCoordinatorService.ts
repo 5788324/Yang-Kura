@@ -3,7 +3,9 @@ import { libraryIndexNormalizationService } from './libraryIndexNormalizationSer
 import { librarySessionService } from './librarySessionService';
 
 const INDEX_RESULT_KEY = 'yang_kura_last_read_library_index_result';
-const DEFAULT_TIMEOUT_MS = 15_000;
+const DEFAULT_TIMEOUT_MS = 120_000;
+const MAX_PERSISTED_RESULT_BYTES = 2_000_000;
+let latestRuntimeResult: YangKuraReadLibraryIndexResult | null = null;
 
 export interface LibraryReadRequestContext {
   libraryType: YangKuraLibraryType;
@@ -55,18 +57,42 @@ function failureResult(context: LibraryReadRequestContext, status: string, messa
 function persistIfCurrent(result: YangKuraReadLibraryIndexResult, currentOperationId: string): boolean {
   const activeOperationId = librarySessionService.getSnapshot().lastReadAttempt?.operationId;
   if (activeOperationId !== currentOperationId) return false;
+  latestRuntimeResult = result;
   try {
-    localStorage.setItem(INDEX_RESULT_KEY, JSON.stringify(result));
+    const serialized = JSON.stringify(result);
+    if (serialized.length <= MAX_PERSISTED_RESULT_BYTES) {
+      localStorage.setItem(INDEX_RESULT_KEY, serialized);
+    } else {
+      localStorage.removeItem(INDEX_RESULT_KEY);
+    }
   } catch {
-    // Shared session state still converges when browser storage is unavailable.
+    try { localStorage.removeItem(INDEX_RESULT_KEY); } catch { /* no-op */ }
   }
   librarySessionService.recordIndexRead(result, currentOperationId);
   return true;
 }
 
+function readPersistedResult(): YangKuraReadLibraryIndexResult | null {
+  if (latestRuntimeResult) return latestRuntimeResult;
+  try {
+    const raw = localStorage.getItem(INDEX_RESULT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as YangKuraReadLibraryIndexResult;
+    latestRuntimeResult = parsed;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 export const libraryReadCoordinatorService = {
   resultStorageKey: INDEX_RESULT_KEY,
   timeoutMs: DEFAULT_TIMEOUT_MS,
+  maxPersistedResultBytes: MAX_PERSISTED_RESULT_BYTES,
+
+  getLatestResult(): YangKuraReadLibraryIndexResult | null {
+    return readPersistedResult();
+  },
 
   async read(context: LibraryReadRequestContext): Promise<YangKuraReadLibraryIndexResult> {
     const currentOperationId = operationId();

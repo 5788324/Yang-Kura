@@ -30,6 +30,7 @@ export function TrackRow({
     onActivate();
   };
 
+
   const mainContent = (
     <>
       {leading ? <span className="yk-track-row__leading">{leading}</span> : null}
@@ -43,6 +44,7 @@ export function TrackRow({
   return (
     <div
       data-active={active ? 'true' : 'false'}
+      data-track-row-activation={onActivate ? 'direct' : 'none'}
       className={`yk-track-row ${className}`.trim()}
     >
       {onActivate ? (

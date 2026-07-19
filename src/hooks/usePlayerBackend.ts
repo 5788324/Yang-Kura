@@ -90,6 +90,7 @@ async function playHtmlAudioWithTimeout(audio: HTMLAudioElement, extension?: str
 function clearHtmlAudio(audio: HTMLAudioElement | null): void {
   if (!audio) return;
   audio.pause();
+  delete audio.dataset.yangKuraTrackId;
   audio.removeAttribute('src');
   audio.load();
 }
@@ -170,14 +171,16 @@ export function usePlayerBackend({
     };
 
     const handleLoadedMetadata = () => {
+      const loadedTrackId = audio.dataset.yangKuraTrackId;
       const current = stateRef.current.currentTrack;
-      if (current) {
-        const target = resolvePlaybackStart(current, pendingInitialSeekRef.current, stateRef.current.progress);
-        if (target > 0 && Math.abs(audio.currentTime - target) > 0.1) audio.currentTime = target;
-        if (pendingInitialSeekRef.current?.trackId === current.id) pendingInitialSeekRef.current = null;
-      }
+      if (!loadedTrackId || !current || current.id !== loadedTrackId) return;
+
+      const target = resolvePlaybackStart(current, pendingInitialSeekRef.current, stateRef.current.progress);
+      if (target > 0 && Math.abs(audio.currentTime - target) > 0.1) audio.currentTime = target;
+      if (pendingInitialSeekRef.current?.trackId === current.id) pendingInitialSeekRef.current = null;
+
       setPlayerState((previous) => {
-        if (!previous.currentTrack || previous.playbackMode !== 'html-audio') return previous;
+        if (!previous.currentTrack || previous.currentTrack.id !== loadedTrackId) return previous;
         const duration = safeDuration(audio.duration);
         if (!duration) return previous;
         const updatedTrack = { ...previous.currentTrack, duration };
@@ -317,6 +320,7 @@ export function usePlayerBackend({
       if (!result.ok) throw new Error([mpvMessage, result.message].filter(Boolean).join('；'));
       if (cancelled || !audioRef.current) return;
 
+      audioRef.current.dataset.yangKuraTrackId = currentTrack.id;
       audioRef.current.src = result.mediaUrl;
       audioRef.current.volume = stateRef.current.volume;
       audioRef.current.muted = stateRef.current.isMuted;
@@ -330,20 +334,32 @@ export function usePlayerBackend({
       if (cancelled || !audioRef.current) return;
       audioRef.current.currentTime = initialSeek;
       if (pendingInitialSeekRef.current?.trackId === currentTrack.id) pendingInitialSeekRef.current = null;
-      setPlayerState((previous) => ({
-        ...previous,
-        playbackMode: 'html-audio',
-        playbackError: null,
-        playbackNotice: mpvMessage
-          ? (mpvMessage.startsWith('已按设置')
-              ? mpvMessage
-              : `mpv 不可用，已切换 HTMLAudio：${mpvMessage}`)
-          : previous.playbackNotice,
-        resolvedMediaUrl: result.mediaUrl,
-        currentTrack: previous.currentTrack
-          ? { ...previous.currentTrack, mediaUrl: result.mediaUrl }
-          : previous.currentTrack,
-      }));
+      const resolvedDuration = safeDuration(audioRef.current.duration);
+      setPlayerState((previous) => {
+        if (!previous.currentTrack || previous.currentTrack.id !== currentTrack.id) return previous;
+        const updatedTrack = {
+          ...previous.currentTrack,
+          mediaUrl: result.mediaUrl,
+          ...(resolvedDuration > 0 ? { duration: resolvedDuration } : {}),
+        };
+        return {
+          ...previous,
+          playbackMode: 'html-audio',
+          playbackError: null,
+          playbackNotice: mpvMessage
+            ? (mpvMessage.startsWith('已按设置')
+                ? mpvMessage
+                : `mpv 不可用，已切换 HTMLAudio：${mpvMessage}`)
+            : previous.playbackNotice,
+          resolvedMediaUrl: result.mediaUrl,
+          currentTrack: updatedTrack,
+          queue: resolvedDuration > 0
+            ? previous.queue.map((track) => (
+                track.id === updatedTrack.id ? { ...track, duration: resolvedDuration } : track
+              ))
+            : previous.queue,
+        };
+      });
       if (stateRef.current.isPlaying) await playHtmlAudioWithTimeout(audioRef.current, result.extension);
     };
 

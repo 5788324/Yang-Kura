@@ -13,7 +13,7 @@ import {
   pressKey,
   waitFor,
 } from './u40b/cdp-runtime.mjs';
-import { createU40bFixture, seedApplication } from './u40b/fixture.mjs';
+import { createU40bFixture, seedApplication, writeU40bIndex } from './u40b/fixture.mjs';
 import {
   attachCoverageEvidence,
   exerciseEditableControls,
@@ -110,6 +110,46 @@ async function chooseTheme(themeId, label) {
   await screenshot(`theme-${themeId}`);
 }
 
+async function readPlayerState() {
+  return runtime.cdp.evaluate(`(() => {
+    const bar=document.querySelector('#app-player-bar');
+    return {
+      mode:bar?.dataset.u29PlaybackMode??'',
+      trackId:bar?.dataset.u29TrackId??'',
+      progress:Number(bar?.dataset.u29Progress??0),
+      duration:Number(bar?.dataset.u29Duration??0),
+      queueCount:Number(bar?.dataset.u29QueueCount??0),
+      currentIndex:Number(bar?.dataset.u29CurrentIndex??-1),
+      sourceReady:bar?.dataset.u29SourceReady==='true',
+    };
+  })()`);
+}
+
+async function waitForPlayerState(predicate, label, timeout = 20_000) {
+  const deadline = Date.now() + timeout;
+  let lastState = await readPlayerState();
+  while (Date.now() < deadline) {
+    lastState = await readPlayerState();
+    if (predicate(lastState)) return lastState;
+    await delay(100);
+  }
+  throw new Error(`Timed out waiting for ${label}; lastState=${JSON.stringify(lastState)}`);
+}
+
+async function readExistingIndex() {
+  await navigate('settings', `document.querySelector('[data-settings-tab]')`);
+  await recordedClick('[data-settings-tab="paths"]', 'settings:paths');
+  await waitFor(runtime.cdp, `Boolean([...document.querySelectorAll('button')].find((item)=>item.offsetParent!==null&&item.textContent?.trim()==='读取已有记录'&&!item.disabled))`, 'read existing index button');
+  await recordedButtonText('读取已有记录', 'read real fixture index', true);
+  await waitFor(runtime.cdp, `![...document.querySelectorAll('button')].some((button)=>button.textContent?.includes('读取中'))`, 'fixture index read completion', 30_000);
+  await waitFor(runtime.cdp, `document.body.innerText.includes('文件编码：utf8-bom')`, 'fixture index encoding evidence', 30_000);
+}
+
+async function pauseCurrentTrackIfPlaying() {
+  const isPlaying = await runtime.cdp.evaluate(`Boolean(document.querySelector('#app-player-bar button[aria-label="暂停"]'))`);
+  if (isPlaying) await recordedClick('#app-player-bar button[aria-label="暂停"]', 'player:pause seeded real track');
+}
+
 async function setHtmlAudioOnly() {
   await recordedClick('[data-settings-tab="player"]', 'settings:player');
   await waitFor(runtime.cdp, `document.querySelector('select[aria-label="选择本地音频播放后端偏好"]')`, 'player backend preference');
@@ -139,9 +179,17 @@ try {
   })()`);
   assert.ok(rootPathToken.startsWith('yk-root-'), 'temporary fixture token created');
 
+  const index = writeU40bIndex(fixtureDir, rootPathToken, fixture.sizes);
   const seed = await seedApplication(runtime.cdp, rootPathToken, fixture.sizes);
-  await waitFor(runtime.cdp, `document.querySelector('#app-player-bar')?.dataset.u29TrackId === 'u40b-lrc'`, 'seeded player', 20_000);
-  report.userJourneys.push({ name: 'fixture-root-and-seed', status: 'PASS', trackCount: seed.tracks.length, oneSecondAudioCount: fixture.audioFiles.length });
+  await waitFor(runtime.cdp, `document.querySelector('#windows-app-bar')`, 'application shell after fixture reload', 30_000);
+  await readExistingIndex();
+  report.userJourneys.push({
+    name: 'fixture-root-index-and-seed',
+    status: 'PASS',
+    trackCount: index.tracks.length,
+    collectionCount: index.collections.length,
+    oneSecondAudioCount: fixture.audioFiles.length,
+  });
 
   report.windowStates.push({ state: 'native-window-buttons', status: 'PASS', evidence: 'Visible app-bar controls inventoried; process close verified by Electron harness.' });
   for (const item of [
@@ -187,6 +235,14 @@ try {
     await waitFor(runtime.cdp, `document.querySelector('[data-u37c-rj-detail="ready"]')`, 'RJ detail');
     await inventoryVisibleControls(runtime.cdp, 'asmr-detail', 'tracks', report);
     await screenshot('asmr-detail');
+    await recordedClick('#play-all-asmr', 'play real fixture work');
+    const seededPlayer = await waitForPlayerState(
+      (state) => state.trackId === 'u40b-lrc' && state.queueCount === 4 && state.sourceReady,
+      'real-index player authorization',
+      20_000,
+    );
+    await pauseCurrentTrackIfPlaying();
+    report.userJourneys.push({ name: 'real-index-player-queue', status: 'PASS', state: seededPlayer });
     const infoExists = await runtime.cdp.evaluate(`Boolean([...document.querySelectorAll('button')].find((item)=>item.offsetParent!==null&&item.textContent?.includes('作品信息与个人记录')))`);
     if (infoExists) await recordedButtonText('作品信息与个人记录', 'RJ info tab');
     const editorExists = await runtime.cdp.evaluate(`Boolean([...document.querySelectorAll('button')].find((item)=>item.offsetParent!==null&&item.textContent?.includes('编辑作品信息')))`);
@@ -271,8 +327,12 @@ try {
   assert.ok(reverseFocus.tag, 'Shift+Tab focus');
   report.keyboard.push({ key: 'Shift+Tab', context: 'application-shell', status: 'PASS', focused: reverseFocus });
 
-  await waitFor(runtime.cdp, `document.querySelector('#app-player-bar')?.dataset.u29SourceReady==='true'`, 'one-second source ready', 20_000);
-  const startState = await runtime.cdp.evaluate(`(() => { const bar=document.querySelector('#app-player-bar'); return {trackId:bar?.dataset.u29TrackId??'',currentIndex:Number(bar?.dataset.u29CurrentIndex??-1),progress:Number(bar?.dataset.u29Progress??0)}; })()`);
+  const authorizedState = await waitForPlayerState(
+    (state) => state.trackId === 'u40b-lrc' && state.sourceReady && state.queueCount === 4,
+    'one-second authorized fixture source',
+    20_000,
+  );
+  const startState = { trackId: authorizedState.trackId, currentIndex: authorizedState.currentIndex, progress: authorizedState.progress };
   await recordedClick('#app-player-bar button[aria-label="播放"]', 'player:play');
   await waitFor(runtime.cdp, `Number(document.querySelector('#app-player-bar')?.dataset.u29CurrentIndex??-1)!==${startState.currentIndex}||Number(document.querySelector('#app-player-bar')?.dataset.u29Progress??0)>0.2`, 'one-second playback progress or natural end', 15_000);
   await delay(1_500);

@@ -17,6 +17,31 @@ import {
   reconcilePlayerStateWithLibrary,
 } from '../player/playerRuntimePolicy';
 
+function readResumeProgressWithoutBlocking(
+  track: AudioTrack,
+  getResumeProgress: (track: AudioTrack) => number,
+): number {
+  try {
+    const progress = getResumeProgress(track);
+    return Number.isFinite(progress) && progress > 0 ? progress : 0;
+  } catch (error) {
+    console.warn('Playback resume metadata was unavailable; starting from the beginning.', error);
+    return 0;
+  }
+}
+
+function recordTrackStartWithoutBlocking(
+  track: AudioTrack,
+  progress: number,
+  recordTrackStarted: (track: AudioTrack, progress: number) => void,
+): void {
+  try {
+    recordTrackStarted(track, progress);
+  } catch (error) {
+    console.warn('Playback history could not be updated; playback continues.', error);
+  }
+}
+
 export function useAudioPlayer() {
   const restoredQueueState = restorePlayerSessionState();
   const [playerState, setPlayerState] = useState<PlayerState>({
@@ -63,7 +88,7 @@ export function useAudioPlayer() {
     setPlayerState((previous) => {
       const target = resolveAdjacentQueueTarget(previous, 'next');
       if (!target) return previous;
-      const resumeProgress = getResumeProgress(target.track);
+      const resumeProgress = readResumeProgressWithoutBlocking(target.track, getResumeProgress);
       backend.prepareInitialSeek(target.track.id, resumeProgress);
       return activateQueueTarget(
         previous,
@@ -113,7 +138,7 @@ export function useAudioPlayer() {
     setPlayerState((previous) => {
       const target = resolveAdjacentQueueTarget(previous, 'previous');
       if (!target) return previous;
-      const resumeProgress = getResumeProgress(target.track);
+      const resumeProgress = readResumeProgressWithoutBlocking(target.track, getResumeProgress);
       backend.prepareInitialSeek(target.track.id, resumeProgress);
       return activateQueueTarget(
         previous,
@@ -125,9 +150,10 @@ export function useAudioPlayer() {
   }, [backend.prepareInitialSeek, getResumeProgress]);
 
   const handlePlayTrack = useCallback((track: AudioTrack, customQueue?: AudioTrack[]) => {
-    const resumeProgress = getResumeProgress(track);
+    const resumeProgress = readResumeProgressWithoutBlocking(track, getResumeProgress);
     backend.prepareInitialSeek(track.id, resumeProgress);
-    recordTrackStarted(track, resumeProgress);
+
+    // Enter the visible player and queue first. Optional history/resume persistence must never block playback.
     setPlayerState((previous) => startTrackQueue(
       previous,
       track,
@@ -135,6 +161,7 @@ export function useAudioPlayer() {
       resumeProgress,
       isTokenizedLocalTrack(track) ? 'resolving-local-media' : 'mock-simulated',
     ));
+    recordTrackStartWithoutBlocking(track, resumeProgress, recordTrackStarted);
   }, [backend.prepareInitialSeek, getResumeProgress, recordTrackStarted]);
 
   const handleAddToQueue = useCallback((track: AudioTrack) => {

@@ -11,7 +11,7 @@ const topBar = fs.readFileSync('src/app/TopBar.tsx', 'utf8');
 assert.match(service, /'reading' \| 'loaded' \| 'failed' \| 'timed-out' \| 'interrupted'/);
 assert.match(service, /recordIndexReadStarted/);
 assert.match(service, /recordIndexReadTimedOut/);
-assert.match(coordinator, /DEFAULT_TIMEOUT_MS = 15_000/);
+assert.match(coordinator, /DEFAULT_TIMEOUT_MS = 120_000/);
 assert.match(coordinator, /Promise\.race/);
 assert.match(settings, /libraryReadCoordinatorService\.read/);
 assert.match(router, /data-u40d-library-read-state|LibraryReadStateNotice/);

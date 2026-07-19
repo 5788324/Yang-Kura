@@ -43,10 +43,70 @@ import type {
  * receives absolute paths or file:// URLs, and the existing window.yangKura API
  * remains stable while Main and Renderer are migrated domain by domain.
  */
-const invoke = <T = unknown>(channel: IpcChannel, request?: unknown): Promise<T> =>
-  request === undefined
+const playbackTraceChannels = new Set<string>([
+  IPC_CHANNELS.media.resolveTrackUrl,
+  IPC_CHANNELS.player.mpvStart,
+  IPC_CHANNELS.player.mpvCommand,
+  IPC_CHANNELS.player.mpvStatus,
+]);
+const shouldTracePlaybackIpc = process.env.YANG_KURA_E2E_MODE === '1';
+
+function playbackTraceSummary(value: unknown): Record<string, unknown> | string | number | boolean | null {
+  if (value === null || ['string', 'number', 'boolean'].includes(typeof value)) return value as string | number | boolean | null;
+  if (!value || typeof value !== 'object') return typeof value;
+
+  const record = value as Record<string, unknown>;
+  const nestedData = record.data && typeof record.data === 'object'
+    ? record.data as Record<string, unknown>
+    : record;
+  const nestedError = record.error && typeof record.error === 'object'
+    ? record.error as Record<string, unknown>
+    : null;
+  const relativePath = typeof record.relativePath === 'string'
+    ? record.relativePath.split(/[\\/]/).at(-1)
+    : undefined;
+
+  return {
+    ok: record.ok,
+    mode: record.mode ?? nestedData.mode,
+    command: record.command,
+    trackId: record.trackId ?? nestedData.trackId,
+    relativePath,
+    startSeconds: record.startSeconds,
+    extension: record.extension ?? nestedData.extension,
+    errorCode: nestedError?.code,
+    message: record.message ?? nestedError?.message,
+  };
+}
+
+const invoke = <T = unknown>(channel: IpcChannel, request?: unknown): Promise<T> => {
+  const operation = (request === undefined
     ? ipcRenderer.invoke(channel)
-    : ipcRenderer.invoke(channel, request);
+    : ipcRenderer.invoke(channel, request)) as Promise<T>;
+  const trace = shouldTracePlaybackIpc && playbackTraceChannels.has(channel);
+  if (!trace) return operation;
+
+  console.info('[YK_E2E_IPC_REQUEST]', JSON.stringify({
+    channel,
+    request: playbackTraceSummary(request),
+  }));
+  return operation.then(
+    (result) => {
+      console.info('[YK_E2E_IPC_RESULT]', JSON.stringify({
+        channel,
+        result: playbackTraceSummary(result),
+      }));
+      return result;
+    },
+    (error: unknown) => {
+      console.error('[YK_E2E_IPC_ERROR]', JSON.stringify({
+        channel,
+        message: error instanceof Error ? error.message : String(error),
+      }));
+      throw error;
+    },
+  );
+};
 
 const subscribe = <T>(channel: IpcChannel, listener: (payload: T) => void) => {
   const handler = (_event: Electron.IpcRendererEvent, payload: T) => listener(payload);

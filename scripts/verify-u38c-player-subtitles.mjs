@@ -4,7 +4,6 @@ import fs from 'node:fs';
 
 const controller = fs.readFileSync('src/hooks/useAudioPlayer.ts', 'utf8');
 const subtitles = fs.readFileSync('src/hooks/usePlayerSubtitles.ts', 'utf8');
-const state = fs.readFileSync('PROJECT_STATE.md', 'utf8');
 
 assert.match(controller, /usePlayerSubtitles/);
 assert.doesNotMatch(controller, /requestReadTrackLyrics/);
@@ -25,7 +24,4 @@ assert.match(subtitles, /lyrics:\s*undefined/);
 assert.match(subtitles, /mvp26-track-lyrics-missing-file/);
 assert.match(subtitles, /isTokenizedLocalTrack/);
 
-assert.match(state, /U38-C：播放器字幕加载与状态边界完成/);
-assert.match(state, /当前任务：日常体验与真实 Bug 优先/);
-
-console.log('U38-C player subtitle boundary verifier PASS');
+console.log('Current player subtitle boundary verifier PASS');

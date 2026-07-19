@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import fs from 'node:fs';
 
 const required = [
@@ -6,62 +7,78 @@ const required = [
   'PROJECT_ROADMAP.md',
   'AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md',
   'AI_HANDOFF/WORKLOG.md',
-  'docs/U39_FINAL_ACCEPTANCE.md',
-  'docs/architecture/U39_ARCHITECTURE_GUARDRAILS.md',
-  'scripts/verify-u39-final-acceptance.mjs',
-  'scripts/verify-u39f-architecture-guardrails.mjs',
-  'scripts/test-u39f-architecture-guardrails.mjs',
-  '.github/workflows/u39-final-acceptance.yml',
-  '.github/workflows/architecture-guardrails.yml',
+  'docs/GIT_FAST_LANE_V2.md',
+  'docs/CODEX_BETA3_RELEASE_ACCEPTANCE.md',
+  'docs/RELEASE_NOTES_0.170.0-beta.3.md',
+  'release/beta3-release-plan.json',
   'release/beta2-publication-state.json',
+  '.github/workflows/beta3-personal-release.yml',
 ];
 
 const tokens = [
-  ['README.md', 'U39-G：同一候选提交重跑'],
-  ['README.md', '不再预排 U39 轮次'],
-  ['PROJECT_STATE.md', 'U39-G：最终 Windows 回归与打包验收完成'],
-  ['PROJECT_STATE.md', '当前任务：按需日常维护'],
-  ['PROJECT_ROADMAP.md', 'U39-G：最终综合验收完成'],
-  ['PROJECT_ROADMAP.md', '当前任务：按需日常维护'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'U39-G：最终综合验收完成'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '不再存在预排的下一轮 U39'],
-  ['AI_HANDOFF/WORKLOG.md', '### U39-G — 最终综合验收'],
-  ['docs/U39_FINAL_ACCEPTANCE.md', '# U39-G 最终综合验收'],
-  ['docs/U39_FINAL_ACCEPTANCE.md', '不再存在预排的“下一轮 U39”任务'],
-  ['scripts/verify-u39-final-acceptance.mjs', 'U39 final acceptance manifest PASS'],
-  ['.github/workflows/u39-final-acceptance.yml', 'Windows full regression and packaged delivery'],
+  ['README.md', '正式稳定版目标：`1.0.0`'],
+  ['README.md', '当前阶段：Beta 3 R6 点击加固与剩余发布门禁'],
+  ['README.md', '锁定远端基线并拉取一次'],
+  ['PROJECT_STATE.md', '当前任务：提交 R6 TrackRow 直接点击加固，并完成封面与导入事务定向验收'],
+  ['PROJECT_STATE.md', 'Git 工作方式：ChatGPT 只读拉取并交付完整源码包，Codex / DeepSeek 单一提交和推送'],
+  ['PROJECT_STATE.md', '全项目 UI / 功能 / 按钮全链路审查'],
+  ['PROJECT_ROADMAP.md', '0.170.0-beta.3'],
+  ['PROJECT_ROADMAP.md', '正式稳定版目标：1.0.0'],
+  ['PROJECT_ROADMAP.md', '阶段 D：1.0 全产品审查'],
+  ['PROJECT_ROADMAP.md', '阶段 E：Codex 1.0 实机验收'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：交付 R6 TrackRow 直接点击加固，并完成封面与导入事务定向门禁'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '锁定 branch/SHA 并只读拉取一次'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '正式发布 1.0.0'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'ChatGPT 只读拉取 GitHub'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'Codex / DeepSeek 负责把完整源码包应用到固定 SHA'],
+  ['AI_HANDOFF/WORKLOG.md', '### Git Fast Lane v2.1'],
+  ['AI_HANDOFF/WORKLOG.md', '### 用户确认 1.0 最终路线'],
+  ['docs/GIT_FAST_LANE_V2.md', '一个任务只使用一个分支、一个 PR'],
+  ['docs/GIT_FAST_LANE_V2.md', '拉取源码一次'],
+  ['docs/CODEX_BETA3_RELEASE_ACCEPTANCE.md', 'D:\\CloudMusic\\VipSongsDownload'],
+  ['docs/CODEX_BETA3_RELEASE_ACCEPTANCE.md', '%TEMP%\\YangKura-Beta3-Acceptance'],
+  ['docs/RELEASE_NOTES_0.170.0-beta.3.md', '# Yang-Kura 0.170.0 Beta 3 · 正式日用候选'],
+  ['release/beta3-release-plan.json', '"version": "0.170.0-beta.3"'],
   ['release/beta2-publication-state.json', '"releaseId": 355486824'],
+  ['.github/workflows/beta3-personal-release.yml', 'name: Personal Beta 3 Release'],
 ];
 
 const staleTokens = [
-  '当前阶段：U39-F 增量架构防回退门禁完成；准备综合收尾',
+  '当前任务：按需日常维护',
   '当前任务：综合收尾与剩余问题重新核对',
-  '当前任务：U39 审计剩余问题继续按优先级修复',
   '当前任务：发布 0.169.0 Beta 2 个人日用版',
+  'Beta 3 已完成',
+  '1.0.0 已发布',
 ];
-
 const activeDocs = required.slice(0, 5);
-const temporaryFiles = [
+const forbiddenTemporaryFiles = [
   '.github/workflows/u39g-closeout-sync.yml',
+  '.github/workflows/u40d3-persist-fix.yml',
+  '.github/workflows/apply-u40d3-html-audio-fix.yml',
   'scripts/apply-u39g-closeout.mjs',
-  '.github/workflows/u39e-empty-state-sync.yml',
-  '.github/workflows/u38a-branch-orchestrator.yml',
-  'scripts/apply-u38a-refactor.py',
 ];
 const failures = [];
 
-for (const file of required) if (!fs.existsSync(file)) failures.push(`missing ${file}`);
+for (const file of required) {
+  if (!fs.existsSync(file)) failures.push(`missing ${file}`);
+}
 for (const [file, token] of tokens) {
-  if (!fs.existsSync(file) || !fs.readFileSync(file, 'utf8').includes(token)) failures.push(`${file} missing token ${token}`);
+  if (!fs.existsSync(file) || !fs.readFileSync(file, 'utf8').includes(token)) {
+    failures.push(`${file} missing token ${token}`);
+  }
 }
 for (const file of activeDocs) {
   const source = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
-  for (const token of staleTokens) if (source.includes(token)) failures.push(`${file} retains stale token ${token}`);
+  for (const token of staleTokens) {
+    if (source.includes(token)) failures.push(`${file} retains stale token ${token}`);
+  }
 }
-for (const file of temporaryFiles) if (fs.existsSync(file)) failures.push(`temporary file remains: ${file}`);
+for (const file of forbiddenTemporaryFiles) {
+  if (fs.existsSync(file)) failures.push(`temporary file remains: ${file}`);
+}
 
 if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log('[verify-handoff] U39-G final acceptance handoff PASS');
+console.log('[verify-handoff] Beta 3 R6 click hardening and remaining release gates PASS');

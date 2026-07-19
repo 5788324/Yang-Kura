@@ -82,7 +82,7 @@ function makeTrack({ id, title, artist, album, type, relativePath, subtitleRelat
     fileSize: `${sizes[relativePath] ?? 0} B`,
     subtitleRelativePaths,
     addedAt: '2026-07-18T00:00:00.000Z',
-    rjId: type === 'asmr' ? 'RJ400001' : undefined,
+    rjId: type === 'asmr' ? (relativePath.includes('RJ400002') ? 'RJ400002' : 'RJ400001') : undefined,
   };
 }
 
@@ -100,8 +100,99 @@ export function buildSeed(rootPathToken, sizes) {
     { id:'RJ400002', title:'无字幕验收音声', circle:'U40-B 社团', cvs:['U40-B CV 2'], tags:['测试'], tracks:tracks.slice(4,5), releaseDate:'2026-07-18', coverUrl:'', status:'identified', fileCount:1, totalDuration:1, description:'U40-B 临时测试作品', rating:4, personalStatus:'unheard', addedAt:'2026-07-18T00:00:00.000Z' },
   ];
   const albums = [{ id:'u40b-album', title:'Album A', artist:'Artist A', releaseYear:'2026', genre:'Test', coverUrl:'', tracks:[tracks[5]] }];
-  const playlists = [{ id:'u40b-playlist', name:'U40-B 测试歌单', description:'临时测试歌单', coverUrl:'', creator:'本地用户', tracksCount:2, tracks:[tracks[0],tracks[5]], isSystem:false, sourceKind:'user-local' }];
+  const playlistTracks = [tracks[0], tracks[5]].map(({ rootPathToken: _rootPathToken, ...track }) => track);
+  const playlists = [{ id:'u40b-playlist', name:'U40-B 测试歌单', description:'临时测试歌单', coverUrl:'', creator:'本地用户', tracksCount:2, tracks:playlistTracks, isSystem:false, sourceKind:'user-local' }];
   return { tracks, works, albums, playlists };
+}
+
+export function buildU40bIndex(rootPathToken, sizes) {
+  const timestamp = '2026-07-18T00:00:00.000Z';
+  const seed = buildSeed(rootPathToken, sizes);
+  const rootId = 'u40b-root';
+  const collectionByTrack = new Map([
+    ...seed.tracks.slice(0, 4).map((track) => [track.id, 'u40b-rj-1']),
+    [seed.tracks[4].id, 'u40b-rj-2'],
+    [seed.tracks[5].id, 'u40b-album'],
+  ]);
+  const subtitleEntries = seed.tracks.flatMap((track) => (track.subtitleRelativePaths ?? []).map((relativePath, index) => ({
+    id: `subtitle-${track.id}-${index + 1}`,
+    trackId: track.id,
+    sourceKind: 'local-file',
+    language: track.id === 'u40b-lrc' ? 'bilingual' : 'unknown',
+    format: path.extname(relativePath).slice(1).toLowerCase(),
+    relativePath,
+  })));
+  const covers = [
+    { id: 'u40b-cover-rj-1', collectionId: 'u40b-rj-1', sourceKind: 'local-file', relativePath: 'asmr/RJ400001/cover.png', isPrimary: true },
+    { id: 'u40b-cover-album', collectionId: 'u40b-album', sourceKind: 'local-file', relativePath: 'music/Artist A/Album A/cover.png', isPrimary: true },
+  ];
+  return {
+    schemaVersion: 1,
+    generatedAt: timestamp,
+    sourceKind: 'fixture',
+    roots: [{
+      id: rootId,
+      name: 'U40-B 临时媒体库',
+      rootPath: `rootPathToken:${rootPathToken}`,
+      libraryType: 'mixed',
+      scanProfile: 'asmr-rj',
+      sourceKind: 'fixture',
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    }],
+    collections: [
+      {
+        id: 'u40b-rj-1', rootId, collectionType: 'rj_work', title: '全功能验收音声', codeRaw: 'RJ400001', codeNorm: 'RJ400001',
+        circle: 'U40-B 社团', cvs: ['U40-B CV'], tags: ['测试', '双语字幕'], status: 'identified',
+        trackIds: seed.tracks.slice(0, 4).map((track) => track.id), totalDurationSeconds: 4,
+        cover: covers[0], addedAt: timestamp, updatedAt: timestamp,
+      },
+      {
+        id: 'u40b-rj-2', rootId, collectionType: 'rj_work', title: '无字幕验收音声', codeRaw: 'RJ400002', codeNorm: 'RJ400002',
+        circle: 'U40-B 社团', cvs: ['U40-B CV 2'], tags: ['测试'], status: 'identified',
+        trackIds: [seed.tracks[4].id], totalDurationSeconds: 1, addedAt: timestamp, updatedAt: timestamp,
+      },
+      {
+        id: 'u40b-album', rootId, collectionType: 'music_album', title: 'Album A', artist: 'Artist A', album: 'Album A',
+        tags: ['Test'], status: 'identified', trackIds: [seed.tracks[5].id], totalDurationSeconds: 1,
+        cover: covers[1], addedAt: timestamp, updatedAt: timestamp,
+      },
+    ],
+    tracks: seed.tracks.map((track, index) => ({
+      id: track.id,
+      rootId,
+      collectionId: collectionByTrack.get(track.id),
+      kind: 'audio',
+      title: track.title,
+      displayArtist: track.artist,
+      displayAlbum: track.album,
+      rjId: track.rjId,
+      trackNo: index + 1,
+      durationSeconds: 1,
+      source: {
+        id: `source-${track.id}`,
+        trackId: track.id,
+        sourceKind: 'local-file',
+        relativePath: track.sourceRelativePath,
+        extension: 'wav',
+        sizeBytes: sizes[track.sourceRelativePath] ?? 0,
+        mtimeMs: 1,
+      },
+      subtitles: subtitleEntries.filter((subtitle) => subtitle.trackId === track.id),
+      tags: ['U40-B'],
+      addedAt: timestamp,
+    })),
+    covers,
+    subtitles: subtitleEntries,
+    warnings: [],
+  };
+}
+
+export function writeU40bIndex(root, rootPathToken, sizes) {
+  const index = buildU40bIndex(rootPathToken, sizes);
+  const body = Buffer.from(JSON.stringify(index, null, 2), 'utf8');
+  fs.writeFileSync(path.join(root, 'library-index.json'), Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), body]));
+  return index;
 }
 
 export async function seedApplication(cdp, rootPathToken, sizes) {
@@ -109,20 +200,10 @@ export async function seedApplication(cdp, rootPathToken, sizes) {
   await cdp.evaluate(`(() => {
     const seed=${JSON.stringify(seed)};
     const now=new Date().toISOString();
-    const rootPathToken=${JSON.stringify(rootPathToken)};
-    localStorage.setItem('sqlite_rj_works', JSON.stringify(seed.works));
-    localStorage.setItem('sqlite_music_albums', JSON.stringify(seed.albums));
     localStorage.setItem('sqlite_favorites', JSON.stringify(['u40b-music']));
     localStorage.setItem('yang_kura_user_playlists_v1', JSON.stringify({version:1,updatedAt:now,playlists:seed.playlists}));
     localStorage.setItem('sqlite_settings', JSON.stringify({audioLibPath:'<已授权临时音声库>',musicLibPath:'<已授权临时音乐库>',asmrPaths:[],musicPaths:[],tempDownloadPath:'<未设置>',currentTheme:'acrylic-mist',enableOverlay:true,privacyMode:true}));
-    const roots={asmr:{rootPathToken,displayName:'U40-B 临时媒体库',libraryType:'asmr',selectedAt:now},music:{rootPathToken,displayName:'U40-B 临时媒体库',libraryType:'music',selectedAt:now},mixed:{rootPathToken,displayName:'U40-B 临时媒体库',libraryType:'mixed',selectedAt:now}};
-    sessionStorage.setItem('yang_kura_u28_authorized_roots_v1', JSON.stringify(roots));
-    localStorage.setItem('yang_kura_persisted_authorized_roots_v1', JSON.stringify(roots));
-    localStorage.setItem('yang_kura_library_session_v1', JSON.stringify({version:1,updatedAt:now,selectedRoots:{mixed:{libraryType:'mixed',displayName:'U40-B 临时媒体库',selectedAt:now}},lastIndex:{libraryType:'mixed',displayName:'U40-B 临时媒体库',indexRelativePath:'library-index.json',readAt:now,generatedAt:now,rootCount:1,collectionCount:3,trackCount:6,warningCount:0}}));
-    localStorage.setItem('yang_kura_player_queue_v1', JSON.stringify({version:1,updatedAt:now,queue:seed.tracks,currentTrackId:seed.tracks[0].id,currentIndex:0,progress:0,volume:0.65,isMuted:false,loopMode:'all',playCompletionMode:'continue-queue'}));
-    localStorage.setItem('last_played_track_id', seed.tracks[0].id);
-    localStorage.setItem('last_played_progress', '0');
-    localStorage.setItem('last_played_track_json', JSON.stringify(seed.tracks[0]));
+    for (const key of ['sqlite_rj_works','sqlite_music_albums','yang_kura_player_queue_v1','last_played_track_id','last_played_progress','last_played_track_json']) localStorage.removeItem(key);
     location.reload();
     return true;
   })()`);

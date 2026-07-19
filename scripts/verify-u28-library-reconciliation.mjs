@@ -13,15 +13,15 @@ const coordinator = fs.readFileSync('src/services/libraryReadCoordinatorService.
 const checks = [
   ['daily settings owns persisted root authorization', settings.includes('yang_kura_persisted_authorized_roots_v1') && settings.includes('localStorage.setItem(PERSISTED_ROOT_KEY')],
   ['daily settings uses shared read coordinator', settings.includes('libraryReadCoordinatorService.read')],
-  ['stale ASMR state is replaced', app.includes('asmrBase = mapped.rjWorks') && !app.includes('if (mapped.rjWorks.length > 0) asmrBase')],
-  ['stale music state is replaced', app.includes('musicBase = mapped.musicAlbums')],
+  ['stale ASMR state is replaced', app.includes('rjWorksBaseRef.current = mapped.rjWorks') && !app.includes('if (mapped.rjWorks.length > 0)')],
+  ['stale music state is replaced', app.includes('musicAlbumsBaseRef.current = mapped.musicAlbums')],
   ['real index refresh replaces both libraries', app.includes('setRjWorks(metadataOverrideService.applyAsmrOverrides(mapped.rjWorks))') && app.includes('setMusicAlbums(metadataOverrideService.applyMusicAlbumOverrides(mapped.musicAlbums))')],
   ['router uses shared read state', router.includes('LibraryReadStateNotice') && router.includes("readAttempt?.status === 'reading'")],
   ['top bar uses shared read state', topBar.includes('data-u40d-library-status') && topBar.includes("attempt?.status === 'reading'")],
   ['session service records full read lifecycle', ['reading', 'loaded', 'failed', 'timed-out', 'interrupted'].every((status) => sessionServiceSource.includes(`'${status}'`))],
   ['session service owns cross-page index event', sessionServiceSource.includes("const INDEX_READ_EVENT_NAME = 'yang-kura-library-index-loaded'") && sessionServiceSource.includes('emitIndexReadUpdated()')],
   ['session service accepts persisted authorization', sessionServiceSource.includes("const PERSISTED_ROOT_SESSION_KEY = 'yang_kura_persisted_authorized_roots_v1'")],
-  ['coordinator has timeout and stale-operation protection', coordinator.includes('DEFAULT_TIMEOUT_MS = 15_000') && coordinator.includes('persistIfCurrent') && coordinator.includes('activeOperationId !== currentOperationId')],
+  ['coordinator has timeout and stale-operation protection', coordinator.includes('DEFAULT_TIMEOUT_MS = 120_000') && coordinator.includes('persistIfCurrent') && coordinator.includes('activeOperationId !== currentOperationId')],
   ['historical diagnostics runtime is archived', shell.includes('data-u40d-maintenance-runtime="current-only"') && !shell.includes("import('./DiagnosticsPage')")],
   ['daily settings does not expose implementation terminology', !settings.includes('Renderer') && !settings.includes('contract') && !settings.includes('npm run')],
 ];
@@ -141,7 +141,7 @@ if (snapshot.lastReadAttempt?.status !== 'loaded' || snapshot.lastIndex?.trackCo
 if (indexReadEventCount !== 1) throw new Error(`首次成功读取应触发一次跨页面事件，实际 ${indexReadEventCount}。`);
 
 librarySessionService.recordIndexReadStarted({ operationId: 'read-2', libraryType: 'asmr', displayName: selectedRoot.displayName });
-librarySessionService.recordIndexReadTimedOut({ operationId: 'read-2', libraryType: 'asmr', displayName: selectedRoot.displayName, message: '等待超过 15 秒。' });
+librarySessionService.recordIndexReadTimedOut({ operationId: 'read-2', libraryType: 'asmr', displayName: selectedRoot.displayName, message: '等待超过 120 秒。' });
 snapshot = librarySessionService.getSnapshot();
 if (snapshot.lastReadAttempt?.status !== 'timed-out') throw new Error('读取超时没有收敛到 timed-out。');
 if (snapshot.lastIndex?.sha256 !== 'first-index') throw new Error('超时错误清除了仍可用的上一次成功资源库。');

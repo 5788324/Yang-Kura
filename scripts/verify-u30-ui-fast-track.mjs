@@ -25,7 +25,7 @@ for (const [label, ok] of [
   ['compact player contract exists', css.includes('#app-player-bar .u30-player-time') && css.includes('#windows-app-bar .u30-runtime-label') && topBar.includes('id="windows-app-bar"')],
   ['App composes extracted shell UI', app.includes('<TopBar') && app.includes('<QueueDrawer') && app.includes('<PlayerOverlayHost')],
   ['U30 UI matrix command exists', pkg.scripts?.['test:u30:ui-matrix'] === 'node scripts/test-u30-ui-matrix.mjs'],
-  ['branch gate runs U30 UI matrix', workflow.includes('Run U30 UI and accessibility matrix') && workflow.includes('artifacts/u30-ui-matrix')],
+  ['branch gate runs U30 UI matrix', workflow.includes('npm run test:u30:ui-matrix')],
 ]) {
   assert.equal(ok, true, label);
   console.log('PASS\t' + label);

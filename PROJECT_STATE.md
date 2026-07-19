@@ -3,126 +3,93 @@
 ## 当前状态
 
 ```text
-核心版本：0.169.0-beta.2
-代码事实来源：GitHub main
-Beta 1 / Beta 2：已发布并完成远端资产校验
-U34～U38：架构、正式媒体库与播放器边界完成
-U39-A～U39-G：日常体验、架构门禁与最终综合验收完成
-U40-A：个人项目快速维护规则完成
-U40-B：全产品用户旅程与交互覆盖验收完成
-U40-C：UI 细节收口完成
-U40-D：真实资源库稳定性修复与 Issue #66 收口完成
-U40-D2：最新 main 真实库定向实机复测完成
-U40-D3：HTMLAudio 停滞状态收口完成
-当前任务：按需日常维护
-大型功能：长期冻结
+公开版本：0.169.0-beta.2
+下一版本目标：0.170.0-beta.3
+主分支事实来源：GitHub main
+候选分支：release/beta3-daily-closeout
+PR 当前远端 HEAD：84e3caabec37a8de3843a51068b15bce76385524
+PR #91：开放并保持阻断草稿
+Beta 3 Release：尚未创建
+发布结论：PARTIAL / NO-GO
+当前任务：提交 R6 TrackRow 直接点击加固，并完成封面与导入事务定向验收
+Git 工作方式：ChatGPT 只读拉取并交付完整源码包，Codex / DeepSeek 单一提交和推送
+大型功能：长期冻结，只有用户明确提出后才启动
 ```
 
-当前版本仍为 `0.169.0-beta.2`，既有 Beta 2 Release 不变。
+## 已完成范围
 
-## 发布事实
+- Beta 1 / Beta 2 已发布并完成远端资产校验。
+- U34～U40-D3 的架构、正式媒体库、日常体验、真实库稳定性和 HTMLAudio 停滞状态主线已完成。
+- Issue #66 已关闭。
+- 双资源库、Local JSON Index、播放器、字幕、Queue、History、续播、导入事务、元数据覆盖、portable 和 NSIS 主链已存在。
 
-- Release：`v0.169.0-beta.2`
-- Release ID：`355486824`
-- 目标提交：`14bc78a81c827882efc232c6c6c12f0d8ed04542`
-- 资产：portable、NSIS setup、`SHA256SUMS.txt`
-- 证据：`release/beta2-publication-state.json`
+## Beta 3 门禁状态
 
-## 已完成产品能力
+R5 Windows fresh clone 基线：`84e3caabec37a8de3843a51068b15bce76385524`。该 SHA 的 GitHub Actions 已全部 PASS；Windows 验收工作区另外包含尚未提交的 TrackRow 直接点击加固。
 
-- ASMR/RJ 与普通音乐双资源库。
-- Local JSON Index 写入、读取、备份、恢复和维护。
-- HTMLAudio、mpv、fallback、Seek、Queue、History 和续播。
-- LRC、SRT、VTT、ASS 与双语字幕。
-- copy-only、受控 move-only、失败回滚和 OperationLog。
-- 本地元数据覆盖、恢复和 DLsite 单 RJ Provider。
-- 首页、音声库、RJ 详情、音乐库及分组详情。
-- portable、NSIS、安装、重复安装、卸载和用户数据保留。
-
-## U40-D～U40-D3 缺陷收口
-
-| 编号 | 状态 | 处理结果 |
-|---|---|---|
-| U40-B01 | 已修复 | 读取进入共享协调器；15 秒超时、错误、重试、迟到结果和中断恢复均有明确状态。 |
-| U40-B02 | 已修复 | 设置、顶栏、首页、音声库和音乐库统一读取同一 `LibrarySessionSnapshot`。 |
-| U40-B03 | 已修复并实测 | 显式隔离 profile；日常 profile 计数在实测前后保持 776；队列和历史以当前资源库为有效边界。 |
-| U40-M01 | 已修复并实测 | `E:\arsm` 在 15 秒内读取为 75 个集合、3540 条轨道；不再只有两个错误一级目录集合。 |
-| U40-M02 | 已修复并实测 | 日常设置、主题、歌单文案和导入页生产语言通过实机复测。 |
-| U40-D2-R01 | 已修复并实测 | `YANG_KURA_USER_DATA_ROOT` 隔离、单实例和连续三次重启恢复通过。 |
-| U40-D2-R02 | 已修复并实测 | 歌单不再显示字面量 `$0`；三主题设置与顶栏同步并可跨重启保持。 |
-| U40-O01 | 环境观察 | mpv 不在启动进程 PATH 时不可用；产品已有手动选择 mpv 可执行文件入口。 |
-| U40-D3 | 已修复 | HTMLAudio 元数据读取和启动各增加 10 秒超时；失败时清除伪播放状态并提示选择 mpv，不再无限停在 `0:00 / 0:00`。 |
-
-## Issue #66 关闭结论
-
-- `SettingsPage.tsx` 和 `DiagnosticsPage.tsx` 只保留历史兼容源码，不再进入生产路由。
-- 新增读取协调、集合规范化和测试 profile 清理服务，未继续向旧巨型页面或 `electron/main.ts` 堆叠职责。
-- `fixtureLibraryScanner` 与 `virtualLibraryPathParser` 的历史相对导入循环已消除；当前相对导入循环为 0。
-- 历史 package 元数据和旧 verifier 仅作发布追溯；不得重新作为当前产品能力入口。
-- Issue #66 已完成，不再保留开放结构治理清单。
-
-## 验证事实
-
-```text
-U40-D 合并提交：5daa0102b1114b6213d3240aa7cb4e66285ca7ab
-U40-D2 合并提交：b13a9149d1fcaf4ee409326c0fc4e219806aad88
-U40-D3 合并提交：03a3b75f95974b3370e12cb34dde20a4429e17fb
-U40-D3 验证候选：596358dbc8cb3afc9a87b1967aad260f5db0e29a
-U40-D3 Run：29636584817
-```
-
-U40-D3 候选已通过 Architecture Guardrails，以及 U40-D Real Library Stability 中的 TypeScript/构建、定向回归、资源库与重启、播放器/字幕/持久化会话、主题/窗口/键盘和日常页面链。该补丁未触发 portable、NSIS、安装/卸载或 Release 资产链。
-
-## 真实库实机验收
-
-U40-D2 Codex 使用正确基线和规定入口完成：
-
-```text
-分支：main
-HEAD = origin/main = b13a9149d1fcaf4ee409326c0fc4e219806aad88
-音声库：E:\arsm
-读取结果：75 个集合、3540 条轨道，15 秒内完成
-独立 profile：%TEMP%\YangKura-U40D2-Retest\profile
-日常 profile：测试前后均为 776 项
-单实例：PASS
-完整重启：3 次 PASS
-进程回收：PASS
-```
-
-临时加入本机 mpv 目录到测试进程 PATH 后，真实音轨从 `0:29 / 3:12` 推进到 `0:47 / 3:12`，Seek 可用，全屏歌词加载 33 行，证明 mpv 主链、进度和字幕可用。该结果不等同于证明所有真实编码均可由 HTMLAudio 播放；因此 U40-D3 另行收口基础播放停滞和错误提示。
-
-仍保留为实机未覆盖项：真实音乐库本轮读取、临时导入事务、外部打开、物理 DPI/减少动画、完整键盘焦点、损坏 Index 和临时歌单删除确认。不得将这些项目推断为 PASS 或 FAIL。
-
-## 当前产品判断
-
-| 维度 | 判断 |
+| 项目 | 结果 |
 |---|---|
-| 核心功能完整度 | 高，个人本地媒体库主链已完成 |
-| Windows 可交付性 | Beta 2 已发布并完成远端资产验证 |
-| 读取状态可信度 | 共享状态、15 秒超时和真实库读取均已验证 |
-| 日常 profile | 独立 profile、日常数据不受影响、队列与历史恢复均已实测 |
-| 真实库分组 | `E:\arsm` 已按 75 个实际集合呈现，无 0 轨错误集合结论 |
-| 播放 | mpv 真实播放、Seek、字幕通过；HTMLAudio 停滞会在 10 秒内明确失败 |
-| 日常 UI | 三主题、歌单文案、导入页语言和设置入口已实测收口 |
-| 架构 | 增量门禁有效，历史相对导入循环为 0 |
-| 非阻断观察 | 第二次启动约 20 秒恢复首页，后续仅在真实影响明显时处理 |
-| 当前重点 | 真实使用反馈与明确小型需求 |
+| 固定 SHA / fresh clone | PASS |
+| `E:\arsm` 大库读取 | PASS，137 个作品或专辑、6979 条音轨 |
+| 第一条主区域 / 第二条行尾 | PASS，queue=14，duration=3:12 / 14:43 |
+| pause/resume/seek、上一首/下一首、音量/静音 | PASS |
+| HTMLAudio 后端与 mpv 缺失回退 | PASS，无错误 |
+| 同 Profile 重启与继续播放 | PASS |
+| 媒体、字幕、封面、目录保护 | PASS，四类数量未减少 |
+| TrackRow 直接点击加固进入远端 | 待 R6 提交和 CI |
+| 多个真实专辑独立封面 | PARTIAL，自动 verifier PASS，实机视觉核对待完成 |
+| 真实小样本导入事务 | 待完成 |
+| 物理声卡听感 | 自动工具无法确认；最终实机可人工补听 |
 
-## 快速开发模式
+B3-MAJ-001、B3-MAJ-002、B3-MAJ-003 已由 R5 实机关闭。B3-MAJ-004 只剩真实多专辑视觉证据。R6 不重新执行整套播放验收，只需固定 SHA 快速点击复核、封面视觉核对和导入事务门禁。
 
-- 普通 UI、Hook 和状态：TypeScript、构建、相关 E2E、定向验证。
-- 播放器 Renderer：播放器定向链和 U29 Electron E2E。
-- 设置、主题和日常页面：UI 快速验证。
-- 架构增量：Architecture Guardrails。
-- Electron Main、安装器、依赖、用户数据目录和正式发布变化：完整 Windows 与打包验收。
-- 一个任务一个 PR；功能、必要文档、工作日志和交接同一轮收口。
+## 已确认的发布终局
 
-## 长期冻结
+Beta 3 完成后不直接宣布项目完成，必须继续执行：
 
-正式下载器、SQLite 全面迁移、OpenList/WebDAV、Player Core v2、完整 AI Agent、Arsm_Transcribe 正式集成、云同步、在线账号、插件市场和无关大型 Provider。
+```text
+Beta 3 播放与发布收口
+→ 全项目 UI / 功能 / 按钮全链路审查
+→ 自动化回归和问题修复
+→ Codex Windows 实机全量验收
+→ 清理无用源码、脚本、工作流、文档和构建遗留
+→ 正式发布 1.0.0
+→ 进入维护迭代
+```
 
-## AI 自主管理规则
+1.0.0 的定位是当前个人本地媒体库主链的正式稳定版，不新增大型模块。正式发布后默认只处理 Bug、UI 优化和明确的小功能。
 
-用户不承担测试、排错、构建、Git、文档或发布操作。ChatGPT 负责规划、开发、自动测试、PR、合并和交付；物理硬件、真实声卡和主观显示效果由 Codex 按专项文档验证。
+## 1.0 前全量审查边界
 
-<!-- 历史验证锚点：U39-G：最终 Windows 回归与打包验收完成。 -->
+- 枚举所有生产路由、页面、弹窗、菜单、快捷键和可点击按钮。
+- 核对每个入口的完整链路：UI → Hook/Service → IPC/Electron Main → 文件系统或播放器后端 → 状态反馈、错误提示和恢复。
+- 检查空按钮、失效入口、重复入口、不可达旧页面、错误文案、加载/空状态、取消和回滚。
+- 覆盖资源库、RJ 详情、音乐库、播放、字幕、搜索、筛选、收藏、歌单、Queue、History、续播、导入事务、元数据、设置、主题、窗口、安装升级卸载和数据保留。
+- 自动化通过后，由 Codex 使用固定分支与 SHA 在真实 Windows、真实媒体、GUI、声卡和文件系统上复验。
+- Blocker/Major 未清零、关键按钮链路未覆盖或实机报告不完整时，不得发布 1.0.0。
+
+## Git 与 Codex 协作
+
+- ChatGPT 只读拉取并锁定源码基线，在本地完成分析、开发、自动测试、CI 诊断、文档和完整源码包；不直接写入 GitHub。
+- Codex / DeepSeek 负责从固定 branch/SHA 应用源码包、创建单一提交并推送，避免逐文件提交和重复触发 CI。
+- ChatGPT 在推送后只读取 PR、CI 与日志；需要修复时重新交付完整源码包。
+- Codex 继续负责 Windows GUI、真实媒体、声卡、mpv、重启和文件系统验收。
+
+## 仍需处理
+
+1. Codex / DeepSeek 从远端 `84e3caab...` 应用 R6 完整源码包，创建一个提交并推送一次。
+2. 只读确认新固定 SHA 的 Branch、Player Fast、U40-B、U40-D 和文档/架构工作流结果。
+3. Codex 在新 SHA 上做定向实机复核：第一条主区域、第二条行尾和进程收尾；不重复整套长流程。
+4. 在真实库抽查至少 12 个不同 RJ/专辑，记录封面路径/截图，确认不存在统一继承同一封面。
+5. 在 `%TEMP%` 小样本中完成 copy-only、move-only、目标冲突、失败回滚与 OperationLog；不得使用真实媒体做破坏性测试。
+6. 门禁全部 PASS 后再同步版本到 `0.170.0-beta.3`，合并 PR #91 并创建 Beta 3 prerelease。
+7. Beta 3 后执行全项目功能/UI/按钮链审计、清理无用文件并发布 `1.0.0`。
+
+## 禁止事项
+
+- 不提前合并 PR #91 或创建 Beta 3 Release。
+- 不把旧绿色 CI 当作最新 Windows 实机通过。
+- 不让用户承担测试、构建、Git 或排错。
+- 不使用逐文件提交和反复推送的临时补丁工作流。
+- 不在诊断证据明确前修改播放器行为。
+- 不解冻下载器、SQLite 全面迁移、OpenList/WebDAV、新播放器内核、完整 AI Agent、转录正式接入、云同步、账号或插件市场；只有用户明确需要时另立任务。

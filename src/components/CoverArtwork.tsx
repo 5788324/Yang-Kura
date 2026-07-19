@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { coverArtworkService, type CoverArtworkFallbackKind } from '../services/coverArtworkService';
 
 interface CoverArtworkProps {
@@ -27,6 +27,9 @@ export default function CoverArtwork({
     [title, subtitle, kind],
   );
   const [useFallback, setUseFallback] = useState(false);
+  useEffect(() => {
+    setUseFallback(false);
+  }, [src]);
   const hasDirectSource = Boolean(src && !useFallback);
   const finalSrc = hasDirectSource ? src : fallbackSrc;
 
