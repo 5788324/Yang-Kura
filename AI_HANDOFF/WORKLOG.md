@@ -187,7 +187,7 @@ Git：源码快照试运行、本地集中修改、单一提交、统一推送
 - copy/move 复用 U31 transaction、OperationLog、rollback；Index patch 强制备份。
 - `libraryReadCoordinatorService.acceptResult` 接收写后读回结果，避免 UI 使用旧缓存。
 - 生产音声库移除“刷新卡片显示信息”及随机封面/虚构音轨 handler。
-- Vite 从 `package.json` 注入 `__YANG_KURA_APP_VERSION__`；Settings About 不再硬编码 Beta 2。
+- Vite 从 `package.json` 注入 `__YANG_KURA_APP_VERSION__`；Settings About 通过内部 `APP_VERSION` 读取版本，不再硬编码 Beta 2。
 - 源码版本同步为 `0.170.0-beta.3`。
 - Importer production chunk 从约 255 KB 降至 22.03 KB；历史 importer services 退出生产 graph，留 U41-D 批量清理。
 - 新增 U41-B focused verifier、Windows workflow 和可见 Importer Electron E2E。

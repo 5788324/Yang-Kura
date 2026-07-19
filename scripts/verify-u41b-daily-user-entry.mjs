@@ -55,7 +55,7 @@ assert.doesNotMatch(app, /handleRefetchRjMetadata|randomCover|演示数据未联
 assert.doesNotMatch(router, /onRefetchRjMetadata/);
 assert.doesNotMatch(libraryPage, /刷新卡片显示信息|onRefetchRjMetadata|randomCover/);
 
-assert.match(settings, /YANG_KURA_APP_VERSION/);
+assert.match(settings, /APP_VERSION/);
 assert.doesNotMatch(settings, /0\.169\.0-beta\.2/);
 assert.match(versionSource, /__YANG_KURA_APP_VERSION__/);
 assert.match(vite, /__YANG_KURA_APP_VERSION__/);

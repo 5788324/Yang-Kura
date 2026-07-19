@@ -91,7 +91,7 @@ YANG_KURA_E2E_IMPORT_TARGET_ROOT
 
 - `package.json` 与 `package-lock.json` 为 `0.170.0-beta.3`；
 - Vite 从 `package.json` 注入 `__YANG_KURA_APP_VERSION__`；
-- `SettingsPageDaily` 读取 `YANG_KURA_APP_VERSION`；
+- `SettingsPageDaily` 读取内部的 `APP_VERSION`；
 - 页面不再硬编码 Beta 2。
 
 ## 构建结果
