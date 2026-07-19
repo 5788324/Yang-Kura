@@ -14,7 +14,7 @@ const read = (file) => {
 const checks = [
   ['src/app/AppRouter.tsx', ["import('../components/SettingsPageDaily')", 'LibraryReadStateNotice', "readAttempt?.status === 'reading'"]],
   ['src/components/SettingsPageDaily.tsx', ['data-settings-tab={tab.id}', 'libraryReadCoordinatorService.read', '读取已有记录', '一键扫描并应用', 'data-u40d-read-status']],
-  ['src/services/libraryReadCoordinatorService.ts', ['DEFAULT_TIMEOUT_MS = 15_000', 'Promise.race', 'recordIndexReadTimedOut', 'libraryIndexNormalizationService.normalize']],
+  ['src/services/libraryReadCoordinatorService.ts', ['DEFAULT_TIMEOUT_MS = 120_000', 'Promise.race', 'recordIndexReadTimedOut', 'libraryIndexNormalizationService.normalize']],
   ['src/services/librarySessionService.ts', ["'reading' | 'loaded' | 'failed' | 'timed-out' | 'interrupted'", 'recordIndexReadStarted', 'recordIndexReadTimedOut']],
   ['src/services/automationProfileCleanupService.ts', ['FIXTURE_PATTERN', 'removedQueueTracks', 'normalizeCachedIndex']],
   ['src/services/libraryIndexNormalizationService.ts', ['RJ_PATTERN', 'MAX_REASONABLE_WORK_TRACKS', 'splitCollection', 'sourceTracks.length === 0']],
