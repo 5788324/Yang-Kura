@@ -20,10 +20,10 @@ export default function SettingsMaintenanceEntry({
             <p className="text-[10px] font-bold tracking-[0.16em]">AI 维护</p>
           </div>
           <h2 id="u39b-settings-maintenance-title" className="mt-1 text-base font-black text-text-primary">
-            诊断、性能与工程工具独立打开
+            资源状态与性能检查按需打开
           </h2>
           <p className="mt-2 max-w-3xl text-xs leading-relaxed text-text-muted">
-            日常设置只保留主题、播放和资源库配置。真实资源状态、性能检查及完整历史诊断按需进入维护页面，避免设置页持续堆叠工程信息。
+            日常设置只保留主题、播放和资源库配置。当前维护页提供真实资源统计和按需性能检查；历史工程诊断已经归档，不再作为运行时功能。
           </p>
           <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-text-secondary">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border-color/60 bg-card-bg/45 px-2.5 py-1">
@@ -32,7 +32,7 @@ export default function SettingsMaintenanceEntry({
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border-color/60 bg-card-bg/45 px-2.5 py-1">
               <Gauge className="h-3 w-3 text-cyan-300" aria-hidden="true" />
-              完整诊断按需展开
+              真实状态与性能
             </span>
           </div>
         </div>

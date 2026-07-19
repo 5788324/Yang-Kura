@@ -108,7 +108,7 @@ function runElectronVersion() {
 console.log('[Yang-Kura] Desktop setup starts.');
 console.log('[Yang-Kura] This script intentionally runs npm install + npm rebuild electron because npm ci --ignore-scripts can leave Electron incomplete on Windows.');
 console.log('[Yang-Kura] Final validation runs electron --version.');
-runCommand('Installing / refreshing Electron dependency', npmCommand, ['install', 'electron@^39.8.1', '--save-dev']);
+runCommand('Installing / refreshing Electron dependency', npmCommand, ['install', 'electron@^39.8.10', '--save-dev']);
 runCommand('Rebuilding Electron binary metadata', npmCommand, ['rebuild', 'electron']);
 runCommand('Patching electron-builder blockmap compatibility', process.execPath, [path.join(cwd, 'scripts', 'patch-electron-builder-mvp29.mjs')]);
 runElectronVersion();

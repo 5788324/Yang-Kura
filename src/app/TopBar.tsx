@@ -50,6 +50,9 @@ export default function TopBar({ librarySessionSnapshot }: TopBarProps) {
       </div>
       <div className="flex min-w-0 items-center gap-2 font-sans">
         <span
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
           data-u30-runtime-status
           data-u40d-library-status={attempt?.status ?? (librarySessionSnapshot.lastIndex ? 'loaded' : 'idle')}
           className={`${tone} u30-runtime-label flex min-w-0 items-center space-x-1 font-semibold text-[10px]`}

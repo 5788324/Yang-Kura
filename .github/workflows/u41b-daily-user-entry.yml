@@ -1,0 +1,58 @@
+name: U41-B Daily User Entry
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/components/ImporterPage.tsx'
+      - 'src/features/importer/importerDailyWorkflow.ts'
+      - 'src/features/library/AsmrLibraryPage.tsx'
+      - 'src/services/libraryReadCoordinatorService.ts'
+      - 'src/components/SettingsPageDaily.tsx'
+      - 'src/appVersion.ts'
+      - 'src/App.tsx'
+      - 'src/app/AppRouter.tsx'
+      - 'electron/main.ts'
+      - 'electron/preload/contracts.ts'
+      - 'src/types/electron-api.d.ts'
+      - 'vite.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/verify-u41b-daily-user-entry.mjs'
+      - 'scripts/test-u41b-importer-daily-e2e.mjs'
+      - 'scripts/u40b/cdp-runtime.mjs'
+      - '.github/workflows/u41b-daily-user-entry.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: u41b-daily-user-entry-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-daily-user-entry:
+    name: Windows importer and daily-entry regression
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Prepare Electron
+        run: npm rebuild electron
+      - name: Validate sources
+        run: |
+          npm run lint
+          npm run build
+          npm run build:electron
+          npm run verify:u41b-daily-user-entry
+      - name: Import transaction backend
+        run: npm run test:u31:importer-transactions
+      - name: Daily importer visible E2E
+        run: npm run test:u41b:importer-e2e

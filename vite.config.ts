@@ -1,10 +1,17 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import fs from 'node:fs';
 import path from 'path';
 import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
+  const packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf8')) as { version?: string };
+  const appVersion = typeof packageJson.version === 'string' ? packageJson.version : '0.0.0-dev';
+
   return {
+    define: {
+      __YANG_KURA_APP_VERSION__: JSON.stringify(appVersion),
+    },
     base: './',
     plugins: [react(), tailwindcss()],
     resolve: {

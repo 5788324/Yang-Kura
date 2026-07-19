@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { APP_VERSION } from '../appVersion';
 import {
   AudioLines,
   CircleCheck,
@@ -361,7 +362,7 @@ export default function SettingsPageDaily({ settings, updateSettings }: Settings
             <div className="rounded-xl border border-border-color/60 p-3"><strong className="text-xs">目录隐私</strong><p className="mt-1 text-[11px] text-text-muted">日常界面只显示目录名称，不展示完整路径。</p></div>
             <div className="rounded-xl border border-border-color/60 p-3"><strong className="text-xs">媒体安全</strong><p className="mt-1 text-[11px] text-text-muted">读取和扫描不会删除、覆盖或移动媒体文件。</p></div>
           </div>
-          <p className="text-xs text-text-muted">当前版本：0.169.0-beta.2。高级检修集中在独立的 AI 维护页面。</p>
+          <p className="text-xs text-text-muted">当前版本：{APP_VERSION}。高级检修集中在独立的 AI 维护页面。</p>
         </section>
       )}
     </div>

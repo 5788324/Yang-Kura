@@ -6,6 +6,7 @@ declare global {
   interface YangKuraSelectLibraryRootRequest {
     libraryType: YangKuraLibraryType;
     reason: 'user-selected-library-root';
+    selectionRole?: 'library-root' | 'import-source' | 'import-target';
   }
 
   interface YangKuraSelectLibraryRootSuccessResult {

@@ -54,7 +54,6 @@ export interface AppRouterProps {
   onUpdateRjWork: (updated: RJWork, source?: AsmrMetadataSaveContext) => void;
   onClearRjWorkOverride: (workId: string) => void;
   onDeleteRjWork: (id: string) => void;
-  onRefetchRjMetadata: (rjId: string) => void;
   onAddRjWorkTracksToPlaylist: (rjId: string, playlistId: string) => void;
   onUpdateMusicAlbum: (updated: MusicAlbum) => void;
   onUpdateMusicTrack: (updated: AudioTrack) => void;
@@ -139,7 +138,6 @@ export default function AppRouter(props: AppRouterProps) {
           searchQuery={props.searchQuery}
           onUpdateRjWork={props.onUpdateRjWork}
           onDeleteRjWork={props.onDeleteRjWork}
-          onRefetchRjMetadata={props.onRefetchRjMetadata}
           onAddRjWorkTracksToPlaylist={props.onAddRjWorkTracksToPlaylist}
           playlists={props.playlists}
         />,
@@ -240,8 +238,7 @@ export default function AppRouter(props: AppRouterProps) {
             musicAlbums={props.musicAlbums}
             setMusicAlbums={props.setMusicAlbums}
             setAsmrDetailId={props.setAsmrDetailId}
-            onRefetchRjMetadata={props.onRefetchRjMetadata}
-            onBackToSettings={() => props.setCurrentPage('settings')}
+              onBackToSettings={() => props.setCurrentPage('settings')}
           />
         </DiagnosticsRuntimeBoundary>
       )}

@@ -3,6 +3,7 @@ import type { LibraryType } from '../ipc/contracts.js';
 export type SelectLibraryRootRequest = {
   libraryType: LibraryType;
   reason: 'user-selected-library-root';
+  selectionRole?: 'library-root' | 'import-source' | 'import-target';
 };
 
 export type ScannerDryRunRequest = {

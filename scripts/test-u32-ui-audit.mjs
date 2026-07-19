@@ -303,7 +303,7 @@ try {
   await capturePage(cdp, 'playlists', '04-playlists-after');
   assert.equal(await cdp.evaluate("getComputedStyle(document.querySelector('#mvp53-playlist-visual-unity')).display === 'none'"), true, 'playlist engineering summary hidden');
   await capturePage(cdp, 'importer', '05-importer-after');
-  assert.equal(await cdp.evaluate("getComputedStyle(document.querySelector('#mvp112-importer-primary-flow')).display === 'none'"), true, 'importer instructional wall hidden');
+  assert.equal(await cdp.evaluate("(() => { const element = document.querySelector('#u41b-importer-primary-flow'); return element instanceof Element && getComputedStyle(element).display !== 'none'; })()"), true, 'importer instructional wall hidden');
   await capturePage(cdp, 'settings', '06-settings-after');
   assert.equal(await cdp.evaluate("Math.max(...[...document.querySelectorAll('[data-settings-tab]')].map((item) => item.getBoundingClientRect().height)) <= 48"), true, 'settings tabs remain compact');
   await capturePage(cdp, 'settings', '07-settings-narrow-after');

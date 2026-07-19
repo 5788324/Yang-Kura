@@ -10,7 +10,6 @@ import {
   Headphones,
   List,
   ListPlus,
-  RefreshCw,
   Search,
   Square,
   Trash2,
@@ -36,7 +35,6 @@ export interface AsmrLibraryPageProps {
   searchQuery: string;
   onUpdateRjWork?: (updated: RJWork) => void;
   onDeleteRjWork?: (id: string) => void;
-  onRefetchRjMetadata?: (rjId: string) => void;
   onAddRjWorkTracksToPlaylist?: (rjId: string, playlistId: string) => void;
   playlists?: Playlist[];
 }
@@ -84,7 +82,6 @@ export default function AsmrLibraryPage({
   searchQuery,
   onUpdateRjWork,
   onDeleteRjWork,
-  onRefetchRjMetadata,
   onAddRjWorkTracksToPlaylist,
   playlists = [],
 }: AsmrLibraryPageProps) {
@@ -306,17 +303,6 @@ export default function AsmrLibraryPage({
         title="编辑显示信息"
         onClick={(event) => { event.stopPropagation(); openEditor(work); }}
       ><Edit3 aria-hidden="true" /></button>
-      <button
-        type="button"
-        className="u37b-icon-button"
-        aria-label={`刷新 ${work.title}`}
-        title="刷新卡片显示信息"
-        onClick={(event) => {
-          event.stopPropagation();
-          onRefetchRjMetadata?.(work.id);
-          showFeedback('本地显示信息已刷新。');
-        }}
-      ><RefreshCw aria-hidden="true" /></button>
       <button
         type="button"
         className="u37b-icon-button"

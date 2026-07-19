@@ -10,6 +10,8 @@ const stableScripts = [
   'lint',
   'build:electron',
   'verify:handoff',
+  'verify:u41b-daily-user-entry',
+  'verify:u41c-runtime-patch',
   'test:mpv:settings-runtime',
   'test:mpv:stability-runtime',
   'test:importer:smoke',

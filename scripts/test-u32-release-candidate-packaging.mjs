@@ -178,7 +178,7 @@ async function waitForPath(filePath, shouldExist, timeout = 60_000) {
 }
 
 function productProcessIds() {
-  const command = "$items=@(Get-CimInstance Win32_Process -Filter \"Name='Yang Kura.exe'\" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty ProcessId); ConvertTo-Json -InputObject $items -Compress";
+  const command = "$items=@(Get-Process -Name 'Yang Kura' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id); ConvertTo-Json -InputObject $items -Compress";
   const result = spawnSync('powershell.exe', ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', command], {
     encoding: 'utf8',
     windowsHide: true,
@@ -228,6 +228,7 @@ async function launchAndInspect(executable, label, profileRoot) {
       LOCALAPPDATA: profileRoot,
       YANG_KURA_ELECTRON_DEV: '0',
       YANG_KURA_E2E_MODE: '1',
+      YANG_KURA_E2E_USER_DATA_ROOT: profileRoot,
       YANG_KURA_MPV_PATH: path.join(profileRoot, '不存在 mpv', 'mpv.exe'),
       ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
     },
