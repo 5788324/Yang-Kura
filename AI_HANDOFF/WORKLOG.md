@@ -140,3 +140,15 @@ Git：源码快照试运行、本地集中修改、单一提交、统一推送
 - 完整产品 Journey 提前执行并设置 10 分钟 step 上限，避免前序重复 E2E 全部完成后才暴露 fixture 失败。
 - 工作方式已更新：ChatGPT 只读拉取 GitHub，在本地完成开发、测试、文档和完整源码包，不再创建 Blob、Commit、PR 评论或更新分支。
 - Codex / DeepSeek 负责将源码包应用到固定 SHA、创建单一提交并推送；Codex 继续执行 `E:\arsm`、声卡、mpv 和同 Profile 重启等实机验收。
+
+### R5 Windows PASS 与 R6 点击加固收口
+
+- PR #91 远端 R5 HEAD：`84e3caabec37a8de3843a51068b15bce76385524`；该 SHA 的 Documentation、Architecture、Branch、Player Fast、U40-B、U40-D、U32 和 Personal Beta 3 Release scope 全部 PASS。
+- Windows fresh clone 使用 `E:\arsm` 读取 137 个作品或专辑、6979 条音轨；RJ00331318 两个播放入口、duration/progress、pause/resume/seek、上一首/下一首、音量/静音和同 Profile 重启续播 PASS。
+- 资源保护：音频 8086、字幕 11149、封面 4895、专辑目录 267，均未减少；无删除、异常移动或重命名。
+- B3-MAJ-001、B3-MAJ-002、B3-MAJ-003 关闭。B3-MAJ-004 自动映射验证 PASS，但真实多专辑视觉核对尚未完成。
+- R5 实机工作区把 `TrackRow` 主区域从父级 `onClickCapture` 加固为按钮直接 `onClick`，且全部自动化和真实库复测 PASS；该一文件产品修复尚未进入远端。
+- R6 源码包固化 direct activation，并让 Beta 3 详情页 E2E 明确断言 `data-track-row-activation=direct`。
+- 后续不重复全套播放测试，只执行新 SHA 两入口短测、真实多专辑封面核对，以及 `%TEMP%` 小样本导入事务/冲突/失败回滚/OperationLog。
+- Git 分工保持：ChatGPT 只读拉取和交付源码包；Codex / DeepSeek 单一提交和推送；Codex 负责 Windows 实机门禁。
+

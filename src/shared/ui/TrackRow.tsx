@@ -1,4 +1,4 @@
-import type { Key, KeyboardEvent, MouseEvent, ReactNode } from 'react';
+import type { Key, KeyboardEvent, ReactNode } from 'react';
 
 export interface TrackRowProps {
   key?: Key;
@@ -30,14 +30,6 @@ export function TrackRow({
     onActivate();
   };
 
-  const handleClickCapture = (event: MouseEvent<HTMLDivElement>) => {
-    if (!onActivate) return;
-    const target = event.target instanceof Element ? event.target : null;
-    if (!target?.closest('.yk-track-row__main, .u37c-track-play')) return;
-    event.preventDefault();
-    event.stopPropagation();
-    onActivate();
-  };
 
   const mainContent = (
     <>
@@ -52,12 +44,11 @@ export function TrackRow({
   return (
     <div
       data-active={active ? 'true' : 'false'}
-      data-track-row-activation={onActivate ? 'captured' : 'none'}
+      data-track-row-activation={onActivate ? 'direct' : 'none'}
       className={`yk-track-row ${className}`.trim()}
-      onClickCapture={handleClickCapture}
     >
       {onActivate ? (
-        <button type="button" className="yk-track-row__main">
+        <button type="button" className="yk-track-row__main" onClick={onActivate}>
           {mainContent}
         </button>
       ) : (

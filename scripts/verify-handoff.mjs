@@ -17,16 +17,16 @@ const required = [
 
 const tokens = [
   ['README.md', '正式稳定版目标：`1.0.0`'],
-  ['README.md', '当前阶段：Beta 3 真实库阻断合并修复'],
+  ['README.md', '当前阶段：Beta 3 R6 点击加固与剩余发布门禁'],
   ['README.md', '锁定远端基线并拉取一次'],
-  ['PROJECT_STATE.md', '当前任务：U40-D 工作流范围与 U40-B real-index fixture 修复'],
+  ['PROJECT_STATE.md', '当前任务：提交 R6 TrackRow 直接点击加固，并完成封面与导入事务定向验收'],
   ['PROJECT_STATE.md', 'Git 工作方式：ChatGPT 只读拉取并交付完整源码包，Codex / DeepSeek 单一提交和推送'],
   ['PROJECT_STATE.md', '全项目 UI / 功能 / 按钮全链路审查'],
   ['PROJECT_ROADMAP.md', '0.170.0-beta.3'],
   ['PROJECT_ROADMAP.md', '正式稳定版目标：1.0.0'],
   ['PROJECT_ROADMAP.md', '阶段 D：1.0 全产品审查'],
   ['PROJECT_ROADMAP.md', '阶段 E：Codex 1.0 实机验收'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：修复 U40-D 工作流范围与 U40-B 旧 fixture，完成 CI 后进入固定 SHA 实机复测'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '当前任务：交付 R6 TrackRow 直接点击加固，并完成封面与导入事务定向门禁'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '锁定 branch/SHA 并只读拉取一次'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '正式发布 1.0.0'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'ChatGPT 只读拉取 GitHub'],
@@ -81,4 +81,4 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log('[verify-handoff] Beta 3 real-library blocker handoff and Git Fast Lane PASS');
+console.log('[verify-handoff] Beta 3 R6 click hardening and remaining release gates PASS');

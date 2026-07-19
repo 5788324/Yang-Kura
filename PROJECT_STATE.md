@@ -7,11 +7,11 @@
 下一版本目标：0.170.0-beta.3
 主分支事实来源：GitHub main
 候选分支：release/beta3-daily-closeout
-本轮 CI 修复父 SHA：6caf3ce347ea094d465856800d5071736e2ac159
+PR 当前远端 HEAD：84e3caabec37a8de3843a51068b15bce76385524
 PR #91：开放并保持阻断草稿
 Beta 3 Release：尚未创建
-发布结论：FAIL / NO-GO
-当前任务：U40-D 工作流范围与 U40-B real-index fixture 修复
+发布结论：PARTIAL / NO-GO
+当前任务：提交 R6 TrackRow 直接点击加固，并完成封面与导入事务定向验收
 Git 工作方式：ChatGPT 只读拉取并交付完整源码包，Codex / DeepSeek 单一提交和推送
 大型功能：长期冻结，只有用户明确提出后才启动
 ```
@@ -23,25 +23,25 @@ Git 工作方式：ChatGPT 只读拉取并交付完整源码包，Codex / DeepSe
 - Issue #66 已关闭。
 - 双资源库、Local JSON Index、播放器、字幕、Queue、History、续播、导入事务、元数据覆盖、portable 和 NSIS 主链已存在。
 
-## Beta 3 阻断状态
+## Beta 3 门禁状态
 
-最新正式 Windows 真实库报告：
+R5 Windows fresh clone 基线：`84e3caabec37a8de3843a51068b15bce76385524`。该 SHA 的 GitHub Actions 已全部 PASS；Windows 验收工作区另外包含尚未提交的 TrackRow 直接点击加固。
 
 | 项目 | 结果 |
 |---|---|
 | 固定 SHA / fresh clone | PASS |
-| `E:\arsm` 大库扫描 | PASS，137 个作品或专辑、7145 条音轨 |
-| 详情、队列切换、上一首/下一首 | PASS |
-| 字幕和全屏歌词 | PASS |
-| 媒体、字幕、封面、目录保护 | PASS |
-| HTMLAudio duration/progress | FAIL |
-| mpv 未安装回退 | FAIL，`spawn mpv.exe ENOENT` |
-| 同 Profile 重启恢复 | FAIL，首页黑屏 |
-| 专辑封面 | FAIL，多个作品显示同一封面 |
+| `E:\arsm` 大库读取 | PASS，137 个作品或专辑、6979 条音轨 |
+| 第一条主区域 / 第二条行尾 | PASS，queue=14，duration=3:12 / 14:43 |
+| pause/resume/seek、上一首/下一首、音量/静音 | PASS |
+| HTMLAudio 后端与 mpv 缺失回退 | PASS，无错误 |
+| 同 Profile 重启与继续播放 | PASS |
+| 媒体、字幕、封面、目录保护 | PASS，四类数量未减少 |
+| TrackRow 直接点击加固进入远端 | 待 R6 提交和 CI |
+| 多个真实专辑独立封面 | PARTIAL，自动 verifier PASS，实机视觉核对待完成 |
+| 真实小样本导入事务 | 待完成 |
+| 物理声卡听感 | 自动工具无法确认；最终实机可人工补听 |
 
-播放器、重启和封面合并修复已进入远端候选。R4 大部分 Windows CI 通过，唯一失败来自 U40-B 仍使用已废弃的 legacy localStorage fixture；当前轮改为真实 library-index 授权读取，并拆分 U40-D focused/full-E2E scope。
-
-真实库允许更新 `library-index.json` 和 backup。后续安全检查只保护音频、字幕、封面和专辑目录不被删除或破坏。
+B3-MAJ-001、B3-MAJ-002、B3-MAJ-003 已由 R5 实机关闭。B3-MAJ-004 只剩真实多专辑视觉证据。R6 不重新执行整套播放验收，只需固定 SHA 快速点击复核、封面视觉核对和导入事务门禁。
 
 ## 已确认的发布终局
 
@@ -77,11 +77,13 @@ Beta 3 播放与发布收口
 
 ## 仍需处理
 
-1. 由 Codex / DeepSeek 应用完整源码包并单次推送 U40-D workflow 与 U40-B real-index fixture 修复；ChatGPT 只读取定向 CI。
-2. 使用新固定 SHA 在 `E:\arsm` 验证 duration/progress、声卡、pause/resume/seek、重启恢复和独立专辑封面。
-3. 四个 B3-MAJ 全部 PASS 后完成真实库导入事务、冲突、失败回滚和 OperationLog。
-4. 发布 Beta 3 前同步 `package.json` 与 `package-lock.json` 到 `0.170.0-beta.3`。
-5. Beta 3 后执行全项目功能/UI/按钮链审计、清理无用文件并发布 `1.0.0`。
+1. Codex / DeepSeek 从远端 `84e3caab...` 应用 R6 完整源码包，创建一个提交并推送一次。
+2. 只读确认新固定 SHA 的 Branch、Player Fast、U40-B、U40-D 和文档/架构工作流结果。
+3. Codex 在新 SHA 上做定向实机复核：第一条主区域、第二条行尾和进程收尾；不重复整套长流程。
+4. 在真实库抽查至少 12 个不同 RJ/专辑，记录封面路径/截图，确认不存在统一继承同一封面。
+5. 在 `%TEMP%` 小样本中完成 copy-only、move-only、目标冲突、失败回滚与 OperationLog；不得使用真实媒体做破坏性测试。
+6. 门禁全部 PASS 后再同步版本到 `0.170.0-beta.3`，合并 PR #91 并创建 Beta 3 prerelease。
+7. Beta 3 后执行全项目功能/UI/按钮链审计、清理无用文件并发布 `1.0.0`。
 
 ## 禁止事项
 

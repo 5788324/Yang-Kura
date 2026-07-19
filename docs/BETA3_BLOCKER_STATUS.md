@@ -5,34 +5,35 @@
 ```text
 PR：#91
 分支：release/beta3-daily-closeout
-CI 修复父 SHA：6caf3ce347ea094d465856800d5071736e2ac159
-状态：产品修复候选已进入远端；正在修复 U40-D workflow 范围和 U40-B 旧 fixture
-发布：NO-GO
+远端 R5 HEAD：84e3caabec37a8de3843a51068b15bce76385524
+状态：R5 CI 全绿；Windows 实机 PASS；TrackRow 直接点击加固仍为本地未提交 R6 变更
+发布：PARTIAL / NO-GO
 Beta 3 Release：不存在
 ```
 
-## 最新正式实机证据
+## 最新 R5 实机证据
 
 真实资源库：`E:\arsm`。
 
-通过：
+- 137 个作品或专辑、6979 条音轨；
+- RJ00331318：14 条可播放音轨和 14 条字幕音轨；
+- 第一条主区域 queue=14、duration=3:12、progress 推进；
+- pause/resume、Seek 约 1:16；
+- 第二条行尾 duration=14:43、progress 推进；
+- 上一首/下一首、音量/静音、歌词浮窗入口；
+- HTMLAudio，无播放错误；
+- 同 Profile 重启后自动读库并继续第二条；
+- 关闭后 Electron/mpv 进程为 0；
+- 音频 8086、字幕 11149、封面 4895、专辑目录 267，均未减少。
 
-- 固定 SHA、分支、远端和 clean tracked/cached diff；
-- 真实大库扫描收敛：137 个作品或专辑、7145 条音轨；
-- RJ 详情页、14 条可播放音轨和 14 条字幕轨道；
-- 两个播放入口能更新当前标题和 queue；
-- 上一首、下一首、字幕和全屏歌词；
-- 音频、字幕、封面和专辑目录数量未减少；
-- 进程最终回收。
-
-阻断：
-
-| 编号 | 状态 | 证据 |
+| 编号 / 门禁 | 状态 | 证据 / 待办 |
 |---|---|---|
-| B3-MAJ-001 | 待复测 | HTMLAudio 回退后真实 WAV `duration=0:00`、progress 不推进 |
-| B3-MAJ-002 | 待复测 | 未安装 mpv 时仍尝试 `spawn mpv.exe` 并产生 ENOENT |
-| B3-MAJ-003 | 待复测 | 同一 Profile 重启后首页加载异常并黑屏 |
-| B3-MAJ-004 | 待复测 | 归一化拆分多个真实 RJ 集合时可能继承同一 umbrella collection 封面 |
+| B3-MAJ-001 | PASS | 真实 WAV duration/progress、pause/resume/seek 正常 |
+| B3-MAJ-002 | PASS | 默认 HTMLAudio，不再产生 mpv ENOENT |
+| B3-MAJ-003 | PASS | 重启自动读库和继续播放正常 |
+| B3-MAJ-004 | PARTIAL | 自动 verifier PASS；需真实多专辑封面视觉核对 |
+| TrackRow direct activation | 待提交 | R5 实机工作区已 PASS，R6 源码包将其固化 |
+| Importer transaction | 待验收 | 临时小样本 copy/move/conflict/rollback/OperationLog |
 
 ## 用户确认的真实库边界
 
@@ -90,10 +91,12 @@ Beta 3 Release：不存在
 
 ## 下一门禁
 
-1. Codex / DeepSeek 从固定父 SHA 应用完整源码包，并单次推送本轮合并修复；
-2. Player Fast 与 Branch Validation 通过；
-3. 固定新 SHA 使用 `E:\arsm` 复测四个 B3-MAJ；
-4. 必要项全部 PASS 后才进行导入事务收口、合并和 Beta 3 发布。
+1. Codex / DeepSeek 从 `84e3caab...` 应用 R6 源码包，单一提交、单次推送；
+2. 新 SHA 的 Branch、Player Fast、U40-B、U40-D 和文档/架构门禁通过；
+3. 固定新 SHA 短版复核两个播放入口和进程收尾；
+4. 抽查至少 12 个真实 RJ/专辑封面，确认独立映射；
+5. `%TEMP%` 小样本完成导入事务、冲突、失败回滚和 OperationLog；
+6. 必要项全部 PASS 后才允许合并和 Beta 3 发布。
 
 
 ## R4 CI 失败复核

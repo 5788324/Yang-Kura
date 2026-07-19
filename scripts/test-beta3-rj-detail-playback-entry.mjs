@@ -399,6 +399,12 @@ try {
   await clickVisibleText(runtime.cdp, WORK_TITLE);
   await waitForBodyText(runtime.cdp, '音轨与资源文件');
 
+  const activationMode = await runtime.cdp.evaluate(`(() => {
+    const row = document.querySelector('.u37c-rj-track-list .yk-track-row:nth-child(1)');
+    return row?.getAttribute('data-track-row-activation') ?? '';
+  })()`);
+  assert.equal(activationMode, 'direct', 'RJ detail main-row must use direct button activation');
+
   await physicalClick(runtime.cdp, '.u37c-rj-track-list .yk-track-row:nth-child(1) .yk-track-row__main');
   const mainEntry = await waitForPlayer(
     runtime.cdp,
