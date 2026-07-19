@@ -269,7 +269,7 @@ try {
   }
 
   await inspectPage('playlists', `document.querySelector('#mvp53-playlist-visual-unity')`);
-  await inspectPage('importer', `document.querySelector('#mvp112-importer-primary-flow')`);
+  await inspectPage('importer', `document.querySelector('#u41b-importer-primary-flow')`);
   assert.equal(await runtime.cdp.evaluate(`!document.body.innerText.includes('示例扫描结果')`), true, 'truthful importer empty state');
   report.userJourneys.push({ name: 'importer-empty-state-truthfulness', status: 'PASS' });
 

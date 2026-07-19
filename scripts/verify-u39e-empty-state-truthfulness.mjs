@@ -19,6 +19,6 @@ assert.match(css, /同一专辑或艺术家/);
 assert.match(css, /零散音频或需要人工确认/);
 assert.match(u32, /capturePage\(cdp, 'music-lib'/);
 assert.match(u32, /capturePage\(cdp, 'importer'/);
-assert.match(u32, /mvp112-importer-primary-flow/);
+assert.match(u32, /u41b-importer-primary-flow/);
 
 console.log('U39-E empty-state truthfulness verifier PASS');

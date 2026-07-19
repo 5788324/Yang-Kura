@@ -9,7 +9,7 @@ const versionMatch = /^(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]
 if (!versionMatch) throw new Error(`Invalid semantic version: ${pkg.version}`);
 const [major, minor] = versionMatch.slice(1, 3).map(Number);
 if (major === 0 && minor < 150) throw new Error(`Version predates MVP112: ${pkg.version}`);
-required(read('scripts/run-stable-regression.mjs'), 'verify:mvp112-ui-audit-bugfix', 'verify:stable chain');
+required(read('scripts/run-stable-regression.mjs'), 'verify:u41b-daily-user-entry', 'verify:stable daily-entry chain');
 
 const app = read("src/App.tsx");
 const router = read("src/app/AppRouter.tsx");
@@ -36,7 +36,7 @@ required(downloader, 'const showLegacyDownloaderDemo = false', "legacy downloade
 forbidden(downloader, "const id = Date.now().toString()", "duplicate notification id");
 
 const importer = read("src/components/ImporterPage.tsx");
-required(importer, "mvp112-importer-primary-flow", "daily importer flow");
+required(importer, "u41b-importer-primary-flow", "daily importer flow");
 required(importer, "高级导入工具（识别、冲突与执行）", "user-facing importer fold");
 
 const diagnostics = read("src/components/DiagnosticsPage.tsx");
