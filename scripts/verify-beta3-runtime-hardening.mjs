@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ts from 'typescript';
@@ -71,6 +72,9 @@ const appSource = fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8');
 const coordinatorSource = fs.readFileSync(path.join(root, 'src/services/libraryReadCoordinatorService.ts'), 'utf8');
 const coverComponentSource = fs.readFileSync(path.join(root, 'src/components/CoverArtwork.tsx'), 'utf8');
 const preferenceSource = fs.readFileSync(path.join(root, 'src/services/mpvPlaybackPreferenceService.ts'), 'utf8');
+const u40bFixtureSource = fs.readFileSync(path.join(root, 'scripts/u40b/fixture.mjs'), 'utf8');
+const u40bJourneySource = fs.readFileSync(path.join(root, 'scripts/test-u40b-full-product-journey.mjs'), 'utf8');
+const u40dWorkflowSource = fs.readFileSync(path.join(root, '.github/workflows/u40d-real-library-stability.yml'), 'utf8');
 
 assert.match(mainSource, /Accept-Ranges': 'bytes'/);
 assert.match(mainSource, /Content-Range/);
@@ -86,8 +90,34 @@ assert.match(coordinatorSource, /MAX_PERSISTED_RESULT_BYTES/);
 assert.match(coordinatorSource, /DEFAULT_TIMEOUT_MS = 120_000/);
 assert.match(coverComponentSource, /useEffect\(\(\) => \{\s*setUseFallback\(false\);\s*\}, \[src\]\)/s);
 assert.match(preferenceSource, /return 'html-audio-only'/);
+assert.match(u40bFixtureSource, /writeU40bIndex/);
+assert.match(u40bFixtureSource, /library-index\.json/);
+assert.doesNotMatch(u40bFixtureSource, /localStorage\.setItem\('sqlite_rj_works'/);
+assert.doesNotMatch(u40bFixtureSource, /localStorage\.setItem\('sqlite_music_albums'/);
+assert.doesNotMatch(u40bFixtureSource, /localStorage\.setItem\('yang_kura_player_queue_v1'/);
+assert.match(u40bJourneySource, /readExistingIndex/);
+assert.match(u40bJourneySource, /real-index player authorization/);
+assert.match(u40dWorkflowSource, /requires_full_e2e/);
+assert.match(u40dWorkflowSource, /if: needs\.scope\.outputs\.requires_full_e2e == 'true'/);
+
+const fixtureModule = await import(pathToFileURL(path.join(root, 'scripts/u40b/fixture.mjs')).href);
+const u40bTempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'yang-kura-u40b-verifier-'));
+try {
+  const fixture = fixtureModule.createU40bFixture(u40bTempRoot);
+  const index = fixtureModule.writeU40bIndex(u40bTempRoot, 'yk-root-verifier', fixture.sizes);
+  assert.equal(index.tracks.length, 6);
+  assert.equal(index.collections.length, 3);
+  assert.equal(index.roots[0].rootPath, 'rootPathToken:yk-root-verifier');
+  assert.equal(index.tracks[0].source.relativePath, 'asmr/RJ400001/01-lrc.wav');
+  assert.equal(index.collections[0].cover.relativePath, 'asmr/RJ400001/cover.png');
+  const rawIndex = fs.readFileSync(path.join(u40bTempRoot, 'library-index.json'));
+  assert.deepEqual(Array.from(rawIndex.subarray(0, 3)), [0xef, 0xbb, 0xbf]);
+} finally {
+  fs.rmSync(u40bTempRoot, { recursive: true, force: true });
+}
 
 console.log('[Beta3 runtime hardening] PASS');
 console.log(`covers=${JSON.stringify(Object.fromEntries(selected))}`);
 console.log('range=0-99,900-,suffix-100 PASS; MIME wav/flac/jpg PASS');
 console.log('normalization=split collections keep independent cover paths PASS');
+console.log('u40b=real index fixture and scoped full E2E workflow PASS');

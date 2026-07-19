@@ -128,3 +128,15 @@ Git：源码快照试运行、本地集中修改、单一提交、统一推送
 - 同轮修正 U32 为当前推送差异门禁，普通 Electron 运行时代码不再触发 portable/NSIS 完整打包。
 - 本地 lint、Renderer build、Electron build、诊断探针和 Beta 3 runtime-hardening verifier PASS。
 - 当前环境缺少可下载的 Electron binary，GUI E2E 等待 GitHub Actions；不因此追加第二次本地补丁推送。
+
+
+### 第五轮：U40-D 工作流与 U40-B 真实 Index 测试修复
+
+- R4 正式候选 HEAD：`6caf3ce347ea094d465856800d5071736e2ac159`。
+- R4 本地与大部分 Windows CI 通过；唯一失败是 `test-u40b-full-product-journey.mjs` 等待 `u29SourceReady` 超时。
+- 根因不是工作流 runner 卡死：U40-B fixture 仍写旧 `sqlite_rj_works/sqlite_music_albums` 和持久化队列；当前产品会清理旧派生缓存，并从持久化队列移除 `rootPathToken`，导致测试永远无法恢复 source-ready。
+- U40-B 改为生成 UTF-8 BOM `library-index.json`，通过正式目录授权和“读取已有记录”进入播放器，再验证真实 tokenized queue、字幕和一秒音频自然结束。
+- U40-D workflow 新增 `requires_full_e2e`：文档和静态验证器修改只跑 focused regressions；运行时代码、Electron E2E、U40-B fixture 或 workflow 修改才跑完整 Windows 套件。
+- 完整产品 Journey 提前执行并设置 10 分钟 step 上限，避免前序重复 E2E 全部完成后才暴露 fixture 失败。
+- 工作方式已更新：ChatGPT 只读拉取 GitHub，在本地完成开发、测试、文档和完整源码包，不再创建 Blob、Commit、PR 评论或更新分支。
+- Codex / DeepSeek 负责将源码包应用到固定 SHA、创建单一提交并推送；Codex 继续执行 `E:\arsm`、声卡、mpv 和同 Profile 重启等实机验收。

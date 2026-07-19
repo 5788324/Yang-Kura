@@ -5,8 +5,8 @@
 ```text
 PR：#91
 分支：release/beta3-daily-closeout
-修复起点：1f839e5298d96a61ceaf8e4621b17244c0f8946a
-状态：修复候选已完成本地验证，等待 CI 与固定 SHA Windows 实机复测
+CI 修复父 SHA：6caf3ce347ea094d465856800d5071736e2ac159
+状态：产品修复候选已进入远端；正在修复 U40-D workflow 范围和 U40-B 旧 fixture
 发布：NO-GO
 Beta 3 Release：不存在
 ```
@@ -90,7 +90,18 @@ Beta 3 Release：不存在
 
 ## 下一门禁
 
-1. 单次推送本轮合并修复；
+1. Codex / DeepSeek 从固定父 SHA 应用完整源码包，并单次推送本轮合并修复；
 2. Player Fast 与 Branch Validation 通过；
 3. 固定新 SHA 使用 `E:\arsm` 复测四个 B3-MAJ；
 4. 必要项全部 PASS 后才进行导入事务收口、合并和 Beta 3 发布。
+
+
+## R4 CI 失败复核
+
+- R4 的 Documentation、Architecture、Branch、Player Fast、U32、Beta 3 assets 等工作流均通过。
+- 唯一失败位于 U40-D 的 `Full product journey regression`，不是真实库或播放器本体结论。
+- 旧 U40-B fixture 在存在持久授权时仍写 `sqlite_rj_works/sqlite_music_albums`；当前产品会主动删除这些旧派生缓存。
+- 同时，持久化播放队列会按隐私规则移除 `rootPathToken`，所以旧测试最后等待的 `u29SourceReady` 无法成立。
+- 修复后 fixture 生成真实 UTF-8 BOM `library-index.json`，使用正式“读取已有记录”链路，再从 RJ 详情页启动真实 tokenized queue。
+- U40-D workflow 将 focused 静态验证和完整 Electron E2E 分开；文档/验证器修改不再无条件运行整套 Windows Journey。
+- ChatGPT 后续只读拉取仓库并交付完整源码包；Codex / DeepSeek 负责应用、单一提交和推送，Codex 继续负责固定 SHA 的真实 Windows 实机验收。

@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       requires_u40d: ${{ steps.scope.outputs.requires_u40d }}
+      requires_full_e2e: ${{ steps.scope.outputs.requires_full_e2e }}
     steps:
       - name: Check out repository head
         uses: actions/checkout@v4
@@ -31,6 +32,7 @@ jobs:
         run: |
           if [[ "${{ github.event_name }}" != "pull_request" ]]; then
             echo "requires_u40d=true" >> "$GITHUB_OUTPUT"
+            echo "requires_full_e2e=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -48,24 +50,31 @@ jobs:
           printf '%s\n' "$files" | sed '/^$/d;s/^/changed_file=/'
 
           requires_u40d=false
+          requires_full_e2e=false
           while IFS= read -r file; do
             case "$file" in
-              src/*|src/**/*|electron/preload.ts|scripts/test-u40d-*.mjs|scripts/run-u40d-focused-tests.mjs|scripts/verify-u40d-real-library-stability.mjs|docs/CODEX_REAL_MACHINE_FULL_ACCEPTANCE.md|docs/U40D_*.md)
+              src/*|src/**/*|electron/*|electron/**/*|scripts/test-u40d-*.mjs|scripts/run-u40d-focused-tests.mjs|scripts/verify-u40d-real-library-stability.mjs|scripts/verify-u28-library-reconciliation.mjs|scripts/verify-u30-ui-fast-track.mjs|scripts/verify-beta3-runtime-hardening.mjs|scripts/test-u28-electron-e2e.mjs|scripts/test-u29-electron-e2e.mjs|scripts/test-u30-ui-matrix.mjs|scripts/test-u32-ui-audit.mjs|scripts/test-u40b-full-product-journey.mjs|scripts/u40b/*|scripts/u40b/**/*|docs/CODEX_REAL_MACHINE_FULL_ACCEPTANCE.md|docs/U40D_*.md|docs/BETA3_BLOCKER_STATUS.md|.github/workflows/u40d-real-library-stability.yml)
                 requires_u40d=true
-                break
+                ;;
+            esac
+            case "$file" in
+              src/*|src/**/*|electron/*|electron/**/*|scripts/test-u28-electron-e2e.mjs|scripts/test-u29-electron-e2e.mjs|scripts/test-u30-ui-matrix.mjs|scripts/test-u32-ui-audit.mjs|scripts/test-u40b-full-product-journey.mjs|scripts/u40b/*|scripts/u40b/**/*|.github/workflows/u40d-real-library-stability.yml)
+                requires_full_e2e=true
                 ;;
             esac
           done <<< "$files"
 
           echo "requires_u40d=$requires_u40d" >> "$GITHUB_OUTPUT"
+          echo "requires_full_e2e=$requires_full_e2e" >> "$GITHUB_OUTPUT"
           echo "requires_u40d=$requires_u40d"
+          echo "requires_full_e2e=$requires_full_e2e"
 
   real-library-stability:
     name: Windows real-library stability and Issue 66 closeout
     needs: scope
     if: needs.scope.outputs.requires_u40d == 'true'
     runs-on: windows-latest
-    timeout-minutes: 90
+    timeout-minutes: 60
 
     steps:
       - name: Check out candidate head
@@ -84,6 +93,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Prepare Electron runtime
+        if: needs.scope.outputs.requires_full_e2e == 'true'
         shell: pwsh
         run: |
           npm rebuild electron
@@ -92,6 +102,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: TypeScript and builds
+        if: needs.scope.outputs.requires_full_e2e == 'true'
         shell: pwsh
         env:
           NODE_OPTIONS: --max-old-space-size=8192
@@ -106,22 +117,32 @@ jobs:
       - name: Focused U40-D regressions and closeout verification
         run: node scripts/run-u40d-focused-tests.mjs
 
+      - name: Full product journey regression
+        if: needs.scope.outputs.requires_full_e2e == 'true'
+        timeout-minutes: 10
+        run: node scripts/test-u40b-full-product-journey.mjs
+
       - name: Resource library and restart flow
+        if: needs.scope.outputs.requires_full_e2e == 'true'
+        timeout-minutes: 15
         run: npm run test:u28:electron-e2e
 
       - name: Player, subtitle and persisted session flow
+        if: needs.scope.outputs.requires_full_e2e == 'true'
+        timeout-minutes: 15
         run: npm run test:u29:electron-e2e
 
       - name: Theme, window, keyboard and reduced motion
+        if: needs.scope.outputs.requires_full_e2e == 'true'
+        timeout-minutes: 15
         run: npm run test:u30:ui-matrix
 
       - name: Daily pages and visible controls
+        if: needs.scope.outputs.requires_full_e2e == 'true'
+        timeout-minutes: 15
         run: node scripts/test-u32-ui-audit.mjs
 
-      - name: Full product journey regression
-        run: node scripts/test-u40b-full-product-journey.mjs
-
-      - name: Upload U40-D evidence and Codex plan
+      - name: Upload U40-D evidence and real-machine plan
         if: always()
         uses: actions/upload-artifact@v4
         with:
