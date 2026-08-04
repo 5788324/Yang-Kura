@@ -5,59 +5,70 @@
 ```text
 公开版本：0.170.0-beta.3
 公开标签：v0.170.0-beta.3
-main：8a92978bbd07aa9f490ec15c9037366793168e2c
-Beta 3：已发布
-当前任务：U41-B + U41-C 累积候选
-GitHub 状态：尚未提交、尚未推送、尚未建立 PR
-1.0.0：NO-GO
+main：18ada58b76a3aa0828506d2d02c57ecd22fbc587
+PR #92：已合并
+本地候选版本：1.0.0-rc.1
+当前候选：U41-D + Git Fast Lane v2.3 + U41-E
+远端候选分支/PR：不存在可靠证据
+RC tag / Release：NOT CREATED
+1.0.0：NO-GO / WINDOWS VERIFY
 ```
 
-## U41-B 已完成的本地产品修改
+## 累积候选内容
 
-1. 日常 Importer 改为真实四步流程；
-2. 复用 tokenized scanner、copy/move、OperationLog、rollback 和 Index patch IPC；
-3. 来源与目标目录选择角色分离；
-4. 删除生产音声库伪数据刷新入口和 handler；
-5. Vite 从 `package.json` 注入应用版本；
-6. 历史 Importer 模型退出生产依赖图，chunk 约 22 KB。
+### U41-D
 
-## U41-C 已完成的本地运行时修改
+1. Downloader 从 `PageType`、导航、Sidebar、AppRouter 和生产源码退出；
+2. Downloader 与 93 个不可达历史实现迁入 `archive/u41d-legacy-code/`；
+3. archive 不参与 TypeScript 和 Vite 产品构建；
+4. workflow 17→9，verifier 87→58；
+5. 不可达实现 93→0，保留 2 个全局 `.d.ts` 声明例外；
+6. 构建产物不再包含 Downloader chunk。
 
-1. Electron 从 39.8.1 升至 39.8.10；
-2. `npm audit --audit-level=moderate` 为 0 vulnerability；
-3. 显式关闭 worker/subframe Node 集成、webview 与 Renderer 新窗口；
-4. custom protocol 保持 tokenized path、静态 MIME、Range 与 `corsEnabled=true（Renderer fetch 兼容；token 与相对路径校验不变）`；
-5. mpv executable fixtures 永久使用 LF，并新增 `.gitattributes`；
-6. TopBar 状态增加 polite live region；
-7. 维护入口明确只提供真实资源统计和性能检查。
+### Git Fast Lane v2.3
 
-## 本地验证
+- 多文件源码只允许真实 clone + 原生 Git；
+- 一次正常尝试 + 最多一次同路径修复重试；
+- 仍失败立即停止并交给 Codex/DeepSeek；
+- 禁止 GitHub Contents API 逐文件提交；
+- 禁止手工创建大量 blob/tree/commit；
+- 未经远端回读不得宣称 branch、commit、PR 或 CI 已存在。
 
-已通过：lint、Renderer build、Electron build、U41-B/U41-C focused verifier、U40-D 兼容 verifier、U31 importer transactions、U30、Beta 3 runtime hardening、50,000 音轨、MVP129 Index maintenance、`npm audit` 和 stable regression。
+### U41-E
 
-当前 Linux 环境无法下载 Electron 39.8.10 二进制，因此以下严格为 `NOT RUN`：
+- `package.json` / lockfile 候选版本：`1.0.0-rc.1`；
+- About 继续使用单一版本来源；
+- U32 Windows workflow 升级为 `U41-E Release Candidate Final Acceptance`，workflow 总数保持 9；
+- 新增 7 路由 × 3 视口的可见控件、溢出、最小尺寸、键盘焦点和 About 版本门禁；
+- 复用 U28/U29/U30/U31/U40-B/U41-B 及 portable/NSIS、安装升级卸载与数据保留验收。
 
-- U41-B Windows Importer 可见 E2E；
-- U28 / U29 Electron E2E；
-- portable / NSIS 与 U32 安装链。
+## 已通过
 
-## U41 缺陷状态
+```text
+npm ci --ignore-scripts --no-audit --no-fund   PASS
+npm run lint                                    PASS
+npm run build                                   PASS / 1781 modules
+npm run build:electron                          PASS
+npm run verify:u41d-legacy-cleanup              PASS
+npm run verify:u41e-rc-final-acceptance         PASS
+```
 
-| ID | 当前状态 |
-|---|---|
-| U41-BLOCKER-001 真实 Importer UI | FIXED IN CANDIDATE / WINDOWS VERIFY |
-| U41-MAJ-001 伪元数据刷新 | FIXED IN CANDIDATE |
-| U41-MAJ-002 About 旧版本 | FIXED IN CANDIDATE |
-| U41-MAJ-003 Electron 补丁 | FIXED IN CANDIDATE / WINDOWS VERIFY |
-| U41-MAJ-004 Importer 历史 bundle | FIXED IN CANDIDATE |
-| U41-MIN-001～003 | FIXED IN CANDIDATE |
-| U41-MAJ-005 冻结下载器生产路由 | OPEN / U41-D |
-| U41-MAJ-006 历史不可达模块 | OPEN / U41-D |
+`npm audit --audit-level=moderate`：PASS / 0 vulnerabilities。
 
-## 下一门禁
+`npm run verify:stable`：PASS，包含环境、TypeScript、Renderer/Electron build、handoff、U41-B/C/D/E、mpv、Importer、50,000 音轨和 Index maintenance。
 
-- 固定父 SHA 应用 U41-A+B+C 累积覆盖层；
-- 一个提交、一次推送、Draft PR；
-- Windows U41-B 与 U41-C workflows 全绿；
-- Codex 完成 `%TEMP%` Importer、U28/U29、portable/NSIS 与进程回收；
-- 未完成前不合并，不开始 U41-D 远端集成。
+## 尚未执行
+
+```text
+U41-E Electron 1280/1024/800 可见矩阵：NOT RUN
+U28/U29 Windows Electron：NOT RUN（本候选 SHA）
+portable / NSIS：NOT RUN（本候选 SHA）
+安装、覆盖安装、卸载、数据保留：NOT RUN（本候选 SHA）
+Codex 真实 Windows / 声卡 / 显示器验收：NOT RUN
+```
+
+本地 Electron 二进制下载因 DNS 无法解析 GitHub；按 Git Fast Lane v2.3 只尝试官方源和一个镜像，各一次后停止，没有继续绕路。
+
+## 下一步
+
+由 Codex 在干净 clone 中固定父 SHA `18ada58b...`，应用累积源码包，创建 `release/u41e-rc1-candidate`，形成一个提交并一次推送 Draft PR。CI 全绿且 Codex 实机 PASS 后，才讨论 `v1.0.0-rc.1` 标签和 Release。

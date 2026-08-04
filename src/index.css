@@ -223,8 +223,7 @@ body {
 /* Historical engineering summaries stay in the DOM for compatibility, but no longer occupy daily UI. */
 .u32-release-ui #mvp40-playlist-overview,
 .u32-release-ui #mvp53-playlist-visual-unity,
-.u32-release-ui #mvp86-importer-task-summary,
-.u32-release-ui #mvp112-importer-primary-flow {
+.u32-release-ui #mvp86-importer-task-summary {
   display: none !important;
 }
 

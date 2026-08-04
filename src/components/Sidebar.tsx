@@ -29,7 +29,6 @@ const NAVIGATION_ICONS: Record<PageType, LucideIcon> = {
   playlists: ListMusic,
   importer: ArchiveRestore,
   settings: Settings,
-  downloader: ArchiveRestore,
   diagnostics: Settings,
 };
 
@@ -136,7 +135,6 @@ export default function Sidebar({
       <div hidden aria-hidden="true">
         <button id="sidebar-ai-maintenance-toggle" type="button" />
         <button id="nav-diagnostics" type="button" onClick={() => handleNavClick('diagnostics')} />
-        <button id="nav-downloader" type="button" onClick={() => handleNavClick('downloader')} />
       </div>
 
       <div className="px-4 py-3 border-t border-border-color/60 text-[9px] text-text-muted">

@@ -67,15 +67,6 @@ export const APP_ROUTE_REGISTRY = {
     searchable: false,
     visibleInSidebar: true,
   },
-  downloader: {
-    id: 'downloader',
-    label: '下载规划',
-    shortLabel: '下载',
-    section: 'maintenance',
-    daily: false,
-    searchable: false,
-    visibleInSidebar: false,
-  },
   diagnostics: {
     id: 'diagnostics',
     label: 'AI 维护',

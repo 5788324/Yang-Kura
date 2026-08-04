@@ -30,7 +30,7 @@ if (failures.length === 0) {
   const handoff = read('AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md');
   const worklog = read('AI_HANDOFF/WORKLOG.md');
 
-  for (const route of ['dashboard', 'asmr-lib', 'music-lib', 'playlists', 'importer', 'settings', 'downloader', 'diagnostics']) {
+  for (const route of ['dashboard', 'asmr-lib', 'music-lib', 'playlists', 'importer', 'settings', 'diagnostics']) {
     if (!navigation.includes(`${route}:`) && !navigation.includes(`'${route}':`)) failures.push(`navigation registry missing route: ${route}`);
   }
 

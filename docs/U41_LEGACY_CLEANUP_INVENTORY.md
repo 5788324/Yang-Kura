@@ -1,123 +1,74 @@
 # U41 历史代码、脚本、工作流与文档清理清单
 
-## 原则
+## 当前状态
 
-- 先修功能，再清理；
-- 批量处理引用与 verifier，不逐个失败逐个补；
-- 删除前必须确认生产 import、测试、构建和发布链均无依赖；
-- 历史证据优先移动到 `archive/`，不要求全部永久删除；
-- 不在清理轮解冻新功能或重写架构。
+U41-D 已按“先证明不可达，再批量归档”完成本地清理。所有历史文件保留在 `archive/`，不再参与产品编译或现行 CI。
 
-## A. 生产入口不可达的旧页面
+## 生产源码归档
 
-| 文件 | 约大小 | 替代页面 | 建议 |
-|---|---:|---|---|
-| `src/components/DiagnosticsPage.tsx` | 509 KB | `DiagnosticsPageShell.tsx` | 移入 archive，更新文本 verifier |
-| `src/components/SettingsPage.tsx` | 197 KB | `SettingsPageDaily.tsx` | 移入 archive，保留必要测试 fixture |
-| `src/components/AsmrDetail.tsx` | 66 KB | `features/library/RjDetailPage.tsx` | 删除生产副本 |
-| `src/components/AsmrLibrary.tsx` | 61 KB | `features/library/AsmrLibraryPage.tsx` | 删除生产副本 |
-| `src/components/Dashboard.tsx` | 40 KB | `features/library/HomeLibraryPage.tsx` | 删除生产副本 |
+| 类别 | 数量 | 位置 |
+|---|---:|---|
+| 冻结 Downloader 页面 | 1 | `archive/u41d-legacy-code/src/components/DownloaderPage.tsx` |
+| 被正式页面替代的旧巨页 | 5 | `archive/u41d-legacy-code/src/components/` |
+| 不可达历史 service / model / fixture | 88 | `archive/u41d-legacy-code/src/` |
+| 合计 | 94 | `archive/u41d-legacy-code/` |
 
-## B. 不可达历史 service
+旧巨页包括：
 
-静态生产 import 图识别 67 个不可达实现模块。主要类别：
+- `DiagnosticsPage.tsx` → `DiagnosticsPageShell.tsx`；
+- `SettingsPage.tsx` → `SettingsPageDaily.tsx`；
+- `Dashboard.tsx` → `HomeLibraryPage.tsx`；
+- `AsmrLibrary.tsx` → `AsmrLibraryPage.tsx`；
+- `AsmrDetail.tsx` → `RjDetailPage.tsx`。
 
-- Beta 候选/收口展示模型；
-- MVP19～MVP28 Electron 合同展示模型；
-- 旧 diagnostics/settings UI model；
-- fixture scanner 与 virtual path 历史模型；
-- UI bug sweep / layout review / cleanup 展示模型；
-- 旧 `src/services/index.ts` 汇总出口；
-- `mockData.ts`、`quickFiltersData.ts`。
+## 明确保留的声明例外
 
-处理建议：
+- `src/types/electron-api.d.ts`；
+- `src/types/electron-runtime-shim.d.ts`。
 
-1. 先生成“生产 import 为 0、测试 import 为 N”的矩阵；
-2. 测试只需要文本 fixture 的，移动到 `tests/fixtures/history/`；
-3. 只被旧 verifier 读取的，随 verifier 一起归档；
-4. 仍被当前业务 service 间接使用的不得删除。
+两者是全局 TypeScript 声明，不要求出现在运行时 import graph。
 
-## C. Importer 历史模型
+## Downloader 冻结边界
 
-当前 `ImporterPage.tsx`：
+以下生产入口已删除：
 
-- 约 186 KB 源码；
-- import 子图 26 文件、约 425 KB；
-- production minified chunk 约 255 KB；
-- 初始化 20+ 个历史 `getModel()`；
-- 大部分内容在 hidden `<section>` / `<details>` 内；
-- 日常 UI 没有真实执行入口。
+- `PageType.downloader`；
+- `APP_ROUTE_REGISTRY.downloader`；
+- Sidebar icon / hidden button；
+- AppRouter lazy import / route branch；
+- `src/components/DownloaderPage.tsx`。
 
-建议不是“小修当前文件”，而是：
+`MVP130_EXPERIMENTAL_DO_NOT_MERGE.md` 继续保留，下载器实现不解冻。
+
+## Workflow
+
+现行 9 条 workflow：Architecture、Branch、Docs、Player Fast、UI Fast、U32、U40-B、U41-B、U41-C。
+
+归档 8 条：Beta 3 专用发布、U33 三条、U39 final、U40-C、U40-D retest、U40-D real-library stability。位置：`archive/u41d-workflows/`。
+
+## Verifier
+
+- 归档 30 个失效的 MVP/历史 verifier；
+- 删除 package 中对应 `verify:mvp*` 命令；
+- 现行 verifier：58；
+- 新增 `verify:u41d-legacy-cleanup`；
+- 历史 package MVP 元数据保存到 `archive/u41d-history/package-mvp-metadata.json`。
+
+## 结果
 
 ```text
-新建 ImporterPageDaily
-→ 只保留来源、预览、冲突、copy/move、结果五个状态
-→ 接入已有 Main transaction IPC
-→ 将旧 ImporterPage 与模型整体归档
+生产代码文件：123
+生产可达：121
+不可达实现：0
+声明例外：2
+生产路由：7
+Workflow：9
+Verifier：58
 ```
 
-## D. 下载器实验页
+## 验证
 
-- 从 `PageType` 删除 `downloader`；
-- 从 `APP_ROUTE_REGISTRY` 删除；
-- 从 `NAVIGATION_ICONS`、隐藏按钮和 AppRouter 删除；
-- 把 `DownloaderPage.tsx` 移入 `archive/experimental-downloader/`；
-- 保留 `MVP130_EXPERIMENTAL_DO_NOT_MERGE.md`，继续冻结实现。
-
-## E. Workflows
-
-当前 15 条 workflow。1.0 前建议：
-
-### 保留并收敛
-
-- Branch Validation；
-- Documentation Validation；
-- Architecture Guardrails；
-- Player Fast Validation；
-- U40-B Full Product Acceptance（仅手动/大范围变更）；
-- U32 Release Candidate Packaging；
-- 未来 1.0 Release workflow。
-
-### 归档或改为手动历史审计
-
-- Beta 1/Beta 2 U33 三条历史 release audit；
-- U39 final acceptance；
-- U40-C UI polish；
-- U40-D Codex retest；
-- U40-D Real Library Stability；
-- Beta 3 专用 release workflow在 1.0 发布后归档。
-
-不得在当前审计 PR 中直接删除；应在功能缺陷修完后一次性调整。
-
-## F. 文档与脚本规模
-
-| 类别 | 数量 |
-|---|---:|
-| docs | 117 |
-| archive | 478 |
-| root `CURRENT_ROADMAP_MVP*` | 18 |
-| verifier scripts | 85 |
-| test scripts | 21 |
-
-核心事实源只保留：
-
-- README；
-- PROJECT_STATE；
-- PROJECT_ROADMAP；
-- WORKLOG；
-- CURRENT_PROJECT_HANDOFF；
-- DESIGN；
-- 当前版本 Release Notes；
-- 当前阶段验收/缺陷文档。
-
-其余历史阶段文档按版本批量归档，不再作为强制 verifier token。
-
-## G. 明确保留
-
-- `src/types/electron-api.d.ts` 与 runtime shim：虽然 import 图不可达，但属于 TypeScript 全局声明；
-- Electron IPC contracts、preload contracts、main services；
-- release plan、发布 notes、Beta 2 publication state；
-- 当前 U28/U29/U30/U31/U32/U40-B 核心测试；
-- 真实文件操作安全边界和 OperationLog 实现；
-- DESIGN 与主题 token。
+- `node scripts/audit-u41-product-surface.mjs`；
+- `npm run verify:u41d-legacy-cleanup`；
+- `npm run verify:stable`；
+- `npm run build` 后无 Downloader chunk。

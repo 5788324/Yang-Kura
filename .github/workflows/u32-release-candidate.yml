@@ -1,102 +1,69 @@
-name: U32 Release Candidate Packaging
+name: U41-E Release Candidate Final Acceptance
 
 on:
   pull_request:
     branches:
       - main
     paths:
+      - 'src/**'
+      - 'electron/**'
+      - 'tests/**'
+      - 'scripts/test-u28-electron-e2e.mjs'
+      - 'scripts/test-u29-electron-e2e.mjs'
+      - 'scripts/test-u30-ui-matrix.mjs'
+      - 'scripts/test-u31-importer-transactions.mjs'
       - 'scripts/test-u32-release-candidate-packaging.mjs'
       - 'scripts/test-u32-packaged-page-readiness.mjs'
-      - 'scripts/verify-u32-release-candidate-packaging.mjs'
+      - 'scripts/test-u40b-full-product-journey.mjs'
+      - 'scripts/test-u41b-importer-daily-e2e.mjs'
+      - 'scripts/test-u41e-rc-final-acceptance.mjs'
+      - 'scripts/verify-u41e-rc-final-acceptance.mjs'
+      - 'scripts/run-stable-regression.mjs'
       - 'electron-builder.config.cjs'
       - 'package.json'
       - 'package-lock.json'
+      - 'vite.config.ts'
+      - 'tsconfig.json'
+      - 'tsconfig.electron.json'
+      - 'docs/U41E_RC_FINAL_ACCEPTANCE.md'
+      - 'docs/RELEASE_NOTES_1.0.0-rc.1.md'
+      - 'docs/GIT_FAST_LANE_V2.md'
       - '.github/workflows/u32-release-candidate.yml'
-      - 'docs/U32_RELEASE_CANDIDATE_PACKAGING.md'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: u32-release-candidate-${{ github.event.pull_request.number || github.ref }}
+  group: u41e-rc-final-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  package-and-accept:
-    name: Windows portable and NSIS acceptance
+  release-candidate-final:
+    name: Windows RC UI, runtime, importer and packaging acceptance
     runs-on: windows-latest
-    timeout-minutes: 120
+    timeout-minutes: 180
 
     steps:
-      - name: Check out repository head
+      - name: Check out candidate
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
-      - name: Detect package-relevant changes
-        id: scope
-        shell: pwsh
-        run: |
-          if ("${{ github.event_name }}" -ne "pull_request") {
-            "package_required=true" >> $env:GITHUB_OUTPUT
-            exit 0
-          }
-
-          $action = "${{ github.event.action }}"
-          $before = "${{ github.event.before }}"
-          if ($action -eq "synchronize" -and $before -and $before -notmatch '^0+$') {
-            $base = $before
-          } else {
-            $base = "${{ github.event.pull_request.base.sha }}"
-          }
-          $files = @(git diff --name-only $base HEAD)
-          Write-Host "scope_base=$base"
-          Write-Host "scope_head=$(git rev-parse HEAD)"
-          Write-Host "changed_files=$($files -join ',')"
-          $packagePatterns = @(
-            '^scripts/test-u32-release-candidate-packaging\.mjs$',
-            '^scripts/test-u32-packaged-page-readiness\.mjs$',
-            '^scripts/verify-u32-release-candidate-packaging\.mjs$',
-            '^electron-builder\.config\.cjs$',
-            '^package\.json$',
-            '^package-lock\.json$',
-            '^docs/U32_RELEASE_CANDIDATE_PACKAGING\.md$'
-          )
-          $packageFiles = @($files | Where-Object {
-            $file = $_
-            $packagePatterns | Where-Object { $file -match $_ }
-          })
-          $required = $packageFiles.Count -gt 0
-          "package_required=$($required.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
-          if ($required) {
-            Write-Host "Packaging required by: $($packageFiles -join ', ')"
-          } else {
-            Write-Host "Packaging skipped: no dependency, installer, packaging script or release-document changes."
-          }
-
-      - name: Packaging skip notice
-        if: steps.scope.outputs.package_required != 'true'
-        run: echo "Portable/NSIS acceptance is not required for this change set."
-
       - name: Set up Node 22
-        if: steps.scope.outputs.package_required == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
 
       - name: Install dependencies without lifecycle scripts
-        if: steps.scope.outputs.package_required == 'true'
         run: npm ci --ignore-scripts --no-audit --no-fund
 
-      - name: Audit high and critical dependency risk
-        if: steps.scope.outputs.package_required == 'true'
-        run: npm audit --audit-level=high
+      - name: Audit direct dependency risk
+        run: npm audit --audit-level=moderate
 
       - name: Rebuild Electron and apply builder compatibility patch
-        if: steps.scope.outputs.package_required == 'true'
         shell: pwsh
         run: |
           npm rebuild electron
@@ -104,8 +71,7 @@ jobs:
           npm run patch:electron-builder
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Validate TypeScript and build desktop sources
-        if: steps.scope.outputs.package_required == 'true'
+      - name: Validate sources, handoff and RC contracts
         shell: pwsh
         env:
           NODE_OPTIONS: --max-old-space-size=8192
@@ -116,29 +82,63 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm run build:electron
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run verify:handoff
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run verify:u41b-daily-user-entry
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run verify:u41c-runtime-patch
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run verify:u41d-legacy-cleanup
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run verify:u41e-rc-final-acceptance
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Resource library, playback, UI and importer regression
+        shell: pwsh
+        run: |
+          npm run test:u28:electron-e2e
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run test:u29:electron-e2e
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run test:u30:ui-matrix
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run test:u31:importer-transactions
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run test:u41b:importer-e2e
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/test-u40b-full-product-journey.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run test:u41e:rc-final
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build portable and NSIS release candidates
-        if: steps.scope.outputs.package_required == 'true'
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
           NODE_OPTIONS: --max-old-space-size=8192
         run: node node_modules/electron-builder/cli.js --win portable nsis --config electron-builder.config.cjs
 
-      - name: Run packaged release-candidate acceptance
-        if: steps.scope.outputs.package_required == 'true'
-        run: node scripts/test-u32-release-candidate-packaging.mjs
+      - name: Install, upgrade, uninstall, data-retention and packaged-page acceptance
+        shell: pwsh
+        run: |
+          node scripts/test-u32-release-candidate-packaging.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/test-u32-packaged-page-readiness.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Require complete packaged home content
-        if: steps.scope.outputs.package_required == 'true'
-        run: node scripts/test-u32-packaged-page-readiness.mjs
-
-      - name: Upload release candidates and acceptance evidence
-        if: always() && steps.scope.outputs.package_required == 'true'
+      - name: Upload RC executables and complete evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: u32-release-candidate-windows
+          name: u41e-rc-final-windows
           path: |
             release/*.exe
+            artifacts/u28-electron-e2e
+            artifacts/u29-electron-e2e
+            artifacts/u30-ui-matrix
+            artifacts/u31-importer-transactions
             artifacts/u32-release-candidate
+            artifacts/u40b-full-product-acceptance
+            artifacts/u41b-importer-daily-e2e
+            artifacts/u41e-rc-final-acceptance
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: 30
