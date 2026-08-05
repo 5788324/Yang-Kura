@@ -17,6 +17,7 @@ on:
       - 'scripts/test-u40b-full-product-journey.mjs'
       - 'scripts/test-u41b-importer-daily-e2e.mjs'
       - 'scripts/test-u41e-rc-final-acceptance.mjs'
+      - 'scripts/test-u41e-lyrics-subtitle-layout.mjs'
       - 'scripts/verify-u41e-rc-final-acceptance.mjs'
       - 'scripts/run-stable-regression.mjs'
       - 'electron-builder.config.cjs'
@@ -109,6 +110,8 @@ jobs:
           node scripts/test-u40b-full-product-journey.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm run test:u41e:rc-final
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run test:u41e:lyrics-subtitle-layout
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build portable and NSIS release candidates

@@ -51,6 +51,7 @@
     "verify:u41c-runtime-patch": "node scripts/verify-u41c-runtime-patch.mjs",
     "verify:u41d-legacy-cleanup": "node scripts/verify-u41d-legacy-cleanup.mjs",
     "test:u41e:rc-final": "node scripts/test-u41e-rc-final-acceptance.mjs",
+    "test:u41e:lyrics-subtitle-layout": "node scripts/test-u41e-lyrics-subtitle-layout.mjs",
     "verify:u41e-rc-final-acceptance": "node scripts/verify-u41e-rc-final-acceptance.mjs"
   },
   "dependencies": {

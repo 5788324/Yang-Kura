@@ -246,3 +246,12 @@ Git：源码快照试运行、本地集中修改、单一提交、统一推送
 - `npm ci`、lint、Renderer build、Electron TypeScript build、0 vulnerability audit、handoff 与完整 stable 已通过。
 - Electron binary 官方源和一个镜像各尝试一次，均因 DNS 失败；按 v2.3 立即停止，运行时矩阵与打包标为 `NOT RUN / WINDOWS CI`。
 - 本轮不创建远端分支、提交、PR、标签或 Release；最终只输出固定父 SHA 的完整源码包、patch、变更清单和 Codex 发布/验收任务书。
+
+## 2026-08-05 — U41-E 歌词模式短窗口字幕裁切修复
+
+- 实机验收确认 Major：全屏播放器“歌词模式”在 800×700 与 1024×720 下当前字幕行被底部控制区裁切（800×700 可见比例约 0.373，1024×720 约 0.948）。
+- 根因：歌词阅读容器 `#mvp78-lyrics-reading-width` 使用 `h-full` 但 flex 链路缺少 `min-height: 0`，容器超出 `overflow-hidden` shell；同时自动滚动只在歌词行变化时触发一次，布局过渡后留下陈旧 scrollTop，未重新居中。
+- 修复：`src/components/LyricsPanel.tsx` 短窗口歌词模式压缩辅助面板/Header/控制区 padding 并保留控制功能；shell、歌词主 flex、Interactive Viewport 增加 `min-h-0`；歌词阅读容器改为 `absolute inset-0` 并限定于视口；自动滚动改为带上下界钳制，并在尺寸变化（ResizeObserver）与 compact 高度切换时重居中。
+- 新增自动回归 `scripts/test-u41e-lyrics-subtitle-layout.mjs`：6 视口 × 第一/中间/最后行，验证 visible ratio=1、与底部控制区间距≥8px、elementFromPoint 命中字幕、Header/控制区保持可见、无水平 overflow。
+- 验证：lint / build / build:electron / verify:u41e-rc-final-acceptance / verify:stable / test:u41e:rc-final / test:u41e:lyrics-subtitle-layout / U28 / U29 / U30 / U40-B / U41-B / U31 全部 PASS；npm audit 0 vulnerabilities。
+- 单一修复提交 `fix: keep active lyrics visible in compact player windows`，PR #93 保持 Draft，不合并、不建 Tag/Release。
