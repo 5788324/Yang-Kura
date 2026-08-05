@@ -72,14 +72,18 @@ async function auditCurrentSurface(pageId, viewport) {
       const style=getComputedStyle(item);
       return rect.width>0 && rect.height>0 && style.visibility!=='hidden' && style.display!=='none';
     });
-    const offscreen=controls.filter((item)=>{
+    const viewportControls=controls.filter((item)=>{
+      const rect=item.getBoundingClientRect();
+      return rect.bottom > 2 && rect.top < innerHeight - 2;
+    });
+    const offscreen=viewportControls.filter((item)=>{
       const rect=item.getBoundingClientRect();
       return rect.left < -2 || rect.right > innerWidth + 2 || rect.top < -2 || rect.bottom > innerHeight + 2;
     }).map((item)=>({
       text:(item.getAttribute('aria-label')||item.textContent||item.tagName).trim().slice(0,80),
       rect:Object.fromEntries(['left','right','top','bottom','width','height'].map((key)=>[key,Math.round(item.getBoundingClientRect()[key])])),
     }));
-    const undersized=controls.filter((item)=>{
+    const undersized=viewportControls.filter((item)=>{
       if(item.disabled || item.getAttribute('aria-disabled')==='true') return false;
       const rect=item.getBoundingClientRect();
       return Math.min(rect.width,rect.height) < 20;
@@ -91,7 +95,7 @@ async function auditCurrentSurface(pageId, viewport) {
     const title=main.querySelector('h1,h2')?.textContent?.trim()??'';
     return {
       title,
-      visibleControls:controls.length,
+      visibleControls:viewportControls.length,
       documentOverflow:document.documentElement.scrollWidth>innerWidth+1,
       mainOverflow:main.scrollWidth>main.clientWidth+1,
       mainRect:{left:Math.round(main.getBoundingClientRect().left),right:Math.round(main.getBoundingClientRect().right)},
