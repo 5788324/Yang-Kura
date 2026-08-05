@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
+const packageMetadata = JSON.parse(fs.readFileSync(path.resolve(root, 'package.json'), 'utf8'));
 const codeRoots = ['src', 'electron'];
 const extensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'];
 const outputDir = path.resolve(root, 'artifacts/u41-product-audit');
@@ -92,7 +93,8 @@ const maintenanceRouteCount = (navigationSource.match(/section:\s*'maintenance'/
 const appSource = fs.readFileSync(path.resolve(root, 'src/App.tsx'), 'utf8');
 const settingsSource = fs.readFileSync(path.resolve(root, 'src/components/SettingsPageDaily.tsx'), 'utf8');
 const importerSource = fs.readFileSync(path.resolve(root, 'src/components/ImporterPage.tsx'), 'utf8');
-const downloaderSource = fs.readFileSync(path.resolve(root, 'src/components/DownloaderPage.tsx'), 'utf8');
+const downloaderPath = path.resolve(root, 'src/components/DownloaderPage.tsx');
+const downloaderSource = fs.existsSync(downloaderPath) ? fs.readFileSync(downloaderPath, 'utf8') : '';
 const fakeMpv = fs.readFileSync(path.resolve(root, 'tests/fixtures/mpv/fake-mpv.mjs'));
 const fakeMpvStability = fs.readFileSync(path.resolve(root, 'tests/fixtures/mpv/fake-mpv-stability.mjs'));
 
@@ -119,8 +121,8 @@ const riskMarkers = [
   },
   {
     id: 'U41-MAJ-005',
-    present: navigationSource.includes("downloader:") && navigationSource.includes("visibleInSidebar: false") && downloaderSource.includes('showLegacyDownloaderDemo = false'),
-    summary: 'Frozen downloader remains a production route and lazy bundle despite no supported daily entry.',
+    present: navigationSource.includes("downloader:") || downloaderSource.length > 0,
+    summary: 'Frozen downloader remains in the production route or source tree.',
   },
   {
     id: 'U41-MIN-001',
@@ -142,11 +144,11 @@ const verifierFiles = walk(path.resolve(root, 'scripts')).filter((file) => path.
 const testScriptFiles = walk(path.resolve(root, 'scripts')).filter((file) => path.basename(file).startsWith('test-') && file.endsWith('.mjs'));
 
 const report = {
-  generatedAt: new Date().toISOString(),
   baseline: {
     repository: '5788324/Yang-Kura',
-    mainCommit: '8a92978bbd07aa9f490ec15c9037366793168e2c',
+    mainCommit: '18ada58b76a3aa0828506d2d02c57ecd22fbc587',
     publicVersion: '0.170.0-beta.3',
+    candidateVersion: packageMetadata.version,
   },
   productionSurface: {
     routeCount: routeIds.length,

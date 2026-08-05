@@ -1,0 +1,187 @@
+{
+  "baseline": {
+    "repository": "5788324/Yang-Kura",
+    "mainCommit": "18ada58b76a3aa0828506d2d02c57ecd22fbc587",
+    "publicVersion": "0.170.0-beta.3",
+    "candidateVersion": "1.0.0-rc.1"
+  },
+  "productionSurface": {
+    "routeCount": 7,
+    "routeIds": [
+      "dashboard",
+      "asmr-lib",
+      "music-lib",
+      "playlists",
+      "importer",
+      "settings",
+      "diagnostics"
+    ],
+    "dailyRouteCount": 6,
+    "maintenanceRouteCount": 1,
+    "staticControlCount": 240,
+    "filesWithControls": 28,
+    "controlFiles": [
+      {
+        "file": "src/components/LyricsPanel.tsx",
+        "count": 34
+      },
+      {
+        "file": "src/features/library/AsmrLibraryPage.tsx",
+        "count": 33
+      },
+      {
+        "file": "src/features/library/MusicLibraryPage.tsx",
+        "count": 25
+      },
+      {
+        "file": "src/features/library/RjDetailPage.tsx",
+        "count": 21
+      },
+      {
+        "file": "src/components/MusicMetadataManagementPanel.tsx",
+        "count": 19
+      },
+      {
+        "file": "src/components/PlaylistPage.tsx",
+        "count": 14
+      },
+      {
+        "file": "src/components/ImporterPage.tsx",
+        "count": 13
+      },
+      {
+        "file": "src/components/AsmrMetadataProviderPreview.tsx",
+        "count": 11
+      },
+      {
+        "file": "src/features/library/RjMetadataDialog.tsx",
+        "count": 11
+      },
+      {
+        "file": "src/components/SettingsPageDaily.tsx",
+        "count": 10
+      },
+      {
+        "file": "src/features/library/HomeLibraryPage.tsx",
+        "count": 9
+      },
+      {
+        "file": "src/components/PlayerBarPrimarySections.tsx",
+        "count": 7
+      },
+      {
+        "file": "src/components/PlayerBarAuxiliaryControls.tsx",
+        "count": 5
+      },
+      {
+        "file": "src/components/Sidebar.tsx",
+        "count": 5
+      },
+      {
+        "file": "src/components/PlayerTransientPresenters.tsx",
+        "count": 4
+      },
+      {
+        "file": "src/app/PlayerOverlayHost.tsx",
+        "count": 3
+      },
+      {
+        "file": "src/app/QueueDrawer.tsx",
+        "count": 3
+      },
+      {
+        "file": "src/components/DiagnosticsPageShell.tsx",
+        "count": 3
+      },
+      {
+        "file": "src/app/AppRouter.tsx",
+        "count": 1
+      },
+      {
+        "file": "src/app/ThemeRuntimeBridge.tsx",
+        "count": 1
+      },
+      {
+        "file": "src/components/DiagnosticsRuntimeBoundary.tsx",
+        "count": 1
+      },
+      {
+        "file": "src/components/PlayerProgressTrack.tsx",
+        "count": 1
+      },
+      {
+        "file": "src/components/SettingsMaintenanceEntry.tsx",
+        "count": 1
+      },
+      {
+        "file": "src/features/library/LibraryPageState.tsx",
+        "count": 1
+      },
+      {
+        "file": "src/features/library/LibraryReadStateNotice.tsx",
+        "count": 1
+      },
+      {
+        "file": "src/features/library/LibraryRouteBoundary.tsx",
+        "count": 1
+      },
+      {
+        "file": "src/shared/ui/Button.tsx",
+        "count": 1
+      },
+      {
+        "file": "src/shared/ui/TrackRow.tsx",
+        "count": 1
+      }
+    ]
+  },
+  "codeGraph": {
+    "codeFileCount": 123,
+    "reachableFileCount": 121,
+    "unreachableFileCount": 2,
+    "unreachableImplementationCount": 0,
+    "unreachableFiles": [
+      "src/types/electron-api.d.ts",
+      "src/types/electron-runtime-shim.d.ts"
+    ]
+  },
+  "repositoryScale": {
+    "workflowCount": 9,
+    "documentationFileCount": 128,
+    "archiveFileCount": 614,
+    "verifierScriptCount": 59,
+    "testScriptCount": 24
+  },
+  "riskMarkers": [
+    {
+      "id": "U41-BLOCKER-001",
+      "present": false,
+      "summary": "Daily importer presents a four-step description but no executable source-selection/import action."
+    },
+    {
+      "id": "U41-MAJ-001",
+      "present": false,
+      "summary": "RJ card refresh injects generated/demo metadata into production state."
+    },
+    {
+      "id": "U41-MAJ-002",
+      "present": false,
+      "summary": "About page contains a hard-coded Beta 2 version after Beta 3 publication."
+    },
+    {
+      "id": "U41-MAJ-004",
+      "present": false,
+      "summary": "Importer eagerly imports and builds historical MVP model data that is hidden from daily UI."
+    },
+    {
+      "id": "U41-MAJ-005",
+      "present": false,
+      "summary": "Frozen downloader remains in the production route or source tree."
+    },
+    {
+      "id": "U41-MIN-001",
+      "present": false,
+      "summary": "Executable Node fixtures use CRLF shebangs and break Linux stable regression without conversion."
+    }
+  ]
+}

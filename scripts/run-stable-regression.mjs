@@ -12,6 +12,8 @@ const stableScripts = [
   'verify:handoff',
   'verify:u41b-daily-user-entry',
   'verify:u41c-runtime-patch',
+  'verify:u41d-legacy-cleanup',
+  'verify:u41e-rc-final-acceptance',
   'test:mpv:settings-runtime',
   'test:mpv:stability-runtime',
   'test:importer:smoke',

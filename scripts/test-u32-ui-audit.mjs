@@ -213,7 +213,7 @@ try {
 
   await waitFor(cdp, "document.querySelector('#app-player-bar')?.dataset.u29TrackId === 'a-01'", 'seeded player');
   assert.equal(await cdp.evaluate("document.querySelector('#sidebar-ai-maintenance-toggle')?.offsetParent === null"), true, 'engineering maintenance toggle is hidden');
-  assert.equal(await cdp.evaluate("document.querySelector('#nav-diagnostics')?.offsetParent === null && document.querySelector('#nav-downloader')?.offsetParent === null"), true, 'engineering routes are hidden');
+  assert.equal(await cdp.evaluate("document.querySelector('#nav-diagnostics')?.offsetParent === null && document.querySelector('#nav-downloader') === null"), true, 'maintenance is hidden and frozen downloader is removed');
 
   await capturePage(cdp, 'dashboard', '01-dashboard-after', "document.querySelector('[data-u37b-home=\"daily\"]')");
   assert.equal(await cdp.evaluate("document.querySelector('#mvp45-home-recent-listening')?.getBoundingClientRect().top < innerHeight"), true, 'recent listening enters first viewport');

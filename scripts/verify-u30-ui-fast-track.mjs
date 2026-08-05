@@ -20,7 +20,7 @@ for (const [label, ok] of [
   ['queue toggle has stable id', primary.includes('id="player-queue-toggle"')],
   ['queue drawer is an accessible dialog', queueDrawer.includes('role="dialog"') && queueDrawer.includes('aria-modal="true"') && queueDrawer.includes('aria-label="当前播放队列"')],
   ['minimum-window responsive classes exist', sidebar.includes('w-52 xl:w-56') && player.includes('u30-player-track') && primary.includes('u30-player-transport') && auxiliary.includes('u30-player-aux')],
-  ['release sidebar hides engineering routes', sidebar.includes('<div hidden aria-hidden="true">') && sidebar.includes('id="nav-diagnostics"') && sidebar.includes('id="nav-downloader"')],
+  ['release sidebar keeps maintenance hidden and removes frozen downloader', sidebar.includes('<div hidden aria-hidden="true">') && sidebar.includes('id="nav-diagnostics"') && !sidebar.includes('id="nav-downloader"')],
   ['reduced motion contract exists', css.includes('@media (prefers-reduced-motion: reduce)') && css.includes('animation-duration: 0.01ms !important')],
   ['compact player contract exists', css.includes('#app-player-bar .u30-player-time') && css.includes('#windows-app-bar .u30-runtime-label') && topBar.includes('id="windows-app-bar"')],
   ['App composes extracted shell UI', app.includes('<TopBar') && app.includes('<QueueDrawer') && app.includes('<PlayerOverlayHost')],

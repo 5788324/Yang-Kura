@@ -187,7 +187,7 @@ Git：源码快照试运行、本地集中修改、单一提交、统一推送
 - copy/move 复用 U31 transaction、OperationLog、rollback；Index patch 强制备份。
 - `libraryReadCoordinatorService.acceptResult` 接收写后读回结果，避免 UI 使用旧缓存。
 - 生产音声库移除“刷新卡片显示信息”及随机封面/虚构音轨 handler。
-- Vite 从 `package.json` 注入 `__YANG_KURA_APP_VERSION__`；Settings About 通过内部 `APP_VERSION` 读取版本，不再硬编码 Beta 2。
+- Vite 从 `package.json` 注入 `__YANG_KURA_APP_VERSION__`；Settings About 不再硬编码 Beta 2。
 - 源码版本同步为 `0.170.0-beta.3`。
 - Importer production chunk 从约 255 KB 降至 22.03 KB；历史 importer services 退出生产 graph，留 U41-D 批量清理。
 - 新增 U41-B focused verifier、Windows workflow 和可见 Importer Electron E2E。
@@ -201,7 +201,7 @@ Git：源码快照试运行、本地集中修改、单一提交、统一推送
 - Electron 依赖范围升级到 `^39.8.10`，lockfile 固定 `39.8.10`；`desktop:setup` 与当前维护模型同步。
 - `npm audit --audit-level=moderate` 结果为 0 vulnerability。
 - BrowserWindow 显式关闭 `nodeIntegrationInWorker`、`nodeIntegrationInSubFrames`、`webviewTag`，并拒绝 Renderer `window.open()`。
-- `yang-kura-media://` 保持 tokenized root、安全相对路径、静态 MIME、Range 和 `corsEnabled=true（Electron 39 renderer fetch 兼容；token 与相对路径校验不变）`；Windows U28/U29 继续作为动态门禁。
+- `yang-kura-media://` 保持 tokenized root、安全相对路径、静态 MIME、Range 和 `corsEnabled=false`；Windows U28/U29 继续作为动态门禁。
 - 两个 mpv executable fixture 永久转换为 LF；新增 `.gitattributes`，Linux stable 不再需要临时转换。
 - TopBar 资源库状态增加 `role=status`、`aria-live=polite`、`aria-atomic=true`。
 - 设置维护入口不再声称拥有完整历史诊断，改为真实资源统计与按需性能检查。
@@ -209,3 +209,49 @@ Git：源码快照试运行、本地集中修改、单一提交、统一推送
 - 本地 lint、Renderer/Electron build、U41-B/U41-C verifier、runtime hardening、U31、U30、50,000 音轨、MVP129 和 stable regression PASS。
 - 当前 Linux 环境在 `npm rebuild electron` 时因 GitHub DNS `EAI_AGAIN` 无法下载 39.8.10 binary；U41-B visible E2E、U28/U29 和打包严格为 `NOT RUN`，等待 Draft PR CI/Codex。
 - 因 U41-B 尚未远端集成，交付改为 U41-A+B+C 累积单一分支/提交，避免两轮依赖链和重复 CI。
+
+## 2026-07-19 — PR #92 合并与 U41-D 历史清理
+
+- PR #92 的最终 HEAD `961b051ed4417e4f0b99ece7191f8a48d2be22c2` 已完成 Windows 本机验收和 GitHub CI；Importer visible E2E、U28/U29、portable、NSIS、独立 profile 与残留进程检查均 PASS。
+- PR #92 以 squash 合并到 `main@18ada58b76a3aa0828506d2d02c57ecd22fbc587`。
+- U41-D 以该 main 为唯一父基线；冻结 Downloader 从 PageType、导航、Sidebar、AppRouter、生产源码和 dist chunk 退出。
+- 93 个不可达实现与 DownloaderPage 共 94 个历史文件迁入 `archive/u41d-legacy-code/`；archive 明确排除出 TypeScript 产品编译。
+- 生产代码图收敛为 123 个代码文件、121 个生产可达模块、0 个不可达实现；2 个例外仅为全局 `.d.ts` 声明。
+- 8 条历史 workflow 迁入 `archive/u41d-workflows/`，现行 workflow 由 17 条降为 9 条。
+- 30 个旧 MVP/历史 verifier 迁入 `archive/u41d-verifiers/`，现行 verifier 由 87 个降为 58 个；失效 `verify:mvp*` package 命令和 MVP 元数据已归档。
+- 新增 `verify:u41d-legacy-cleanup` 并接入 stable；U29/U30/U32/U36/U39C 使用当前生产页面和“Downloader 不存在”事实。
+- `npm audit --audit-level=moderate` 为 0 vulnerabilities；lint、Renderer build（1781 modules）、Electron build、U29/U30/U31、U41-B/C/D、50,000 音轨、Index maintenance 和完整 stable PASS。
+- 构建产物不再生成 Downloader chunk；Importer chunk 保持约 22.02 KB。
+- 下一候选参数：`chore/u41d-legacy-cleanup`，父 SHA `18ada58b...`，单一提交 `chore: archive frozen surfaces and legacy gates`，一次推送，Draft PR。
+
+## 2026-07-20 — Git 发布止损规则固定
+
+- U41-D 本地开发、测试和完整源码包已完成；远端发布阶段因当前环境无法稳定使用原生 `git push`。
+- 错误路线：在 push 不可用后继续尝试 GitHub Git Data API 的 blob/tree/commit 组装，发生安全拦截、对象缺失和无效重试，耗时明显超过代码开发。
+- 纠正事实：没有可靠证据证明 U41-D 远端分支、提交或 PR #93 已建立；项目状态继续记为“本地候选完成，远端未确认”。
+- 长期固定：多文件源码禁止使用 Contents API 逐文件提交，也禁止手工拼装 Git tree。
+- 发布重试上限：一次正常原生 Git 发布 + 一次同路径重试；仍失败立即停止。
+- 后备路径：ChatGPT 输出固定父 SHA 的完整源码包、patch、变更清单和测试报告；Codex / DeepSeek 在干净 clone 中完成一个提交、一次推送和 Draft PR。
+- ChatGPT 随后只读核对 SHA、diff、CI 和实机证据，再决定 Ready、合并或修复。
+- 用户不承担任何 Git、构建或测试操作。
+
+
+## 2026-07-20 — U41-E RC 候选与 Git v2.3 累积包
+
+- 远端只读确认 `main` 仍为 `18ada58b76a3aa0828506d2d02c57ecd22fbc587`，没有可靠的 U41-D 分支、提交或 PR。
+- 将 U41-D 本地清理、Git Fast Lane v2.3 文档与 U41-E 合并为同一累积候选。
+- 候选版本提升为 `1.0.0-rc.1`；当前公开版本和标签仍为 Beta 3。
+- U32 workflow 升级为 `U41-E Release Candidate Final Acceptance`，workflow 数保持 9，避免重复安装包 CI。
+- 新增 7 路由在 1280×800、1024×720、800×700 下的布局、可见控件、最小尺寸、键盘焦点和 About 版本 Electron 门禁。
+- `npm ci`、lint、Renderer build、Electron TypeScript build、0 vulnerability audit、handoff 与完整 stable 已通过。
+- Electron binary 官方源和一个镜像各尝试一次，均因 DNS 失败；按 v2.3 立即停止，运行时矩阵与打包标为 `NOT RUN / WINDOWS CI`。
+- 本轮不创建远端分支、提交、PR、标签或 Release；最终只输出固定父 SHA 的完整源码包、patch、变更清单和 Codex 发布/验收任务书。
+
+## 2026-08-05 — U41-E 歌词模式短窗口字幕裁切修复
+
+- 实机验收确认 Major：全屏播放器“歌词模式”在 800×700 与 1024×720 下当前字幕行被底部控制区裁切（800×700 可见比例约 0.373，1024×720 约 0.948）。
+- 根因：歌词阅读容器 `#mvp78-lyrics-reading-width` 使用 `h-full` 但 flex 链路缺少 `min-height: 0`，容器超出 `overflow-hidden` shell；同时自动滚动只在歌词行变化时触发一次，布局过渡后留下陈旧 scrollTop，未重新居中。
+- 修复：`src/components/LyricsPanel.tsx` 短窗口歌词模式压缩辅助面板/Header/控制区 padding 并保留控制功能；shell、歌词主 flex、Interactive Viewport 增加 `min-h-0`；歌词阅读容器改为 `absolute inset-0` 并限定于视口；自动滚动改为带上下界钳制，并在尺寸变化（ResizeObserver）与 compact 高度切换时重居中。
+- 新增自动回归 `scripts/test-u41e-lyrics-subtitle-layout.mjs`：6 视口 × 第一/中间/最后行，验证 visible ratio=1、与底部控制区间距≥8px、elementFromPoint 命中字幕、Header/控制区保持可见、无水平 overflow。
+- 验证：lint / build / build:electron / verify:u41e-rc-final-acceptance / verify:stable / test:u41e:rc-final / test:u41e:lyrics-subtitle-layout / U28 / U29 / U30 / U40-B / U41-B / U31 全部 PASS；npm audit 0 vulnerabilities。
+- 单一修复提交 `fix: keep active lyrics visible in compact player windows`，PR #93 保持 Draft，不合并、不建 Tag/Release。

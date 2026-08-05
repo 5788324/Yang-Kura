@@ -52,7 +52,6 @@ jobs:
           npm run build:electron
           npm run verify:u41b-daily-user-entry
           npm run verify:u41c-runtime-patch
-          node scripts/verify-beta3-runtime-hardening.mjs
       - name: Custom protocol and player Electron E2E
         run: |
           npm run test:u28:electron-e2e

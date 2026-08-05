@@ -1,45 +1,37 @@
 # 新对话启动提示词
 
-请接手 `5788324/Yang-Kura`。
-
-优先读取：
+请接手 `5788324/Yang-Kura`，依次读取：
 
 1. `AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md`
 2. `PROJECT_STATE.md`
 3. `PROJECT_ROADMAP.md`
 4. `AI_HANDOFF/WORKLOG.md`
-5. `docs/U41B_DAILY_USER_ENTRY.md`
-6. `docs/U41C_RUNTIME_PATCH.md`
-7. `docs/U41_DEFECT_BACKLOG.md`
+5. `docs/GIT_FAST_LANE_V2.md`
+6. `docs/U41D_LEGACY_CLEANUP.md`
+7. `docs/U41E_RC_FINAL_ACCEPTANCE.md`
+8. `docs/RELEASE_NOTES_1.0.0-rc.1.md`
 
 固定事实：
 
 ```text
-main：8a92978bbd07aa9f490ec15c9037366793168e2c
-公开版本：0.170.0-beta.3
-U41-B + U41-C：本地累积候选完成，等待应用和 Windows 门禁
-1.0：NO-GO
+main: 18ada58b76a3aa0828506d2d02c57ecd22fbc587
+public version: 0.170.0-beta.3
+local candidate: 1.0.0-rc.1
+scope: U41-D + Git Fast Lane v2.3 + U41-E
+remote U41-D/U41-E PR: no reliable evidence
+RC tag/release: NOT CREATED
 ```
 
-协作边界：ChatGPT 只读 GitHub并交付完整源码包；DeepSeek/Codex 使用一个分支、一个提交、一次推送和 Draft PR；Codex 负责 Windows 实机；用户不运行命令。
-
-当前应用参数：
+发布参数：
 
 ```text
-branch: feat/u41bc-daily-runtime-closeout
-parent: 8a92978bbd07aa9f490ec15c9037366793168e2c
-commit: feat: connect importer and harden Electron runtime
+parent: 18ada58b76a3aa0828506d2d02c57ecd22fbc587
+branch: release/u41e-rc1-candidate
+commit: release: prepare Yang-Kura 1.0.0-rc.1
+push: exactly once
+PR: Draft
 ```
 
-必须检查：
+必须遵守 Git Fast Lane v2.3：禁止使用 GitHub Contents API 或 Git Data API 发布多文件源码；真实 clone/native Git 失败最多同路径重试一次，随后立即交给 Codex，不再绕路。
 
-- 累积 exact overlay；
-- lint/build/build:electron；
-- U41-B / U41-C verifier；
-- npm audit moderate gate；
-- U31 Importer transactions；
-- Windows Importer visible E2E、U28、U29；
-- portable/NSIS/U32；
-- CI 全绿后再给 Codex 固定 SHA 实机任务。
-
-不要解冻下载器、删除全部历史模块、跨 Electron 主版本或重写播放器。
+下一步：审核 Codex 返回的远端 SHA、完整 diff、9 条现行 workflow、U41-E Windows RC 证据与实机报告。在所有证据出现前不得宣称 RC 已发布。

@@ -1,14 +1,18 @@
 # U41-B 日常用户入口收口
 
-## 状态
+## 最终状态
 
 ```text
-基线：main @ 8a92978bbd07aa9f490ec15c9037366793168e2c
-公开版本：0.170.0-beta.3
-本地候选：U41-B
-GitHub：尚未提交、尚未推送、尚未建立 PR
-1.0：NO-GO（等待 Windows U41-B E2E、U41-C、U41-D、U41-E）
+原始基线：main @ 8a92978bbd07aa9f490ec15c9037366793168e2c
+最终 PR：#92
+最终候选 HEAD：961b051ed4417e4f0b99ece7191f8a48d2be22c2
+合并 main：18ada58b76a3aa0828506d2d02c57ecd22fbc587
+Windows Importer E2E：PASS
+GitHub CI：PASS
+结论：CLOSED / MERGED
 ```
+
+Windows 验收使用临时来源和目标目录，验证 copy=3、Index tracks=1、source preserved=true；没有修改 `E:\arsm`。Importer 可见锚点最终统一为 `u41b-importer-primary-flow`。
 
 ## 本轮范围
 
@@ -91,7 +95,7 @@ YANG_KURA_E2E_IMPORT_TARGET_ROOT
 
 - `package.json` 与 `package-lock.json` 为 `0.170.0-beta.3`；
 - Vite 从 `package.json` 注入 `__YANG_KURA_APP_VERSION__`；
-- `SettingsPageDaily` 读取内部的 `APP_VERSION`；
+- `SettingsPageDaily` 读取中性导出 `APP_VERSION`；
 - 页面不再硬编码 Beta 2。
 
 ## 构建结果

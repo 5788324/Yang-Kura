@@ -12,7 +12,7 @@ const checks = [
   ['electron/main.ts', "new RootAuthorizationStore(path.join(stableUserDataPath, 'root-authorizations.json'))"],
   ['electron/main.ts', 'await rootAuthorizationStore.initialize()'],
   ['electron/main.ts', 'await rootAuthorizationStore.authorize({'],
-  ['src/components/SettingsPage.tsx', 'yang_kura_persisted_authorized_roots_v1'],
+  ['src/components/SettingsPageDaily.tsx', 'yang_kura_persisted_authorized_roots_v1'],
   ['src/services/librarySessionService.ts', 'PERSISTED_ROOT_SESSION_KEY'],
   ['scripts/test-u28-electron-e2e.mjs', 'restart-persisted-authorization-reread'],
   ['scripts/test-u28-electron-e2e.mjs', 'restart-persisted-authorization-playback'],
@@ -26,7 +26,7 @@ for (const [file, token] of checks) {
   }
 }
 
-for (const file of ['src/components/SettingsPage.tsx', 'src/services/librarySessionService.ts']) {
+for (const file of ['src/components/SettingsPageDaily.tsx', 'src/services/librarySessionService.ts']) {
   const source = fs.readFileSync(file, 'utf8');
   if (/absolutePath\s*:/.test(source)) failures.push(`${file} must not persist absolutePath in Renderer`);
 }

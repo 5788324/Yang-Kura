@@ -25,7 +25,6 @@ const MusicLibrary = lazy(() => import('../features/library/MusicLibraryPage'));
 const PlaylistPage = lazy(() => import('../components/PlaylistPage'));
 const DiagnosticsPageShell = lazy(() => import('../components/DiagnosticsPageShell'));
 const ImporterPage = lazy(() => import('../components/ImporterPage'));
-const DownloaderPage = lazy(() => import('../components/DownloaderPage'));
 const SettingsPage = lazy(() => import('../components/SettingsPageDaily'));
 
 export interface AppRouterProps {
@@ -218,8 +217,6 @@ export default function AppRouter(props: AppRouterProps) {
       )}
 
       {props.currentPage === 'importer' && <ImporterPage />}
-
-      {props.currentPage === 'downloader' && <DownloaderPage onPlayTrack={props.onPlayTrack} />}
 
       {props.currentPage === 'settings' && (
         <div className="space-y-5">

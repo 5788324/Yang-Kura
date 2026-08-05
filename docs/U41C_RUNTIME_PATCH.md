@@ -1,14 +1,18 @@
 # U41-C Electron 运行时与跨平台门禁
 
-## 状态
+## 最终状态
 
 ```text
-基线：main @ 8a92978bbd07aa9f490ec15c9037366793168e2c
-候选：U41-A + U41-B + U41-C 累积本地工作区
-本地静态/构建/安全审计：PASS
-Windows U28/U29/portable/NSIS：NOT RUN
-结论：LOCAL COMPLETE / WINDOWS VERIFY
+原始基线：main @ 8a92978bbd07aa9f490ec15c9037366793168e2c
+最终 PR：#92
+最终候选 HEAD：961b051ed4417e4f0b99ece7191f8a48d2be22c2
+合并 main：18ada58b76a3aa0828506d2d02c57ecd22fbc587
+Windows U28/U29/portable/NSIS：PASS
+GitHub CI：PASS
+结论：CLOSED / MERGED
 ```
+
+Electron 39 的受控自定义媒体协议最终启用 `corsEnabled=true`，以允许 Renderer fetch；root token、相对路径、遍历阻断、MIME 和 Range 校验保持不变。打包验收使用独立 user-data profile，并以 `Get-Process` 检查残留进程。
 
 ## Electron 补丁
 
@@ -36,7 +40,7 @@ webSecurity=true
 `yang-kura-media://` 保持：
 
 - `standard` / `secure` / `supportFetchAPI`；
-- `corsEnabled=true（Electron 39 的 Renderer fetch 兼容）`；
+- `corsEnabled=true`，仅允许受控 Renderer fetch；
 - tokenized root；
 - safe relative path；
 - 静态 MIME；
@@ -80,7 +84,3 @@ Windows workflow 合并执行：
 5. U28 / U29 Electron E2E；
 6. portable + NSIS；
 7. U32 安装、升级、卸载与页面就绪。
-
-## 本地限制
-
-当前 Linux 容器无法从 GitHub 下载 Electron 39.8.10 二进制，`npm rebuild electron` 返回 DNS `EAI_AGAIN`。因此没有虚报 U28/U29 或打包 PASS；这些项目严格保留为 Windows CI/Codex 门禁。

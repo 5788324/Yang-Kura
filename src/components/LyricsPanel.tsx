@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { 
   ChevronDown, 
   Play, 
@@ -84,6 +84,18 @@ export default function LyricsPanel({
   const [playerStyle, setPlayerStyle] = useState<'classic' | 'vinyl' | 'lyrics'>('classic');
   const [classicVisualType, setClassicVisualType] = useState<'record' | 'cover'>('record');
   const [activeRightTab, setActiveRightTab] = useState<'lyrics' | 'chapters' | 'queue' | 'bookmarks'>('lyrics');
+
+  // --- Compact window height (short vertical windows must keep the active lyric readable) ---
+  const [isCompactHeight, setIsCompactHeight] = useState<boolean>(() => (
+    typeof window !== 'undefined' ? window.matchMedia('(max-height: 760px)').matches : false
+  ));
+  useEffect(() => {
+    const query = window.matchMedia('(max-height: 760px)');
+    const handleChange = (event: MediaQueryListEvent) => setIsCompactHeight(event.matches);
+    setIsCompactHeight(query.matches);
+    query.addEventListener('change', handleChange);
+    return () => query.removeEventListener('change', handleChange);
+  }, []);
   
   // --- Refs for high-fidelity physics-based smooth animation (Vinyl Record & Stylus arm) ---
   const recordRef = useRef<HTMLDivElement>(null);
@@ -271,18 +283,45 @@ export default function LyricsPanel({
     [parsedLyrics, progress],
   );
 
-  // Auto-scroll the active lyric line to center
+  // Auto-scroll the active lyric line to center, clamped to the scrollable range.
+  // Runs on active line changes and re-runs whenever the lyrics viewport resizes
+  // (short window toggling, header/bottom compression, or the fade-in transition),
+  // so the active lyric never stays clipped by a stale scroll position.
+  const centerActiveLyric = useCallback((behavior: ScrollBehavior) => {
+    const container = lyricsContainerRef.current;
+    if (!container || activeRightTab !== 'lyrics' || activeLyricIndex < 0) return;
+    const activeElement = container.children[activeLyricIndex] as HTMLElement | undefined;
+    if (!activeElement) return;
+    const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
+    const targetScrollTop = activeElement.offsetTop - container.clientHeight / 2 + activeElement.clientHeight / 2;
+    const clampedScrollTop = Math.max(0, Math.min(targetScrollTop, maxScrollTop));
+    container.scrollTo({ top: clampedScrollTop, behavior });
+  }, [activeLyricIndex, activeRightTab]);
+
   useEffect(() => {
-    if (activeRightTab === 'lyrics' && lyricsContainerRef.current && activeLyricIndex >= 0) {
-      const activeElement = lyricsContainerRef.current.children[activeLyricIndex] as HTMLElement;
-      if (activeElement) {
-        lyricsContainerRef.current.scrollTo({
-          top: activeElement.offsetTop - lyricsContainerRef.current.clientHeight / 2 + activeElement.clientHeight / 2,
-          behavior: 'smooth'
-        });
-      }
-    }
-  }, [activeLyricIndex, playerStyle, activeRightTab]);
+    centerActiveLyric('smooth');
+  }, [centerActiveLyric, playerStyle, isCompactHeight]);
+
+  useEffect(() => {
+    const container = lyricsContainerRef.current;
+    if (!container) return;
+    let resizeTimer: number | undefined;
+    const observer = new ResizeObserver(() => {
+      if (resizeTimer !== undefined) window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => centerActiveLyric('smooth'), 60);
+    });
+    observer.observe(container);
+    return () => {
+      observer.disconnect();
+      if (resizeTimer !== undefined) window.clearTimeout(resizeTimer);
+    };
+  }, [centerActiveLyric]);
+
+  useEffect(() => {
+    if (activeRightTab !== 'lyrics') return;
+    const timer = window.setTimeout(() => centerActiveLyric('auto'), 700);
+    return () => window.clearTimeout(timer);
+  }, [activeRightTab, playerStyle, isCompactHeight, centerActiveLyric]);
 
   if (!currentTrack) return null;
 
@@ -419,7 +458,9 @@ export default function LyricsPanel({
       </div>
 
       {/* Header Area (Borderless and fades out during inactivity) */}
-      <div id="mvp78-player-header-wrap-safe" className={`relative z-10 px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-3 bg-transparent backdrop-blur-sm transition-all duration-700 ${
+      <div id="mvp78-player-header-wrap-safe" className={`relative z-10 px-4 sm:px-6 flex flex-wrap items-center justify-between gap-3 bg-transparent backdrop-blur-sm transition-all duration-700 ${
+        isCompactHeight && playerStyle === 'lyrics' ? 'py-2 sm:py-2' : 'py-3 sm:py-4'
+      } ${
         isUserInactive ? 'opacity-0 pointer-events-none -translate-y-4' : 'opacity-100 translate-y-0'
       }`}>
         
@@ -489,9 +530,9 @@ export default function LyricsPanel({
 
       <div
         id="mvp73-player-daily-visual-focus"
-        className={`relative z-10 mx-4 hidden rounded-[28px] border border-white/10 bg-gradient-to-r from-white/[0.075] via-white/[0.035] to-sky-500/[0.055] px-4 py-3 backdrop-blur-2xl shadow-2xl shadow-sky-950/25 transition-all duration-700 sm:block lg:mx-16 lg:px-5 lg:py-4 ${
+        className={`relative z-10 mx-4 rounded-[28px] border border-white/10 bg-gradient-to-r from-white/[0.075] via-white/[0.035] to-sky-500/[0.055] px-4 py-3 backdrop-blur-2xl shadow-2xl shadow-sky-950/25 transition-all duration-700 ${
           isUserInactive ? 'opacity-0 pointer-events-none -translate-y-3' : 'opacity-100 translate-y-0'
-        }`}
+        } ${isCompactHeight && playerStyle === 'lyrics' ? 'hidden' : 'hidden sm:block'} lg:mx-16 lg:px-5 lg:py-4`}
       >
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="min-w-0 flex-1">
@@ -542,7 +583,7 @@ export default function LyricsPanel({
       </div>
 
       {/* Main Content Area */}
-      <div id="mvp78-full-player-responsive-shell" className={`relative z-10 flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-16 py-3 sm:py-4 items-center justify-center overflow-hidden ${
+      <div id="mvp78-full-player-responsive-shell" className={`relative z-10 flex-1 min-h-0 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-16 py-3 sm:py-4 items-center justify-center overflow-hidden ${
         playerStyle === 'classic' 
           ? 'flex flex-col lg:grid lg:grid-cols-12 lg:gap-16' 
           : 'flex flex-col'
@@ -1130,7 +1171,7 @@ export default function LyricsPanel({
           /* ========================================== */
           <>
             <div 
-              className="w-full h-full flex-1 max-w-4xl mx-auto flex flex-col bg-transparent overflow-hidden transition-all duration-500 animate-fade-in"
+              className="w-full h-full flex-1 min-h-0 max-w-4xl mx-auto flex flex-col bg-transparent overflow-hidden transition-all duration-500 animate-fade-in"
               style={{ transform: 'none', perspective: 'none' }}
             >
               {/* Tab selectors (Fades out in ambient mode) */}
@@ -1139,7 +1180,9 @@ export default function LyricsPanel({
               }`}>
                 <button
                   onClick={() => setActiveRightTab('lyrics')}
-                  className={`flex-1 py-3 flex items-center justify-center space-x-1.5 transition-colors border-r border-white/5 ${
+                  className={`flex-1 flex items-center justify-center space-x-1.5 transition-colors border-r border-white/5 ${
+                    isCompactHeight && playerStyle === 'lyrics' ? 'py-2' : 'py-3'
+                  } ${
                     activeRightTab === 'lyrics' ? 'text-brand-color bg-white/5 font-bold' : 'hover:text-white'
                   }`}
                 >
@@ -1150,7 +1193,9 @@ export default function LyricsPanel({
                 {currentTrack.type === 'asmr' && relatedRjWork && (
                   <button
                     onClick={() => setActiveRightTab('chapters')}
-                    className={`flex-1 py-3 flex items-center justify-center space-x-1.5 transition-colors border-r border-white/5 ${
+                    className={`flex-1 flex items-center justify-center space-x-1.5 transition-colors border-r border-white/5 ${
+                      isCompactHeight && playerStyle === 'lyrics' ? 'py-2' : 'py-3'
+                    } ${
                       activeRightTab === 'chapters' ? 'text-brand-color bg-white/5 font-bold' : 'hover:text-white'
                     }`}
                   >
@@ -1161,7 +1206,9 @@ export default function LyricsPanel({
 
                 <button
                   onClick={() => setActiveRightTab('queue')}
-                  className={`flex-1 py-3 flex items-center justify-center space-x-1.5 transition-colors ${
+                  className={`flex-1 flex items-center justify-center space-x-1.5 transition-colors ${
+                    isCompactHeight && playerStyle === 'lyrics' ? 'py-2' : 'py-3'
+                  } ${
                     activeRightTab === 'queue' ? 'text-brand-color bg-white/5 font-bold' : 'hover:text-white'
                   }`}
                 >
@@ -1171,7 +1218,7 @@ export default function LyricsPanel({
               </div>
 
               {/* Interactive Content Viewport */}
-              <div className="flex-1 overflow-hidden relative" style={{ transform: 'none', perspective: 'none' }}>
+              <div className="flex-1 min-h-0 overflow-hidden relative" style={{ transform: 'none', perspective: 'none' }}>
                 
                 {/* Top and Bottom Fading gradient transparent masks for immersive text floating */}
                 {activeRightTab === 'lyrics' && (
@@ -1186,7 +1233,9 @@ export default function LyricsPanel({
                   <div 
                     ref={lyricsContainerRef}
                     id="mvp78-lyrics-reading-width"
-                    className="relative w-full h-full overflow-y-auto py-20 sm:py-28 px-4 sm:px-6 space-y-8 hide-scrollbar scroll-smooth text-center"
+                    className={`absolute inset-0 overflow-y-auto px-4 sm:px-6 space-y-8 hide-scrollbar scroll-smooth text-center ${
+                      isCompactHeight && playerStyle === 'lyrics' ? 'py-10 sm:py-12' : 'py-20 sm:py-28'
+                    }`}
                     style={{ transform: 'none', writingMode: 'horizontal-tb' }}
                   >
                     {bilingualData.length === 0 ? (
@@ -1390,7 +1439,11 @@ export default function LyricsPanel({
       </div>
 
       {/* Shared Fixed Player Bottom Controls Bar (Fades out in ambient mode) */}
-      <div id="mvp78-bottom-control-safe-wrap" className={`relative z-10 w-full bg-zinc-950/70 border-t border-white/5 pt-4 pb-4 sm:pt-6 sm:pb-6 px-4 sm:px-6 md:px-16 backdrop-blur-2xl flex flex-col space-y-4 transition-all duration-700 ${
+      <div id="mvp78-bottom-control-safe-wrap" className={`relative z-10 w-full bg-zinc-950/70 border-t border-white/5 px-4 sm:px-6 md:px-16 backdrop-blur-2xl flex flex-col transition-all duration-700 ${
+        isCompactHeight && playerStyle === 'lyrics'
+          ? 'pt-2.5 pb-2.5 sm:pt-3 sm:pb-3 space-y-2.5'
+          : 'pt-4 pb-4 sm:pt-6 sm:pb-6 space-y-4'
+      } ${
         isUserInactive ? 'opacity-0 pointer-events-none translate-y-6' : 'opacity-100 translate-y-0'
       }`}>
         
