@@ -70,7 +70,8 @@ async function auditCurrentSurface(pageId, viewport) {
     const controls=[...main.querySelectorAll(selectors)].filter((item)=>{
       const rect=item.getBoundingClientRect();
       const style=getComputedStyle(item);
-      return rect.width>0 && rect.height>0 && style.visibility!=='hidden' && style.display!=='none';
+      const visuallyHiddenChoice=item instanceof HTMLInputElement && (item.type==='checkbox'||item.type==='radio') && rect.width<=1 && rect.height<=1;
+      return rect.width>0 && rect.height>0 && style.visibility!=='hidden' && style.display!=='none' && !visuallyHiddenChoice;
     });
     const viewportControls=controls.filter((item)=>{
       const rect=item.getBoundingClientRect();
