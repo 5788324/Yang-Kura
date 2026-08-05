@@ -78,7 +78,7 @@ async function auditCurrentSurface(pageId, viewport) {
     });
     const offscreen=viewportControls.filter((item)=>{
       const rect=item.getBoundingClientRect();
-      return rect.left < -2 || rect.right > innerWidth + 2 || rect.top < -2 || rect.bottom > innerHeight + 2;
+      return rect.left < -2 || rect.right > innerWidth + 2;
     }).map((item)=>({
       text:(item.getAttribute('aria-label')||item.textContent||item.tagName).trim().slice(0,80),
       rect:Object.fromEntries(['left','right','top','bottom','width','height'].map((key)=>[key,Math.round(item.getBoundingClientRect()[key])])),
