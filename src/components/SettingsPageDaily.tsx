@@ -68,8 +68,8 @@ function saveRoot(result: YangKuraSelectLibraryRootSuccessResult): void {
 
 const themes: Array<{ id: ThemeType; label: string; description: string; icon: typeof Moon }> = [
   { id: 'dark', label: '高雅黑', description: '深色、安静，适合夜间长时间使用。', icon: Moon },
-  { id: 'acrylic-mist', label: '云雾亚克力', description: '浅色雾面材质，保持文字与控件清晰。', icon: Sparkles },
-  { id: 'ocean-drops', label: '微光海洋', description: '低饱和蓝色材质，适合日间浏览。', icon: Droplet },
+  { id: 'acrylic-mist', label: '云雾深色', description: '深色雾面材质，保持文字与控件清晰。', icon: Sparkles },
+  { id: 'ocean-drops', label: '微光海洋', description: '浅色低饱和蓝色材质，适合日间浏览。', icon: Droplet },
 ];
 
 function rootLabel(type: YangKuraLibraryType): string {
@@ -303,16 +303,22 @@ export default function SettingsPageDaily({ settings, updateSettings }: Settings
               }}
               className="w-full rounded-lg border border-border-color bg-input-bg px-3 py-2.5 text-xs text-text-primary"
             >
-              <option value="prefer-mpv">优先增强播放，失败自动切换</option>
+              <option value="prefer-mpv">优先增强播放，失败自动切换播放方式</option>
               <option value="html-audio-only">仅使用基础播放</option>
             </select>
           </label>
           {mpvMessage && <p role="status" className="rounded-xl border border-border-color/60 bg-card-bg/35 p-3 text-xs text-text-secondary">{mpvMessage}</p>}
-          <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => void refreshMpv()} disabled={mpvBusy} className="inline-flex items-center gap-2 rounded-lg border border-border-color px-3 py-2 text-xs font-bold"><RefreshCw className={`h-3.5 w-3.5 ${mpvBusy ? 'animate-spin' : ''}`} />重新检测</button>
-            <button type="button" onClick={() => void selectMpv()} disabled={mpvBusy} className="inline-flex items-center gap-2 rounded-lg bg-brand-color px-3 py-2 text-xs font-bold text-white"><FileCog className="h-3.5 w-3.5" />选择播放组件</button>
-            <button type="button" onClick={() => void clearMpv()} disabled={mpvBusy || !mpvStatus?.canClearUserSelection} className="inline-flex items-center gap-2 rounded-lg border border-red-500/25 px-3 py-2 text-xs font-bold text-red-300 disabled:opacity-40"><Trash2 className="h-3.5 w-3.5" />清除手动设置</button>
-          </div>
+          <details className="rounded-xl border border-border-color/50 bg-card-bg/20 p-3">
+            <summary className="cursor-pointer list-none text-xs font-bold text-text-primary">高级播放组件设置</summary>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" onClick={() => void refreshMpv()} disabled={mpvBusy} className="inline-flex items-center gap-2 rounded-lg border border-border-color px-3 py-2 text-xs font-bold"><RefreshCw className={`h-3.5 w-3.5 ${mpvBusy ? 'animate-spin' : ''}`} />重新检测</button>
+              <button type="button" onClick={() => void selectMpv()} disabled={mpvBusy} className="inline-flex items-center gap-2 rounded-lg bg-brand-color px-3 py-2 text-xs font-bold text-white"><FileCog className="h-3.5 w-3.5" />选择播放组件</button>
+              <button type="button" onClick={() => void clearMpv()} disabled={mpvBusy || !mpvStatus?.canClearUserSelection} className="inline-flex items-center gap-2 rounded-lg border border-red-500/25 px-3 py-2 text-xs font-bold text-red-300 disabled:opacity-40"><Trash2 className="h-3.5 w-3.5" />清除手动设置</button>
+            </div>
+            {mpvStatus?.executableLabel && (
+              <p className="mt-3 text-[11px] text-text-muted">当前播放组件：{mpvStatus.executableLabel}。手动选择仅在你需要指定特定 mpv.exe 时使用；未配置时自动检测系统安装。</p>
+            )}
+          </details>
         </section>
       )}
 
@@ -362,7 +368,7 @@ export default function SettingsPageDaily({ settings, updateSettings }: Settings
             <div className="rounded-xl border border-border-color/60 p-3"><strong className="text-xs">目录隐私</strong><p className="mt-1 text-[11px] text-text-muted">日常界面只显示目录名称，不展示完整路径。</p></div>
             <div className="rounded-xl border border-border-color/60 p-3"><strong className="text-xs">媒体安全</strong><p className="mt-1 text-[11px] text-text-muted">读取和扫描不会删除、覆盖或移动媒体文件。</p></div>
           </div>
-          <p className="text-xs text-text-muted">当前版本：{APP_VERSION}。高级检修集中在独立的 AI 维护页面。</p>
+          <p className="text-xs text-text-muted">当前版本：{APP_VERSION}。高级检修集中在独立的“诊断与修复”页面。</p>
         </section>
       )}
     </div>

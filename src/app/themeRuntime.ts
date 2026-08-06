@@ -70,7 +70,7 @@ export const getLegacyThemeCompatibilityId = (theme: Beta2ThemeId): LegacyThemeC
   CANONICAL_THEME_TO_LEGACY[theme];
 
 export const getLegacyThemeLabel = (theme: LegacyThemeCompatibilityId): string => {
-  if (theme === 'acrylic-mist') return '云雾亚克力';
+  if (theme === 'acrylic-mist') return '云雾深色';
   if (theme === 'ocean-drops') return '微光海洋';
   return '高雅黑';
 };

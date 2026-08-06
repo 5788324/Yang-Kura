@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import { FolderPlus, MoreHorizontal, Tv, Volume2, VolumeX } from 'lucide-react';
+import { FolderPlus, Tv, Volume2, VolumeX } from 'lucide-react';
 import type { HomePlayerBetaChip } from '../services/homePlayerBetaPolishService';
 import type { AudioTrack, Playlist } from '../types';
 import { PlayerPlaylistMenu, PlayerVolumePopover } from './PlayerTransientPresenters';
@@ -32,7 +32,6 @@ interface PlayerAuxiliaryControlsProps {
   onVolumeMouseEnter: () => void;
   onVolumeMouseLeave: () => void;
   onVolumeChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  onMoreActions: () => void;
 }
 
 export function PlayerAuxiliaryControls({
@@ -57,7 +56,6 @@ export function PlayerAuxiliaryControls({
   onVolumeMouseEnter,
   onVolumeMouseLeave,
   onVolumeChange,
-  onMoreActions,
 }: PlayerAuxiliaryControlsProps) {
   return (
     <div
@@ -157,16 +155,6 @@ export function PlayerAuxiliaryControls({
           />
         )}
       </div>
-
-      <button
-        type="button"
-        onClick={onMoreActions}
-        className="u30-more-control text-text-muted hover:text-text-primary p-1 rounded transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-color"
-        title="更多播放操作（后续开放）"
-        aria-label="更多播放操作（后续开放）"
-      >
-        <MoreHorizontal className="w-4 h-4" aria-hidden="true" />
-      </button>
     </div>
   );
 }

@@ -36,7 +36,6 @@ for (const marker of [
   'aria-pressed={isMuted}',
   '<FolderPlus className="w-4.5 h-4.5" aria-hidden="true" />',
   '<Tv className="w-4.5 h-4.5" aria-hidden="true" />',
-  '<MoreHorizontal className="w-4 h-4" aria-hidden="true" />',
   'mvp59-player-beta-chips',
   'mvp79-player-ui-bugfix',
 ]) {
@@ -69,7 +68,6 @@ for (const marker of [
   'onSelectPlaylist={selectPlaylist}',
   'onToggleFloatingLyrics={toggleFloatingLyrics}',
   'onToggleMute={toggleMute}',
-  'onMoreActions={showMoreActions}',
   '<PlayerCompatibilityMarkers {...presentation.compatibility} />',
 ]) {
   assert.ok(playerBar.includes(marker), `PlayerBar auxiliary integration missing: ${marker}`);
@@ -96,8 +94,7 @@ for (const marker of [
   'const togglePlaylistMenu = useCallback(() => {',
   'const selectPlaylist = useCallback(',
   'const toggleFloatingLyrics = useCallback(() => {',
-  'const showMoreActions = useCallback(() => {',
-  'showMessage(MORE_PLAYER_ACTIONS_MESSAGE)',
+  'const closeFloatingLyrics = useCallback(() => {',
 ]) {
   assert.ok(actionHook.includes(marker), `player action auxiliary contract missing: ${marker}`);
 }

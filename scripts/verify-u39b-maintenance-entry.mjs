@@ -23,7 +23,7 @@ for (const file of [
 
 requireToken('src/components/SettingsMaintenanceEntry.tsx', 'id="u39b-settings-maintenance-entry"');
 requireToken('src/components/SettingsMaintenanceEntry.tsx', 'onOpenMaintenance');
-requireToken('src/components/SettingsMaintenanceEntry.tsx', '打开 AI 维护');
+requireToken('src/components/SettingsMaintenanceEntry.tsx', '诊断与修复');
 requireToken('src/app/AppRouter.tsx', "props.setCurrentPage('diagnostics')");
 requireToken('src/app/AppRouter.tsx', "props.setCurrentPage('settings')");
 requireToken('src/app/AppRouter.tsx', 'onBackToSettings');

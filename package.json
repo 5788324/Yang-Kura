@@ -52,7 +52,9 @@
     "verify:u41d-legacy-cleanup": "node scripts/verify-u41d-legacy-cleanup.mjs",
     "test:u41e:rc-final": "node scripts/test-u41e-rc-final-acceptance.mjs",
     "test:u41e:lyrics-subtitle-layout": "node scripts/test-u41e-lyrics-subtitle-layout.mjs",
-    "verify:u41e-rc-final-acceptance": "node scripts/verify-u41e-rc-final-acceptance.mjs"
+    "verify:u41e-rc-final-acceptance": "node scripts/verify-u41e-rc-final-acceptance.mjs",
+    "verify:u42-daily-ui-simplification": "node scripts/verify-u42-daily-ui-simplification.mjs",
+    "test:u42:daily-ui": "node scripts/test-u42-daily-ui-simplification.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.546.0",

@@ -198,8 +198,7 @@ body {
   #app-player-bar .u30-player-track { width: 28%; }
   #app-player-bar .u30-player-aux { width: auto; }
   #app-player-bar .u30-player-time,
-  #app-player-bar .u30-completion-control,
-  #app-player-bar .u30-more-control { display: none; }
+  #app-player-bar .u30-completion-control { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

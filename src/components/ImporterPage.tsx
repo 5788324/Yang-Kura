@@ -63,6 +63,7 @@ export default function ImporterPage() {
   const [scanResult, setScanResult] = useState<ScannerSuccess | null>(null);
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<ImportExecutionMode>('copy');
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [targetFolder, setTargetFolder] = useState('');
   const [preflight, setPreflight] = useState<CopyPreflight | null>(null);
   const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
@@ -201,7 +202,7 @@ export default function ImporterPage() {
       }
       setTargetRoot(result);
       clearAfterSelectionChange();
-      setStatusMessage(`目标资源库已选择：${result.displayName}。下一步执行冲突预检。`);
+      setStatusMessage(`目标资源库已选择：${result.displayName}。下一步检查文件冲突。`);
     } catch (error) {
       setStatusMessage(`目标目录选择失败：${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -211,12 +212,27 @@ export default function ImporterPage() {
 
   const updateMode = (nextMode: ImportExecutionMode) => {
     setMode(nextMode);
+    if (nextMode === 'move') setAdvancedOpen(true);
     const nextLimit = getImportExecutionLimit(nextMode);
     if (selectedPaths.size > nextLimit) {
       setSelectedPaths(new Set(importableEntries.slice(0, nextLimit).map((entry) => entry.relativePath)));
       setStatusMessage(nextMode === 'move' ? '移动模式最多允许 20 个文件，已自动保留前 20 个选择。' : '复制模式最多允许 200 个文件。');
     }
     clearAfterSelectionChange();
+  };
+
+  const handleAdvancedToggle = (open: boolean) => {
+    setAdvancedOpen(open);
+    if (!open && mode === 'move') {
+      // 收起高级导入选项时，安全切回复制模式并清空旧状态。
+      setMode('copy');
+      setPreflight(null);
+      setExecutionResult(null);
+      setIndexMessage('');
+      setConfirmed(false);
+      setOperationPlanId(createImportOperationPlanId());
+      setStatusMessage('已切回复制模式。来源文件将保留，不会移动。');
+    }
   };
 
   const toggleEntry = (relativePath: string) => {
@@ -270,7 +286,7 @@ export default function ImporterPage() {
       }
     } catch (error) {
       setPreflight(null);
-      setStatusMessage(`冲突预检失败：${error instanceof Error ? error.message : String(error)}`);
+      setStatusMessage(`检查文件冲突失败：${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setBusyStage(null);
     }
@@ -288,7 +304,7 @@ export default function ImporterPage() {
         targetRelativePaths: committedTargetPaths,
       });
       if (!refreshPreview.ok || !refreshPreview.refreshCandidates?.length) {
-        setIndexMessage(`文件操作已完成，但未生成 Index 更新候选：${refreshPreview.message}`);
+        setIndexMessage(`文件操作已完成，但未生成资源库记录更新候选：${refreshPreview.message}`);
         return;
       }
       const patchPreview = await api.requestImportLibraryIndexPatchPreview({
@@ -342,12 +358,12 @@ export default function ImporterPage() {
       if (refreshResult.ok && refreshResult.readResult?.ok) {
         libraryReadCoordinatorService.acceptResult(refreshResult.readResult);
         window.dispatchEvent(new Event('yang-kura-library-index-loaded'));
-        setIndexMessage(`Index 已备份并更新：新增或更新 ${patchPreview.patchItemCount} 项，资源库界面已刷新。`);
+        setIndexMessage(`已创建资源库备份并更新记录：新增或更新 ${patchPreview.patchItemCount} 项，资源库界面已刷新。`);
       } else {
         setIndexMessage(`Index 已写入，但界面刷新未完成：${refreshResult.message}`);
       }
     } catch (error) {
-      setIndexMessage(`文件操作已完成，但 Index 更新发生异常：${error instanceof Error ? error.message : String(error)}`);
+      setIndexMessage(`文件操作已完成，但资源库记录更新发生异常：${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setBusyStage(null);
     }
@@ -467,21 +483,40 @@ export default function ImporterPage() {
         <section className="space-y-4 rounded-2xl border border-border-color/70 bg-card-bg/35 p-5" data-import-step="target">
           <div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-color">步骤 2</p><h3 className="mt-1 text-sm font-bold">选择目标与方式</h3></div><FolderOutput className="h-5 w-5 text-brand-color" /></div>
           <button type="button" onClick={() => void selectTarget()} disabled={isBusy || !sourceRoot || !api} className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{busyStage === 'target' ? '选择中…' : '选择目标资源库'}</button>
-          <div className="rounded-xl border border-border-color/60 bg-card-bg/35 p-3 text-xs"><p className="font-bold">{targetRoot?.displayName ?? '尚未选择目标资源库'}</p><p className="mt-1 text-text-muted">目标应是已有 Yang-Kura 资源库目录。Index 更新前会创建备份。</p></div>
+          <div className="rounded-xl border border-border-color/60 bg-card-bg/35 p-3 text-xs"><p className="font-bold">{targetRoot?.displayName ?? '尚未选择目标资源库'}</p><p className="mt-1 text-text-muted">目标应是已有 Yang-Kura 资源库目录。更新资源库记录前会创建备份。</p></div>
           {sameRoot && <p role="alert" className="rounded-lg border border-red-500/25 bg-red-500/10 p-3 text-xs text-red-200">来源和目标是同一授权目录，已阻止执行。</p>}
           <fieldset className="grid grid-cols-2 gap-2" disabled={isBusy}>
             <legend className="mb-2 text-xs font-bold">文件处理方式</legend>
-            <button type="button" aria-pressed={mode === 'copy'} onClick={() => updateMode('copy')} className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-bold ${mode === 'copy' ? 'border-brand-color bg-brand-color/10 text-brand-color' : 'border-border-color text-text-secondary'}`}><Copy className="h-4 w-4" />复制</button>
-            <button type="button" aria-pressed={mode === 'move'} onClick={() => updateMode('move')} className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-bold ${mode === 'move' ? 'border-amber-400 bg-amber-500/10 text-amber-200' : 'border-border-color text-text-secondary'}`}><MoveRight className="h-4 w-4" />移动</button>
+            <button type="button" aria-pressed={mode === 'copy'} onClick={() => updateMode('copy')} className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-bold ${mode === 'copy' ? 'border-brand-color bg-brand-color/10 text-brand-color' : 'border-border-color text-text-secondary'}`}><Copy className="h-4 w-4" />复制到资源库</button>
+            <button type="button" aria-pressed={mode === 'copy'} onClick={() => updateMode('copy')} className="flex items-center justify-center gap-2 rounded-xl border border-border-color p-3 text-xs font-bold text-text-secondary" aria-disabled="true">移动（高级）</button>
           </fieldset>
+          <details
+            className="rounded-xl border border-border-color/50 bg-card-bg/20 p-3"
+            open={advancedOpen}
+            onToggle={(event) => handleAdvancedToggle(event.currentTarget.open)}
+          >
+            <summary className="cursor-pointer list-none text-xs font-bold text-text-primary">高级导入选项</summary>
+            <div className="mt-3 space-y-3">
+              <button
+                type="button"
+                aria-pressed={mode === 'move'}
+                onClick={() => updateMode('move')}
+                disabled={isBusy}
+                className={`flex w-full items-center justify-center gap-2 rounded-xl border p-3 text-xs font-bold ${mode === 'move' ? 'border-amber-400 bg-amber-500/10 text-amber-200' : 'border-border-color text-text-secondary'}`}
+              >
+                <MoveRight className="h-4 w-4" />移动到资源库
+              </button>
+              <p className="rounded-lg border border-amber-500/25 bg-amber-500/10 p-3 text-[11px] text-amber-100">移动会把来源文件移出原目录。成功后来源文件不再保留；执行前需要二次确认。复制模式保留来源。</p>
+            </div>
+          </details>
           <label className="block space-y-2 text-xs"><span className="font-bold">目标子文件夹</span><input value={targetFolder} onChange={(event) => { setTargetFolder(event.target.value); clearAfterSelectionChange(); }} placeholder="例如 RJ01234567" className="w-full rounded-lg border border-border-color bg-input-bg px-3 py-2.5 text-text-primary outline-none focus:border-brand-color" /><span className="block text-[10px] text-text-muted">默认使用来源目录名称；禁止绝对路径和 <code>..</code>。</span></label>
           <div className="rounded-xl border border-border-color/60 p-3 text-xs text-text-secondary"><p>本模式上限：{limit} 个文件</p><p className="mt-1">当前计划：{selectedEntries.length} 个文件，{mode === 'copy' ? '保留来源' : '成功后从来源移除'}</p></div>
         </section>
 
         <section className="space-y-4 rounded-2xl border border-border-color/70 bg-card-bg/35 p-5" data-import-step="preflight">
-          <div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-color">步骤 3</p><h3 className="mt-1 text-sm font-bold">真实冲突预检</h3></div><ShieldCheck className="h-5 w-5 text-brand-color" /></div>
-          <p className="text-xs text-text-muted">检查来源是否存在、目标是否已存在、父目录是否可创建。预检不执行复制或移动。</p>
-          <button type="button" onClick={() => void runPreflight()} disabled={isBusy || !sourceRoot || !targetRoot || selectedEntries.length === 0 || selectedTooMany || sameRoot} className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{busyStage === 'preflight' ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}执行预检</button>
+          <div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-color">步骤 3</p><h3 className="mt-1 text-sm font-bold">检查文件冲突</h3></div><ShieldCheck className="h-5 w-5 text-brand-color" /></div>
+          <p className="text-xs text-text-muted">检查来源是否存在、目标是否已存在、父目录是否可创建。检查不执行复制或移动。</p>
+          <button type="button" onClick={() => void runPreflight()} disabled={isBusy || !sourceRoot || !targetRoot || selectedEntries.length === 0 || selectedTooMany || sameRoot} className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{busyStage === 'preflight' ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}开始检查</button>
           {preflight && (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
@@ -506,7 +541,7 @@ export default function ImporterPage() {
             <div className={`rounded-xl border p-4 text-xs ${executionResult.ok ? 'border-emerald-500/25 bg-emerald-500/10' : 'border-red-500/25 bg-red-500/10'}`}>
               <p className="font-bold">{executionResult.message}</p>
               <p className="mt-2">完成 {counts.committed}，跳过 {counts.skipped}，失败 {counts.failed}。</p>
-              {'operationLogPersisted' in executionResult && <p className="mt-1">OperationLog：{executionResult.operationLogPersisted ? '已写入' : '未写入'}。</p>}
+              {'operationLogPersisted' in executionResult && <p className="mt-1">操作记录：{executionResult.operationLogPersisted ? '已写入' : '未写入'}。</p>}
               {'rollbackAttempted' in executionResult && executionResult.rollbackAttempted && <p className="mt-1">回滚：{executionResult.rollbackSucceeded ? '已完成' : '未完整完成'}。</p>}
             </div>
           )}
@@ -519,7 +554,7 @@ export default function ImporterPage() {
       <details id="mvp107-importer-ai-maintenance-fold" className="rounded-2xl border border-border-color/50 bg-card-bg/20 p-4 text-xs text-text-muted">
         <summary className="cursor-pointer font-bold text-text-secondary">高级导入工具（识别、冲突与执行）</summary>
         <div className="mt-3 space-y-2">
-          <p>日常页面已连接真实 tokenized 目录选择、只读扫描、冲突预检、copy/move 事务、OperationLog、失败回滚和 Index patch 刷新。</p>
+          <p>日常页面已连接真实 tokenized 目录选择、只读扫描、检查文件冲突、copy/move 事务、操作记录、失败回滚和资源库记录更新。</p>
           <p>安全边界：不返回绝对路径，不生成 file://，不覆盖目标文件，移动模式单次最多 20 项，复制模式单次最多 200 项。</p>
         </div>
       </details>

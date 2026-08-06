@@ -4,7 +4,6 @@ import {
   CalendarDays,
   Check,
   Clock3,
-  Copy,
   Edit3,
   ExternalLink,
   FileWarning,
@@ -12,6 +11,7 @@ import {
   Heart,
   Info,
   ListPlus,
+  MoreHorizontal,
   Music2,
   Play,
   RotateCcw,
@@ -125,10 +125,25 @@ export default function RjDetailPage({
   const [metadataOpen, setMetadataOpen] = useState(false);
   const [notes, setNotes] = useState(rjWork.personalNotes ?? '');
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [openMenuTrackId, setOpenMenuTrackId] = useState<string | null>(null);
 
   useEffect(() => {
     setNotes(rjWork.personalNotes ?? '');
   }, [rjWork.id, rjWork.personalNotes]);
+
+  useEffect(() => {
+    if (!openMenuTrackId) return;
+    const close = () => setOpenMenuTrackId(null);
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') close();
+    };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('click', close);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('click', close);
+    };
+  }, [openMenuTrackId]);
 
   const playableTracks = useMemo(() => rjWork.tracks.filter(canPlayInApp), [rjWork.tracks]);
   const externalEntries = useMemo(() => rjWork.tracks.filter((track) => !canPlayInApp(track)), [rjWork.tracks]);
@@ -221,12 +236,12 @@ export default function RjDetailPage({
   const copyRelativeRecord = async (track: AudioTrack) => {
     const value = track.sourceRelativePath ?? track.fileTreePath;
     if (!value) {
-      showFeedback('该条目没有可复制的资源库相对记录。');
+      showFeedback('该条目没有可复制的文件相对路径。');
       return;
     }
     try {
       await navigator.clipboard.writeText(value);
-      showFeedback('已复制资源库相对记录。');
+      showFeedback('已复制文件相对路径。');
     } catch {
       showFeedback('浏览器未授予剪贴板权限。');
     }
@@ -371,14 +386,33 @@ export default function RjDetailPage({
                       </>
                     )}
                     actions={(
-                      <>
+                      <div className="u37c-track-actions">
                         <button type="button" className="u37b-icon-button" onClick={() => onAddToQueue(track)} title="加入播放队列" aria-label={`将 ${track.title} 加入播放队列`} disabled={!canPlayInApp(track)}><ListPlus aria-hidden="true" /></button>
                         <button type="button" className="u37b-icon-button" data-active={favorite ? 'true' : 'false'} onClick={() => toggleFavorite(track.id)} title={favorite ? '取消收藏' : '收藏音轨'} aria-label={favorite ? `取消收藏 ${track.title}` : `收藏 ${track.title}`}><Heart aria-hidden="true" /></button>
-                        <button type="button" className="u37b-icon-button" onClick={() => copyRelativeRecord(track)} title="复制相对记录" aria-label={`复制 ${track.title} 的相对记录`}><Copy aria-hidden="true" /></button>
-                        <button type="button" className="u37b-icon-button" onClick={() => void revealTrack(track)} title="在文件管理器中定位" aria-label={`在文件管理器中定位 ${track.title}`} disabled={!canUseExternalOpen(track)}><FolderOpen aria-hidden="true" /></button>
-                        <button type="button" className="u37b-icon-button" onClick={() => void openExternal(track)} title="用系统默认应用打开" aria-label={`用系统默认应用打开 ${track.title}`} disabled={!canUseExternalOpen(track)}><ExternalLink aria-hidden="true" /></button>
                         <button type="button" className="u37b-icon-button u37c-track-play" onClick={() => playOrOpen(track)} title={canPlayInApp(track) ? '播放' : '打开'} aria-label={canPlayInApp(track) ? `播放 ${track.title}` : `打开 ${track.title}`}><Play aria-hidden="true" /></button>
-                      </>
+                        <span className="u37c-track-more-wrap">
+                          <button
+                            type="button"
+                            className="u37b-icon-button u37c-track-more"
+                            aria-haspopup="menu"
+                            aria-expanded={openMenuTrackId === track.id}
+                            aria-label={`${track.title} 更多操作`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setOpenMenuTrackId((current) => (current === track.id ? null : track.id));
+                            }}
+                          >
+                            <MoreHorizontal aria-hidden="true" />
+                          </button>
+                          {openMenuTrackId === track.id ? (
+                            <div className="u37c-track-menu" role="menu" onClick={(event) => event.stopPropagation()}>
+                              <button type="button" role="menuitem" onClick={() => { copyRelativeRecord(track); setOpenMenuTrackId(null); }}>复制文件相对路径</button>
+                              <button type="button" role="menuitem" onClick={() => { setOpenMenuTrackId(null); void revealTrack(track); }} disabled={!canUseExternalOpen(track)}>在文件管理器中定位</button>
+                              <button type="button" role="menuitem" onClick={() => { setOpenMenuTrackId(null); void openExternal(track); }} disabled={!canUseExternalOpen(track)}>用系统默认应用打开</button>
+                            </div>
+                          ) : null}
+                        </span>
+                      </div>
                     )}
                   />
                 );
@@ -406,7 +440,7 @@ export default function RjDetailPage({
                 <div><span>本地覆盖来源</span><strong>{overrideSource ?? '资源库原始记录'}</strong></div>
               </div>
               {rjWork.status !== 'identified' ? (
-                <div className="u37c-inline-warning"><FileWarning aria-hidden="true" /><span>该作品存在资源警告。请通过设置或 AI 维护区重新读取、扫描或检查资源库；详情页不会自动修复磁盘文件。</span></div>
+                <div className="u37c-inline-warning"><FileWarning aria-hidden="true" /><span>该作品存在资源警告。请通过设置或“诊断与修复”重新读取、扫描或检查资源库；详情页不会自动修复磁盘文件。</span></div>
               ) : subtitleTrackCount === 0 ? (
                 <div className="u37c-inline-info"><Subtitles aria-hidden="true" /><span>当前未发现外部字幕。播放仍可继续，后续重新扫描时会重新匹配同名 LRC、SRT、VTT 或 ASS。</span></div>
               ) : (
