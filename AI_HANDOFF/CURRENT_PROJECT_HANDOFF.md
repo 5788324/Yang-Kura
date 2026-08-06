@@ -4,65 +4,61 @@
 
 ```text
 repository: 5788324/Yang-Kura
-public version: 0.170.0-beta.3
-public tag: v0.170.0-beta.3
-main: 18ada58b76a3aa0828506d2d02c57ecd22fbc587
-PR #92: merged
+public version: 1.0.0-rc.1
+public tag: v1.0.0-rc.1 (GitHub Release + Prerelease)
+main: 72066aa78b2eaa32f0750b115770d6847e5d46c9
+RC 收尾（原 #92/#93 路径）：merged
 local candidate: 1.0.0-rc.1
 current cumulative scope: U41-D + Git Fast Lane v2.3 + U41-E
-remote candidate branch/PR: NOT CONFIRMED / DO NOT CLAIM
-RC tag/release: NOT CREATED
+current candidate: U42 日常界面精简（Draft PR #94）
+remote candidate branch: product/u42-daily-ui-simplification
+Draft PR: #94
+merged: NO
+version/tag/release: NOT MODIFIED
 1.0.0: NO-GO / WINDOWS VERIFY
+（历史遗留标记：remote candidate branch/PR: NOT CONFIRMED / DO NOT CLAIM —— 指 U41-E 时期，U42 分支已推送）
 ```
 
 ## 候选内容
 
-### U41-D
+### U41-D / Git Fast Lane v2.3 / U41-E（已合并到 main）
 
-- Downloader 退出生产路由、Sidebar、Router、源码和 bundle；
-- 94 个历史源码文件进入 archive，生产不可达实现为 0；
-- workflow 17→9；verifier 87→58；
-- Importer、播放器、Index schema 和真实媒体行为不变。
+- Downloader 退出生产路由、Sidebar、Router、源码和 bundle；94 个历史源码文件归档；
+- Git Fast Lane v2.3：多文件源码只允许真实 clone + 原生 Git；
+- 候选版本 `1.0.0-rc.1`；About 显示 RC 版本；单一 Windows RC workflow；
+- `v1.0.0-rc.1` 标签与 Release 已创建。
 
-### Git Fast Lane v2.3
+### U42 日常界面精简（当前候选，Draft PR #94）
 
-- ChatGPT 负责开发、测试、文档、diff、完整源码包和 patch；
-- 多文件源码只允许真实 clone + 原生 Git；
-- 原生发布一次正常尝试、最多一次同根因重试；
-- 仍失败立即交给 Codex / DeepSeek；
-- 禁止 Contents API 逐文件提交和 Git Data API 拼 blob/tree/commit；
-- GitHub 连接器只用于只读审核、PR 元数据、Ready 和合并。
+- 删除 PlayerBar 占位 More 按钮；音声/音乐库批量操作改为选择模式；
+- RJ 音轨低频操作移入更多菜单；元数据备份/MPV 手动配置折叠；
+- Importer 默认复制、移动入高级折叠；AI 维护改名“诊断与修复”折叠入口；
+- 工程/主题文案纠偏；不新增功能、不改版本。
+- 审查修复：删除 Importer 假按钮；音乐库批量入口仅 tracks；音声库入口模式内隐藏；
+  RJ 菜单外部点击/Escape/焦点回退/相对路径验证；诊断入口移到普通设置之后；
+  Player Fast Validation 改读 U40-B workflow；U42 Windows 测试接入 U40-B workflow。
 
-### U41-E
-
-- 候选版本 `1.0.0-rc.1`；
-- 新增 7 路由 × 1280/1024/800 的溢出、控件边界、最小尺寸和键盘焦点检查；
-- About 必须显示 RC 版本，Downloader 不得恢复；
-- 现有 U32 workflow 升级为单一 Windows RC 门禁，避免增加第 10 条重复 workflow；
-- 门禁复用 U28/U29/U30/U31/U40-B/U41-B，并包含 portable/NSIS、安装升级卸载、数据保留和进程回收。
-
-## 本地证据
+## 本地证据（U42 审查修复后）
 
 - `npm ci`：PASS；
 - lint：PASS；
-- Renderer build：PASS / 1781 modules；
+- Renderer build：PASS；
 - Electron TypeScript build：PASS；
-- U41-D focused verifier：PASS；
-- U41-E static verifier：PASS；
+- verify-beta3-runtime-hardening（Player Fast Validation verifier）：PASS；
+- verify:u42 / test:u42：PASS；
+- verify:stable：PASS；
+- U28 / U29 / U30 / U31 / U40-B / U41-B / U41-E：PASS；
 - npm audit moderate：PASS / 0 vulnerabilities；
-- 完整 `verify:stable`：PASS；
-- Electron 可见 RC 测试：NOT RUN，本地无法下载 Electron binary；
-- Windows 打包/安装：NOT RUN；
-- RC tag / Release：未创建。
+- Windows CI 与 artifact：由 GitHub U40-B workflow 执行并回读。
 
-## 发布任务
+## 发布任务（U42）
 
 ```text
-parent: 18ada58b76a3aa0828506d2d02c57ecd22fbc587
-branch: release/u41e-rc1-candidate
-commit: release: prepare Yang-Kura 1.0.0-rc.1
-push: exactly once
-PR: Draft
+parent: 72066aa78b2eaa32f0750b115770d6847e5d46c9
+branch: product/u42-daily-ui-simplification（已推送）
+commit: ui: simplify daily controls and advanced actions（已推送）
+Draft PR: #94（当前 Draft，等待审查）
+push: exactly once（仅本轮修复提交允许一次额外推送）
 ```
 
-Codex 必须在干净 clone 中核对父 SHA，应用完整累积包，确认只有预期文件变化，运行任务书规定的本地验证，形成一个提交并一次推送。ChatGPT 随后只读核对远端 SHA、diff、CI 和实机证据。
+历史任务（U41-E 时期）参考：`release/u41e-rc1-candidate`。U42 尚未合并、尚未发布。

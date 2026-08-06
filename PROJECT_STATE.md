@@ -9,9 +9,12 @@ main：72066aa78b2eaa32f0750b115770d6847e5d46c9
 本地候选版本：1.0.0-rc.1
 历史候选：U41-D + Git Fast Lane v2.3 + U41-E
 当前候选：U42 日常界面精简（daily UI simplification）
-分支：product/u42-daily-ui-simplification
-远端候选分支/PR：不存在可靠证据
+远端候选分支：product/u42-daily-ui-simplification
+Draft PR：#94
+合并：否
+版本/Tag/Release：未修改
 1.0.0：仍为 RC，未进入正式发布
+（历史遗留标记：远端候选分支/PR：不存在可靠证据 —— 指 U41-E 时期，U42 分支已推送）
 ```
 
 ## 累积候选内容

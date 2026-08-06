@@ -194,6 +194,10 @@
   background: var(--yk-surface-2);
   box-shadow: var(--yk-shadow-md);
 }
+.u37c-track-menu--up {
+  top: auto;
+  bottom: calc(100% + var(--yk-space-1));
+}
 .u37c-track-menu button {
   display: flex;
   align-items: center;

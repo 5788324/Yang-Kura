@@ -41,7 +41,7 @@ main：72066aa78b2eaa32f0750b115770d6847e5d46c9
 9. 工程化文案替换为日常文案；
 10. 主题文案纠偏（acrylic-mist 深色雾面）。
 
-交付：`ui: simplify daily controls and advanced actions` 单一提交 + Draft PR（不合并）。
+交付：`ui: simplify daily controls and advanced actions`（已推送）+ `fix: close U42 review and CI gaps`（审查修复，一次推送）+ Draft PR #94（不合并）。
 
 ## U42 门禁
 
@@ -49,10 +49,13 @@ main：72066aa78b2eaa32f0750b115770d6847e5d46c9
 2. `npm audit --audit-level=moderate` 0 漏洞；
 3. `npm run lint` PASS；
 4. `npm run build` / `build:electron` PASS；
-5. `npm run verify:stable` PASS（含 U42 verifier）；
-6. `npm run test:u42:daily-ui` PASS（800×700、1024×720、1280×800，100%/125%）；
-7. 修复前后截图证据（13 项，仓库外）；
-8. Draft PR 全绿，Codex 实机 PASS。
+5. `node scripts/verify-beta3-runtime-hardening.mjs`（Player Fast Validation）PASS；
+6. `npm run verify:u42-daily-ui-simplification` PASS；
+7. `npm run test:u42:daily-ui` PASS（800×700、1024×720、1280×800，100%/125%，无横向溢出）；
+8. `npm run verify:stable` PASS（含 U42 verifier）；
+9. U28/U29/U30/U31/U40-B/U41-B/U41-E PASS；
+10. 修复前后截图证据（仓库外 + GitHub artifact）；
+11. 全部 GitHub workflow 回读全绿，Codex 实机 PASS。
 
 ## 后续顺序
 

@@ -355,6 +355,7 @@ export default function MusicLibraryPage({
   const switchView = (view: LibraryView) => {
     setActiveView(view);
     setDetail(null);
+    setSelectionMode(false);
     setSelectedTrackIds(new Set<string>());
   };
 
@@ -744,9 +745,10 @@ export default function MusicLibraryPage({
               <Heart className={favoritesOnly ? 'u37d-heart-filled' : ''} />
               <span>仅看收藏</span>
             </button>
-            <Button variant="ghost" size="sm" onClick={enterSelectionMode} aria-label="批量管理">批量管理</Button>
+            {activeView === 'tracks' && !selectionMode ? (
+              <Button variant="ghost" size="sm" onClick={enterSelectionMode} aria-label="批量管理">批量管理</Button>
+            ) : null}
           </Surface>
-
           <div className="u37d-result-line">
             <span>{isSearchPending ? '正在更新结果…' : `${currentTotal} 个${currentNoun}`}</span>
             {hasFilters ? (
@@ -798,7 +800,7 @@ export default function MusicLibraryPage({
         </Surface>
       )}
 
-      {(activeView === 'tracks' || detail) && currentTracks.length > 0 && selectionMode ? (
+      {activeView === 'tracks' && currentTracks.length > 0 && selectionMode ? (
         <Surface className="u37d-selection-bar" padding="sm" tone="subtle">
           <button type="button" onClick={exitSelectionMode} aria-label="退出批量管理">退出批量管理</button>
           <button type="button" onClick={toggleAllCurrentTracks}>

@@ -485,10 +485,9 @@ export default function ImporterPage() {
           <button type="button" onClick={() => void selectTarget()} disabled={isBusy || !sourceRoot || !api} className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{busyStage === 'target' ? '选择中…' : '选择目标资源库'}</button>
           <div className="rounded-xl border border-border-color/60 bg-card-bg/35 p-3 text-xs"><p className="font-bold">{targetRoot?.displayName ?? '尚未选择目标资源库'}</p><p className="mt-1 text-text-muted">目标应是已有 Yang-Kura 资源库目录。更新资源库记录前会创建备份。</p></div>
           {sameRoot && <p role="alert" className="rounded-lg border border-red-500/25 bg-red-500/10 p-3 text-xs text-red-200">来源和目标是同一授权目录，已阻止执行。</p>}
-          <fieldset className="grid grid-cols-2 gap-2" disabled={isBusy}>
+          <fieldset className="grid grid-cols-1 gap-2" disabled={isBusy}>
             <legend className="mb-2 text-xs font-bold">文件处理方式</legend>
             <button type="button" aria-pressed={mode === 'copy'} onClick={() => updateMode('copy')} className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-bold ${mode === 'copy' ? 'border-brand-color bg-brand-color/10 text-brand-color' : 'border-border-color text-text-secondary'}`}><Copy className="h-4 w-4" />复制到资源库</button>
-            <button type="button" aria-pressed={mode === 'copy'} onClick={() => updateMode('copy')} className="flex items-center justify-center gap-2 rounded-xl border border-border-color p-3 text-xs font-bold text-text-secondary" aria-disabled="true">移动（高级）</button>
           </fieldset>
           <details
             className="rounded-xl border border-border-color/50 bg-card-bg/20 p-3"

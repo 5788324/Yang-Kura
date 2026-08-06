@@ -162,6 +162,8 @@ async function main() {
     await clickButtonText(cdp, '批量管理', true);
     await check('selection bar appears', `Boolean(document.querySelector('.u37b-selection-bar'))`);
     await check('card checkbox appears', `Boolean(document.querySelector('[data-u37b-asmr-card] input[type="checkbox"]'))`);
+    await checkFalse('asmr batch entry hidden in mode', `Boolean([...document.querySelectorAll('button')].find((b)=>b.offsetParent !== null && b.getAttribute('aria-label') === '批量管理'))`);
+    await check('asmr exit-only visible in mode', `Boolean([...document.querySelectorAll('button')].find((b)=>b.offsetParent !== null && b.textContent?.trim() === '退出批量管理'))`);
     await cdp.evaluate(`(() => { const boxes=[...document.querySelectorAll('[data-u37b-asmr-card] input[type="checkbox"]')].slice(0,1); boxes.forEach((b)=>b.click()); return true; })()`);
     await check('selected count 1', `document.querySelector('.u37b-selection-bar')?.textContent?.includes('已选择 1 个作品')`);
     await clickButtonText(cdp, '退出批量管理', true);
@@ -180,8 +182,28 @@ async function main() {
     await check('reveal item', `[...document.querySelectorAll('.u37c-track-menu button')].some((b)=>b.textContent?.includes('在文件管理器中定位'))`);
     await check('open item', `[...document.querySelectorAll('.u37c-track-menu button')].some((b)=>b.textContent?.includes('用系统默认应用打开'))`);
     await shot('u42-rj-track-menu');
+    // Only one menu open at a time: opening a second row's menu closes the first.
+    await cdp.evaluate(`(() => { const b=[...document.querySelectorAll('.u37c-track-more')][1]; if (b) b.click(); return true; })()`);
+    await check('track menu single-open', `document.querySelectorAll('.u37c-track-menu').length === 1`);
+    await cdp.evaluate(`(() => { const b=[...document.querySelectorAll('.u37c-track-more')][0]; if (b) b.click(); return true; })()`);
+    await check('track menu reopens first', `document.querySelectorAll('.u37c-track-menu').length === 1`);
+    // Outside click closes the menu and focus returns to the more button.
+    await cdp.evaluate(`(() => { document.querySelector('.u37c-rj-tabs')?.dispatchEvent(new MouseEvent('click', { bubbles: true })); return true; })()`);
+    await delay(250);
+    await checkFalse('track menu closes on outside click', `Boolean(document.querySelector('.u37c-track-menu'))`);
+    await cdp.evaluate(`(() => { const b=[...document.querySelectorAll('.u37c-track-more')][0]; if (b) b.focus(); b.click(); return true; })()`);
+    await check('track menu open after refocus', `Boolean(document.querySelector('.u37c-track-menu'))`);
     await pressKey(runtime.cdp, 'Escape');
     await checkFalse('track menu closes on Escape', `Boolean(document.querySelector('.u37c-track-menu'))`);
+    const focusAfterClose = await cdp.evaluate(`document.activeElement?.className?.includes('u37c-track-more') === true`);
+    assert.equal(focusAfterClose, true, 'focus returns to the more button after Escape close');
+    // Copy keeps relative path only: no absolute path or file:// in the DOM.
+    await cdp.evaluate(`(() => { const b=[...document.querySelectorAll('.u37c-track-more')][0]; if (b) b.click(); return true; })()`);
+    await check('menu open for copy', `Boolean(document.querySelector('.u37c-track-menu'))`);
+    await cdp.evaluate(`(() => { const b=[...document.querySelectorAll('.u37c-track-menu button')][0]; if (b) b.click(); return true; })()`);
+    await check('copy toast', `document.body.innerText.includes('已复制文件相对路径')`);
+    const leak = await cdp.evaluate(`document.body.innerText.match(/[A-Za-z]:\\\\[^\\n]*\\.wav|file:\\/\\/\\//) ? true : false`);
+    assert.equal(leak, false, 'no absolute path or file:// leaked into the DOM');
     await shot('u42-rj-track-row-simplified');
 
     // --- Music batch opt-in ---
@@ -192,9 +214,33 @@ async function main() {
     await clickButtonText(cdp, '批量管理', true);
     await check('music selection bar appears', `Boolean(document.querySelector('.u37d-selection-bar'))`);
     await check('music track select present', `Boolean(document.querySelector('[data-u37d-track-row] button[aria-label^="选择 "]'))`);
+    await checkFalse('music batch entry hidden in mode', `Boolean([...document.querySelectorAll('button')].find((b)=>b.offsetParent !== null && b.getAttribute('aria-label') === '批量管理'))`);
     await shot('u42-music-batch-mode');
     await clickButtonText(cdp, '退出批量管理', true);
     await checkFalse('music selection cleared on exit', `Boolean(document.querySelector('.u37d-selection-bar'))`);
+
+    // Music batch entry is tracks-only: albums/artists/folders must not show it.
+    for (const view of ['albums', 'artists', 'folders']) {
+      await click(cdp, `[data-u37d-view="${view}"]`);
+      await check(`music ${view} view`, `document.querySelector('[data-u37d-music-library="${view}"]')`);
+      await checkFalse(`music batch entry hidden on ${view}`, `Boolean([...document.querySelectorAll('button')].find((b)=>b.offsetParent !== null && b.getAttribute('aria-label') === '批量管理'))`);
+      await checkFalse(`music selection bar hidden on ${view}`, `Boolean(document.querySelector('.u37d-selection-bar'))`);
+      await shot(`u42-music-${view}-no-batch`);
+    }
+    // Switch back to tracks: entry is back, selection bar still hidden.
+    await click(cdp, '[data-u37d-view="tracks"]');
+    await check('music tracks back', `document.querySelector('[data-u37d-music-library="tracks"]')`);
+    await check('music batch entry back on tracks', `Boolean([...document.querySelectorAll('button')].find((b)=>b.offsetParent !== null && b.getAttribute('aria-label') === '批量管理'))`);
+    await checkFalse('music selection bar still hidden on tracks return', `Boolean(document.querySelector('.u37d-selection-bar'))`);
+    // Enter mode, then switch view: selectionMode must clear, no unrecoverable hidden state.
+    await clickButtonText(cdp, '批量管理', true);
+    await check('music selection bar re-entered', `Boolean(document.querySelector('.u37d-selection-bar'))`);
+    await click(cdp, '[data-u37d-view="albums"]');
+    await check('music albums after mode', `document.querySelector('[data-u37d-music-library="albums"]')`);
+    await checkFalse('music selection bar cleared after switch', `Boolean(document.querySelector('.u37d-selection-bar'))`);
+    await click(cdp, '[data-u37d-view="tracks"]');
+    await check('music entry recoverable after switch', `Boolean([...document.querySelectorAll('button')].find((b)=>b.offsetParent !== null && b.getAttribute('aria-label') === '批量管理'))`);
+    await checkFalse('music selection bar hidden again after recovery', `Boolean(document.querySelector('.u37d-selection-bar'))`);
 
     // --- Music metadata advanced backup collapsed ---
     await click(cdp, '#nav-music-lib');
@@ -222,6 +268,14 @@ async function main() {
     await check('maintenance entry present', `Boolean(document.querySelector('#u39b-settings-maintenance-entry'))`);
     await check('maintenance renamed', `document.querySelector('#u39b-settings-maintenance-entry')?.textContent?.includes('诊断与修复')`);
     await checkFalse('maintenance collapsed by default', `document.querySelector('#u39b-settings-maintenance-entry')?.open`);
+    await check('maintenance entry after settings content', `(() => {
+      const entry = document.querySelector('#u39b-settings-maintenance-entry');
+      const settings = document.querySelector('[data-settings-tab]')?.closest('div');
+      if (!entry) return false;
+      const entryRect = entry.getBoundingClientRect().top;
+      const settingsRects = [...document.querySelectorAll('[data-settings-tab]')].map((el) => el.getBoundingClientRect().top);
+      return entryRect > Math.max(...settingsRects) - 1;
+    })()`);
     await shot('u42-maintenance-entry-collapsed');
 
     // --- Importer default copy; move under advanced ---
@@ -229,10 +283,25 @@ async function main() {
     await check('importer', "document.querySelector('#u41b-importer-primary-flow')");
     await check('copy default', `[...document.querySelectorAll('button')].some((b)=>b.textContent?.includes('复制到资源库') && b.getAttribute('aria-pressed') === 'true')`);
     await checkFalse('move hidden by default', `[...document.querySelectorAll('#u41b-importer-primary-flow details')].some((d)=>d.open)`);
+    // Normal area: only the real copy action, no fake disabled move button.
+    const normalArea = await cdp.evaluate(`(() => {
+      const section = [...document.querySelectorAll('section')].find((el) => el.querySelector('[data-import-step="target"]') || el.textContent?.includes('选择目标与方式'));
+      const text = section ? section.innerText : '';
+      return { text, hasFakeMove: text.includes('移动（高级）'), hasMove: text.includes('移动'), copyPressed: [...document.querySelectorAll('button')].some((b)=>b.textContent?.includes('复制到资源库') && b.getAttribute('aria-pressed') === 'true') };
+    })()`);
+    assert.equal(normalArea.hasFakeMove, false, 'normal area has no fake 移动（高级） button');
+    assert.equal(normalArea.hasMove, false, 'normal area has no move button');
+    assert.equal(normalArea.copyPressed, true, 'copy is the only real normal-area action');
     await shot('u42-importer-copy-default');
     await cdp.evaluate(`(() => { const s=[...document.querySelectorAll('#u41b-importer-primary-flow summary')].find((x)=>x.textContent?.includes('高级导入选项')); if (s) s.click(); return true; })()`);
     await check('move appears after expand', `[...document.querySelectorAll('#u41b-importer-primary-flow button')].some((b)=>b.textContent?.includes('移动到资源库')) && [...document.querySelectorAll('#u41b-importer-primary-flow details')].some((d)=>d.open)`);
     await shot('u42-importer-advanced-move');
+    // Select move, then collapse advanced: state must reset to copy.
+    await clickButtonText(cdp, '移动到资源库', true);
+    await check('move selected', `[...document.querySelectorAll('button')].some((b)=>b.textContent?.includes('移动到资源库') && b.getAttribute('aria-pressed') === 'true')`);
+    await cdp.evaluate(`(() => { const s=[...document.querySelectorAll('#u41b-importer-primary-flow summary')].find((x)=>x.textContent?.includes('高级导入选项')); if (s) s.click(); return true; })()`);
+    await checkFalse('advanced closed again', `[...document.querySelectorAll('#u41b-importer-primary-flow details')].some((d)=>d.open)`);
+    await check('copy restored after collapse', `[...document.querySelectorAll('button')].some((b)=>b.textContent?.includes('复制到资源库') && b.getAttribute('aria-pressed') === 'true')`);
 
     // --- Responsive: no horizontal overflow across viewports ---
     for (const vp of [
@@ -253,6 +322,23 @@ async function main() {
       report.checks.push({ name: `responsive:${vp.width}x${vp.height}@${vp.scale}`, pass: true });
     }
 
+    // RJ more menu must stay inside the window at 800x700@125%.
+    await cdp.send('Emulation.setDeviceMetricsOverride', { width: 800, height: 700, deviceScaleFactor: 1.25, mobile: false });
+    await delay(300);
+    await click(cdp, '#nav-asmr-lib');
+    await check('asmr lib for menu bounds', "document.querySelector('[data-u37b-asmr-library]')");
+    await click(cdp, '[data-u37b-asmr-card]');
+    await check('rj detail for menu bounds', "document.querySelector('[data-u37c-rj-detail=\"ready\"]')");
+    await cdp.evaluate(`(() => { const b=[...document.querySelectorAll('.u37c-track-more')][0]; if (b) b.scrollIntoView({ block: 'center' }); return true; })()`);
+    await delay(250);
+    await cdp.evaluate(`(() => { const b=[...document.querySelectorAll('.u37c-track-more')][0]; if (b) b.click(); return true; })()`);
+    await check('menu open at small viewport', `Boolean(document.querySelector('.u37c-track-menu'))`);
+    const menuBounds = await cdp.evaluate(`(() => { const m=document.querySelector('.u37c-track-menu'); if(!m) return {ok:false}; const b=[...document.querySelectorAll('.u37c-track-more')][0]; const br=b?b.getBoundingClientRect():null; const r=m.getBoundingClientRect(); return { ok: r.right <= innerWidth + 1 && r.left >= -1 && r.bottom <= innerHeight + 1, rect: { left: r.left, right: r.right, top: r.top, bottom: r.bottom }, btn: br ? { top: br.top, bottom: br.bottom } : null, vw: innerWidth, vh: innerHeight, up: m.classList.contains('u37c-track-menu--up') }; })()`);
+    assert.equal(menuBounds.ok, true, `RJ menu exceeds window at 800x700@125%: ${JSON.stringify(menuBounds)}`);
+    await shot('u42-rj-menu-bounds-800x700-125');
+    await pressKey(runtime.cdp, 'Escape');
+    await checkFalse('menu closed after bounds check', `Boolean(document.querySelector('.u37c-track-menu'))`);
+
     assert.deepEqual(runtime.cdp.errors, [], `renderer errors: ${runtime.cdp.errors.join(' | ')}`);
     report.errors = runtime.cdp.errors;
     report.status = 'PASS';
@@ -263,6 +349,22 @@ async function main() {
     throw error;
   } finally {
     fs.writeFileSync(path.join(artifactDir, 'report.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+    try {
+      const { createHash } = await import('node:crypto');
+      const shots = fs.readdirSync(screenshotDir).filter((f) => f.endsWith('.png')).sort();
+      const manifest = { name: 'U42 daily UI simplification', version: report.version, head: report.head, status: report.status, generatedAt: new Date().toISOString(), screenshots: [] };
+      const lines = [];
+      for (const f of shots) {
+        const buf = fs.readFileSync(path.join(screenshotDir, f));
+        const h = createHash('sha256').update(buf).digest('hex');
+        lines.push(`${h}  ${f}`);
+        manifest.screenshots.push({ file: f, bytes: buf.length, sha256: h });
+      }
+      fs.writeFileSync(path.join(artifactDir, 'MANIFEST.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+      fs.writeFileSync(path.join(artifactDir, 'SHA256SUMS.txt'), `${lines.join('\n')}\n`, 'utf8');
+    } catch (manifestError) {
+      report.manifestError = manifestError instanceof Error ? manifestError.message : String(manifestError);
+    }
     if (runtime) await closeElectron(runtime).catch(() => {});
     fs.rmSync(tempRoot, { recursive: true, force: true });
   }

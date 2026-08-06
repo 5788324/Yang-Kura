@@ -18,7 +18,7 @@
     ],
     "dailyRouteCount": 6,
     "maintenanceRouteCount": 1,
-    "staticControlCount": 245,
+    "staticControlCount": 244,
     "filesWithControls": 28,
     "controlFiles": [
       {
@@ -42,12 +42,12 @@
         "count": 19
       },
       {
-        "file": "src/components/ImporterPage.tsx",
+        "file": "src/components/PlaylistPage.tsx",
         "count": 14
       },
       {
-        "file": "src/components/PlaylistPage.tsx",
-        "count": 14
+        "file": "src/components/ImporterPage.tsx",
+        "count": 13
       },
       {
         "file": "src/components/AsmrMetadataProviderPreview.tsx",

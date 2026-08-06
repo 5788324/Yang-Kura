@@ -422,7 +422,7 @@ export default function AsmrLibraryPage({
             <option value="abandoned">已搁置</option>
           </select>
           {hasFilters ? <Button variant="ghost" size="sm" onClick={resetFilters}>重置筛选</Button> : null}
-          <Button variant="ghost" size="sm" onClick={enterSelectionMode} aria-label="批量管理">批量管理</Button>
+          {!selectionMode ? <Button variant="ghost" size="sm" onClick={enterSelectionMode} aria-label="批量管理">批量管理</Button> : null}
         </div>
       </Surface>
 

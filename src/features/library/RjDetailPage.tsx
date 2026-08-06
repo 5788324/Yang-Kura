@@ -126,6 +126,7 @@ export default function RjDetailPage({
   const [notes, setNotes] = useState(rjWork.personalNotes ?? '');
   const [feedback, setFeedback] = useState<string | null>(null);
   const [openMenuTrackId, setOpenMenuTrackId] = useState<string | null>(null);
+  const [menuAlignUp, setMenuAlignUp] = useState(false);
 
   useEffect(() => {
     setNotes(rjWork.personalNotes ?? '');
@@ -399,13 +400,19 @@ export default function RjDetailPage({
                             aria-label={`${track.title} 更多操作`}
                             onClick={(event) => {
                               event.stopPropagation();
+                              if (openMenuTrackId !== track.id) {
+                                const button = event.currentTarget;
+                                const menuHeight = 140;
+                                const gapBelow = window.innerHeight - button.getBoundingClientRect().bottom;
+                                setMenuAlignUp(gapBelow < menuHeight);
+                              }
                               setOpenMenuTrackId((current) => (current === track.id ? null : track.id));
                             }}
                           >
                             <MoreHorizontal aria-hidden="true" />
                           </button>
                           {openMenuTrackId === track.id ? (
-                            <div className="u37c-track-menu" role="menu" onClick={(event) => event.stopPropagation()}>
+                            <div className={`u37c-track-menu${menuAlignUp ? ' u37c-track-menu--up' : ''}`} role="menu" onClick={(event) => event.stopPropagation()}>
                               <button type="button" role="menuitem" onClick={() => { copyRelativeRecord(track); setOpenMenuTrackId(null); }}>复制文件相对路径</button>
                               <button type="button" role="menuitem" onClick={() => { setOpenMenuTrackId(null); void revealTrack(track); }} disabled={!canUseExternalOpen(track)}>在文件管理器中定位</button>
                               <button type="button" role="menuitem" onClick={() => { setOpenMenuTrackId(null); void openExternal(track); }} disabled={!canUseExternalOpen(track)}>用系统默认应用打开</button>
