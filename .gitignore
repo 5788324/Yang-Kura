@@ -27,3 +27,6 @@ Thumbs.db
 # Temporary archives
 *.tmp
 *.bak
+
+# Local test artifacts (tracked surfaces live directly under artifacts/)
+artifacts/*/

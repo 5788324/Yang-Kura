@@ -128,6 +128,7 @@ export default function MusicLibraryPage({
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [detail, setDetail] = useState<DetailSelection | null>(null);
   const [selectedTrackIds, setSelectedTrackIds] = useState<Set<string>>(() => new Set<string>());
+  const [selectionMode, setSelectionMode] = useState(false);
   const [renderLimit, setRenderLimit] = useState(LARGE_LIBRARY_RENDER_LIMITS.musicTracksInitial);
   const [feedback, setFeedback] = useState<string | null>(null);
   const deferredGlobalQuery = useDeferredValue(searchQuery);
@@ -354,6 +355,7 @@ export default function MusicLibraryPage({
   const switchView = (view: LibraryView) => {
     setActiveView(view);
     setDetail(null);
+    setSelectionMode(false);
     setSelectedTrackIds(new Set<string>());
   };
 
@@ -364,6 +366,16 @@ export default function MusicLibraryPage({
       else next.add(trackId);
       return next;
     });
+  };
+
+  const enterSelectionMode = () => {
+    setSelectionMode(true);
+    setSelectedTrackIds(new Set<string>());
+  };
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelectedTrackIds(new Set<string>());
   };
 
   const toggleAllCurrentTracks = () => {
@@ -444,6 +456,7 @@ export default function MusicLibraryPage({
     const isSelected = selectedTrackIds.has(track.id);
     return (
       <>
+        {selectionMode && (
         <button
           type="button"
           className="u37d-icon-button"
@@ -453,6 +466,7 @@ export default function MusicLibraryPage({
         >
           {isSelected ? <CheckSquare2 /> : <Square />}
         </button>
+        )}
         <button
           type="button"
           className="u37d-icon-button"
@@ -731,8 +745,10 @@ export default function MusicLibraryPage({
               <Heart className={favoritesOnly ? 'u37d-heart-filled' : ''} />
               <span>仅看收藏</span>
             </button>
+            {activeView === 'tracks' && !selectionMode ? (
+              <Button variant="ghost" size="sm" onClick={enterSelectionMode} aria-label="批量管理">批量管理</Button>
+            ) : null}
           </Surface>
-
           <div className="u37d-result-line">
             <span>{isSearchPending ? '正在更新结果…' : `${currentTotal} 个${currentNoun}`}</span>
             {hasFilters ? (
@@ -784,8 +800,9 @@ export default function MusicLibraryPage({
         </Surface>
       )}
 
-      {(activeView === 'tracks' || detail) && currentTracks.length > 0 ? (
+      {activeView === 'tracks' && currentTracks.length > 0 && selectionMode ? (
         <Surface className="u37d-selection-bar" padding="sm" tone="subtle">
+          <button type="button" onClick={exitSelectionMode} aria-label="退出批量管理">退出批量管理</button>
           <button type="button" onClick={toggleAllCurrentTracks}>
             {allCurrentTracksSelected ? <CheckSquare2 /> : <Square />}
             <span>{allCurrentTracksSelected ? '取消全选当前结果' : '全选当前结果'}</span>

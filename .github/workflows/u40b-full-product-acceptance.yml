@@ -8,6 +8,22 @@ on:
       - '.github/workflows/u40b-full-product-acceptance.yml'
       - 'scripts/test-u40b-full-product-journey.mjs'
       - 'scripts/verify-u40b-full-product-acceptance.mjs'
+      - 'scripts/test-u42-daily-ui-simplification.mjs'
+      - 'scripts/verify-u42-daily-ui-simplification.mjs'
+      - 'scripts/u40b/cdp-runtime.mjs'
+      - 'src/components/PlayerBar.tsx'
+      - 'src/components/PlayerBarAuxiliaryControls.tsx'
+      - 'src/hooks/usePlayerBarActions.ts'
+      - 'src/player/playerBarActionModel.ts'
+      - 'src/components/ImporterPage.tsx'
+      - 'src/components/SettingsMaintenanceEntry.tsx'
+      - 'src/components/SettingsPageDaily.tsx'
+      - 'src/components/MusicMetadataManagementPanel.tsx'
+      - 'src/app/AppRouter.tsx'
+      - 'src/app/navigation.ts'
+      - 'src/features/library/AsmrLibraryPage.tsx'
+      - 'src/features/library/MusicLibraryPage.tsx'
+      - 'src/features/library/RjDetailPage.tsx'
   workflow_dispatch:
 
 permissions:
@@ -81,6 +97,13 @@ jobs:
       - name: U40-B all visible controls and one-second media journeys
         run: node scripts/test-u40b-full-product-journey.mjs
 
+      - name: U42 daily UI simplification
+        run: |
+          npm run verify:u42-daily-ui-simplification
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run test:u42:daily-ui
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Aggregate U40-B evidence
         run: node scripts/verify-u40b-full-product-acceptance.mjs
 
@@ -96,5 +119,6 @@ jobs:
             artifacts/u31-importer-transactions
             artifacts/u32-ui-audit
             artifacts/u40b-full-product-acceptance
+            artifacts/u42-daily-ui-simplification
           if-no-files-found: warn
           retention-days: 30

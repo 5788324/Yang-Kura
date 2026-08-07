@@ -14,6 +14,7 @@ const stableScripts = [
   'verify:u41c-runtime-patch',
   'verify:u41d-legacy-cleanup',
   'verify:u41e-rc-final-acceptance',
+  'verify:u42-daily-ui-simplification',
   'test:mpv:settings-runtime',
   'test:mpv:stability-runtime',
   'test:importer:smoke',

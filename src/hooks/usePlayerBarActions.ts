@@ -4,7 +4,6 @@ import {
   getFavoriteToggleMessage,
   getFloatingLyricsToggleMessage,
   getPlaylistSelectionDecision,
-  MORE_PLAYER_ACTIONS_MESSAGE,
 } from '../player/playerBarActionModel';
 import { useAutoDismissMessage } from './usePlayerTransientUi';
 
@@ -26,7 +25,6 @@ export interface PlayerBarActions {
   selectPlaylist: (playlist: Playlist) => void;
   toggleFloatingLyrics: () => void;
   closeFloatingLyrics: () => void;
-  showMoreActions: () => void;
 }
 
 export function usePlayerBarActions({
@@ -80,10 +78,6 @@ export function usePlayerBarActions({
     setIsFloatingLyricsVisible(false);
   }, []);
 
-  const showMoreActions = useCallback(() => {
-    showMessage(MORE_PLAYER_ACTIONS_MESSAGE);
-  }, [showMessage]);
-
   return {
     isLiked,
     isPlaylistMenuOpen,
@@ -95,6 +89,5 @@ export function usePlayerBarActions({
     selectPlaylist,
     toggleFloatingLyrics,
     closeFloatingLyrics,
-    showMoreActions,
   };
 }

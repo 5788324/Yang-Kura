@@ -74,7 +74,7 @@ const coverComponentSource = fs.readFileSync(path.join(root, 'src/components/Cov
 const preferenceSource = fs.readFileSync(path.join(root, 'src/services/mpvPlaybackPreferenceService.ts'), 'utf8');
 const u40bFixtureSource = fs.readFileSync(path.join(root, 'scripts/u40b/fixture.mjs'), 'utf8');
 const u40bJourneySource = fs.readFileSync(path.join(root, 'scripts/test-u40b-full-product-journey.mjs'), 'utf8');
-const u40dWorkflowSource = fs.readFileSync(path.join(root, '.github/workflows/u40d-real-library-stability.yml'), 'utf8');
+const u40bWorkflowSource = fs.readFileSync(path.join(root, '.github/workflows/u40b-full-product-acceptance.yml'), 'utf8');
 
 assert.match(mainSource, /Accept-Ranges': 'bytes'/);
 assert.match(mainSource, /Content-Range/);
@@ -97,8 +97,16 @@ assert.doesNotMatch(u40bFixtureSource, /localStorage\.setItem\('sqlite_music_alb
 assert.doesNotMatch(u40bFixtureSource, /localStorage\.setItem\('yang_kura_player_queue_v1'/);
 assert.match(u40bJourneySource, /readExistingIndex/);
 assert.match(u40bJourneySource, /real-index player authorization/);
-assert.match(u40dWorkflowSource, /requires_full_e2e/);
-assert.match(u40dWorkflowSource, /if: needs\.scope\.outputs\.requires_full_e2e == 'true'/);
+// The current Windows workflow must still wire the full acceptance suites and
+// upload the U40-B evidence artifact.
+assert.match(u40bWorkflowSource, /test:u28:electron-e2e/);
+assert.match(u40bWorkflowSource, /test:u29:electron-e2e/);
+assert.match(u40bWorkflowSource, /test:u30:ui-matrix/);
+assert.match(u40bWorkflowSource, /test:u31:importer-transactions/);
+assert.match(u40bWorkflowSource, /test-u32-ui-audit\.mjs/);
+assert.match(u40bWorkflowSource, /test-u40b-full-product-journey\.mjs/);
+assert.match(u40bWorkflowSource, /actions\/upload-artifact@v4/);
+assert.match(u40bWorkflowSource, /name: u40b-full-product-acceptance/);
 
 const fixtureModule = await import(pathToFileURL(path.join(root, 'scripts/u40b/fixture.mjs')).href);
 const u40bTempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'yang-kura-u40b-verifier-'));

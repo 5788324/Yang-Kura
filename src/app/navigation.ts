@@ -69,8 +69,8 @@ export const APP_ROUTE_REGISTRY = {
   },
   diagnostics: {
     id: 'diagnostics',
-    label: 'AI 维护',
-    shortLabel: '维护',
+    label: '诊断与修复',
+    shortLabel: '诊断',
     section: 'maintenance',
     daily: false,
     searchable: false,

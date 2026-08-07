@@ -38,8 +38,9 @@ for (const token of [
 for (const token of ['role="status"', 'aria-live="polite"', 'aria-atomic="true"', 'data-u30-runtime-status']) {
   assert.ok(topBar.includes(token), `TopBar missing ${token}`);
 }
-assert.match(maintenance, /资源状态与性能检查按需打开/);
-assert.match(maintenance, /历史工程诊断已经归档，不再作为运行时功能/);
+assert.match(maintenance, /诊断与修复/);
+assert.match(maintenance, /<details/);
+assert.match(maintenance, /onOpenMaintenance/);
 assert.doesNotMatch(maintenance, /完整历史诊断|完整诊断按需展开/);
 
 assert.match(attributes, /tests\/fixtures\/mpv\/\*\.mjs text eol=lf/);

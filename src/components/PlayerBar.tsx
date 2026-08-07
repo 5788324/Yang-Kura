@@ -75,7 +75,6 @@ export default function PlayerBar({
     selectPlaylist,
     toggleFloatingLyrics,
     closeFloatingLyrics,
-    showMoreActions,
   } = usePlayerBarActions({
     currentTrack,
     favorites,
@@ -188,7 +187,6 @@ export default function PlayerBar({
         onVolumeMouseEnter={handleVolumeMouseEnter}
         onVolumeMouseLeave={handleVolumeMouseLeave}
         onVolumeChange={handleVolumeSlide}
-        onMoreActions={showMoreActions}
       />
 
       <PlayerCompatibilityMarkers {...presentation.compatibility} />

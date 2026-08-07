@@ -220,8 +220,8 @@ export default function AppRouter(props: AppRouterProps) {
 
       {props.currentPage === 'settings' && (
         <div className="space-y-5">
-          <SettingsMaintenanceEntry onOpenMaintenance={() => props.setCurrentPage('diagnostics')} />
           <SettingsPage settings={props.settings} updateSettings={props.updateSettings} />
+          <SettingsMaintenanceEntry onOpenMaintenance={() => props.setCurrentPage('diagnostics')} />
         </div>
       )}
 

@@ -284,13 +284,14 @@ try {
 
   await recordedClick('[data-settings-tab="theme"]', 'settings:theme');
   await chooseTheme('dark', '高雅黑');
-  await chooseTheme('acrylic-mist', '云雾亚克力');
+  await chooseTheme('acrylic-mist', '云雾深色');
   await chooseTheme('ocean-drops', '微光海洋');
   await setHtmlAudioOnly();
 
   const maintenanceExists = await runtime.cdp.evaluate(`Boolean(document.querySelector('#u39b-settings-maintenance-entry'))`);
   assert.equal(maintenanceExists, true, 'AI maintenance entry visible');
-  await recordedButtonText('打开 AI 维护', 'open AI maintenance');
+  await recordedClick('#u39b-settings-maintenance-entry > summary', 'expand advanced settings');
+  await recordedButtonText('打开', 'open diagnostic and repair');
   await waitFor(runtime.cdp, `document.body.innerText.includes('返回设置')`, 'AI maintenance page');
   await inventoryVisibleControls(runtime.cdp, 'ai-maintenance', 'overview', report);
   await screenshot('ai-maintenance');

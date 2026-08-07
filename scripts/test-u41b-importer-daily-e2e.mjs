@@ -91,13 +91,13 @@ try {
   await clickButtonText(cdp, '选择目标资源库', true);
   await waitFor(cdp, "[...document.querySelectorAll('[data-import-step=\"target\"] p')].some((item)=>item.textContent?.includes('target-library'))", 'target selection');
 
-  await clickButtonText(cdp, '执行预检', true);
+  await clickButtonText(cdp, '开始检查', true);
   await waitFor(cdp, "[...document.querySelectorAll('[data-import-step=\"preflight\"] *')].some((item)=>item.textContent?.includes('已检查'))", 'import preflight', 30_000);
 
   await click(cdp, '[data-import-step="execute"] input[type="checkbox"]');
   await waitFor(cdp, "!document.querySelector('[data-import-step=\"execute\"] button')?.disabled", 'enabled execute button');
   await clickButtonText(cdp, '执行复制', true);
-  await waitFor(cdp, "[...document.querySelectorAll('[data-import-step=\"execute\"] *')].some((item)=>item.textContent?.includes('Index 已备份并更新'))", 'index patch completion', 45_000);
+  await waitFor(cdp, "[...document.querySelectorAll('[data-import-step=\"execute\"] *')].some((item)=>item.textContent?.includes('已创建资源库备份并更新记录'))", 'index patch completion', 45_000);
 
   const copied = [];
   for (const entry of fs.readdirSync(targetDir, { recursive: true })) {

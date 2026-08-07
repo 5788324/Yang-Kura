@@ -255,3 +255,12 @@ Git：源码快照试运行、本地集中修改、单一提交、统一推送
 - 新增自动回归 `scripts/test-u41e-lyrics-subtitle-layout.mjs`：6 视口 × 第一/中间/最后行，验证 visible ratio=1、与底部控制区间距≥8px、elementFromPoint 命中字幕、Header/控制区保持可见、无水平 overflow。
 - 验证：lint / build / build:electron / verify:u41e-rc-final-acceptance / verify:stable / test:u41e:rc-final / test:u41e:lyrics-subtitle-layout / U28 / U29 / U30 / U40-B / U41-B / U31 全部 PASS；npm audit 0 vulnerabilities。
 - 单一修复提交 `fix: keep active lyrics visible in compact player windows`，PR #93 保持 Draft，不合并、不建 Tag/Release。
+
+## 2026-08-06 — U42 日常界面精简与审查修复
+
+- 有效事实：PR #93 已合并到 `main@72066aa...`；`v1.0.0-rc.1` prerelease 已发布；main 现为 `72066aa78b2eaa32f0750b115770d6847e5d46c9`。
+- U42 分支 `product/u42-daily-ui-simplification` 创建于 `main@72066aa`，提交 `ui: simplify daily controls and advanced actions`，Draft PR #94 已推送。
+- U42 内容：删除 PlayerBar 占位 More 按钮；音声/音乐库批量操作改为选择模式；RJ 音轨低频操作移入更多菜单；元数据备份/MPV 手动配置折叠；Importer 默认复制、移动入高级折叠；AI 维护改名“诊断与修复”折叠入口；工程/主题文案纠偏。不新增功能、不改版本。
+- 审查修复（第二轮）：删除 Importer 假按钮“移动（高级）”；音乐库批量入口仅 tracks 视图；音声库批量入口在模式内隐藏；RJ 菜单外部点击/Escape/焦点回退/相对路径验证；诊断入口移到普通设置之后；Player Fast Validation 改读 U40-B workflow；U42 Windows 测试接入 U40-B workflow（总数不变）。
+- 本地验证通过：npm ci / audit 0 / lint / build / build:electron / verify-beta3-runtime-hardening / verify:u42 / test:u42 / verify:stable / U28 / U29 / U30 / U31 / U41-B / U41-E。
+- 尚未合并或发布 U42：PR #94 保持 Draft，等待 ChatGPT 完成第二轮源码与视觉审查。

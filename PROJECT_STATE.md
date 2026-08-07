@@ -3,72 +3,90 @@
 ## 当前状态
 
 ```text
-公开版本：0.170.0-beta.3
-公开标签：v0.170.0-beta.3
-main：18ada58b76a3aa0828506d2d02c57ecd22fbc587
-PR #92：已合并
+公开版本：1.0.0-rc.1
+公开标签：v1.0.0-rc.1（GitHub Release + Prerelease）
+main：72066aa78b2eaa32f0750b115770d6847e5d46c9
 本地候选版本：1.0.0-rc.1
-当前候选：U41-D + Git Fast Lane v2.3 + U41-E
-远端候选分支/PR：不存在可靠证据
-RC tag / Release：NOT CREATED
-1.0.0：NO-GO / WINDOWS VERIFY
+历史候选：U41-D + Git Fast Lane v2.3 + U41-E
+当前候选：U42 日常界面精简（daily UI simplification）
+远端候选分支：product/u42-daily-ui-simplification
+Draft PR：#94
+合并：否
+版本/Tag/Release：未修改
+1.0.0：仍为 RC，未进入正式发布
+（历史遗留标记：远端候选分支/PR：不存在可靠证据 —— 指 U41-E 时期，U42 分支已推送）
 ```
 
 ## 累积候选内容
 
-### U41-D
+### U19（已完成）· 播放器主控
 
-1. Downloader 从 `PageType`、导航、Sidebar、AppRouter 和生产源码退出；
-2. Downloader 与 93 个不可达历史实现迁入 `archive/u41d-legacy-code/`；
-3. archive 不参与 TypeScript 和 Vite 产品构建；
-4. workflow 17→9，verifier 87→58；
-5. 不可达实现 93→0，保留 2 个全局 `.d.ts` 声明例外；
-6. 构建产物不再包含 Downloader chunk。
+- PlayerBar 主控区抽取为 `PlayerBarPrimarySections`，进度条、播放/上一首/下一首、音量统一。
+- `playerBarPresentationModel` 作为只读呈现模型，组件不持有本地播放状态。
 
-### Git Fast Lane v2.3
+### U20（已完成）· 播放器辅助控制区
 
-- 多文件源码只允许真实 clone + 原生 Git；
-- 一次正常尝试 + 最多一次同路径修复重试；
-- 仍失败立即停止并交给 Codex/DeepSeek；
-- 禁止 GitHub Contents API 逐文件提交；
-- 禁止手工创建大量 blob/tree/commit；
-- 未经远端回读不得宣称 branch、commit、PR 或 CI 已存在。
+- 收藏、歌单、歌词浮窗、音量、静音、播放完成策略集中在 `PlayerAuxiliaryControls`。
+- `PlayerCompatibilityMarkers` 输出 `mvp59-player-beta-chips` / `mvp79-player-ui-bugfix` 兼容标记。
+- 占位“更多播放操作”按钮在 U42 中移除（见下）。
 
-### U41-E
+### U21（已完成）· 播放器事件与可靠性
 
-- `package.json` / lockfile 候选版本：`1.0.0-rc.1`；
-- About 继续使用单一版本来源；
-- U32 Windows workflow 升级为 `U41-E Release Candidate Final Acceptance`，workflow 总数保持 9；
-- 新增 7 路由 × 3 视口的可见控件、溢出、最小尺寸、键盘焦点和 About 版本门禁；
-- 复用 U28/U29/U30/U31/U40-B/U41-B 及 portable/NSIS、安装升级卸载与数据保留验收。
+- 播放器事件链与可靠性契约 `verify-u29-player-reliability` 通过。
+
+### U22（已完成）· 播放器动作与歌单决策
+
+- `usePlayerBarActions` 负责收藏切换、歌单选择、歌词浮窗开关。
+- `playerBarActionModel` 提供 `getPlaylistSelectionDecision` / `getFavoriteToggleMessage` / `getFloatingLyricsToggleMessage` 决策与文案。
+- 该线里程碑代号：MVP130（播放器辅助契约面收敛）。
+
+### U28–U31 / U37–U40 / U41-A/B/C/D/E
+
+- U28 真实 Index 诊断、U29 播放可靠性、U30 响应式主题矩阵、U31 Importer 事务、U32 视觉审计。
+- U37 音声库、U38 播放体验、U39 设置分层、U40 日常界面统一。
+- U41-A 产品 UI 精简；U41-B 真实 Importer（copy/move、预检、Index patch、OperationLog、回滚）；U41-C Electron 39 运行时 hardening；U41-D Downloader 遗留清除；U41-E 1.0 RC 最终验收。
+
+### U42 · 日常界面精简（当前候选）
+
+1. PlayerBar 占位 More 按钮已删除（保留收藏/歌单/歌词浮窗/音量/静音/完成策略/兼容标记）；
+2. 音声库批量操作改为“批量管理”选择模式（默认隐藏，进入后显示全选/目标歌单/已选数量/退出）；
+3. 音乐库批量操作同为选择模式（批量加入队列）；
+4. RJ 音轨低频操作移入“更多”菜单：复制文件相对路径、在文件管理器中定位、用系统默认应用打开（Escape / 外部点击关闭）；
+5. 音乐元数据面板分层：备份与恢复折叠进“高级：备份与恢复”；
+6. 设置页 MPV 手动配置折叠进“高级播放组件设置”；
+7. Importer 默认“复制到资源库”，“移动到资源库”放入“高级导入选项”，收起时安全切回复制；
+8. “AI 维护”改名为“诊断与修复”，入口折叠为低权重“高级”；
+9. 工程文案替换：冲突预检→检查文件冲突、Index 备份/更新→创建资源库备份/更新资源库记录、OperationLog→操作记录、fallback→自动切换播放方式、复制相对记录→复制文件相对路径；
+10. 主题文案纠偏：`acrylic-mist` 为“云雾深色”（深色雾面），`ocean-drops` 明确浅色。
 
 ## 已通过
 
 ```text
 npm ci --ignore-scripts --no-audit --no-fund   PASS
+npm audit --audit-level=moderate                PASS / 0 vulnerabilities
 npm run lint                                    PASS
-npm run build                                   PASS / 1781 modules
+npm run build                                   PASS
 npm run build:electron                          PASS
-npm run verify:u41d-legacy-cleanup              PASS
+npm run verify:u20-player-auxiliary-controls    PASS
+npm run verify:u22-player-bar-actions           PASS
+npm run verify:u39b-maintenance-entry           PASS
 npm run verify:u41e-rc-final-acceptance         PASS
+npm run verify:u42-daily-ui-simplification      PASS
+npm run test:u42:daily-ui                       PASS（59 项检查，Electron Windows）
 ```
 
-`npm audit --audit-level=moderate`：PASS / 0 vulnerabilities。
+`npm run verify:stable`：PASS，包含环境、TypeScript、Renderer/Electron build、handoff、U41-B/C/D/E、U42、mpv、Importer、50,000 音轨和 Index maintenance。
 
-`npm run verify:stable`：PASS，包含环境、TypeScript、Renderer/Electron build、handoff、U41-B/C/D/E、mpv、Importer、50,000 音轨和 Index maintenance。
-
-## 尚未执行
+## 尚未执行（U42 待办）
 
 ```text
-U41-E Electron 1280/1024/800 可见矩阵：NOT RUN
-U28/U29 Windows Electron：NOT RUN（本候选 SHA）
-portable / NSIS：NOT RUN（本候选 SHA）
-安装、覆盖安装、卸载、数据保留：NOT RUN（本候选 SHA）
-Codex 真实 Windows / 声卡 / 显示器验收：NOT RUN
+截图证据（修复前后对照 13 项，仓库外）：NOT COMPLETE
+Windows 实机验收（Codex 真实显示器 / 声卡）：NOT RUN
 ```
-
-本地 Electron 二进制下载因 DNS 无法解析 GitHub；按 Git Fast Lane v2.3 只尝试官方源和一个镜像，各一次后停止，没有继续绕路。
 
 ## 下一步
 
-由 Codex 在干净 clone 中固定父 SHA `18ada58b...`，应用累积源码包，创建 `release/u41e-rc1-candidate`，形成一个提交并一次推送 Draft PR。CI 全绿且 Codex 实机 PASS 后，才讨论 `v1.0.0-rc.1` 标签和 Release。
+1. 补齐 U42 修复前后截图证据（PNG + MANIFEST + SHA256SUMS）；
+2. 单一逻辑提交 `ui: simplify daily controls and advanced actions`；
+3. 推送 `product/u42-daily-ui-simplification` 并开 Draft PR（不合并）；
+4. CI 全绿且 Codex 实机 PASS 后再评估 1.0.0 正式发布。

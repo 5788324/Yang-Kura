@@ -180,7 +180,10 @@ try {
     await navigate('settings', `document.querySelector('[data-settings-tab]')`);
     await click(runtime.cdp, '[data-settings-tab="about"]');
     await waitFor(runtime.cdp, `document.body.innerText.includes('当前版本：1.0.0-rc.1')`, 'RC version in About');
-    await clickButtonText(runtime.cdp, '打开 AI 维护');
+    await click(runtime.cdp, '[data-settings-tab="theme"]');
+    await waitFor(runtime.cdp, `document.querySelector('#u39b-settings-maintenance-entry')`, 'maintenance entry');
+    await click(runtime.cdp, '#u39b-settings-maintenance-entry > summary');
+    await clickButtonText(runtime.cdp, '打开');
     await waitFor(runtime.cdp, `document.querySelector('[data-u40d-maintenance-runtime="current-only"]')`, 'AI maintenance route', 20_000);
     await auditCurrentSurface('diagnostics', viewport);
     if (viewport.width === 800) {

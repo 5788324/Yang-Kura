@@ -117,45 +117,48 @@ export default function MusicMetadataManagementPanel({
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <button onClick={exportBackup} className="px-3 py-2 rounded-lg border border-border-color bg-card-bg text-xs font-bold text-text-secondary hover:text-text-primary flex items-center gap-1.5">
-            <Download className="w-3.5 h-3.5" /> 导出修改
-          </button>
-          <button onClick={() => fileInputRef.current?.click()} className="px-3 py-2 rounded-lg border border-border-color bg-card-bg text-xs font-bold text-text-secondary hover:text-text-primary flex items-center gap-1.5">
-            <Upload className="w-3.5 h-3.5" /> 导入恢复
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/json,.json"
-            hidden
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file) void previewBackup(file);
-            }}
-          />
-        </div>
+        <details className="mt-2 rounded-xl border border-border-color/50 bg-card-bg/20 p-3">
+          <summary className="cursor-pointer list-none text-xs font-bold text-text-primary">高级：备份与恢复</summary>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button onClick={exportBackup} className="px-3 py-2 rounded-lg border border-border-color bg-card-bg text-xs font-bold text-text-secondary hover:text-text-primary flex items-center gap-1.5">
+              <Download className="w-3.5 h-3.5" /> 导出修改
+            </button>
+            <button onClick={() => fileInputRef.current?.click()} className="px-3 py-2 rounded-lg border border-border-color bg-card-bg text-xs font-bold text-text-secondary hover:text-text-primary flex items-center gap-1.5">
+              <Upload className="w-3.5 h-3.5" /> 导入恢复
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json,.json"
+              hidden
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void previewBackup(file);
+              }}
+            />
+          </div>
 
-        {pendingImport && (
-          <section id="mvp116-metadata-backup-preview" className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-4 space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-bold text-text-primary">恢复前预览：{pendingImport.fileName}</p>
-                <p className="text-[11px] text-text-muted mt-1">备份内含 {pendingImport.preview.incomingSummary.totalRecords} 项记录、{pendingImport.preview.incomingSummary.totalFields} 个修改字段。</p>
+          {pendingImport && (
+            <section id="mvp116-metadata-backup-preview" className="mt-3 rounded-xl border border-amber-500/25 bg-amber-500/5 p-4 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold text-text-primary">恢复前预览：{pendingImport.fileName}</p>
+                  <p className="text-[11px] text-text-muted mt-1">备份内含 {pendingImport.preview.incomingSummary.totalRecords} 项记录、{pendingImport.preview.incomingSummary.totalFields} 个修改字段。</p>
+                </div>
+                <button aria-label="关闭备份预览" onClick={() => setPendingImport(null)} className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-white/5"><X className="w-4 h-4" /></button>
               </div>
-              <button aria-label="关闭备份预览" onClick={() => setPendingImport(null)} className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-white/5"><X className="w-4 h-4" /></button>
-            </div>
-            {pendingImport.preview.ok ? (
-              <div className="flex flex-wrap gap-2">
-                <button onClick={() => confirmImport('merge')} className="px-3 py-2 rounded-lg border border-border-color bg-card-bg text-xs font-bold text-text-secondary hover:text-text-primary">合并恢复</button>
-                <button onClick={() => confirmImport('replace')} className="px-3 py-2 rounded-lg bg-amber-500 text-black text-xs font-bold">替换当前修改</button>
-                <span className="self-center text-[10px] text-text-muted">当前 {pendingImport.preview.currentSummary.totalRecords} 项；合并后约 {metadataOverrideService.previewImportSnapshot(pendingImport.raw, 'merge').resultingSummary.totalRecords} 项。</span>
-              </div>
-            ) : (
-              <p className="text-xs text-rose-400">{pendingImport.preview.message}</p>
-            )}
-          </section>
-        )}
+              {pendingImport.preview.ok ? (
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => confirmImport('merge')} className="px-3 py-2 rounded-lg border border-border-color bg-card-bg text-xs font-bold text-text-secondary hover:text-text-primary">合并恢复</button>
+                  <button onClick={() => confirmImport('replace')} className="px-3 py-2 rounded-lg bg-amber-500 text-black text-xs font-bold">替换当前修改</button>
+                  <span className="self-center text-[10px] text-text-muted">当前 {pendingImport.preview.currentSummary.totalRecords} 项；合并后约 {metadataOverrideService.previewImportSnapshot(pendingImport.raw, 'merge').resultingSummary.totalRecords} 项。</span>
+                </div>
+              ) : (
+                <p className="text-xs text-rose-400">{pendingImport.preview.message}</p>
+              )}
+            </section>
+          )}
+        </details>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           <section className="rounded-xl border border-border-color/50 bg-card-bg/30 p-4 space-y-3">

@@ -18,24 +18,24 @@
     ],
     "dailyRouteCount": 6,
     "maintenanceRouteCount": 1,
-    "staticControlCount": 240,
+    "staticControlCount": 244,
     "filesWithControls": 28,
     "controlFiles": [
+      {
+        "file": "src/features/library/AsmrLibraryPage.tsx",
+        "count": 35
+      },
       {
         "file": "src/components/LyricsPanel.tsx",
         "count": 34
       },
       {
-        "file": "src/features/library/AsmrLibraryPage.tsx",
-        "count": 33
-      },
-      {
         "file": "src/features/library/MusicLibraryPage.tsx",
-        "count": 25
+        "count": 27
       },
       {
         "file": "src/features/library/RjDetailPage.tsx",
-        "count": 21
+        "count": 22
       },
       {
         "file": "src/components/MusicMetadataManagementPanel.tsx",
@@ -70,12 +70,12 @@
         "count": 7
       },
       {
-        "file": "src/components/PlayerBarAuxiliaryControls.tsx",
+        "file": "src/components/Sidebar.tsx",
         "count": 5
       },
       {
-        "file": "src/components/Sidebar.tsx",
-        "count": 5
+        "file": "src/components/PlayerBarAuxiliaryControls.tsx",
+        "count": 4
       },
       {
         "file": "src/components/PlayerTransientPresenters.tsx",
@@ -147,10 +147,10 @@
   },
   "repositoryScale": {
     "workflowCount": 9,
-    "documentationFileCount": 128,
+    "documentationFileCount": 130,
     "archiveFileCount": 614,
-    "verifierScriptCount": 59,
-    "testScriptCount": 24
+    "verifierScriptCount": 60,
+    "testScriptCount": 25
   },
   "riskMarkers": [
     {

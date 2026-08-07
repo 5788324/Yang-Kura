@@ -98,6 +98,7 @@ export default function AsmrLibraryPage({
   const [tagFilter, setTagFilter] = useState('all');
   const [renderLimit, setRenderLimit] = useState(LARGE_LIBRARY_RENDER_LIMITS.asmrInitial);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set<string>());
+  const [selectionMode, setSelectionMode] = useState(false);
   const [targetPlaylistId, setTargetPlaylistId] = useState(playlists[0]?.id ?? '');
   const [feedback, setFeedback] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
@@ -212,6 +213,16 @@ export default function AsmrLibraryPage({
       else next.add(id);
       return next;
     });
+  };
+
+  const enterSelectionMode = () => {
+    setSelectionMode(true);
+    setSelectedIds(new Set<string>());
+  };
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelectedIds(new Set<string>());
   };
 
   const toggleAllResults = () => {
@@ -411,10 +422,13 @@ export default function AsmrLibraryPage({
             <option value="abandoned">已搁置</option>
           </select>
           {hasFilters ? <Button variant="ghost" size="sm" onClick={resetFilters}>重置筛选</Button> : null}
+          {!selectionMode ? <Button variant="ghost" size="sm" onClick={enterSelectionMode} aria-label="批量管理">批量管理</Button> : null}
         </div>
       </Surface>
 
+      {selectionMode && (
       <Surface padding="sm" tone="subtle" className="u37b-selection-bar" data-active={selectedIds.size > 0 ? 'true' : 'false'}>
+        <Button variant="ghost" size="sm" onClick={exitSelectionMode} aria-label="退出批量管理">退出批量管理</Button>
         <Button
           variant="ghost"
           size="sm"
@@ -442,6 +456,7 @@ export default function AsmrLibraryPage({
           {selectedIds.size > 0 ? <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set<string>())}>清除选择</Button> : null}
         </div>
       </Surface>
+      )}
 
       <div id="mvp126-asmr-render-window" className="u37b-render-window">
         <span>{isSearchPending ? '正在更新搜索结果…' : renderWindow.summary}</span>
@@ -486,6 +501,7 @@ export default function AsmrLibraryPage({
                     kind="asmr"
                     className="h-full w-full object-cover"
                   />
+                  {selectionMode && (
                   <label className="u37b-card-select" onClick={(event) => event.stopPropagation()}>
                     <input
                       type="checkbox"
@@ -495,6 +511,7 @@ export default function AsmrLibraryPage({
                     />
                     <span aria-hidden="true">{selectedIds.has(work.id) ? <Check /> : null}</span>
                   </label>
+                  )}
                 </div>
               )}
               meta={(
@@ -531,10 +548,12 @@ export default function AsmrLibraryPage({
               badges={renderBadges(work)}
               actions={(
                 <>
+                  {selectionMode && (
                   <label className="u37b-inline-select">
                     <input type="checkbox" checked={selectedIds.has(work.id)} onChange={() => toggleSelected(work.id)} aria-label={`选择 ${work.title}`} />
                     <span aria-hidden="true">{selectedIds.has(work.id) ? <Check /> : null}</span>
                   </label>
+                  )}
                   {renderActions(work)}
                 </>
               )}

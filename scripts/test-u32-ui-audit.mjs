@@ -222,11 +222,17 @@ try {
   assert.equal(await cdp.evaluate("document.querySelectorAll('[data-u37b-asmr-card]').length >= 3"), true, 'U37-B ASMR cards render seeded works');
 
   const selectedCount = await cdp.evaluate(`(() => {
+    const enter = [...document.querySelectorAll('button')].find((item) => item.offsetParent !== null && item.textContent?.trim() === '批量管理');
+    if (enter) enter.click();
+    return true;
+  })()`);
+  await waitFor(cdp, "document.querySelector('.u37b-selection-bar')", 'selection mode entered');
+  const checkedCount = await cdp.evaluate(`(() => {
     const boxes = [...document.querySelectorAll('[data-u37b-asmr-card] input[type="checkbox"]')].slice(0, 2);
     boxes.forEach((box) => box.click());
     return boxes.length;
   })()`);
-  assert.equal(selectedCount, 2, 'two ASMR works selected');
+  assert.equal(checkedCount, 2, 'two ASMR works selected');
   await waitFor(cdp, "document.querySelector('.u37b-selection-bar')?.textContent?.includes('已选择 2 个作品')", 'selection count');
   await clickButtonByText(cdp, '批量加入歌单');
   await waitFor(cdp, "document.body.innerText.includes('已将 2 个作品加入')", 'bulk playlist feedback');
@@ -259,6 +265,13 @@ try {
   await capturePage(cdp, 'music-lib', '03-music-library-tracks-after', "document.querySelector('[data-u37d-music-library=\"tracks\"]')");
   assert.equal(await cdp.evaluate("document.querySelectorAll('[data-u37d-track-row]').length === 4"), true, 'U37-D music track list renders seeded tracks');
 
+  const musicEntered = await cdp.evaluate(`(() => {
+    const enter = [...document.querySelectorAll('button')].find((item) => item.offsetParent !== null && item.textContent?.trim() === '批量管理');
+    if (enter) enter.click();
+    return Boolean(enter);
+  })()`);
+  assert.equal(musicEntered, true, 'music batch mode entered');
+  await waitFor(cdp, "document.querySelector('.u37d-selection-bar')", 'music selection bar');
   const selectedMusicCount = await cdp.evaluate(`(() => {
     const buttons = [...document.querySelectorAll('[data-u37d-track-row] button[aria-label^="选择 "]')].slice(0, 2);
     buttons.forEach((button) => button.click());

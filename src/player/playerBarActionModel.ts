@@ -37,5 +37,3 @@ export function getFavoriteToggleMessage(isLiked: boolean): string {
 export function getFloatingLyricsToggleMessage(isVisible: boolean): string {
   return isVisible ? '歌词浮窗已关闭' : '歌词浮窗已开启';
 }
-
-export const MORE_PLAYER_ACTIONS_MESSAGE = '更多播放操作将在后续版本开放';

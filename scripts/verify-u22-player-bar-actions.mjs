@@ -52,7 +52,6 @@ assert.equal(decisions.getFavoriteToggleMessage(false), '已添加到喜欢');
 assert.equal(decisions.getFavoriteToggleMessage(true), '已取消喜欢');
 assert.equal(decisions.getFloatingLyricsToggleMessage(false), '歌词浮窗已开启');
 assert.equal(decisions.getFloatingLyricsToggleMessage(true), '歌词浮窗已关闭');
-assert.equal(decisions.MORE_PLAYER_ACTIONS_MESSAGE, '更多播放操作将在后续版本开放');
 
 for (const filePath of [
   'src/hooks/usePlayerBarActions.ts',
@@ -70,7 +69,6 @@ for (const marker of [
   'getPlaylistSelectionDecision(currentTrack, playlist)',
   'if (decision.shouldAdd) onAddToPlaylist(currentTrack, playlist.id)',
   'getFloatingLyricsToggleMessage(isFloatingLyricsVisible)',
-  'showMessage(MORE_PLAYER_ACTIONS_MESSAGE)',
   'setIsPlaylistMenuOpen(false)',
   'setIsFloatingLyricsVisible(false)',
 ]) {
@@ -125,7 +123,6 @@ for (const marker of [
   'onClosePlaylist={closePlaylistMenu}',
   'onSelectPlaylist={selectPlaylist}',
   'onToggleFloatingLyrics={toggleFloatingLyrics}',
-  'onMoreActions={showMoreActions}',
   '<PlayerFloatingLyrics text={activeLyric} onClose={closeFloatingLyrics} />',
   '<PlayerToast message={playerToastMessage} />',
 ]) {
