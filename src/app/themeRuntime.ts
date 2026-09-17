@@ -3,6 +3,7 @@ export type LegacyThemeCompatibilityId = 'dark' | 'acrylic-mist' | 'ocean-drops'
 
 export const BETA2_THEME_STORAGE_KEY = 'yang_kura_beta2_theme_v1';
 export const LEGACY_SETTINGS_STORAGE_KEY = 'sqlite_settings';
+export const THEME_RUNTIME_CHANGE_EVENT = 'yang-kura-theme-runtime-change';
 
 const LEGACY_THEME_MAP: Record<string, Beta2ThemeId> = {
   dark: 'dusk-amber',
@@ -65,6 +66,13 @@ export const persistLegacyThemeCompatibility = (theme: Beta2ThemeId): void => {
     // Keep the canonical preference authoritative if the legacy payload is unreadable.
   }
 };
+export const notifyThemeRuntimeChange = (theme: Beta2ThemeId): void => {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent<LegacyThemeCompatibilityId>(THEME_RUNTIME_CHANGE_EVENT, {
+    detail: getLegacyThemeCompatibilityId(theme),
+  }));
+};
+
 
 export const getLegacyThemeCompatibilityId = (theme: Beta2ThemeId): LegacyThemeCompatibilityId =>
   CANONICAL_THEME_TO_LEGACY[theme];

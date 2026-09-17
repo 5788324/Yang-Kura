@@ -27,6 +27,7 @@ import { settingsPathPrivacyService } from './services/settingsPathPrivacyServic
 import { reconcileTracksWithLibrary } from './player/playerRuntimePolicy';
 import { metadataOverrideService } from './services/metadataOverrideService';
 import type { AsmrMetadataSaveContext } from './services/metadataOverrideService';
+import { THEME_RUNTIME_CHANGE_EVENT } from './app/themeRuntime';
 
 
 const LEGACY_RJ_WORKS_KEY = 'sqlite_rj_works';
@@ -105,6 +106,18 @@ export default function App() {
   );
   const [isQueueOpen, setIsQueueOpen] = useState<boolean>(false);
   const [isLyricsOpen, setIsLyricsOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    const syncThemeFromRuntime = (event: Event) => {
+      const nextTheme = (event as CustomEvent<LibrarySettings['currentTheme']>).detail;
+      if (nextTheme !== 'dark' && nextTheme !== 'acrylic-mist' && nextTheme !== 'ocean-drops') return;
+      setSettings((previous) => previous.currentTheme === nextTheme
+        ? previous
+        : settingsPathPrivacyService.sanitizeSettings({ ...previous, currentTheme: nextTheme }));
+    };
+    window.addEventListener(THEME_RUNTIME_CHANGE_EVENT, syncThemeFromRuntime);
+    return () => window.removeEventListener(THEME_RUNTIME_CHANGE_EVENT, syncThemeFromRuntime);
+  }, [setSettings]);
 
   const collectAllLibraryTracks = (works: RJWork[], albums: MusicAlbum[]): AudioTrack[] => [
     ...works.flatMap((work) => work.tracks),

@@ -265,6 +265,14 @@ async function main() {
     // --- Maintenance collapsed + renamed ---
     await click(cdp, '[data-settings-tab="theme"]');
     await check('theme tab', `document.querySelector('[data-settings-tab="theme"]')`);
+    await click(cdp, '#beta2-theme-toggle');
+    await check('quick theme syncs settings select', `document.querySelector('select[aria-label="选择应用主题"]')?.value === 'ocean-drops'`);
+    await check('quick theme syncs settings card', `[...document.querySelectorAll('strong')].some((el) => el.textContent?.trim() === '微光海洋')`);
+    await check('quick theme syncs app root', `document.querySelector('.u32-release-ui')?.dataset.u30Theme === 'ocean-drops'`);
+    await check('quick theme persists legacy settings', `JSON.parse(localStorage.getItem('sqlite_settings') ?? '{}').currentTheme === 'ocean-drops'`);
+    report.checks.push({ name: 'theme-state-single-source', pass: true });
+    await shot('u42-theme-quick-toggle-synced');
+
     await check('maintenance entry present', `Boolean(document.querySelector('#u39b-settings-maintenance-entry'))`);
     await check('maintenance renamed', `document.querySelector('#u39b-settings-maintenance-entry')?.textContent?.includes('诊断与修复')`);
     await checkFalse('maintenance collapsed by default', `document.querySelector('#u39b-settings-maintenance-entry')?.open`);
@@ -277,6 +285,18 @@ async function main() {
       return entryRect > Math.max(...settingsRects) - 1;
     })()`);
     await shot('u42-maintenance-entry-collapsed');
+    await cdp.evaluate(`(() => { const details=document.querySelector('#u39b-settings-maintenance-entry'); if (details) details.open=true; return true; })()`);
+    await check('maintenance expanded', `document.querySelector('#u39b-settings-maintenance-entry')?.open`);
+    const diagnosticsStartedAt = Date.now();
+    await clickButtonText(cdp, '打开', true);
+    await check('diagnostics opens without blank route', `Boolean(document.querySelector('#mvp126-diagnostics-two-stage-loader')) && !document.querySelector('[data-route-loading="true"]')`, 3000);
+    const diagnosticsOpenMs = Date.now() - diagnosticsStartedAt;
+    assert.ok(diagnosticsOpenMs < 3000, `diagnostics route took ${diagnosticsOpenMs}ms`);
+    report.checks.push({ name: 'diagnostics-immediate-content', pass: true, durationMs: diagnosticsOpenMs });
+    await shot('u42-diagnostics-immediate');
+    await clickButtonText(cdp, '返回设置', true);
+    await check('settings after diagnostics', `document.querySelector('[data-settings-tab="theme"]')`);
+
 
     // --- Importer default copy; move under advanced ---
     await click(cdp, '#nav-importer');

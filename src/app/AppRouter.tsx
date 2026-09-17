@@ -1,5 +1,6 @@
 import type React from 'react';
 import { Suspense, lazy } from 'react';
+import DiagnosticsPageShell from '../components/DiagnosticsPageShell';
 import DiagnosticsRuntimeBoundary from '../components/DiagnosticsRuntimeBoundary';
 import SettingsMaintenanceEntry from '../components/SettingsMaintenanceEntry';
 import LibraryPageState, { type LibraryPageKind } from '../features/library/LibraryPageState';
@@ -23,7 +24,6 @@ const AsmrLibrary = lazy(() => import('../features/library/AsmrLibraryPage'));
 const RjDetailPage = lazy(() => import('../features/library/RjDetailPage'));
 const MusicLibrary = lazy(() => import('../features/library/MusicLibraryPage'));
 const PlaylistPage = lazy(() => import('../components/PlaylistPage'));
-const DiagnosticsPageShell = lazy(() => import('../components/DiagnosticsPageShell'));
 const ImporterPage = lazy(() => import('../components/ImporterPage'));
 const SettingsPage = lazy(() => import('../components/SettingsPageDaily'));
 
@@ -107,7 +107,7 @@ export default function AppRouter(props: AppRouterProps) {
   };
 
   return (
-    <Suspense fallback={<div className="min-h-[240px] rounded-2xl border border-border-color/50 bg-card-bg/30 p-6 text-sm text-text-muted">正在打开页面…</div>}>
+    <Suspense fallback={<div role="status" data-route-loading="true" className="flex min-h-[240px] items-center justify-center rounded-2xl border border-border-color/70 bg-card-bg/60 p-6 text-sm font-semibold text-text-secondary">正在打开页面…</div>}>
       {props.currentPage === 'dashboard' && !props.asmrDetailId && !props.playlistDetailId && renderLibraryPage(
         'dashboard',
         '首页',

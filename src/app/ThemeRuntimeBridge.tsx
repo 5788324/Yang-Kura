@@ -8,6 +8,7 @@ import {
   normalizeBeta2Theme,
   normalizeLegacyThemeCompatibilityId,
   persistBeta2Theme,
+  notifyThemeRuntimeChange,
   persistLegacyThemeCompatibility,
   readBeta2Theme,
   readLegacyThemeCompatibilityId,
@@ -85,6 +86,7 @@ export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
     const appRoot = document.querySelector<HTMLElement>('.u32-release-ui');
     if (appRoot) appRoot.dataset.u30Theme = nextLegacyTheme;
     setTheme(nextTheme);
+    notifyThemeRuntimeChange(nextTheme);
   };
 
   const nextTheme: Beta2ThemeId = theme === 'dusk-amber' ? 'mist-ivory' : 'dusk-amber';

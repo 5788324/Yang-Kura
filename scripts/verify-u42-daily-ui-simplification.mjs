@@ -32,6 +32,9 @@ const importer = read('src/components/ImporterPage.tsx');
 const navigation = read('src/app/navigation.ts');
 const diagnostics = read('src/components/DiagnosticsPageShell.tsx');
 const appRouter = read('src/app/AppRouter.tsx');
+const themeRuntime = read('src/app/themeRuntime.ts');
+const themeBridge = read('src/app/ThemeRuntimeBridge.tsx');
+const app = read('src/App.tsx');
 
 const forbidden = [];
 const requireToken = (label, source, token) => {
@@ -156,6 +159,14 @@ requireToken('SettingsPageDaily', settings, '失败自动切换播放方式');
 requireToken('SettingsPageDaily', settings, '云雾深色');
 requireToken('SettingsPageDaily', settings, '浅色低饱和蓝色材质');
 forbidToken('SettingsPageDaily', settings, '浅色雾面材质');
+
+requireToken('themeRuntime', themeRuntime, 'THEME_RUNTIME_CHANGE_EVENT');
+requireToken('themeRuntime', themeRuntime, 'notifyThemeRuntimeChange');
+requireToken('ThemeRuntimeBridge', themeBridge, 'notifyThemeRuntimeChange(nextTheme)');
+requireToken('App', app, 'window.addEventListener(THEME_RUNTIME_CHANGE_EVENT, syncThemeFromRuntime)');
+requireToken('AppRouter', appRouter, "import DiagnosticsPageShell from '../components/DiagnosticsPageShell'");
+forbidToken('AppRouter', appRouter, "const DiagnosticsPageShell = lazy(() => import('../components/DiagnosticsPageShell'))");
+requireToken('AppRouter', appRouter, 'data-route-loading="true"');
 
 if (forbidden.length) {
   console.error(forbidden.join('\n'));
