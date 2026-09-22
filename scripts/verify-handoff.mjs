@@ -23,14 +23,14 @@ const required = [
 ];
 
 const tokens = [
-  ['README.md', '当前本地候选：`1.0.0-rc.1`'],
-  ['README.md', 'Git Fast Lane v2.3'],
-  ['PROJECT_STATE.md', 'U41-D + Git Fast Lane v2.3 + U41-E'],
-  ['PROJECT_STATE.md', '远端候选分支/PR：不存在可靠证据'],
-  ['PROJECT_ROADMAP.md', 'U41-E 1.0 RC 最终验收'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'release/u41e-rc1-candidate'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'NOT CONFIRMED / DO NOT CLAIM'],
-  ['AI_HANDOFF/WORKLOG.md', '## 2026-07-20 — U41-E RC 候选与 Git v2.3 累积包'],
+  ['README.md', 'Kura Desktop 2.0'],
+  ['PROJECT_STATE.md', 'K2-R0 仍等待可识别的源码 ZIP 或快照'],
+  ['PROJECT_ROADMAP.md', '### K2-R3：增量扫描 + Thumbnail Cache'],
+  ['TASKS.md', '状态：**BLOCKED BY INPUT / WAITING FOR LATEST LOCAL SOURCE**'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'K2-R0：取得本机最新源码'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '2026-09-23 查找记录'],
+  ['AI_HANDOFF/WORKLOG.md', '## 2026-09-23 — K2-R0 输入查找与本机验证隔离'],
+  ['AI_HANDOFF/WORKLOG.md', '不替代 8TB 真库验收'],
   ['AI_HANDOFF/NEXT_CONVERSATION_PROMPT.md', 'release: prepare Yang-Kura 1.0.0-rc.1'],
   ['docs/GIT_FAST_LANE_V2.md', '禁止通过 GitHub Contents API'],
   ['docs/GIT_FAST_LANE_V2.md', '禁止为多文件任务手工创建大量 Git blob、tree、commit 对象'],
@@ -87,4 +87,4 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log('[verify-handoff] U41-D + Git v2.3 + U41-E cumulative RC candidate PASS');
+console.log('[verify-handoff] K2-R0 active handoff contract PASS');

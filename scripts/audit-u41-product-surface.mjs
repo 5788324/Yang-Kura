@@ -95,8 +95,8 @@ const settingsSource = fs.readFileSync(path.resolve(root, 'src/components/Settin
 const importerSource = fs.readFileSync(path.resolve(root, 'src/components/ImporterPage.tsx'), 'utf8');
 const downloaderPath = path.resolve(root, 'src/components/DownloaderPage.tsx');
 const downloaderSource = fs.existsSync(downloaderPath) ? fs.readFileSync(downloaderPath, 'utf8') : '';
-const fakeMpv = fs.readFileSync(path.resolve(root, 'tests/fixtures/mpv/fake-mpv.mjs'));
-const fakeMpvStability = fs.readFileSync(path.resolve(root, 'tests/fixtures/mpv/fake-mpv-stability.mjs'));
+const fakeMpv = fs.readFileSync(path.resolve(root, 'tests/fixtures/mpv/fake-mpv.mjs'), 'utf8').replace(/\r\n/g, '\n');
+const fakeMpvStability = fs.readFileSync(path.resolve(root, 'tests/fixtures/mpv/fake-mpv-stability.mjs'), 'utf8').replace(/\r\n/g, '\n');
 
 const riskMarkers = [
   {
@@ -126,8 +126,8 @@ const riskMarkers = [
   },
   {
     id: 'U41-MIN-001',
-    present: fakeMpv.includes(Buffer.from('\r\n')) || fakeMpvStability.includes(Buffer.from('\r\n')),
-    summary: 'Executable Node fixtures use CRLF shebangs and break Linux stable regression without conversion.',
+    present: !fakeMpv.startsWith('#!/usr/bin/env node\n') || !fakeMpvStability.startsWith('#!/usr/bin/env node\n'),
+    summary: 'Executable Node fixtures are missing their canonical Node shebang after line-ending normalization.',
   },
 ];
 

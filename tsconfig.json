@@ -23,6 +23,11 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "vite.config.ts"
+  ],
   "exclude": [
     "archive",
     "artifacts",

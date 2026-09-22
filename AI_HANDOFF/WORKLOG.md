@@ -2,9 +2,16 @@
 
 > 只记录当前有效事实。代码与合并事实以 GitHub 为准，候选验收以最新有效 Codex 或 DeepSeek 实机报告为准。
 
-## 2026-07-16～2026-07-17
+## 2026-09-23 — K2-R0 输入查找与本机验证隔离
+
+- 当前 checkout、全部可见 refs、reflog 与可恢复提交均已检查；未找到用户所述 2026-09 中旬未推的 Kura 源码，K2-R0 继续等待可识别 ZIP/快照。
+- 当前 checkout 与 `origin/main` 同为 `18a62a958572efede50bbdd3446063785899ca9a`；未跟踪验收资料和 `RJ_AI_ANALYSIS/` 已保留且未加入 Git。
+- 将根 TypeScript 检查范围限定为正式 `src/` 与 Vite 配置，避免未跟踪历史验收副本造成伪失败；不改变 Electron 编译范围、扫描逻辑或媒体文件。
+- 本机隔离验证通过：`lint`、Vite build、Electron build、MVP127/128/129、导入事务 smoke、5 万条音轨合成性能基准。该基准不替代 8TB 真库验收。
+
 
 - U34～U37：架构、Design System、IPC 分域和正式媒体库页面完成。
+## 2026-07-16～2026-07-17
 - Beta 2：`v0.169.0-beta.2`，Release ID `355486824`，portable、setup 和 SHA256SUMS 远端一致。
 - U38：Queue、History、Persistence、HTMLAudio/mpv Backend 和 Subtitle lifecycle 分离。
 - U39：日常体验、授权持久化、架构门禁和完整 Windows/打包验收。

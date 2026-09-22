@@ -45,9 +45,9 @@ assert.doesNotMatch(maintenance, /完整历史诊断|完整诊断按需展开/);
 
 assert.match(attributes, /tests\/fixtures\/mpv\/\*\.mjs text eol=lf/);
 for (const file of ['tests/fixtures/mpv/fake-mpv.mjs', 'tests/fixtures/mpv/fake-mpv-stability.mjs']) {
-  const bytes = fs.readFileSync(file);
-  assert.equal(bytes.subarray(0, 20).toString('utf8'), '#!/usr/bin/env node\n', `${file} must keep an LF shebang`);
-  assert.equal(bytes.includes(Buffer.from('\r\n')), false, `${file} must not contain CRLF`);
+  const fixtureSource = read(file);
+  assert.equal(fixtureSource.slice(0, 20), '#!/usr/bin/env node\n', `${file} must expose a canonical LF shebang`);
+  assert.equal(fixtureSource.includes('\r'), false, `${file} must not contain standalone CR characters`);
 }
 
 for (const token of [
