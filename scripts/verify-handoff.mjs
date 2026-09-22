@@ -31,7 +31,7 @@ const tokens = [
   ['TASKS.md', '## ACTIVE — K2-R1 Desktop 2.0 真实审计'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '## 3. K2-R0 已完成'],
   ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'K2-R1 Desktop 2.0 真实使用 + 8TB 大库审计'],
-  ['AI_HANDOFF/WORKLOG.md', '## 2026-09-23 — K2-R0 输入查找与本机验证隔离'],
+  ['AI_HANDOFF/WORKLOG.md', '## 2026-09-23 — K2-R0 输入查找、本机验证隔离与最终收口'],
   ['AI_HANDOFF/WORKLOG.md', '不替代 8TB 真库验收'],
   ['AI_HANDOFF/NEXT_CONVERSATION_PROMPT.md', '当前 ACTIVE：**K2-R1 Desktop 2.0 真实使用 + 8TB 大库审计**'],
   ['docs/GIT_FAST_LANE_V2.md', '禁止通过 GitHub Contents API'],

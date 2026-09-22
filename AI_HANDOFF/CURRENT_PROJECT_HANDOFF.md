@@ -88,8 +88,8 @@ RJ/长音频体验参考：KikoFlu、Kikoeru、Voice、Audiobookshelf。
 ## 6. 当前优先顺序
 
 ```text
-K2-R0  本机最新源码 ↔ GitHub main 对账
-K2-R1  真实使用 + 8TB 大库审计
+K2-R0  已完成：最新源码 ↔ GitHub 对账
+K2-R1  ACTIVE：真实使用 + 8TB 大库审计
 K2-R2  SQLite / FTS5 Core
 K2-R3  增量 Scanner + Thumbnail Cache
 K2-R4  大库查询 / 分页 / 虚拟化
@@ -153,5 +153,5 @@ K2-R0 完成后，代码仍必须回归 GitHub。
 - 不要先做 Android；
 - 不要先做 OpenList；
 - 不要因为 UI 不满意就推倒业务代码；
-- 不要在没有本机最新源码的情况下开始大改。
+- 不要重新打开已完成的 K2-R0；后续以 GitHub `main` 实时 HEAD 为唯一代码基线。
 
