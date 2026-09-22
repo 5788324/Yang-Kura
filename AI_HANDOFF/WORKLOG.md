@@ -2,12 +2,13 @@
 
 > 只记录当前有效事实。代码与合并事实以 GitHub 为准，候选验收以最新有效 Codex 或 DeepSeek 实机报告为准。
 
-## 2026-09-23 — K2-R0 输入查找与本机验证隔离
+## 2026-09-23 — K2-R0 输入查找、本机验证隔离与最终收口
 
 - 当前 checkout、全部可见 refs、reflog 与可恢复提交均已检查；未找到用户所述 2026-09 中旬未推的 Kura 源码，K2-R0 继续等待可识别 ZIP/快照。
 - 当前 checkout 与 `origin/main` 同为 `18a62a958572efede50bbdd3446063785899ca9a`；未跟踪验收资料和 `RJ_AI_ANALYSIS/` 已保留且未加入 Git。
 - 将根 TypeScript 检查范围限定为正式 `src/` 与 Vite 配置，避免未跟踪历史验收副本造成伪失败；不改变 Electron 编译范围、扫描逻辑或媒体文件。
 - 本机隔离验证通过：`lint`、Vite build、Electron build、MVP127/128/129、导入事务 smoke、5 万条音轨合成性能基准。该基准不替代 8TB 真库验收。
+- 用户随后确认 `codex/k2-r0-validation-hygiene` 即上周最新可识别源码分支；远端审查确认该分支没有 Scanner/Library Tree/Player/Importer 等业务源码差异，只有验证卫生、TypeScript 检查范围和交接修复。K2-R0 因此在本分支合并后关闭，下一主任务转为 K2-R1。
 
 
 - U34～U37：架构、Design System、IPC 分域和正式媒体库页面完成。

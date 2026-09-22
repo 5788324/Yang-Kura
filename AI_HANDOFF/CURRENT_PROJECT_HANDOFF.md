@@ -12,8 +12,8 @@ Yang-Kura 已经有可用 Windows 本地媒体库基础，但用户对当前 Des
 
 ```text
 repository: 5788324/Yang-Kura
-main: 1ec64e29af794531712d53f62af20d44544d7481
-main commit: ui: simplify daily controls and advanced actions (#94)
+main: READ LIVE FROM GIT (do not hard-code current HEAD)
+K2-R0 reference base: 18a62a958572efede50bbdd3446063785899ca9a
 PR #94 / U42: merged
 public version: 1.0.0-rc.1
 public tag: v1.0.0-rc.1
@@ -21,26 +21,17 @@ public tag: v1.0.0-rc.1
 
 旧文档中“main=72066aa / PR #94 Draft / U42 未合并”的描述已经过时。
 
-## 3. 关键阻塞：本机有未推源码
+## 3. K2-R0 已完成
 
-用户明确说：
+用户于 2026-09-23 明确确认 `codex/k2-r0-validation-hygiene` 是上周最新可识别源码分支。审查确认它不包含额外业务源码，只包含验证卫生、TypeScript 检查范围与交接修复。
 
-- 上周 Kura 仍在更新；
-- 更新不多；
-- 没有推 Git。
+因此：
 
-因此新对话第一开发任务不是改代码，而是：
+- K2-R0 在该分支合并后关闭；
+- GitHub `main` 重新成为唯一代码真源；
+- 当前主任务切换为 **K2-R1 Desktop 2.0 真实使用 + 8TB 大库审计**；
+- Android / OpenList 继续冻结。
 
-> **K2-R0：取得本机最新源码，与 GitHub main 对账，确认新唯一基线。**
-
-
-2026-09-23 查找记录：已检查当前工作树、refs、reflog 与可恢复提交；当前 checkout 与 `origin/main` 相同，未找到可识别的最新本机源码。验收资料、报告和 `RJ_AI_ANALYSIS/` 不是源码输入，必须保留且不得加入 Git。
-在 K2-R0 完成前：
-
-- 不得把 `1ec64e29af794531712d53f62af20d44544d7481` 当作“最新开发源码”；
-- 不得开始 SQLite 大迁移；
-- 不得重写 UI；
-- 不得启动 Android/OpenList。
 
 ## 4. 产品硬要求
 

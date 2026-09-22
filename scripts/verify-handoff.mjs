@@ -3,6 +3,8 @@ import fs from 'node:fs';
 
 const required = [
   'README.md',
+  'START_HERE.md',
+  'TASKS.md',
   'PROJECT_STATE.md',
   'PROJECT_ROADMAP.md',
   'AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md',
@@ -24,14 +26,14 @@ const required = [
 
 const tokens = [
   ['README.md', 'Kura Desktop 2.0'],
-  ['PROJECT_STATE.md', 'K2-R0 仍等待可识别的源码 ZIP 或快照'],
+  ['PROJECT_STATE.md', 'K2-R0 在该分支审查并合并后关闭'],
   ['PROJECT_ROADMAP.md', '### K2-R3：增量扫描 + Thumbnail Cache'],
-  ['TASKS.md', '状态：**BLOCKED BY INPUT / WAITING FOR LATEST LOCAL SOURCE**'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'K2-R0：取得本机最新源码'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '2026-09-23 查找记录'],
+  ['TASKS.md', '## ACTIVE — K2-R1 Desktop 2.0 真实审计'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', '## 3. K2-R0 已完成'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'K2-R1 Desktop 2.0 真实使用 + 8TB 大库审计'],
   ['AI_HANDOFF/WORKLOG.md', '## 2026-09-23 — K2-R0 输入查找与本机验证隔离'],
   ['AI_HANDOFF/WORKLOG.md', '不替代 8TB 真库验收'],
-  ['AI_HANDOFF/NEXT_CONVERSATION_PROMPT.md', 'release: prepare Yang-Kura 1.0.0-rc.1'],
+  ['AI_HANDOFF/NEXT_CONVERSATION_PROMPT.md', '当前 ACTIVE：**K2-R1 Desktop 2.0 真实使用 + 8TB 大库审计**'],
   ['docs/GIT_FAST_LANE_V2.md', '禁止通过 GitHub Contents API'],
   ['docs/GIT_FAST_LANE_V2.md', '禁止为多文件任务手工创建大量 Git blob、tree、commit 对象'],
   ['docs/U41D_LEGACY_CLEANUP.md', 'INCLUDED IN U41-E CUMULATIVE WINDOWS VERIFY'],
@@ -50,6 +52,8 @@ const staleTokens = [
   'branch: chore/u41d-legacy-cleanup',
   'commit: chore: archive frozen surfaces and legacy gates',
   'PR #93',
+  'Draft PR: #94',
+  'U42 尚未合并',
   '597a332c06e0110182213bedbbd1605c92c98989',
   'U41-D 分支：已建立',
   'U41-D PR：已建立',
@@ -87,4 +91,4 @@ if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
-console.log('[verify-handoff] K2-R0 active handoff contract PASS');
+console.log('[verify-handoff] K2-R1 active handoff contract PASS');
