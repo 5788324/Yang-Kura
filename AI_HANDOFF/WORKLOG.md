@@ -264,3 +264,59 @@ Git：源码快照试运行、本地集中修改、单一提交、统一推送
 - 审查修复（第二轮）：删除 Importer 假按钮“移动（高级）”；音乐库批量入口仅 tracks 视图；音声库批量入口在模式内隐藏；RJ 菜单外部点击/Escape/焦点回退/相对路径验证；诊断入口移到普通设置之后；Player Fast Validation 改读 U40-B workflow；U42 Windows 测试接入 U40-B workflow（总数不变）。
 - 本地验证通过：npm ci / audit 0 / lint / build / build:electron / verify-beta3-runtime-hardening / verify:u42 / test:u42 / verify:stable / U28 / U29 / U30 / U31 / U41-B / U41-E。
 - 尚未合并或发布 U42：PR #94 保持 Draft，等待 ChatGPT 完成第二轮源码与视觉审查。
+
+## 2026-09-22 — Kura Desktop 2.0 战略重置与交接体系更新
+
+### 远端事实纠正
+
+- GitHub `main` 实际已推进到 `1ec64e29af794531712d53f62af20d44544d7481`。
+- PR #94 / U42 已于 2026-08-07 合并。
+- 旧 README / PROJECT_STATE / ROADMAP / HANDOFF 中“main=72066aa、PR #94 Draft、U42 未合并”的状态已过时，本轮统一纠正。
+- 公开 Release 仍为 `1.0.0-rc.1`；main 在 RC Release 之后包含 U42 增量。
+
+### 用户新增的关键项目事实
+
+- 用户本机在 2026-09 中旬继续更新过 Kura，但尚未推 Git，改动不算特别大。
+- 用户真实音声库已经 8TB+，后续还会继续增长。
+- 用户对现有 Desktop 成果不够满意，主要感受是“不够顺畅、不够成熟”。
+- UI 成为硬要求：必须好看、惊艳。
+- 普通音乐不能是附属能力，必须与 RJ/ASMR 同为一级产品。
+- 项目为个人非商业项目，安全边界按实用原则控制：防误删、防覆盖、防数据损坏、可恢复，不做企业级复杂权限。
+
+### 新战略
+
+项目进入 **Kura Desktop 2.0**，不继续机械追加旧 MVP/Uxx。
+
+近期只聚焦：
+
+1. K2-R0：本机最新源码与 GitHub main 对账；
+2. K2-R1：真实使用与 8TB 大库审计；
+3. 大库 Core：SQLite/FTS5、增量扫描、缩略图缓存、分页/虚拟化；
+4. UI/UX 重做：音乐与 RJ 双核心；
+5. 真实 8TB 大库验收。
+
+OpenList、Android、Downloader、转录和云同步均冻结到 Desktop 2.0 稳定之后。
+
+### 成熟项目参考策略
+
+不从零开发所有基础设施。
+
+- 音乐/UI：网易云、YesPlayMusic、Music You、Music Claw、AlgerMusicPlayer；
+- Desktop/player：Feishin、SPlayer/SPlayer-Next；
+- RJ：KikoFlu、Kikoeru、Voice、Audiobookshelf；
+- 大库：Navidrome、fooyin；
+- Android 后续候选：APlayer Compose，参考 Rhythm、ListenUp、LingTing。
+
+### 上下文与交接治理
+
+用户网页端额度较高，但会频繁触及上下文上限并新开对话。因此从本轮开始固定 6 个核心事实源：
+
+- `START_HERE.md`
+- `AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md`
+- `PROJECT_STATE.md`
+- `TASKS.md`
+- `PROJECT_ROADMAP.md`
+- `AI_HANDOFF/WORKLOG.md`
+
+新对话禁止依赖旧聊天记忆，必须按 START_HERE 顺序读取。
+

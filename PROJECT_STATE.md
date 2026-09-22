@@ -1,92 +1,154 @@
 # PROJECT_STATE
 
-## 当前状态
+更新日期：2026-09-22
+
+## 1. 已验证的远端事实
 
 ```text
-公开版本：1.0.0-rc.1
-公开标签：v1.0.0-rc.1（GitHub Release + Prerelease）
-main：72066aa78b2eaa32f0750b115770d6847e5d46c9
-本地候选版本：1.0.0-rc.1
-历史候选：U41-D + Git Fast Lane v2.3 + U41-E
-当前候选：U42 日常界面精简（daily UI simplification）
-远端候选分支：product/u42-daily-ui-simplification
-Draft PR：#94
-合并：否
-版本/Tag/Release：未修改
-1.0.0：仍为 RC，未进入正式发布
-（历史遗留标记：远端候选分支/PR：不存在可靠证据 —— 指 U41-E 时期，U42 分支已推送）
+repository: 5788324/Yang-Kura
+remote main: 1ec64e29af794531712d53f62af20d44544d7481
+main commit: ui: simplify daily controls and advanced actions (#94)
+PR #94 / U42: MERGED
+public release: 1.0.0-rc.1
+public tag: v1.0.0-rc.1
+package version on main: 1.0.0-rc.1
 ```
 
-## 累积候选内容
+注意：`1.0.0-rc.1` Release 早于 U42 合并，因此“公开 Release”与“main 最新代码”不是完全同一快照。
 
-### U19（已完成）· 播放器主控
+## 2. 尚未进入 Git 的本机事实
 
-- PlayerBar 主控区抽取为 `PlayerBarPrimarySections`，进度条、播放/上一首/下一首、音量统一。
-- `playerBarPresentationModel` 作为只读呈现模型，组件不持有本地播放状态。
+用户确认：
 
-### U20（已完成）· 播放器辅助控制区
+- 2026-09 中旬 Kura 仍有继续更新；
+- 更新量不算特别大；
+- 这些更新尚未推送 GitHub。
 
-- 收藏、歌单、歌词浮窗、音量、静音、播放完成策略集中在 `PlayerAuxiliaryControls`。
-- `PlayerCompatibilityMarkers` 输出 `mvp59-player-beta-chips` / `mvp79-player-ui-bugfix` 兼容标记。
-- 占位“更多播放操作”按钮在 U42 中移除（见下）。
+因此：
 
-### U21（已完成）· 播放器事件与可靠性
+> **GitHub main 是当前可验证远端基线，但不是已知最新开发源码。**
 
-- 播放器事件链与可靠性契约 `verify-u29-player-reliability` 通过。
+任何 Desktop 2.0 代码工作开始前，必须先执行 K2-R0，对账“本机最新源码 vs `1ec64e29af794531712d53f62af20d44544d7481`”。
 
-### U22（已完成）· 播放器动作与歌单决策
+## 3. 当前产品能力（远端主线）
 
-- `usePlayerBarActions` 负责收藏切换、歌单选择、歌词浮窗开关。
-- `playerBarActionModel` 提供 `getPlaylistSelectionDecision` / `getFavoriteToggleMessage` / `getFloatingLyricsToggleMessage` 决策与文案。
-- 该线里程碑代号：MVP130（播放器辅助契约面收敛）。
+当前 main 已具备：
 
-### U28–U31 / U37–U40 / U41-A/B/C/D/E
+- React + Vite + TypeScript + Electron Windows 桌面壳；
+- ASMR/RJ 与普通音乐双资源库；
+- 本地目录授权和扫描；
+- Local JSON Index 写入、读取、备份和维护；
+- HTMLAudio + 可选 mpv、Seek、Queue、History、续播；
+- LRC / SRT / VTT / ASS 字幕；
+- 歌单、收藏、播放历史；
+- copy/move Importer、冲突检查、操作记录、失败回滚；
+- 本地元数据覆盖与单 RJ DLsite Provider；
+- 外部打开；
+- portable / NSIS 构建链；
+- U42 日常界面精简。
 
-- U28 真实 Index 诊断、U29 播放可靠性、U30 响应式主题矩阵、U31 Importer 事务、U32 视觉审计。
-- U37 音声库、U38 播放体验、U39 设置分层、U40 日常界面统一。
-- U41-A 产品 UI 精简；U41-B 真实 Importer（copy/move、预检、Index patch、OperationLog、回滚）；U41-C Electron 39 运行时 hardening；U41-D Downloader 遗留清除；U41-E 1.0 RC 最终验收。
+## 4. 当前真实问题
 
-### U42 · 日常界面精简（当前候选）
+### P0：基线未统一
 
-1. PlayerBar 占位 More 按钮已删除（保留收藏/歌单/歌词浮窗/音量/静音/完成策略/兼容标记）；
-2. 音声库批量操作改为“批量管理”选择模式（默认隐藏，进入后显示全选/目标歌单/已选数量/退出）；
-3. 音乐库批量操作同为选择模式（批量加入队列）；
-4. RJ 音轨低频操作移入“更多”菜单：复制文件相对路径、在文件管理器中定位、用系统默认应用打开（Escape / 外部点击关闭）；
-5. 音乐元数据面板分层：备份与恢复折叠进“高级：备份与恢复”；
-6. 设置页 MPV 手动配置折叠进“高级播放组件设置”；
-7. Importer 默认“复制到资源库”，“移动到资源库”放入“高级导入选项”，收起时安全切回复制；
-8. “AI 维护”改名为“诊断与修复”，入口折叠为低权重“高级”；
-9. 工程文案替换：冲突预检→检查文件冲突、Index 备份/更新→创建资源库备份/更新资源库记录、OperationLog→操作记录、fallback→自动切换播放方式、复制相对记录→复制文件相对路径；
-10. 主题文案纠偏：`acrylic-mist` 为“云雾深色”（深色雾面），`ocean-drops` 明确浅色。
+本机有较新源码未推 Git，是当前唯一必须先处理的阻塞。
 
-## 已通过
+### P1：8TB+ 大库架构不够长期
+
+现有 Local JSON Index 已经完成过约 50,000 track 合成基准，但用户真实资源规模已经达到 8TB+，后续还会增长。
+
+Desktop 2.0 需要：
+
+- SQLite 作为本地运行时主索引/查询库；
+- FTS5 全文搜索；
+- 增量扫描；
+- 后台扫描，不阻塞应用启动；
+- 缩略图缓存；
+- 分页 / 虚拟列表；
+- 避免前端一次性载入和 filter/sort 整个大库；
+- `library-index.json` 降级为兼容 / 导出 / manifest，而不是长期唯一查询数据库。
+
+### P1：Desktop 使用体验仍不成熟
+
+用户明确反馈：现有成果“使用不太顺畅和成熟”。
+
+Desktop 2.0 的评价标准不再是“功能存在”，而是：
+
+- 启动快；
+- 搜索即时；
+- 滚动稳定；
+- 页面切换不闪、不丢状态；
+- 播放不受页面切换影响；
+- 封面加载稳定；
+- 操作层级清晰；
+- 高频动作少步骤；
+- 界面达到成熟音乐播放器级别。
+
+### P1：UI 必须重做为高质量产品体验
+
+硬要求：
+
+- 好看、惊艳；
+- 不接受“卡片 + 渐变 + 玻璃”堆砌式 AI UI；
+- 音乐体验参考网易云、YesPlayMusic、Music You、Music Claw、AlgerMusicPlayer；
+- Desktop 播放器工程参考 Feishin / SPlayer-Next；
+- RJ 产品体验参考 KikoFlu / Kikoeru / Voice / Audiobookshelf；
+- 最终必须形成 Kura 自己的视觉语言。
+
+### P1：音乐必须成为一级核心
+
+Kura 不是“RJ 播放器顺便听音乐”。
+
+正式产品结构：
 
 ```text
-npm ci --ignore-scripts --no-audit --no-fund   PASS
-npm audit --audit-level=moderate                PASS / 0 vulnerabilities
-npm run lint                                    PASS
-npm run build                                   PASS
-npm run build:electron                          PASS
-npm run verify:u20-player-auxiliary-controls    PASS
-npm run verify:u22-player-bar-actions           PASS
-npm run verify:u39b-maintenance-entry           PASS
-npm run verify:u41e-rc-final-acceptance         PASS
-npm run verify:u42-daily-ui-simplification      PASS
-npm run test:u42:daily-ui                       PASS（59 项检查，Electron Windows）
+Kura
+├─ 首页
+├─ 音声
+├─ 音乐
+├─ 歌单 / 收藏
+├─ 导入
+└─ 设置
 ```
 
-`npm run verify:stable`：PASS，包含环境、TypeScript、Renderer/Electron build、handoff、U41-B/C/D/E、U42、mpv、Importer、50,000 音轨和 Index maintenance。
+音乐侧至少长期覆盖：
 
-## 尚未执行（U42 待办）
+- Track / Album / Artist / Folder / Playlist；
+- 收藏、最近播放、最近加入；
+- 歌词 / 逐词歌词能力预留；
+- 专辑和艺术家详情；
+- 高质量播放页和队列。
 
-```text
-截图证据（修复前后对照 13 项，仓库外）：NOT COMPLETE
-Windows 实机验收（Codex 真实显示器 / 声卡）：NOT RUN
-```
+RJ 侧保持 Work / Circle / CV / Tags / Folder Tree / Subtitle / Attachment / Progress / Bookmark 等独立语义。
 
-## 下一步
+## 5. 当前战略决策
 
-1. 补齐 U42 修复前后截图证据（PNG + MANIFEST + SHA256SUMS）；
-2. 单一逻辑提交 `ui: simplify daily controls and advanced actions`；
-3. 推送 `product/u42-daily-ui-simplification` 并开 Draft PR（不合并）；
-4. CI 全绿且 Codex 实机 PASS 后再评估 1.0.0 正式发布。
+1. **不推倒重写现有 Kura。** 保留已验证业务链，重做 Core 查询层和 UX。
+2. **Desktop 2.0 优先。** Android / OpenList 延后。
+3. **优先复用成熟项目。** 不从零重造播放器、WebDAV、后台播放、音乐库基础结构。
+4. **个人项目快速模式。** 安全重点是数据不丢、文件不误删/覆盖、操作可恢复；不做企业级复杂权限。
+5. **Core 与 UI 并行。** 大库架构和新 UI Design Prototype 同时推进。
+6. **Kura Desktop 技术栈暂不更换。** 继续 React/Electron/mpv，除非 K2-R0 审计发现硬阻塞。
+7. **Android 后续优先基于成熟开源工程二开。** 当前首选候选：APlayer Compose；参考 KikoFlu、Voice、Rhythm、ListenUp。
+8. **OpenList 后续作为 SourceProvider。** 不让 OpenList/WebDAV 绑死媒体领域模型。
+
+## 6. 当前冻结范围
+
+在 Desktop 2.0 核心体验通过前冻结：
+
+- Downloader 扩展；
+- 转录工作流集成；
+- Android 正式开发；
+- OpenList 正式接入；
+- 云同步；
+- 插件市场；
+- AI Agent 大功能；
+- 与当前目标无关的架构洁癖式重构。
+
+## 7. Git / Drive 事实源
+
+- **GitHub：唯一代码主仓库和提交历史。**
+- **Google Drive：本机未推源码、安装包、测试证据、大日志、截图/视频和阶段快照。**
+- Drive 不作为长期代码真源。
+- K2-R0 完成后，新的统一源码必须重新回到 GitHub。
+

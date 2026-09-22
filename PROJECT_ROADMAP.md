@@ -1,79 +1,258 @@
-# PROJECT_ROADMAP
+# PROJECT_ROADMAP — Kura Desktop 2.0
 
-## 基线
+更新日期：2026-09-22
 
-```text
-公开版本：1.0.0-rc.1
-公开标签：v1.0.0-rc.1（已发布）
-main：72066aa78b2eaa32f0750b115770d6847e5d46c9
-本地候选版本：1.0.0-rc.1
-历史主线：U41-E 1.0 RC 最终验收
-当前主线：U42 日常界面精简
-正式目标：1.0.0
-1.0：仍为 RC，待 Windows 最终验收
-```
+## 0. 总目标
 
-## 已完成
+将当前“已经能用的 Windows 本地媒体库 Beta”升级为：
 
-- U19～U22：播放器主控、辅助控制区、事件可靠性、动作与歌单决策；
-- U28～U31：真实 Index 诊断、播放可靠性、响应式主题矩阵、Importer 事务；
-- U32：Windows 视觉与控件审计；
-- U34～U40：架构、日常页面、播放器、真实库、重启、封面和 Beta 3；
-- U41-A：产品 UI / 功能 / 按钮 / 代码表面审计；
-- U41-B：真实 Importer（copy/move、预检、Index patch、OperationLog、回滚）；
-- U41-C：Electron 39.8.10、运行时 hardening、Windows 打包验收；
-- U41-D：Downloader 退出生产、不可达实现归零、workflow/verifier 收敛；
-- U41-E：1.0 RC 最终验收、RC 版本、Git Fast Lane v2.3；
-- 合并 Release Candidate 收尾到 `main@72066aa...`，创建 `v1.0.0-rc.1` 标签与 Release。
+> **面向 8TB+ 且持续增长的 RJ/ASMR + 音乐双核心私人媒体库。**
 
-## U42：当前候选
+评价指标：
 
-目标：按产品评审 REV2 对日常界面做第一轮精简，不新增功能、不改版本、不动 Tag/Release。
+- 大库仍然快；
+- UI 足够惊艳；
+- 日常操作足够顺；
+- 音乐和 RJ 都达到成熟产品水平；
+- 基础业务尽量复用成熟开源项目和已验证思路；
+- 保持个人项目可维护性，不做企业级过度工程。
 
-1. 删除 PlayerBar 占位 More 按钮；
-2. 音声库批量操作改为选择模式（默认隐藏）；
-3. 音乐库批量操作改为选择模式；
-4. RJ 音轨低频操作移入“更多”菜单；
-5. 音乐元数据面板备份/恢复折叠；
-6. MPV 手动配置折叠；
-7. Importer 默认复制、移动入高级折叠；
-8. “AI 维护”→“诊断与修复”折叠入口；
-9. 工程化文案替换为日常文案；
-10. 主题文案纠偏（acrylic-mist 深色雾面）。
+## 1. 范围控制
 
-交付：`ui: simplify daily controls and advanced actions`（已推送）+ `fix: close U42 review and CI gaps`（审查修复，一次推送）+ Draft PR #94（不合并）。
+项目只允许同时存在 **一个主开发阶段 + 一个设计/研究支线**。
 
-## U42 门禁
-
-1. `npm ci --ignore-scripts --no-audit --no-fund` PASS；
-2. `npm audit --audit-level=moderate` 0 漏洞；
-3. `npm run lint` PASS；
-4. `npm run build` / `build:electron` PASS；
-5. `node scripts/verify-beta3-runtime-hardening.mjs`（Player Fast Validation）PASS；
-6. `npm run verify:u42-daily-ui-simplification` PASS；
-7. `npm run test:u42:daily-ui` PASS（800×700、1024×720、1280×800，100%/125%，无横向溢出）；
-8. `npm run verify:stable` PASS（含 U42 verifier）；
-9. U28/U29/U30/U31/U40-B/U41-B/U41-E PASS；
-10. 修复前后截图证据（仓库外 + GitHub artifact）；
-11. 全部 GitHub workflow 回读全绿，Codex 实机 PASS。
-
-## 后续顺序
+当前：
 
 ```text
-U42 Draft PR + Windows CI
-→ Codex 固定 SHA 实机验收
-→ 截图证据收口
-→ 评审通过后合并 U42
-→ 继续 RC 观察与缺陷收口
-→ 1.0.0 最终候选
-→ Windows 最终验收
-→ v1.0.0
+主开发阶段：K2-R0 基线对账
+设计/研究支线：Desktop 2.0 UI Benchmark + 大库架构参考
 ```
 
-## 冻结范围
+Android、OpenList、Downloader、转录等均进入 Parking Lot，不并行开工。
 
-Downloader、SQLite 全量迁移、OpenList/WebDAV、Player Core V2、完整 AI Agent、转录集成、云同步、插件市场和全局架构重写不进入 1.0 RC。U42 不新增播放历史页、收藏聚合、Ctrl+K、歌单全局搜索、系统主题跟随、随机播放、新播放器模式、新元数据 Provider、新 Importer 后端与全局高级模式开关。
+---
 
-## Git 发布约束
+## Horizon A — 统一基线与真实问题审计
 
-以 `docs/GIT_FAST_LANE_V2.md` v2.3 为唯一有效规则：禁止 GitHub API 多文件源码发布；真实 Git 发布失败最多一次同路径重试，随后立即交给 Codex，不再消耗时间绕过连接器限制。
+### K2-R0：最新源码对账【当前唯一任务】
+
+输入：
+
+- GitHub main `1ec64e29af794531712d53f62af20d44544d7481`
+- 用户本机 2026-09 中旬最新 Kura 源码
+
+输出：
+
+- 变更文件清单；
+- 本机最新版本 / SHA 或源码包 hash；
+- 与 main 的功能差异；
+- 哪些改动保留 / 丢弃 / 重做；
+- 新的唯一 Git 基线；
+- 同步更新 PROJECT_STATE / TASKS / HANDOFF / WORKLOG。
+
+禁止：
+
+- 未完成对账就开始 Desktop 2.0 大改；
+- 假定 GitHub main 就是最新；
+- 假定本机源码一定正确。
+
+### K2-R1：真实使用 + 8TB 大库审计
+
+不是做企业级报告，而是回答实际问题：
+
+- 实际 Work / Track / File / Subtitle / Cover 数量；
+- 目录深度与典型作品结构；
+- 启动、扫描、搜索、切页、滚动、播放哪里最卡/最不顺；
+- 哪些功能高频、哪些应隐藏；
+- 当前 JSON 查询与 React 状态的主要瓶颈；
+- 用户最不满意的 10 个真实使用点。
+
+交付：一份短的 `DESKTOP2_AUDIT.md` + 可执行任务排序。
+
+---
+
+## Horizon B — Desktop 2.0 大库 Core
+
+### K2-R2：Local Library DB v2
+
+目标：
+
+```text
+File System
+→ Incremental Scanner
+→ SQLite / FTS5
+→ Query API
+→ React UI
+```
+
+原则：
+
+- SQLite 成为运行时查询主库；
+- `library-index.json` 保留兼容、导出、manifest 能力；
+- 不一次性把所有用户状态迁进数据库；
+- 先迁最影响大库性能的媒体索引与搜索。
+
+优先表/实体：
+
+- works / albums
+- tracks
+- artists / circles / CV
+- tags
+- attachments
+- sources / relative paths
+- scan fingerprints
+- artwork cache references
+
+### K2-R3：增量扫描 + Thumbnail Cache
+
+必须做到：
+
+- 启动直接读取已有数据库；
+- 扫描后台进行；
+- 新增/修改/删除增量处理；
+- 不因全库扫描阻塞日常播放；
+- 封面生成 256/512 等级缩略图；
+- UI 不加载大量原图；
+- 支持取消/暂停/失败恢复的最小实现。
+
+### K2-R4：大库查询与前端渲染
+
+- DB 负责搜索、筛选、排序；
+- FTS5 搜索；
+- 分页 / cursor；
+- 虚拟列表 / 虚拟网格；
+- 首页只查询最近播放/未听完/最近加入等 LIMIT 数据；
+- 禁止把整库对象常驻 React 状态后反复 filter/sort。
+
+---
+
+## Horizon C — Desktop 2.0 UI / UX
+
+该 Horizon 与 B 可并行做设计原型，但正式迁移必须以稳定数据接口为基础。
+
+### K2-R5：Design Benchmark + App Shell
+
+UI 硬要求：**好看、惊艳、成熟、长时间使用不腻。**
+
+音乐参考：
+
+- 网易云音乐；
+- YesPlayMusic；
+- Music You；
+- Music Claw；
+- AlgerMusicPlayer；
+- Feishin；
+- SPlayer / SPlayer-Next。
+
+RJ/长音频参考：
+
+- KikoFlu；
+- Kikoeru；
+- Voice；
+- Audiobookshelf。
+
+原则：
+
+- 参考成熟产品，不做简单 clone；
+- 少边框、少工程信息；
+- 封面、字体、层级、留白、动态色和动效形成完整设计系统；
+- 主界面禁止 Dashboard/诊断面板感；
+- 诊断与修复继续隐藏在高级入口。
+
+### K2-R6：音乐库全面升级
+
+音乐是一级核心：
+
+- 首页音乐区域；
+- Songs / Albums / Artists / Folders / Playlists；
+- 专辑详情；
+- 艺术家详情；
+- 高质量队列；
+- 收藏、最近播放、最近加入；
+- 歌词体验；
+- 播放器展开页。
+
+### K2-R7：音声库全面升级
+
+- Works / Circle / CV / Tags / Folder；
+- Work Detail；
+- Track / Chapter；
+- 原始文件树；
+- 字幕；
+- 附件；
+- 作品进度；
+- 书签；
+- 大库筛选。
+
+### K2-R8：播放器与动效收口
+
+- 经典 / 沉浸 / 歌词类体验重新评审，不要求沿用旧三模式形式；
+- 播放状态与页面彻底解耦；
+- 队列稳定；
+- 返回页面保留浏览位置；
+- 封面取色和动态背景可控；
+- 减少动态效果模式；
+- Windows 系统媒体体验按收益决定是否增强。
+
+---
+
+## Horizon D — 8TB 实库验收
+
+### K2-R9：真实大库验收
+
+至少验证：
+
+- 冷启动 / 热启动；
+- 初始数据库读取；
+- 后台增量扫描；
+- 搜索；
+- 多条件筛选；
+- 网格快速滚动；
+- 作品详情；
+- 音乐专辑/艺术家详情；
+- 长音频播放和 Seek；
+- 页面切换与返回；
+- 数据库备份/恢复；
+- 媒体文件不误删、不异常移动。
+
+只有 R9 通过，Desktop 2.0 才进入“稳定基础”。
+
+---
+
+## Horizon E — Remote / Android【冻结，Desktop 2.0 稳定后启动】
+
+### 后续顺序
+
+```text
+SourceProvider 抽象
+→ OpenList POC
+→ Media Identity / Catalog / User State
+→ Windows Remote Library
+→ Android
+```
+
+Android 不从零写基础播放器。当前候选：
+
+- APlayer Compose：主底座候选；
+- KikoFlu：RJ 产品模型参考；
+- Voice：长音频进度/书签/睡眠等参考；
+- Rhythm：Compose/Media3/Room 工程参考；
+- ListenUp：offline-first / sync 参考。
+
+OpenList 负责聚合存储，但不成为 Kura 媒体数据库本身。
+
+---
+
+## 2. 明确不做
+
+除非用户以后明确改变目标：
+
+- 企业级 RBAC；
+- 多租户；
+- 公网商业服务；
+- 复杂服务器集群；
+- 为架构“纯洁”而重写整个项目；
+- 自研音频解码器；
+- 自研 WebDAV 协议栈（有成熟实现可复用时）；
+- 同时开发 Desktop、Android、OpenList、Downloader、转录五条主线。
+
