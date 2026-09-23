@@ -318,4 +318,8 @@ export type CatalogQueryRequest =
       rootPathToken: string;
       parentRelativePath?: string | null;
       limit?: number;
+    }
+  | {
+      mode: 'summary';
+      rootPathToken: string;
     };

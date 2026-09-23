@@ -1210,6 +1210,44 @@ export class KuraCatalogDatabase {
     );
   }
 
+  resolveRootIdByToken(rootPathToken: string): string | null {
+    const row = this.database.prepare(`
+      SELECT id
+      FROM roots
+      WHERE root_path_ref = ?
+      ORDER BY updated_at DESC, id
+      LIMIT 1
+    `).get(`rootPathToken:${rootPathToken}`) as { id?: string } | undefined;
+    return typeof row?.id === 'string' && row.id ? row.id : null;
+  }
+
+  getRootCounts(rootId: string): Pick<CatalogCounts, 'collections' | 'tracks' | 'mediaSources' | 'subtitles' | 'artwork' | 'folderNodes'> {
+    const count = (table: string): number => {
+      const row = this.database.prepare(`SELECT COUNT(*) AS count FROM ${table} WHERE root_id = ?`).get(rootId)
+        as { count?: number | bigint } | undefined;
+      return Number(row?.count ?? 0);
+    };
+
+    return {
+      collections: count('collections'),
+      tracks: count('tracks'),
+      mediaSources: count('media_sources'),
+      subtitles: this.database.prepare(`
+        SELECT COUNT(*) AS count
+        FROM subtitles s
+        JOIN tracks t ON t.id = s.track_id
+        WHERE t.root_id = ?
+      `).get(rootId)?.count as number ?? 0,
+      artwork: this.database.prepare(`
+        SELECT COUNT(*) AS count
+        FROM artwork a
+        JOIN collections c ON c.id = a.collection_id
+        WHERE c.root_id = ?
+      `).get(rootId)?.count as number ?? 0,
+      folderNodes: count('folder_nodes'),
+    };
+  }
+
   getSchemaVersion(): number {
     return KURA_CATALOG_SCHEMA_VERSION;
   }

@@ -121,3 +121,8 @@ Desktop 2.0 稳定前不启动：
 - [ ] Windows CI
 - [x] Catalog Query IPC + Renderer query adapter
 - [ ] E:\\arsm query/scroll evidence
+
+- [x] rootPathToken -> legacy Catalog root resolution
+- [x] Catalog summary query
+- [x] Primary Read Gate: schema + root collection/track parity
+- [x] JSON automatic fallback when gate is not ready

@@ -3,13 +3,14 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { KuraCatalogDatabase } from '../dist-electron/catalog/catalogDatabase.js';
+import { runCatalogQuery } from '../dist-electron/catalog/catalogQueryService.js';
 
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'yang-kura-k2-r4-query-'));
 const dbPath = path.join(tempRoot, 'catalog.sqlite');
 const catalog = new KuraCatalogDatabase(dbPath);
 
 const root = {
-  id: 'root-r4',
+  id: 'legacy-root-id-that-is-not-token-hash',
   name: 'R4',
   rootPath: 'rootPathToken:r4',
   libraryType: 'asmr',
@@ -87,6 +88,15 @@ try {
     throw new Error('ASCII/RJ FTS search failed');
   }
 
+  const resolvedRootId = catalog.resolveRootIdByToken('r4');
+  if (resolvedRootId !== root.id) {
+    throw new Error(`rootPathToken did not resolve legacy root id: ${resolvedRootId}`);
+  }
+  const rootCounts = catalog.getRootCounts(root.id);
+  if (rootCounts.collections !== collections.length || rootCounts.tracks !== tracks.length) {
+    throw new Error(`root counts mismatch: ${JSON.stringify(rootCounts)}`);
+  }
+
   for (const sort of ['id-asc', 'title-asc', 'added-desc', 'duration-desc']) {
     const seen = new Set();
     let cursor = null;
@@ -117,6 +127,13 @@ try {
       if (++guard > 20) throw new Error(`track pagination loop: ${sort}`);
     } while (cursor);
     if (seen.size !== tracks.length) throw new Error(`track pagination lost rows: ${sort} / ${seen.size}`);
+  }
+
+  const summaryResult = runCatalogQuery(dbPath, { mode: 'summary', rootPathToken: 'r4' });
+  if (!summaryResult.ok) throw new Error(`summary query failed: ${JSON.stringify(summaryResult)}`);
+  const summary = summaryResult.payload;
+  if (summary.counts.collections !== collections.length || summary.counts.tracks !== tracks.length) {
+    throw new Error(`summary query counts mismatch: ${JSON.stringify(summary)}`);
   }
 
   console.log(JSON.stringify({

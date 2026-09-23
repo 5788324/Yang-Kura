@@ -3397,7 +3397,7 @@ function registerCatalogQueryIpc(): void {
     if (
       !payload?.rootPathToken
       || !mode
-      || !['collections', 'tracks', 'facets', 'folders'].includes(mode)
+      || !['collections', 'tracks', 'facets', 'folders', 'summary'].includes(mode)
     ) {
       return {
         ok: false,

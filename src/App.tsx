@@ -19,6 +19,7 @@ import { libraryIndexAdapter } from './services/libraryIndexAdapter';
 import { playbackHistoryService } from './services/playbackHistoryService';
 import { librarySessionService, type LibrarySessionSnapshot } from './services/librarySessionService';
 import { libraryReadCoordinatorService } from './services/libraryReadCoordinatorService';
+import { catalogPrimaryReadGateService } from './services/catalogPrimaryReadGateService';
 import { playlistPersistenceService } from './services/playlistPersistenceService';
 import { playerQueuePersistenceService } from './services/playerQueuePersistenceService';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -168,6 +169,21 @@ export default function App() {
       setScanStatus(
         `已加载真实 library-index.json：${mapped.rjWorks.length} 个音声集合，${mapped.musicAlbums.length} 个音乐集合，${result.summary.trackCount} 条轨道。`,
       );
+      void catalogPrimaryReadGateService.evaluate({
+        rootPathToken: result.rootPathToken,
+        expectedCollections: result.summary.collectionCount,
+        expectedTracks: result.summary.trackCount,
+      }).then((gate) => {
+        if (gate.safeForPrimaryRead) {
+          setScanStatus(
+            `已加载真实资源库：${result.summary.collectionCount} 个作品或专辑，${result.summary.trackCount} 条轨道；SQLite 查询层已校验，可供新版界面切换主读。`,
+          );
+        } else {
+          setScanStatus(
+            `已加载真实资源库：${result.summary.collectionCount} 个作品或专辑，${result.summary.trackCount} 条轨道；SQLite 查询层尚未对齐，当前继续使用 JSON 兼容读链。`,
+          );
+        }
+      });
       return true;
     } catch (error) {
       setScanStatus(`读取本地 index 缓存失败：${error instanceof Error ? error.message : String(error)}`);

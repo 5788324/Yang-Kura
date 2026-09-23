@@ -74,3 +74,37 @@ sortValue + id
 - Renderer page query adapter；
 - SQLite sidecar -> Primary Read 的渐进切换门禁；
 - E:\\arsm 实库 query/scroll 验收。
+
+## Primary Read Gate
+
+K2-R4 收尾增加运行时门禁，而不是直接把旧 UI 强制切 SQLite。
+
+JSON 成功读取后，Renderer 自动请求：
+
+```text
+Catalog summary(rootPathToken)
+```
+
+Main 通过 `roots.root_path_ref = rootPathToken:<token>` 解析真实 Catalog root id。禁止假设 Scanner hash root id 与 Legacy Index root id 相同。
+
+Gate 要求同时满足：
+
+- Catalog Query bridge 存在；
+- Schema >= 3；
+- rootPathToken 能解析到 Catalog root；
+- Catalog collection count == JSON collection count；
+- Catalog track count == JSON track count。
+
+满足才：
+
+```text
+safeForPrimaryRead = true
+```
+
+否则：
+
+```text
+JSON compatibility read stays authoritative
+```
+
+这使 K2-R5 新 App Shell 可以直接消费分页 SQLite Query，并在 sidecar 未同步/迁移异常时自动回退，不需要让当前旧页面承担一次短命的 Primary Read 重写。

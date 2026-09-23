@@ -1,3 +1,13 @@
+## 2026-09-23 — K2-R4 Primary Read Gate closeout
+
+- fc4884b Windows Branch Validation 全绿：build、K2-R2、K2-R3、K2-R4 query/virtualization、Electron journeys、stable regression 全 PASS。
+- 收尾审查发现 root identity 边界：Catalog Query 不能用 rootPathToken hash 假设 Legacy Index root id；改为通过 roots.root_path_ref 反查真实 root id。
+- Catalog Query 增加 summary(root) 模式，返回 schemaVersion + root-scoped collections/tracks/media/subtitles/artwork/folders counts。
+- Renderer 新增 catalogPrimaryReadGateService；JSON 读取成功后自动做 Catalog parity probe。
+- Primary Read Gate：Query bridge + Schema>=3 + Collection count parity + Track count parity 才 safeForPrimaryRead=true；任何不一致继续 JSON fallback。
+- 当前旧 UI 不强制 Primary Read。K2-R5 新 App Shell 将直接消费 SQLite page query，并受此 Gate 控制，避免旧 UI 先改一次再重做。
+- K2-R4 功能层完成后，剩余硬门禁仅 E:\\arsm 真实 scan/query/scroll 证据。
+
 ## 2026-09-23 — K2-R4 Query IPC closeout batch
 
 - K2-R4 Core commit `fc4884b...` Windows 全绿：K2-R2/K2-R3 compatibility、R4 query/virtualization、Electron journeys、stable regression 全 PASS。

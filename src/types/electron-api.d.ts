@@ -1653,6 +1653,7 @@ interface YangKuraImportMoveOnlyExecuteResult {
     canWriteLibraryIndex: true;
     canGenerateIndexWritePreview: true;
     canReadLibraryIndex: true;
+    canQueryCatalog: true;
     canResolveMediaTrackUrl: true;
     canUseMpvPlayback: true;
     canConfigureMpvExecutable: true;
@@ -1728,6 +1729,10 @@ interface YangKuraImportMoveOnlyExecuteResult {
         rootPathToken: string;
         parentRelativePath?: string | null;
         limit?: number;
+      }
+    | {
+        mode: 'summary';
+        rootPathToken: string;
       };
 
   type YangKuraCatalogQueryResult =
@@ -1735,7 +1740,7 @@ interface YangKuraImportMoveOnlyExecuteResult {
         ok: true;
         status: 'k2-r4-catalog-query-ready';
         schemaVersion: number;
-        mode: 'collections' | 'tracks' | 'facets' | 'folders';
+        mode: 'collections' | 'tracks' | 'facets' | 'folders' | 'summary';
         rootId: string;
         payload: unknown;
         absolutePathReturned: false;
@@ -1745,7 +1750,7 @@ interface YangKuraImportMoveOnlyExecuteResult {
         ok: false;
         status: 'k2-r4-catalog-query-not-ready' | 'k2-r4-catalog-query-failed';
         schemaVersion: number;
-        mode: 'collections' | 'tracks' | 'facets' | 'folders';
+        mode: 'collections' | 'tracks' | 'facets' | 'folders' | 'summary';
         message: string;
         absolutePathReturned: false;
         fileUrlReturned: false;

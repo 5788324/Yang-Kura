@@ -1,6 +1,5 @@
 import { KuraCatalogDatabase } from './catalogDatabase.js';
 import { KURA_CATALOG_SCHEMA_VERSION } from './catalogSchema.js';
-import { catalogRootIdFromToken } from './incrementalScanner.js';
 import type { CatalogQueryRequest } from './catalogTypes.js';
 
 export type CatalogQueryResult =
@@ -27,8 +26,8 @@ export type CatalogQueryResult =
 export function runCatalogQuery(databasePath: string, request: CatalogQueryRequest): CatalogQueryResult {
   const catalog = new KuraCatalogDatabase(databasePath);
   try {
-    const rootId = catalogRootIdFromToken(request.rootPathToken);
-    if (!catalog.hasRoot(rootId)) {
+    const rootId = catalog.resolveRootIdByToken(request.rootPathToken);
+    if (!rootId) {
       return {
         ok: false,
         status: 'k2-r4-catalog-query-not-ready',
@@ -71,7 +70,12 @@ export function runCatalogQuery(databasePath: string, request: CatalogQueryReque
               collectionType: request.collectionType,
               limit: request.limit,
             })
-          : catalog.listFolderChildren(rootId, request.parentRelativePath ?? null, request.limit);
+          : request.mode === 'folders'
+            ? catalog.listFolderChildren(rootId, request.parentRelativePath ?? null, request.limit)
+            : {
+                schemaVersion: catalog.getSchemaVersion(),
+                counts: catalog.getRootCounts(rootId),
+              };
 
     return {
       ok: true,
