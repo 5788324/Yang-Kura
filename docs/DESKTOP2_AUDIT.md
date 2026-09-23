@@ -1,7 +1,7 @@
 # Kura Desktop 2.0 — K2-R1 Static Audit
 
 更新日期：2026-09-23
-状态：**STATIC AUDIT IN PROGRESS / REAL 8TB INVENTORY PENDING**
+状态：**STATIC AUDIT IN PROGRESS / REAL LIBRARY SCALE BASELINE AVAILABLE**
 
 ## 当前结论
 
@@ -76,9 +76,13 @@ npm run audit:k2-r1-library -- --root "E:\arsm" --out "E:\KuraAudit\k2-r1-librar
 
 ## 当前 P0/P1
 
-### P0 — 缺少真实 8TB 库指标
+### P0 — 真实规模已取得，性能基准仍待 Kura 实现后验证
 
-在拿到真实 inventory 前，不直接设计 SQLite schema 的最终粒度，也不宣称现有 50k synthetic benchmark 能代表真实资源。
+用户提供的 `RJ_AI_ANALYSIS-20260923.zip` 针对同一 `E:\\arsm` 完成完整递归只读盘点。可采用的真实规模：268,863 files、69,285 audio、111,304 subtitle、29,930 images、2,257 video、2,663 album directories、10,527.65 GiB；文件路径最大目录深度 18。
+
+详细 Kura 解释见 `docs/K2_R1_REAL_LIBRARY_BASELINE.md`。
+
+该资料扫描负载包含音频首尾指纹、字幕全文哈希和解析，因此不能作为 Kura metadata-only Scanner wall-clock / peak-memory benchmark；但足以解除 SQLite schema 设计的规模阻塞。
 
 ### P1 — JSON Index / UI 对象图内存放大
 
@@ -142,7 +146,7 @@ Windows CI 已通过。实测：
 
 ## 下一步
 
-1. 在真实 8TB 库运行 readonly inventory；
-2. 根据 inventory 做 K2-R2 SQLite schema；
+1. 使用已取得的真实 E:\\arsm baseline 设计 K2-R2 SQLite schema；
+2. K2-R2/R3 实现后再跑 Kura 自己的 metadata-only / incremental benchmark；
 3. 同时继续 K2-R1-C UI/UX benchmark；
 4. 完成依赖/Electron 升级路线后，再进入 K2-R2 + K2-R5 并行开发。

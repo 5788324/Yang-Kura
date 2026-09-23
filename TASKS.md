@@ -25,12 +25,12 @@
 - [ ] 更新 Electron / toolchain 并清除可修复 advisory
 
 ### R1-B — 8TB 大库
-- [ ] 真实 Work / Track / File / Subtitle / Cover 统计（readonly audit 工具已加入）
+- [x] 真实 Work / Track / File / Subtitle / Cover 统计：采用同一 E:\\arsm 完整只读盘点（268,863 files / 69,285 audio / 111,304 subtitle / 29,930 images / 10,527.65 GiB）
 - [ ] 启动/Index 读取基准
 - [ ] 扫描耗时/内存基准（现有 Scanner 已确认 10k 默认 / 50k 硬上限，不作为 8TB 长期方案）
 - [ ] 搜索/排序/筛选基准
 - [ ] 封面加载/缓存审计
-- [x] React state / JSON Index 静态瓶颈定位（真实 8TB 指标仍待采集）
+- [x] React state / JSON Index 静态瓶颈定位
 
 ### R1-C — 产品与 UI
 - [ ] 用户“不顺、不成熟” Top 10

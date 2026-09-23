@@ -50,9 +50,11 @@ package version on main: 1.0.0-rc.1
 
 ## 4. 当前真实问题
 
-### P0：Desktop 2.0 真实瓶颈尚未完成审计
+### P0：真实规模基线已取得，K2-R1 剩余性能/UI审计
 
-K2-R1 为当前主任务：以现有代码和真实 8TB+ 资源库确认启动、扫描、搜索、滚动、播放和 UI 流程的主要瓶颈，再决定 K2-R2～R8 的实际实现顺序。
+用户提供的其他项目资料实际针对同一 `E:\\arsm` 做了完整递归只读扫描，可作为 Kura 真实规模输入：268,863 files、69,285 audio、111,304 subtitle、29,930 images、2,663 album directories、10,527.65 GiB，最大文件路径目录深度 18。
+
+因此 K2-R2 SQLite schema 不再等待另一次全盘 inventory。仍待 Kura 自身实现后验证：metadata-only scan wall-clock、peak memory、首次 SQLite import、incremental scan、真实 UI query/pagination/artwork 性能。
 
 
 ### P1：依赖安全基线需要刷新

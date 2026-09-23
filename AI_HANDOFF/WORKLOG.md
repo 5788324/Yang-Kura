@@ -1,3 +1,13 @@
+## 2026-09-23 — K2-R1 真实库基线复用
+
+- 用户提供 `RJ_AI_ANALYSIS-20260923.zip`；核对后确认其扫描对象就是同一真实 `E:\\arsm`，不是无关样本。
+- 采用其中完整递归只读盘点作为 K2-R1-B 规模证据：268,863 files、10,527.65 GiB、2,663 album dirs、69,285 audio、111,304 subtitles、53,841 text、29,930 images、2,257 video。
+- 进一步从 inventory.csv 流式统计：从文件路径可推导 34,716 个非空/祖先目录；最大文件目录深度 18；81.37% 文件深度>=4，43.39% 深度>=5。
+- album_manifest 分布：P50 85 files / 21 audio / 36 subtitles；P99 约 445 files / 114 audio / 168 subtitles；最大 1,244 files / 310 audio / 568 subtitles。
+- 旧 library-index 仅记录 2,113 collections / 55,932 tracks / 85,061 subtitles，对比文件系统盘点差距约 20.7% / 19.3% / 23.6%；支持增量 Catalog/Scanner 路线。
+- 该资料还做了音频首尾 fingerprint、字幕全文 hash/解析，因此不把它冒充 Kura metadata-only scanner 性能结果；wall-clock/peak-memory/incremental benchmark 后置到 K2-R2/R3 实现后。
+- 新增 `docs/K2_R1_REAL_LIBRARY_BASELINE.md`；真实规模阻塞解除，可直接进入 K2-R2 SQLite schema 设计。
+
 ## 2026-09-23 — K2-R1 第一批开发：大库止损、SQLite POC、门禁清理与真实库审计工具
 
 - 对 App / ASMR / Music / Index Health 做静态性能审计。
