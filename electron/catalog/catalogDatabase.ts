@@ -89,6 +89,7 @@ interface FolderNodeDraft {
 function collectFolderNodes(index: LegacyLocalJsonIndex): FolderNodeDraft[] {
   const byKey = new Map<string, FolderNodeDraft>();
   const collectionById = new Map(index.collections.map((collection) => [collection.id, collection]));
+  const trackById = new Map(index.tracks.map((track) => [track.id, track]));
 
   const addPath = (rootId: string, collectionId: string | null, relativePath: string) => {
     const segments = relativePath.split('/').filter(Boolean);
@@ -98,7 +99,9 @@ function collectFolderNodes(index: LegacyLocalJsonIndex): FolderNodeDraft[] {
       const key = `${rootId}\0${currentPath}`;
       const existing = byKey.get(key);
       if (existing) {
-        if (!existing.collectionId && collectionId) existing.collectionId = collectionId;
+        if (existing.collectionId && collectionId && existing.collectionId !== collectionId) {
+          existing.collectionId = null;
+        }
         continue;
       }
       byKey.set(key, {
@@ -129,7 +132,7 @@ function collectFolderNodes(index: LegacyLocalJsonIndex): FolderNodeDraft[] {
   }
 
   for (const subtitle of index.subtitles) {
-    const track = index.tracks.find((candidate) => candidate.id === subtitle.trackId);
+    const track = trackById.get(subtitle.trackId);
     if (!track) continue;
     const subtitlePath = safeRelativePath(subtitle.relativePath);
     for (const candidate of folderPathsFromRelativePath(subtitlePath)) addPath(track.rootId, track.collectionId, candidate);

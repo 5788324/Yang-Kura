@@ -60,7 +60,7 @@ Schema 直接针对当前真实 `E:\\arsm`：
 
 因此：
 
-- Folder Tree 是一等数据；
+- Folder Tree 是一等数据；共享祖先目录不强行归属某一个 Work；
 - Track 与 Source 分离；
 - Subtitle 独立表；
 - Artwork 独立表；
