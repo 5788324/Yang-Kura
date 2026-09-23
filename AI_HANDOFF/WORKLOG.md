@@ -1,3 +1,13 @@
+## 2026-09-23 — Kura 2.0 仓库主线收敛与历史清理
+
+- 用户要求仓库收敛为唯一主线并删除老旧无价值内容。
+- 当前工作树审计：1038 个 tracked 文件，其中 614 个位于 `archive/`；另有大量重复 handoff、MVP/Uxx 文档和旧 RC workflow。
+- 清理策略：Git 历史保留追溯，当前 `main` 只保留生产代码、当前交接、当前设计/架构参考、有效 CI 和仍有回归价值的测试脚本。
+- 删除 `archive/`、tracked artifacts、旧根目录 handoff/manifest、旧 AI_HANDOFF 副本、大量 MVP/Uxx/RC 文档。
+- U32/U40B/U41B/U41C 旧 release/acceptance workflows 退出当前 CI；Branch/Docs/Architecture/Player/UI 门禁保留。
+- package.json 移除旧 MVP compatibility/notes 和 U41/U42 专用脚本入口；stable regression 改为当前通用门禁。
+- 当前开发阶段固定为 K2-R1；阶段计划重写为 R1～R9 + 后续 K3/K4。
+
 # Yang-Kura 工作日志
 
 > 只记录当前有效事实。代码与合并事实以 GitHub 为准，候选验收以最新有效 Codex 或 DeepSeek 实机报告为准。

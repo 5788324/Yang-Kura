@@ -36,7 +36,6 @@
     "verify:all": "npm run verify:stable",
     "verify:env": "node scripts/verify-env.mjs",
     "verify:handoff": "node scripts/verify-handoff.mjs",
-    "verify:legacy": "node scripts/show-legacy-verifier-info.mjs",
     "verify:stable": "node scripts/run-stable-regression.mjs",
     "test:u28:electron-e2e": "node scripts/test-u28-electron-e2e.mjs",
     "test:u29:electron-e2e": "node scripts/test-u29-electron-e2e.mjs",
@@ -44,17 +43,8 @@
     "test:u30:ui-matrix": "node scripts/test-u30-ui-matrix.mjs",
     "verify:u30-ui-fast-track": "node scripts/verify-u30-ui-fast-track.mjs",
     "test:u31:importer-transactions": "node scripts/test-u31-importer-transactions.mjs",
-    "verify:u41b-daily-user-entry": "node scripts/verify-u41b-daily-user-entry.mjs",
-    "test:u41b:importer-e2e": "node scripts/test-u41b-importer-daily-e2e.mjs",
     "verify:u31-importer-transaction-hardening": "node scripts/verify-u31-importer-transaction-hardening.mjs",
-    "verify:u38a-player-session-boundaries": "node scripts/verify-u38a-player-session-boundaries.mjs",
-    "verify:u41c-runtime-patch": "node scripts/verify-u41c-runtime-patch.mjs",
-    "verify:u41d-legacy-cleanup": "node scripts/verify-u41d-legacy-cleanup.mjs",
-    "test:u41e:rc-final": "node scripts/test-u41e-rc-final-acceptance.mjs",
-    "test:u41e:lyrics-subtitle-layout": "node scripts/test-u41e-lyrics-subtitle-layout.mjs",
-    "verify:u41e-rc-final-acceptance": "node scripts/verify-u41e-rc-final-acceptance.mjs",
-    "verify:u42-daily-ui-simplification": "node scripts/verify-u42-daily-ui-simplification.mjs",
-    "test:u42:daily-ui": "node scripts/test-u42-daily-ui-simplification.mjs"
+    "verify:u38a-player-session-boundaries": "node scripts/verify-u38a-player-session-boundaries.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.546.0",
@@ -71,7 +61,7 @@
     "typescript": "~5.8.2",
     "vite": "^6.2.3"
   },
-  "description": "Yang-Kura 1.0 release candidate for Windows: local ASMR/RJ and music library, tokenized Local JSON Index, HTMLAudio/mpv playback, subtitles, transactional importer, portable and NSIS.",
+  "description": "Yang-Kura Desktop 2.0: personal Windows RJ/ASMR and music library, focused on 8TB+ scale, mature playback, high-quality UI and future local/cloud sources.",
   "packageManager": "npm@10.9.2",
   "engines": {
     "node": ">=22 <23",
@@ -80,30 +70,7 @@
   "optionalDependencies": {
     "electron": "^39.8.10"
   },
-  "legacyVerifierAnchor": "0.62.0-mvp24",
-  "legacyVerifierCompatibility": "0.40.0-mvp01 0.41.0-mvp02 0.42.0-mvp03 0.43.0-mvp04 0.44.0-mvp05 0.45.0-mvp06 0.46.0-mvp07 0.47.0-mvp08 0.47.1-mvp08.1 0.48.0-mvp09 0.49.0-mvp10 0.50.0-mvp11 0.51.0-mvp12 0.52.0-mvp13 0.53.0-mvp14 0.54.0-mvp15 0.55.0-mvp16 0.56.0-mvp17 0.57.0-mvp18 0.58.0-mvp19 0.59.0-mvp20 0.60.0-mvp22 0.61.0-mvp23 0.62.0-mvp24 0.63.0-mvp25 0.64.0-mvp26 0.65.0-mvp27 0.72.0-mvp34 0.73.0-mvp35 0.74.0-mvp36 0.75.0-mvp37 0.76.0-mvp38 0.77.0-mvp39 0.78.0-mvp40 0.79.0-mvp41 0.80.0-mvp42 0.81.0-mvp43 0.82.0-mvp44 0.83.0-mvp45 0.84.0-mvp46 0.85.0-mvp47 0.86.0-mvp48 0.87.0-mvp49 0.88.0-mvp50 0.89.0-mvp51 0.91.0-mvp53 0.90.0-mvp52 0.92.0-mvp54 0.93.0-mvp55 0.95.0-mvp57 0.96.0-mvp58 0.98.0-mvp60 0.99.0-mvp61 0.100.0-mvp62 0.101.0-mvp63 0.102.0-mvp64 0.103.0-mvp65 0.104.0-mvp66 0.123.0-mvp85 0.126.0-mvp88 0.127.0-mvp89 0.128.0-mvp90 0.129.0-mvp91 0.130.0-mvp92 0.131.0-mvp93",
   "overrides": {
     "@noble/hashes": "1.4.0"
-  },
-  "yangKuraMvpNotes": {
-    "mvp75DiagnosticsHistoryFold": "0.113.0-mvp75 folds Diagnostics MVP history by phase, fixes bottom-player progress-bar stability, and keeps scanner/index/playback/file safety unchanged.",
-    "mvp77PackagedRegressionReview": "0.115.0-mvp77 adds packaged regression review, UI layout checklist, and DeepSeek/Codex cross-check prompt without changing scanner/index/playback/file safety.",
-    "mvp78PlayerPanelLayoutReview": "0.116.0-mvp78 reviews full player / lyrics panel narrow-window layout, clamps full-player progress display, records DeepSeek MVP-77 PASS, and keeps scanner/index/playback/file safety unchanged.",
-    "mvp79PlayerUiBugfix": "0.117.0-mvp79 fixes invalid Tailwind utility classes, PlayerBar click scope and More button feedback, LRC fractional-second parsing, sleep-dim clock refresh, and cover background guards without changing scanner/index/playback/file safety.",
-    "mvp80SettingsDiagnosticsDailyFinalize": "Settings/Diagnostics daily finalization: user-facing settings and daily diagnostics stay visible, engineering terms and MVP history remain folded; no scanner/index/playback/file safety changes.",
-    "mvp81OfflineDemoCoverCleanup": "0.119.0-mvp81 removes remote Unsplash demo covers from src and uses generated local SVG data-url covers without changing scanner/index/playback/file safety.",
-    "mvp82UiBugSweep": "0.120.0-mvp82 applies DeepSeek UI bug-sweep fixes for residual invalid Tailwind utilities, modal animation, and duration display guards without changing scanner/index/playback/file safety.",
-    "mvp83BetaCloseoutPushPrep": "0.121.0-mvp83 records Beta 0.1 closeout and GitHub push preparation for company-network limitations without changing scanner/index/playback/file safety.",
-    "mvp84ImportDownloadStrategy": "0.122.0-mvp84 absorbs the master planning discussion: importer first, controlled copy/move with preview/logs, self-owned downloader ecosystem later, metadata source merge, mpv 子进程后端 as long-term route, and records that standard git push is blocked by current DNS/network.",
-    "mvp85ImportDownloadModels": "0.123.0-mvp85 freezes ImportTask / DownloadTask / DownloadManifest / MetadataSource model contracts without implementing real import/download/file operations.",
-    "mvp88MusicImportReadonlyDetection": "0.126.0-mvp88 adds music album / singles read-only import detection using tokenized relativePaths, no ID3/FLAC tag reading, no protected-format conversion, and no file operations.",
-    "mvp89ImportConflictDetection": "0.127.0-mvp89 adds import conflict detection preview for duplicate RJ, duplicate music album, same filename, target-exists, same-size suspect, and hash strategy without real hash calculation or file operations.",
-    "mvp93CopyOnlyMainSideStub": "0.131.0-mvp93 registers copy-only stub contract and blocked result; real file operations remain disabled.",
-    "mvp114LocalMetadataOverrides": "0.152.0-mvp114 adds versioned local metadata overrides for ASMR works, keeps edits across library-index reloads, reuses the existing detail editor, and does not modify audio tags, connect to providers, expose absolute paths, or add SQLite.",
-    "mvp117SingleRjProviderPreview": "0.155.0-mvp117 closes the local metadata foundation and adds a provider-neutral single-RJ JSON difference preview that only fills the edit draft after user review; no network, automatic overwrite, media tag write, SQLite, absolutePath, or file://.",
-    "mvp119ProviderCacheThrottle": "0.157.0-mvp119 adds a 10-minute Electron-memory cache, 5-second same-RJ request throttle, explicit refresh, cache clear, query timestamp display, and manual JSON fallback without automatic metadata writes or media-file mutation.",
-    "mvp120DlsiteTotalDeadline": "0.158.0-mvp120 enforces one total timeout budget across all DLsite candidate URLs so a 12-second query cannot expand to six sequential 12-second attempts.",
-    "mvp122MpvBackendMinimal": "0.160.0-mvp122 adds Electron-main mpv subprocess playback with tokenized paths, play/pause/seek/stop/volume event sync, and HTMLAudio fallback without exposing absolutePath or file://."
-  },
-  "u33BetaRelease": "0.169.0-beta.2 / v0.169.0-beta.2 / Yang-Kura 0.169.0 Beta 2 · 个人日用版"
+  }
 }

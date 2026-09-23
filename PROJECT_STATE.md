@@ -153,7 +153,17 @@ RJ 侧保持 Work / Circle / CV / Tags / Folder Tree / Subtitle / Attachment / P
 - AI Agent 大功能；
 - 与当前目标无关的架构洁癖式重构。
 
-## 7. Git / Drive 事实源
+## 7. 仓库清理与主线策略
+
+2026-09-23 起：
+
+- `main` 是唯一长期开发主线；
+- 历史 `archive/`、重复 handoff、旧 MVP/Uxx/RC 文档不再保留在当前工作树，历史通过 Git commit/PR 查询；
+- 旧 U32/U40/U41 release/acceptance workflows 退出当前 CI；
+- 当前 CI 只保留 branch/docs/architecture/player/ui 这类仍有开发价值的门禁；
+- 历史测试脚本暂不一次性删除，K2-R1 根据实际依赖再做第二轮脚本精简，避免误删有效回归。
+
+## 8. Git / Drive 事实源
 
 - **GitHub：唯一代码主仓库和提交历史。**
 - **Google Drive：本机未推源码、安装包、测试证据、大日志、截图/视频和阶段快照。**

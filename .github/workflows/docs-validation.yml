@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   validate-docs:
-    name: Lightweight documentation consistency
+    name: Current handoff consistency
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -34,36 +34,13 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Verify handoff and project facts
-        shell: bash
-        run: |
-          mkdir -p artifacts
-          set -o pipefail
-          node scripts/verify-handoff.mjs 2>&1 | tee artifacts/handoff-validation.log
+      - name: Verify current handoff and project facts
+        run: node scripts/verify-handoff.mjs
 
-      - name: Upload handoff validation evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: handoff-validation-log
-          path: artifacts/handoff-validation.log
-          if-no-files-found: warn
-          retention-days: 7
-
-      - name: Require U34 architecture baseline
+      - name: Require current architecture references
         shell: bash
         run: |
           test -f docs/architecture/ARCHITECTURE_AUDIT.md
           test -f docs/architecture/DEPENDENCY_MAP.md
           test -f docs/architecture/REFACTOR_BACKLOG.md
-
-      - name: Report validated files
-        shell: bash
-        run: |
-          printf '%s\n' \
-            'AI_HANDOFF/AUTONOMOUS_DELIVERY_RULES.md' \
-            'AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md' \
-            'PROJECT_STATE.md' \
-            'docs/architecture/ARCHITECTURE_AUDIT.md' \
-            'docs/architecture/DEPENDENCY_MAP.md' \
-            'docs/architecture/REFACTOR_BACKLOG.md'
+          test -f docs/DESIGN.md

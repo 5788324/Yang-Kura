@@ -3,6 +3,7 @@
 > 当前公开版本：`1.0.0-rc.1`
 > U42 / PR #94：已合并
 > 当前战略阶段：**Kura Desktop 2.0 · K2-R1 真实审计**
+> 仓库策略：**main 唯一长期主线；历史通过 Git 追溯，不在当前树堆 archive/MVP 副本。**
 > K2-R0 已收口：用户确认 `codex/k2-r0-validation-hygiene` 是上周最新可识别源码分支；审查未发现额外业务源码，仅包含验证卫生与交接修复。合并后 GitHub `main` 恢复为唯一代码真源。
 
 Yang-Kura 是个人使用的 Windows 音频媒体库，面向 **ASMR/RJ 音声 + 普通音乐**。当前技术栈为 React、Vite、TypeScript、Electron；已经具备本地资源库、播放、字幕、歌单、导入、元数据和 Windows 打包等能力。
