@@ -179,3 +179,79 @@ export interface CatalogFacetRow {
   value: string;
   count: number;
 }
+
+export type CatalogScanEntryKind =
+  | 'directory'
+  | 'audio'
+  | 'video'
+  | 'subtitle'
+  | 'artwork'
+  | 'text'
+  | 'archive'
+  | 'symlink'
+  | 'other';
+
+export type CatalogScanRunStatus = 'running' | 'cancelled' | 'failed' | 'completed';
+
+export interface CatalogScannerRoot {
+  id: string;
+  rootPathToken: string;
+  name: string;
+  libraryType: CatalogLibraryType;
+  scanProfile: string;
+}
+
+export interface CatalogScanEntry {
+  relativePath: string;
+  entryKind: CatalogScanEntryKind;
+  sizeBytes: number | null;
+  mtimeMs: number | null;
+  fingerprint?: string | null;
+}
+
+export interface CatalogScanBatchResult {
+  processed: number;
+  changed: number;
+  unchanged: number;
+  changedRelativePaths: string[];
+  checkpointRelativePath: string | null;
+}
+
+export interface CatalogScanRunRecord {
+  id: string;
+  rootId: string;
+  startedAt: string;
+  completedAt: string | null;
+  status: CatalogScanRunStatus;
+  filesSeen: number;
+  directoriesSeen: number;
+  changedEntries: number;
+  errorCount: number;
+  checkpointRelativePath: string | null;
+  resumeCount: number;
+  cancelledAt: string | null;
+  errorMessage: string | null;
+}
+
+export interface CatalogScanEntryRow extends CatalogScanEntry {
+  rootId: string;
+  lastSeenScanId: string | null;
+  state: 'present' | 'missing';
+}
+
+export type ArtworkCacheState = 'building' | 'ready' | 'failed';
+
+export interface ArtworkCacheRecord {
+  rootId: string;
+  sourceRelativePath: string;
+  sourceSizeBytes: number | null;
+  sourceMtimeMs: number | null;
+  cacheKey: string;
+  cacheRelativePath: string | null;
+  width: number | null;
+  height: number | null;
+  byteSize: number | null;
+  state: ArtworkCacheState;
+  errorCode: string | null;
+  updatedAt: string;
+}

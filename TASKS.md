@@ -61,18 +61,22 @@
 - [x] Real-count synthetic Catalog benchmark：213,182 modeled rows；import 11.031s；query batch 6.619ms；RSS peak 206.4MiB；DB≈200.8MiB
 - [x] Primary-read cutover gate fixed：Catalog remains rebuildable sidecar until K2-R3/R4; no unique User State stored in Catalog
 
-## ACTIVE NEXT — K2-R3 Incremental Scanner + Artwork Cache
+## ACTIVE — K2-R3 Incremental Scanner + Artwork Cache
 
-- [ ] Scanner state model / scan_runs / scan_entries contract
-- [ ] streaming directory traversal
-- [ ] bounded-concurrency stat
-- [ ] batch SQLite upsert transaction
-- [ ] unchanged fast path (mtime/size/directory state)
-- [ ] cancellation / resume / failure state
-- [ ] deletion represented as catalog state first; no media delete
-- [ ] artwork thumbnail cache design + worker
-- [ ] first-scan / second-scan synthetic benchmark
-- [ ] real E:\\arsm validation when Windows library is available
+- [x] Schema v2 scan checkpoint / resume / artwork cache migration
+- [x] Scanner state model / scan_runs / scan_entries contract
+- [x] streaming directory traversal（fs.opendir, directory-bounded memory）
+- [x] bounded-concurrency stat
+- [x] batch SQLite upsert transaction
+- [x] unchanged fast path (kind + mtime + size + state)
+- [x] cancellation / resume / failure state
+- [x] deletion represented as catalog state first; no media delete
+- [x] Legacy JSON sidecar refresh preserves scan inventory
+- [x] artwork thumbnail cache service + bounded worker queue
+- [x] Electron nativeImage thumbnail generator（no new native dependency）
+- [x] first-scan / second-scan synthetic benchmark
+- [x] real-library acceptance script（media read-only / temp DB）
+- [ ] real E:\\arsm first + second scan evidence
 
 ## PARALLEL DESIGN — K2-R5
 

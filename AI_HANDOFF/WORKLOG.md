@@ -1,3 +1,17 @@
+## 2026-09-23 — K2-R3 Incremental Scanner + Artwork Cache batch implementation
+
+- 按用户要求切换 Git 节奏：本轮集中读取、集中开发、静态复核后只做一个 commit/push；不再按小修复连续推送。
+- Catalog schema 升级 v2：scan checkpoint/resume/error 字段 + artwork_cache；保留 v1→v2 migration。
+- Legacy JSON root-scoped sidecar refresh 不再 delete root，避免级联抹掉 scan_runs / scan_entries / artwork_cache。
+- 新增 streaming incremental scanner：fs.opendir、当前目录有界排序、bounded stat、默认 512 batch SQLite transaction，不构造全库 JS 对象图。
+- unchanged 判定采用 entry kind + size + mtime + fingerprint + state；changed batch 可供后续 metadata/artwork pipeline 消费。
+- cancel/failed scan 不执行 missing finalization；resume 复用同一 run id + checkpoint；只有 completed scan 才把未见旧条目标记 missing。
+- 删除语义只写 Catalog state=missing，绝不删除媒体。
+- 新增 ArtworkCacheService：SHA-256 cache key、相对缓存路径、atomic temp→rename、并发 worker pool、cache hit/invalidation；源文件只读。
+- 生产 thumbnail generator 使用 Electron nativeImage，不新增 sharp/native ABI 依赖。
+- 新增 K2-R3 migration/scanner/artwork 自动测试与 E:\\arsm 只读真实验收脚本；真实大库证据仍待 Windows 环境。
+- K2-R3 完成真实库门禁前不切 UI primary read；K2-R4 继续负责 Query/Pagination/Virtualization/CJK search。
+
 ## 2026-09-23 — K2-R2 Foundation Closeout
 
 - Catalog compatibility、sidecar worker、Root-scoped import、query contracts 的 Windows CI 均已通过。

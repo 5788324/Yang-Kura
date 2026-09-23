@@ -1,6 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 
-export const KURA_CATALOG_SCHEMA_VERSION = 1;
+export const KURA_CATALOG_SCHEMA_VERSION = 2;
 
 const SCHEMA_V1 = `
 CREATE TABLE IF NOT EXISTS catalog_meta (
@@ -225,6 +225,43 @@ CREATE VIRTUAL TABLE IF NOT EXISTS tracks_fts USING fts5(
 );
 `;
 
+const SCHEMA_V2 = `
+ALTER TABLE scan_runs ADD COLUMN checkpoint_relative_path TEXT;
+ALTER TABLE scan_runs ADD COLUMN resume_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE scan_runs ADD COLUMN cancelled_at TEXT;
+ALTER TABLE scan_runs ADD COLUMN error_message TEXT;
+
+CREATE INDEX IF NOT EXISTS scan_runs_root_started
+  ON scan_runs(root_id, started_at DESC);
+
+CREATE INDEX IF NOT EXISTS scan_entries_last_seen
+  ON scan_entries(root_id, last_seen_scan_id);
+
+CREATE TABLE IF NOT EXISTS artwork_cache (
+  root_id TEXT NOT NULL REFERENCES roots(id) ON DELETE CASCADE,
+  source_relative_path TEXT NOT NULL,
+  source_size_bytes INTEGER,
+  source_mtime_ms REAL,
+  cache_key TEXT NOT NULL,
+  cache_relative_path TEXT,
+  width INTEGER,
+  height INTEGER,
+  byte_size INTEGER,
+  state TEXT NOT NULL,
+  error_code TEXT,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY(root_id, source_relative_path)
+) STRICT;
+
+CREATE INDEX IF NOT EXISTS artwork_cache_state
+  ON artwork_cache(root_id, state, updated_at DESC);
+`;
+
+const MIGRATIONS = new Map<number, string>([
+  [1, SCHEMA_V1],
+  [2, SCHEMA_V2],
+]);
+
 function readUserVersion(database: DatabaseSync): number {
   const row = database.prepare('PRAGMA user_version').get() as { user_version?: number } | undefined;
   return Number(row?.user_version ?? 0);
@@ -235,22 +272,27 @@ export function initializeCatalogSchema(database: DatabaseSync): number {
   database.exec('PRAGMA journal_mode = WAL;');
   database.exec('PRAGMA synchronous = NORMAL;');
 
-  const version = readUserVersion(database);
+  let version = readUserVersion(database);
   if (version > KURA_CATALOG_SCHEMA_VERSION) {
     throw new Error(`Catalog schema ${version} is newer than supported ${KURA_CATALOG_SCHEMA_VERSION}.`);
   }
 
-  if (version === 0) {
+  while (version < KURA_CATALOG_SCHEMA_VERSION) {
+    const nextVersion = version + 1;
+    const migration = MIGRATIONS.get(nextVersion);
+    if (!migration) throw new Error(`Missing catalog migration for schema ${nextVersion}.`);
+
     database.exec('BEGIN IMMEDIATE;');
     try {
-      database.exec(SCHEMA_V1);
-      database.exec(`PRAGMA user_version = ${KURA_CATALOG_SCHEMA_VERSION};`);
+      database.exec(migration);
+      database.exec(`PRAGMA user_version = ${nextVersion};`);
       database.exec('COMMIT;');
+      version = nextVersion;
     } catch (error) {
       database.exec('ROLLBACK;');
       throw error;
     }
   }
 
-  return readUserVersion(database);
+  return version;
 }

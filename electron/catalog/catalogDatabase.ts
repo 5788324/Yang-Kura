@@ -11,8 +11,14 @@ import type {
   CatalogFacetRow,
   CatalogFolderNodeRow,
   CatalogImportSummary,
+  CatalogScannerRoot,
+  CatalogScanBatchResult,
+  CatalogScanEntry,
+  CatalogScanEntryRow,
+  CatalogScanRunRecord,
   CatalogTrackQuery,
   CatalogTrackRow,
+  ArtworkCacheRecord,
   LegacyCatalogCollection,
   LegacyCatalogCover,
   LegacyCatalogSubtitle,
@@ -210,6 +216,13 @@ export class KuraCatalogDatabase {
       INSERT INTO roots (
         id, name, library_type, scan_profile, source_kind, root_path_ref, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        library_type = excluded.library_type,
+        scan_profile = excluded.scan_profile,
+        source_kind = excluded.source_kind,
+        root_path_ref = COALESCE(excluded.root_path_ref, roots.root_path_ref),
+        updated_at = excluded.updated_at
     `);
     const insertCollection = database.prepare(`
       INSERT INTO collections (
@@ -285,13 +298,15 @@ export class KuraCatalogDatabase {
         const deleteCollectionFts = database.prepare(
           'DELETE FROM collections_fts WHERE collection_id IN (SELECT id FROM collections WHERE root_id = ?)',
         );
-        const deleteRoot = database.prepare('DELETE FROM roots WHERE id = ?');
+        const deleteFolderNodes = database.prepare('DELETE FROM folder_nodes WHERE root_id = ?');
+        const deleteCollections = database.prepare('DELETE FROM collections WHERE root_id = ?');
         const deleteRootMeta = database.prepare('DELETE FROM catalog_meta WHERE key LIKE ?');
 
         for (const root of index.roots) {
           deleteTrackFts.run(root.id);
           deleteCollectionFts.run(root.id);
-          deleteRoot.run(root.id);
+          deleteFolderNodes.run(root.id);
+          deleteCollections.run(root.id);
           deleteRootMeta.run(`root:${root.id}:%`);
         }
       }
@@ -462,6 +477,340 @@ export class KuraCatalogDatabase {
       artwork: count('artwork'),
       folderNodes: count('folder_nodes'),
     };
+  }
+
+  ensureScannerRoot(root: CatalogScannerRoot): void {
+    const now = new Date().toISOString();
+    this.database.prepare(`
+      INSERT INTO roots (
+        id, name, library_type, scan_profile, source_kind, root_path_ref, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, 'electron-scan', ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        library_type = excluded.library_type,
+        scan_profile = excluded.scan_profile,
+        source_kind = excluded.source_kind,
+        root_path_ref = excluded.root_path_ref,
+        updated_at = excluded.updated_at
+    `).run(
+      root.id,
+      root.name,
+      root.libraryType,
+      root.scanProfile,
+      `rootPathToken:${root.rootPathToken}`,
+      now,
+      now,
+    );
+  }
+
+  beginScanRun(rootId: string, runId: string, startedAt = new Date().toISOString()): CatalogScanRunRecord {
+    this.database.prepare(`
+      INSERT INTO scan_runs (
+        id, root_id, started_at, status, files_seen, directories_seen,
+        changed_entries, error_count, checkpoint_relative_path, resume_count
+      ) VALUES (?, ?, ?, 'running', 0, 0, 0, 0, NULL, 0)
+    `).run(runId, rootId, startedAt);
+    return this.getScanRun(runId);
+  }
+
+  resumeScanRun(runId: string): CatalogScanRunRecord {
+    const existing = this.getScanRun(runId);
+    if (existing.status === 'completed') throw new Error('Completed scan runs cannot be resumed.');
+    this.database.prepare(`
+      UPDATE scan_runs
+      SET status = 'running',
+          completed_at = NULL,
+          cancelled_at = NULL,
+          error_message = NULL,
+          resume_count = resume_count + 1
+      WHERE id = ?
+    `).run(runId);
+    return this.getScanRun(runId);
+  }
+
+  applyScanBatch(rootId: string, runId: string, entries: CatalogScanEntry[]): CatalogScanBatchResult {
+    if (!entries.length) {
+      return {
+        processed: 0,
+        changed: 0,
+        unchanged: 0,
+        changedRelativePaths: [],
+        checkpointRelativePath: null,
+      };
+    }
+
+    const run = this.getScanRun(runId);
+    if (run.rootId !== rootId) throw new Error('Scan run/root mismatch.');
+    if (run.status !== 'running') throw new Error(`Scan run is not active: ${run.status}`);
+
+    const normalizedEntries = entries.map((entry) => {
+      const relativePath = safeRelativePath(entry.relativePath);
+      if (!relativePath) throw new Error(`Unsafe scan relative path: ${entry.relativePath}`);
+      return { ...entry, relativePath };
+    });
+    const placeholders = normalizedEntries.map(() => '?').join(',');
+    const existingRows = this.database.prepare(`
+      SELECT
+        relative_path AS relativePath,
+        entry_kind AS entryKind,
+        size_bytes AS sizeBytes,
+        mtime_ms AS mtimeMs,
+        fingerprint,
+        state
+      FROM scan_entries
+      WHERE root_id = ? AND relative_path IN (${placeholders})
+    `).all(rootId, ...normalizedEntries.map((entry) => entry.relativePath)) as unknown as Array<{
+      relativePath: string;
+      entryKind: string;
+      sizeBytes: number | null;
+      mtimeMs: number | null;
+      fingerprint: string | null;
+      state: string;
+    }>;
+    const existingByPath = new Map(existingRows.map((row) => [row.relativePath, row]));
+    const changedRelativePaths: string[] = [];
+
+    const upsert = this.database.prepare(`
+      INSERT INTO scan_entries (
+        root_id, relative_path, entry_kind, size_bytes, mtime_ms,
+        fingerprint, last_seen_scan_id, state
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'present')
+      ON CONFLICT(root_id, relative_path) DO UPDATE SET
+        entry_kind = excluded.entry_kind,
+        size_bytes = excluded.size_bytes,
+        mtime_ms = excluded.mtime_ms,
+        fingerprint = excluded.fingerprint,
+        last_seen_scan_id = excluded.last_seen_scan_id,
+        state = 'present'
+    `);
+
+    let fileCount = 0;
+    let directoryCount = 0;
+    this.database.exec('BEGIN IMMEDIATE;');
+    try {
+      for (const entry of normalizedEntries) {
+        const previous = existingByPath.get(entry.relativePath);
+        const changed = !previous
+          || previous.entryKind !== entry.entryKind
+          || previous.sizeBytes !== (entry.sizeBytes ?? null)
+          || previous.mtimeMs !== (entry.mtimeMs ?? null)
+          || previous.fingerprint !== (entry.fingerprint ?? null)
+          || previous.state !== 'present';
+        if (changed) changedRelativePaths.push(entry.relativePath);
+
+        if (entry.entryKind === 'directory') directoryCount += 1;
+        else if (entry.entryKind !== 'symlink') fileCount += 1;
+
+        upsert.run(
+          rootId,
+          entry.relativePath,
+          entry.entryKind,
+          entry.sizeBytes ?? null,
+          entry.mtimeMs ?? null,
+          entry.fingerprint ?? null,
+          runId,
+        );
+      }
+
+      const checkpoint = normalizedEntries[normalizedEntries.length - 1]?.relativePath ?? null;
+      this.database.prepare(`
+        UPDATE scan_runs
+        SET files_seen = files_seen + ?,
+            directories_seen = directories_seen + ?,
+            changed_entries = changed_entries + ?,
+            checkpoint_relative_path = ?
+        WHERE id = ?
+      `).run(fileCount, directoryCount, changedRelativePaths.length, checkpoint, runId);
+      this.database.exec('COMMIT;');
+
+      return {
+        processed: normalizedEntries.length,
+        changed: changedRelativePaths.length,
+        unchanged: normalizedEntries.length - changedRelativePaths.length,
+        changedRelativePaths,
+        checkpointRelativePath: checkpoint,
+      };
+    } catch (error) {
+      this.database.exec('ROLLBACK;');
+      throw error;
+    }
+  }
+
+  addScanErrors(runId: string, count: number): void {
+    const safeCount = Math.max(0, Math.trunc(count));
+    if (!safeCount) return;
+    this.database.prepare('UPDATE scan_runs SET error_count = error_count + ? WHERE id = ?').run(safeCount, runId);
+  }
+
+  cancelScanRun(runId: string): CatalogScanRunRecord {
+    const now = new Date().toISOString();
+    this.database.prepare(`
+      UPDATE scan_runs
+      SET status = 'cancelled', cancelled_at = ?, completed_at = NULL
+      WHERE id = ?
+    `).run(now, runId);
+    return this.getScanRun(runId);
+  }
+
+  failScanRun(runId: string, errorMessage: string): CatalogScanRunRecord {
+    const now = new Date().toISOString();
+    this.database.prepare(`
+      UPDATE scan_runs
+      SET status = 'failed', completed_at = ?, error_message = ?
+      WHERE id = ?
+    `).run(now, errorMessage.slice(0, 500), runId);
+    return this.getScanRun(runId);
+  }
+
+  completeScanRun(runId: string): CatalogScanRunRecord & { missingEntries: number } {
+    const run = this.getScanRun(runId);
+    if (run.status !== 'running') throw new Error(`Scan run is not active: ${run.status}`);
+    const now = new Date().toISOString();
+
+    this.database.exec('BEGIN IMMEDIATE;');
+    try {
+      const missing = this.database.prepare(`
+        UPDATE scan_entries
+        SET state = 'missing'
+        WHERE root_id = ?
+          AND state = 'present'
+          AND (last_seen_scan_id IS NULL OR last_seen_scan_id <> ?)
+      `).run(run.rootId, runId).changes;
+
+      this.database.prepare(`
+        UPDATE scan_runs
+        SET status = 'completed',
+            completed_at = ?,
+            changed_entries = changed_entries + ?
+        WHERE id = ?
+      `).run(now, Number(missing), runId);
+      this.database.exec('COMMIT;');
+      return { ...this.getScanRun(runId), missingEntries: Number(missing) };
+    } catch (error) {
+      this.database.exec('ROLLBACK;');
+      throw error;
+    }
+  }
+
+  getScanRun(runId: string): CatalogScanRunRecord {
+    const row = this.database.prepare(`
+      SELECT
+        id,
+        root_id AS rootId,
+        started_at AS startedAt,
+        completed_at AS completedAt,
+        status,
+        files_seen AS filesSeen,
+        directories_seen AS directoriesSeen,
+        changed_entries AS changedEntries,
+        error_count AS errorCount,
+        checkpoint_relative_path AS checkpointRelativePath,
+        resume_count AS resumeCount,
+        cancelled_at AS cancelledAt,
+        error_message AS errorMessage
+      FROM scan_runs
+      WHERE id = ?
+    `).get(runId) as CatalogScanRunRecord | undefined;
+    if (!row) throw new Error(`Unknown scan run: ${runId}`);
+    return row;
+  }
+
+  listScanEntries(rootId: string, state?: 'present' | 'missing', limit = 10000): CatalogScanEntryRow[] {
+    const safeLimit = Math.max(1, Math.min(Math.trunc(limit), 100000));
+    const rows = state
+      ? this.database.prepare(`
+          SELECT
+            root_id AS rootId,
+            relative_path AS relativePath,
+            entry_kind AS entryKind,
+            size_bytes AS sizeBytes,
+            mtime_ms AS mtimeMs,
+            fingerprint,
+            last_seen_scan_id AS lastSeenScanId,
+            state
+          FROM scan_entries
+          WHERE root_id = ? AND state = ?
+          ORDER BY relative_path
+          LIMIT ?
+        `).all(rootId, state, safeLimit)
+      : this.database.prepare(`
+          SELECT
+            root_id AS rootId,
+            relative_path AS relativePath,
+            entry_kind AS entryKind,
+            size_bytes AS sizeBytes,
+            mtime_ms AS mtimeMs,
+            fingerprint,
+            last_seen_scan_id AS lastSeenScanId,
+            state
+          FROM scan_entries
+          WHERE root_id = ?
+          ORDER BY relative_path
+          LIMIT ?
+        `).all(rootId, safeLimit);
+    return rows as unknown as CatalogScanEntryRow[];
+  }
+
+  getArtworkCacheRecord(rootId: string, sourceRelativePath: string): ArtworkCacheRecord | null {
+    const relativePath = safeRelativePath(sourceRelativePath);
+    if (!relativePath) return null;
+    const row = this.database.prepare(`
+      SELECT
+        root_id AS rootId,
+        source_relative_path AS sourceRelativePath,
+        source_size_bytes AS sourceSizeBytes,
+        source_mtime_ms AS sourceMtimeMs,
+        cache_key AS cacheKey,
+        cache_relative_path AS cacheRelativePath,
+        width,
+        height,
+        byte_size AS byteSize,
+        state,
+        error_code AS errorCode,
+        updated_at AS updatedAt
+      FROM artwork_cache
+      WHERE root_id = ? AND source_relative_path = ?
+    `).get(rootId, relativePath) as ArtworkCacheRecord | undefined;
+    return row ?? null;
+  }
+
+  upsertArtworkCacheRecord(record: ArtworkCacheRecord): void {
+    const sourceRelativePath = safeRelativePath(record.sourceRelativePath);
+    if (!sourceRelativePath) throw new Error('Unsafe artwork source relative path.');
+    const cacheRelativePath = record.cacheRelativePath ? safeRelativePath(record.cacheRelativePath) : null;
+    if (record.cacheRelativePath && !cacheRelativePath) throw new Error('Unsafe artwork cache relative path.');
+
+    this.database.prepare(`
+      INSERT INTO artwork_cache (
+        root_id, source_relative_path, source_size_bytes, source_mtime_ms,
+        cache_key, cache_relative_path, width, height, byte_size,
+        state, error_code, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(root_id, source_relative_path) DO UPDATE SET
+        source_size_bytes = excluded.source_size_bytes,
+        source_mtime_ms = excluded.source_mtime_ms,
+        cache_key = excluded.cache_key,
+        cache_relative_path = excluded.cache_relative_path,
+        width = excluded.width,
+        height = excluded.height,
+        byte_size = excluded.byte_size,
+        state = excluded.state,
+        error_code = excluded.error_code,
+        updated_at = excluded.updated_at
+    `).run(
+      record.rootId,
+      sourceRelativePath,
+      record.sourceSizeBytes,
+      record.sourceMtimeMs,
+      record.cacheKey,
+      cacheRelativePath,
+      record.width,
+      record.height,
+      record.byteSize,
+      record.state,
+      record.errorCode,
+      record.updatedAt,
+    );
   }
 
   queryCollections(options: CatalogCollectionQuery = {}): CatalogCollectionRow[] {

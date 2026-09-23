@@ -56,7 +56,7 @@ package version on main: 1.0.0-rc.1
 
 真实数量级 benchmark：213,182 modeled rows，import 11.031s、query batch 6.619ms、RSS 206.4MiB、DB≈200.8MiB。SQLite 路线 GO，但 200MiB 级 JS/导入峰值说明 K2-R3 必须改成 streaming + batch write。
 
-当前下一主线：K2-R3 Incremental Scanner + Artwork Cache。SQLite 在 K2-R3/R4 完成前仍是可重建 sidecar，不作为唯一 UI read source。
+当前 K2-R3 backend foundation 已实现：Schema v2、streaming traversal、bounded stat、batch SQLite inventory、unchanged fast path、cancel/resume、missing-state finalization、Artwork Cache worker pool 与 Electron nativeImage generator。剩余硬门禁是 E:\\arsm 真实 first/second scan。SQLite 在 K2-R4 完成前仍是可重建 sidecar，不作为唯一 UI read source。
 
 
 ### P1：依赖安全基线需要刷新

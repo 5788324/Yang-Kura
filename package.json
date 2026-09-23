@@ -51,7 +51,9 @@
     "test:k2-r2:catalog": "npm run build:electron --silent && node scripts/test-k2-r2-catalog-database.mjs",
     "test:k2-r2:catalog-electron": "npm run build:electron --silent && node scripts/run-electron-as-node.mjs scripts/test-k2-r2-catalog-database.mjs",
     "test:k2-r2:catalog-sidecar": "npm run build:electron --silent && node scripts/test-k2-r2-catalog-sidecar-worker.mjs",
-    "benchmark:k2-r2:catalog-real-scale": "npm run build:electron --silent && node scripts/benchmark-k2-r2-catalog-real-scale.mjs"
+    "benchmark:k2-r2:catalog-real-scale": "npm run build:electron --silent && node scripts/benchmark-k2-r2-catalog-real-scale.mjs",
+    "test:k2-r3": "npm run build:electron --silent && node scripts/test-k2-r3-schema-migration.mjs && node scripts/test-k2-r3-incremental-scanner.mjs && node scripts/test-k2-r3-artwork-cache.mjs",
+    "accept:k2-r3:real-library": "npm run build:electron --silent && node scripts/accept-k2-r3-real-library.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.546.0",
