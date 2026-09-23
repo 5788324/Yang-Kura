@@ -208,6 +208,12 @@ export const libraryIndexNormalizationService = {
   normalize(index: LocalJsonIndex): LocalJsonIndex {
     const tracksById = new Map(index.tracks.map((track) => [track.id, track]));
     const rootTypeById = new Map(index.roots.map((root) => [root.id, root.libraryType]));
+    const coversByCollectionId = new Map<string, CoverSource[]>();
+    for (const cover of index.covers) {
+      const collectionCovers = coversByCollectionId.get(cover.collectionId) ?? [];
+      collectionCovers.push(cover);
+      coversByCollectionId.set(cover.collectionId, collectionCovers);
+    }
     const normalizedCollections: LibraryCollection[] = [];
     const normalizedCovers: CoverSource[] = [];
     const normalizedTrackById = new Map(index.tracks.map((track) => [track.id, track]));
@@ -218,7 +224,7 @@ export const libraryIndexNormalizationService = {
         .map((trackId) => tracksById.get(trackId))
         .filter((track): track is LibraryTrack => Boolean(track));
       const isAsmrRoot = rootTypeById.get(collection.rootId) === 'asmr';
-      const sourceCovers = index.covers.filter((cover) => cover.collectionId === collection.id);
+      const sourceCovers = coversByCollectionId.get(collection.id) ?? [];
       const pieces = splitCollection(collection, sourceTracks, sourceCovers, isAsmrRoot);
       if (pieces.length === 0) {
         changed = true;

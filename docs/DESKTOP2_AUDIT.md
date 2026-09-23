@@ -17,6 +17,8 @@ Kura 现有 Windows 业务链值得保留，不需要推倒重写；但当前 Lo
 6. `App.tsx` 原先会在多个 effect 中重复 `flatMap` 全库轨道。K2-R1 第一批修复已缓存单一派生 Track 数组供历史和队列对账复用。
 7. `collectLibraryIndexHealthReferences()` 原先为每个 collection track reference 执行 `tracks.some(...)`，大库最坏可退化为 O(collection refs × tracks)。K2-R1 第一批修复改为 Set membership。
 8. `libraryIndexAdapter` 原先在映射每条 Track 时都遍历整份 subtitles 数组两次，字幕量上升后可退化为 O(Track × Subtitle)。K2-R1 已改为一次构建 `byTrackId/byMediaBase` lookup，再按 Track O(1) 级查询候选字幕。
+9. `libraryIndexNormalizationService` 原先每个 collection 都对全局 covers 执行 `filter`；已改为 `coversByCollectionId` 预索引。
+10. Playback History 原先一次 refresh/summary 会重复构建全库 Track Map；已收敛为一次 Map + history reconcile。
 
 ## 第一批已落地优化
 
@@ -25,6 +27,8 @@ Kura 现有 Windows 业务链值得保留，不需要推倒重写；但当前 Lo
 - Music 搜索索引改为只有实际搜索时构建。
 - Index health stale-reference 检查使用 `Set<string>`，去除重复线性查找。
 - Index → UI 映射预构建 Subtitle lookup，移除每 Track 全表字幕扫描。
+- Normalization 预构建 collection→covers 索引，移除每 collection 全局 covers.filter。
+- Playback History 单次刷新只构建一次全库 Track Map。
 - 新增只读真实库审计工具：`npm run audit:k2-r1-library`。
 
 ## 真实 8TB 审计工具

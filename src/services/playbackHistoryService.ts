@@ -73,6 +73,27 @@ function flattenTrackMap(allTracks: AudioTrack[] = []): Map<string, AudioTrack> 
   return result;
 }
 
+function reconcileEntriesWithTrackMap(
+  entries: PlaybackHistoryEntry[],
+  byId: Map<string, AudioTrack>,
+): { entries: PlaybackHistoryEntry[]; changed: boolean } {
+  let changed = false;
+  const next = entries
+    .filter((entry) => {
+      const keep = byId.has(entry.trackId);
+      if (!keep) changed = true;
+      return keep;
+    })
+    .map((entry) => {
+      const freshTrack = byId.get(entry.trackId);
+      if (!freshTrack) return entry;
+      const sanitized = sanitizeTrack(freshTrack);
+      if (sanitized.id !== entry.track.id || sanitized !== entry.track) changed = true;
+      return { ...entry, track: sanitized };
+    });
+  return { entries: next, changed };
+}
+
 export const playbackHistoryService = {
   storageKey: STORAGE_KEY,
 
@@ -88,11 +109,9 @@ export const playbackHistoryService = {
     if (allTracks.length === 0) return this.load();
     const byId = flattenTrackMap(allTracks);
     const previous = this.load();
-    const next = previous
-      .filter((entry) => byId.has(entry.trackId))
-      .map((entry) => ({ ...entry, track: sanitizeTrack(byId.get(entry.trackId) ?? entry.track) }));
-    if (next.length !== previous.length || next.some((entry, index) => entry.track.id !== previous[index]?.track.id)) writeHistory(next);
-    return next;
+    const reconciled = reconcileEntriesWithTrackMap(previous, byId);
+    if (reconciled.changed) writeHistory(reconciled.entries);
+    return reconciled.entries;
   },
 
   getResumeProgress(trackId: string, durationHint?: number): number {
@@ -132,7 +151,12 @@ export const playbackHistoryService = {
 
   getRecentTracks(allTracks: AudioTrack[] = []): AudioTrack[] {
     const byId = flattenTrackMap(allTracks);
-    const entries = allTracks.length > 0 ? this.pruneToLibrary(allTracks) : this.load();
+    let entries = this.load();
+    if (allTracks.length > 0) {
+      const reconciled = reconcileEntriesWithTrackMap(entries, byId);
+      entries = reconciled.entries;
+      if (reconciled.changed) writeHistory(entries);
+    }
     return entries.map((entry) => {
       const freshTrack = byId.get(entry.trackId);
       const baseTrack = freshTrack || entry.track;
@@ -141,8 +165,13 @@ export const playbackHistoryService = {
   },
 
   getSummary(allTracks: AudioTrack[] = []): { count: number; playableCount: number; lastUpdatedAt?: string } {
-    const entries = allTracks.length > 0 ? this.pruneToLibrary(allTracks) : this.load();
     const byId = flattenTrackMap(allTracks);
+    let entries = this.load();
+    if (allTracks.length > 0) {
+      const reconciled = reconcileEntriesWithTrackMap(entries, byId);
+      entries = reconciled.entries;
+      if (reconciled.changed) writeHistory(entries);
+    }
     return {
       count: entries.length,
       playableCount: entries.filter((entry) => Boolean(byId.get(entry.trackId)?.rootPathToken || entry.track.rootPathToken)).length,
