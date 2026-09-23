@@ -1228,22 +1228,28 @@ export class KuraCatalogDatabase {
       return Number(row?.count ?? 0);
     };
 
+    const relatedCount = (sql: string): number => {
+      const row = this.database.prepare(sql).get(rootId)
+        as { count?: number | bigint } | undefined;
+      return Number(row?.count ?? 0);
+    };
+
     return {
       collections: count('collections'),
       tracks: count('tracks'),
       mediaSources: count('media_sources'),
-      subtitles: this.database.prepare(`
+      subtitles: relatedCount(`
         SELECT COUNT(*) AS count
         FROM subtitles s
         JOIN tracks t ON t.id = s.track_id
         WHERE t.root_id = ?
-      `).get(rootId)?.count as number ?? 0,
-      artwork: this.database.prepare(`
+      `),
+      artwork: relatedCount(`
         SELECT COUNT(*) AS count
         FROM artwork a
         JOIN collections c ON c.id = a.collection_id
         WHERE c.root_id = ?
-      `).get(rootId)?.count as number ?? 0,
+      `),
       folderNodes: count('folder_nodes'),
     };
   }
