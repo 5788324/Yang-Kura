@@ -1,3 +1,12 @@
+## 2026-09-23 — K2-R4 Query IPC closeout batch
+
+- K2-R4 Core commit `fc4884b...` Windows 全绿：K2-R2/K2-R3 compatibility、R4 query/virtualization、Electron journeys、stable regression 全 PASS。
+- R4 收尾新增 Catalog Query IPC channel、Main root-token gate、Preload bridge 和 Renderer catalogQueryService。
+- IPC 支持 collection/track page、facets、folder children；数据库路径、absolutePath、file:// 不返回 Renderer。
+- sidecar 尚未同步当前 Root 时显式返回 `k2-r4-catalog-query-not-ready`，旧 JSON fallback 仍可继续工作。
+- 不在旧 UI 强切 SQLite Primary Read；K2-R5 新 App Shell/Library surfaces 将直接消费 Catalog Query，避免重复迁移一次旧 UI。
+- 本批按约定一次 push，新增独立 Catalog IPC regression。
+
 ## 2026-09-23 — K2-R4 Core batch
 
 - 按单批 Git 流程开发；本批只做可独立验证的 R4 Core，不把 IPC/Primary Read 一次塞进同一改动。

@@ -1,4 +1,5 @@
 import type { LibraryType } from '../ipc/contracts.js';
+import type { CatalogQueryRequest } from '../catalog/catalogTypes.js';
 
 export type SelectLibraryRootRequest = {
   libraryType: LibraryType;
@@ -306,3 +307,5 @@ export type ImportMoveOnlyExecuteRequest = {
   overwriteAllowed?: false;
   maxMoveItems?: number;
 };
+
+export type { CatalogQueryRequest } from '../catalog/catalogTypes.js';

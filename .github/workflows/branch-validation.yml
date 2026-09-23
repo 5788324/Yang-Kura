@@ -124,6 +124,8 @@ jobs:
         run: npm run test:k2-r3
       - name: K2-R4 Query Pagination Virtualization
         run: npm run test:k2-r4
+      - name: K2-R4 Catalog IPC
+        run: npm run test:k2-r4:ipc
       - name: Current Electron journeys
         run: |
           npm run test:u28:electron-e2e

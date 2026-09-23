@@ -119,5 +119,5 @@ Desktop 2.0 稳定前不启动：
 - [x] Music track/detail virtual window
 - [x] K2-R4 query + virtualization regression
 - [ ] Windows CI
-- [ ] Catalog Query IPC + Renderer page adapter
+- [x] Catalog Query IPC + Renderer query adapter
 - [ ] E:\\arsm query/scroll evidence

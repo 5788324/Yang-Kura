@@ -5,6 +5,7 @@ export const IPC_CHANNELS = {
     indexWritePreview: 'yang-kura:index:write-preview-request',
     indexWriteConfirmed: 'yang-kura:index:write-confirmed-request',
     indexReadCurrent: 'yang-kura:index:read-current-request',
+    catalogQuery: 'yang-kura:catalog:query',
     indexHealthCheck: 'yang-kura:index:health-check-request',
     indexRemovalPreview: 'yang-kura:index:removal-preview-request',
     indexRemovalWrite: 'yang-kura:index:removal-write-confirmed-request',

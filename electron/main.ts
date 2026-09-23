@@ -49,6 +49,8 @@ import { registerImporterHandler } from './ipc/domains/importer.js';
 import { isExplicitCoverFileName, selectPrimaryCoverPaths } from './libraryCoverSelection.js';
 import { mediaMimeType, parseSingleByteRange } from './mediaProtocolSupport.js';
 import { KURA_CATALOG_SCHEMA_VERSION } from './catalog/catalogSchema.js';
+import { runCatalogQuery } from './catalog/catalogQueryService.js';
+import type { CatalogQueryRequest } from './catalog/catalogTypes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -3388,6 +3390,43 @@ function registerReadLibraryIndexIpc(): void {
 }
 
 
+function registerCatalogQueryIpc(): void {
+  registerLibraryHandler('catalogQuery', async (_event, request: unknown) => {
+    const payload = request as Partial<CatalogQueryRequest> | undefined;
+    const mode = payload?.mode;
+    if (
+      !payload?.rootPathToken
+      || !mode
+      || !['collections', 'tracks', 'facets', 'folders'].includes(mode)
+    ) {
+      return {
+        ok: false,
+        status: 'k2-r4-catalog-query-failed',
+        schemaVersion: KURA_CATALOG_SCHEMA_VERSION,
+        mode: mode ?? 'collections',
+        message: 'Catalog query request 无效。',
+        absolutePathReturned: false,
+        fileUrlReturned: false,
+      } as const;
+    }
+
+    if (!rootTokenMap.has(payload.rootPathToken)) {
+      return {
+        ok: false,
+        status: 'k2-r4-catalog-query-failed',
+        schemaVersion: KURA_CATALOG_SCHEMA_VERSION,
+        mode,
+        message: 'rootPathToken 无效或已失效。',
+        absolutePathReturned: false,
+        fileUrlReturned: false,
+      } as const;
+    }
+
+    return runCatalogQuery(catalogDatabasePath, payload as CatalogQueryRequest);
+  });
+}
+
+
 function registerLibraryIndexHealthIpc(): void {
   registerLibraryHandler('indexHealthCheck', async (_event, request: unknown) => {
     const payload = request as Partial<LibraryIndexHealthCheckRequest> | undefined;
@@ -5032,6 +5071,7 @@ async function createMainWindow(): Promise<BrowserWindow> {
   registerWriteIndexPreviewIpc();
   registerWriteLibraryIndexIpc();
   registerReadLibraryIndexIpc();
+  registerCatalogQueryIpc();
   registerLibraryIndexHealthIpc();
   registerResolveTrackMediaUrlIpc();
   registerMpvPlaybackIpc(mainWindow);

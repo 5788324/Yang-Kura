@@ -1682,12 +1682,82 @@ interface YangKuraImportMoveOnlyExecuteResult {
     exposesAbsolutePaths: false;
   }
 
+  type YangKuraCatalogCollectionSort = 'id-asc' | 'title-asc' | 'added-desc' | 'duration-desc';
+  type YangKuraCatalogTrackSort = 'id-asc' | 'title-asc' | 'album-asc' | 'added-desc' | 'duration-desc';
+
+  interface YangKuraCatalogCursor {
+    sortValue: string | number;
+    id: string;
+  }
+
+  type YangKuraCatalogQueryRequest =
+    | {
+        mode: 'collections';
+        rootPathToken: string;
+        collectionType?: string;
+        search?: string;
+        circle?: string;
+        cv?: string;
+        tag?: string;
+        artist?: string;
+        sort?: YangKuraCatalogCollectionSort;
+        cursor?: YangKuraCatalogCursor | null;
+        limit?: number;
+      }
+    | {
+        mode: 'tracks';
+        rootPathToken: string;
+        collectionId?: string;
+        kind?: string;
+        search?: string;
+        artist?: string;
+        tag?: string;
+        sort?: YangKuraCatalogTrackSort;
+        cursor?: YangKuraCatalogCursor | null;
+        limit?: number;
+      }
+    | {
+        mode: 'facets';
+        rootPathToken: string;
+        facet: 'circle' | 'artist' | 'cv' | 'tag';
+        collectionType?: string;
+        limit?: number;
+      }
+    | {
+        mode: 'folders';
+        rootPathToken: string;
+        parentRelativePath?: string | null;
+        limit?: number;
+      };
+
+  type YangKuraCatalogQueryResult =
+    | {
+        ok: true;
+        status: 'k2-r4-catalog-query-ready';
+        schemaVersion: number;
+        mode: 'collections' | 'tracks' | 'facets' | 'folders';
+        rootId: string;
+        payload: unknown;
+        absolutePathReturned: false;
+        fileUrlReturned: false;
+      }
+    | {
+        ok: false;
+        status: 'k2-r4-catalog-query-not-ready' | 'k2-r4-catalog-query-failed';
+        schemaVersion: number;
+        mode: 'collections' | 'tracks' | 'facets' | 'folders';
+        message: string;
+        absolutePathReturned: false;
+        fileUrlReturned: false;
+      };
+
   interface YangKuraRendererApi {
     selectLibraryRoot(request: YangKuraSelectLibraryRootRequest): Promise<YangKuraSelectLibraryRootResult>;
     requestScannerDryRun(request: YangKuraScannerDryRunRequest): Promise<YangKuraScannerDryRunResult>;
     requestWriteIndexPreview(request: YangKuraWriteIndexPreviewRequest): Promise<YangKuraWriteIndexPreviewResult>;
     requestWriteLibraryIndex(request: YangKuraWriteLibraryIndexRequest): Promise<YangKuraWriteLibraryIndexResult>;
     requestReadLibraryIndex(request: YangKuraReadLibraryIndexRequest): Promise<YangKuraReadLibraryIndexResult>;
+    requestCatalogQuery(request: YangKuraCatalogQueryRequest): Promise<YangKuraCatalogQueryResult>;
     requestLibraryIndexHealthCheck(request: YangKuraLibraryIndexHealthCheckRequest): Promise<YangKuraLibraryIndexHealthCheckResult>;
     requestLibraryIndexRemovalPreview(request: YangKuraLibraryIndexRemovalPreviewRequest): Promise<YangKuraLibraryIndexRemovalPreviewResult>;
     requestLibraryIndexRemovalWrite(request: YangKuraLibraryIndexRemovalWriteRequest): Promise<YangKuraLibraryIndexRemovalWriteResult>;

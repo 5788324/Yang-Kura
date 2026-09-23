@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS, type IpcChannel } from './ipc/contracts.js';
 import type {
   AsmrMetadataProviderCacheClearRequest,
+  CatalogQueryRequest,
   AsmrMetadataProviderRequest,
   ImportCopyOnlyCancelStubRequest,
   ImportCopyOnlyConfirmStubRequest,
@@ -126,6 +127,7 @@ const shellStatus = {
   canWriteLibraryIndex: true,
   canGenerateIndexWritePreview: true,
   canReadLibraryIndex: true,
+  canQueryCatalog: true,
   canResolveMediaTrackUrl: true,
   canUseMpvPlayback: true,
   canConfigureMpvExecutable: true,
@@ -174,6 +176,10 @@ const yangKuraApi = {
 
   requestReadLibraryIndex(request: ReadLibraryIndexRequest) {
     return invoke(IPC_CHANNELS.library.indexReadCurrent, request);
+  },
+
+  requestCatalogQuery(request: CatalogQueryRequest) {
+    return invoke(IPC_CHANNELS.library.catalogQuery, request);
   },
 
   requestLibraryIndexHealthCheck(request: LibraryIndexHealthCheckRequest) {
