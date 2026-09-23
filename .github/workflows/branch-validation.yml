@@ -119,6 +119,7 @@ jobs:
         run: |
           npm run test:k2-r2:catalog
           npm run test:k2-r2:catalog-electron
+          npm run test:k2-r2:catalog-sidecar
       - name: Current Electron journeys
         run: |
           npm run test:u28:electron-e2e

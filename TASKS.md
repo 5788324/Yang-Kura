@@ -57,7 +57,7 @@
 - [x] Collection/Track FTS5 query
 - [x] Cursor-style collection track query
 - [ ] Query contracts for RJ/Music filters and pagination
-- [ ] Sidecar import wired to real index read path (still non-authoritative)
+- [x] Sidecar import wired to real index read path via Worker + SHA guard（仍非 authoritative）
 - [ ] 268k-entry synthetic/real import benchmark
 - [ ] Migration/backup strategy before primary-read cutover
 

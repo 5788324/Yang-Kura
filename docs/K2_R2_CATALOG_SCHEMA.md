@@ -94,6 +94,20 @@ PRAGMA user_version
 
 打开比当前实现更高版本的数据库会直接拒绝，防止旧客户端静默损坏新数据库。
 
+## Sidecar Integration v1
+
+真实 `readLibraryIndex()` 成功后：
+
+1. JSON 结果立即按原路径返回 Renderer；
+2. Electron Main 把同一 Index SHA 加入 Catalog sidecar 串行队列；
+3. Worker 线程重新读取 `library-index.json`；
+4. SHA 与前台读取一致才允许导入；
+5. 使用 Root-scoped atomic replace 更新 `userData/catalog/catalog.sqlite`；
+6. SQLite 失败、worker 失败、源文件期间变化都不影响 JSON 主链；
+7. sidecar 状态仅作为诊断信息返回，不成为 UI 数据真源。
+
+这样 K2-R2 可以在真实使用中积累 Catalog 数据，同时随时删除/rebuild sidecar 回退到旧 JSON。
+
 ## Query v1
 
 当前 POC 支持：

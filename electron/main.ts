@@ -31,6 +31,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Readable } from 'node:stream';
+import { Worker } from 'node:worker_threads';
 import { clearDlsiteMetadataCache, fetchDlsiteMetadata, type DlsiteMetadataCacheClearRequest, type DlsiteMetadataRequest } from './dlsiteMetadataProvider.js';
 import { MpvPlaybackBackend, type MpvPlaybackCommand } from './mpvPlaybackBackend.js';
 import { MpvSettingsStore } from './mpvSettingsStore.js';
@@ -47,6 +48,7 @@ import { registerMetadataHandler } from './ipc/domains/metadata.js';
 import { registerImporterHandler } from './ipc/domains/importer.js';
 import { isExplicitCoverFileName, selectPrimaryCoverPaths } from './libraryCoverSelection.js';
 import { mediaMimeType, parseSingleByteRange } from './mediaProtocolSupport.js';
+import { KURA_CATALOG_SCHEMA_VERSION } from './catalog/catalogSchema.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -97,6 +99,104 @@ if (!hasSingleInstanceLock) {
 
 const mpvSettingsStore = new MpvSettingsStore(path.join(stableUserDataPath, 'mpv-settings.json'));
 const rootAuthorizationStore = new RootAuthorizationStore(path.join(stableUserDataPath, 'root-authorizations.json'));
+const catalogDatabasePath = path.join(stableUserDataPath, 'catalog', 'catalog.sqlite');
+
+type CatalogSidecarState = {
+  status: 'queued' | 'syncing' | 'synced' | 'failed' | 'skipped';
+  updatedAt: string;
+  schemaVersion: number;
+  code?: string;
+  summary?: {
+    roots?: number;
+    collections?: number;
+    tracks?: number;
+    mediaSources?: number;
+    subtitles?: number;
+    artwork?: number;
+    folderNodes?: number;
+  };
+};
+
+const catalogSidecarStateMap = new Map<string, CatalogSidecarState>();
+let catalogSidecarQueue: Promise<void> = Promise.resolve();
+
+function setCatalogSidecarState(rootPathToken: string, state: Omit<CatalogSidecarState, 'updatedAt' | 'schemaVersion'>): void {
+  catalogSidecarStateMap.set(rootPathToken, {
+    ...state,
+    updatedAt: new Date().toISOString(),
+    schemaVersion: KURA_CATALOG_SCHEMA_VERSION,
+  });
+}
+
+function getCatalogSidecarState(rootPathToken: string): CatalogSidecarState {
+  return catalogSidecarStateMap.get(rootPathToken) ?? {
+    status: 'queued',
+    updatedAt: new Date().toISOString(),
+    schemaVersion: KURA_CATALOG_SCHEMA_VERSION,
+    code: 'NOT_YET_SYNCED',
+  };
+}
+
+function runCatalogSidecarWorker(indexPath: string, expectedSha256: string): Promise<{
+  ok: boolean;
+  code: string;
+  summary?: CatalogSidecarState['summary'];
+}> {
+  return new Promise((resolve) => {
+    const worker = new Worker(new URL('./catalog/catalogSidecarWorker.js', import.meta.url), {
+      workerData: {
+        databasePath: catalogDatabasePath,
+        indexPath,
+        expectedSha256,
+      },
+    });
+    worker.unref();
+
+    let settled = false;
+    const finish = (result: { ok: boolean; code: string; summary?: CatalogSidecarState['summary'] }) => {
+      if (settled) return;
+      settled = true;
+      resolve(result);
+    };
+
+    worker.once('message', (message: unknown) => {
+      const payload = message && typeof message === 'object'
+        ? message as { ok?: unknown; code?: unknown; summary?: CatalogSidecarState['summary'] }
+        : {};
+      finish({
+        ok: payload.ok === true,
+        code: typeof payload.code === 'string' ? payload.code : 'INVALID_WORKER_RESULT',
+        summary: payload.summary,
+      });
+    });
+    worker.once('error', () => finish({ ok: false, code: 'WORKER_ERROR' }));
+    worker.once('exit', (code) => {
+      if (code !== 0) finish({ ok: false, code: `WORKER_EXIT_${code}` });
+    });
+  });
+}
+
+function enqueueCatalogSidecarSync(rootPathToken: string, indexPath: string, expectedSha256: string): void {
+  setCatalogSidecarState(rootPathToken, { status: 'queued', code: 'QUEUED' });
+  catalogSidecarQueue = catalogSidecarQueue
+    .catch(() => undefined)
+    .then(async () => {
+      setCatalogSidecarState(rootPathToken, { status: 'syncing', code: 'SYNCING' });
+      const result = await runCatalogSidecarWorker(indexPath, expectedSha256);
+      if (result.ok) {
+        setCatalogSidecarState(rootPathToken, {
+          status: 'synced',
+          code: result.code,
+          summary: result.summary,
+        });
+      } else {
+        setCatalogSidecarState(rootPathToken, {
+          status: result.code === 'SOURCE_INDEX_CHANGED' ? 'skipped' : 'failed',
+          code: result.code,
+        });
+      }
+    });
+}
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -1574,6 +1674,9 @@ async function readLibraryIndex(rootRecord: TokenizedRootRecord, _request: ReadL
       } as const;
     }
 
+    enqueueCatalogSidecarSync(rootRecord.rootPathToken, indexPath, sha256);
+    const catalogSidecar = getCatalogSidecarState(rootRecord.rootPathToken);
+
     return {
       ok: true,
       status: 'mvp24-library-index-read-complete',
@@ -1589,6 +1692,7 @@ async function readLibraryIndex(rootRecord: TokenizedRootRecord, _request: ReadL
       bytesRead: sourceBuffer.byteLength,
       sha256,
       summary: validation.summary,
+      catalogSidecar,
       index: indexPayload,
       message: `library-index.json 已读取并通过结构校验；文件编码：${parsedSource.encoding}。Renderer 只收到 tokenized index，不包含 absolutePath / file://。`,
       safetyNotes: buildSafetyNotes(),
