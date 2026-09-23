@@ -6,6 +6,7 @@
 - Index Health collection track reference 校验从重复 tracks.some 改为 Set membership。
 - 新增 `scripts/audit-k2-r1-library.mjs`：8TB+ 真实库只读 inventory，不读取媒体正文、不修改资源、不跟随符号链接。
 - 新增 `docs/DESKTOP2_AUDIT.md`，固定当前静态结论与 K2-R2/R4 边界。
+- 继续发现并修复 Index Adapter 的 O(Track × Subtitle) 映射热点：全局字幕先构建 `byTrackId/byMediaBase` lookup，Track 映射不再重复全表扫描。
 - 真实 8TB 指标仍待 Windows 本机运行 audit 工具；50k synthetic benchmark 不替代真库。
 
 ## 2026-09-23 — Kura 2.0 仓库主线收敛与历史清理

@@ -142,37 +142,82 @@ function stripKnownMediaExtension(relativePath: string): string {
   return relativePath.replace(/\.[^.\/]+$/, '').toLowerCase();
 }
 
-function collectSubtitleRelativePaths(track: LibraryTrack, allSubtitles: SubtitleSource[]): string[] {
+interface SubtitleLookup {
+  byTrackId: Map<string, string[]>;
+  byMediaBase: Map<string, string[]>;
+}
+
+function appendLookupValue(map: Map<string, string[]>, key: string | undefined, value: string): void {
+  if (!key) return;
+  const current = map.get(key);
+  if (current) {
+    if (!current.includes(value)) current.push(value);
+    return;
+  }
+  map.set(key, [value]);
+}
+
+function subtitleMediaBaseCandidates(relativePath: string): string[] {
+  const normalized = relativePath.toLowerCase()
+    .replace(/\.(ja|zh|bilingual|jp|cn)\.(lrc|srt|vtt|ass)$/i, '')
+    .replace(/\.(lrc|srt|vtt|ass)$/i, '');
+  const slashIndex = normalized.lastIndexOf('/');
+  const directory = slashIndex >= 0 ? normalized.slice(0, slashIndex + 1) : '';
+  let fileBase = slashIndex >= 0 ? normalized.slice(slashIndex + 1) : normalized;
+  const candidates = [normalized];
+
+  while (fileBase.includes('.')) {
+    fileBase = fileBase.slice(0, fileBase.lastIndexOf('.'));
+    if (!fileBase) break;
+    candidates.push(`${directory}${fileBase}`);
+  }
+
+  return candidates;
+}
+
+function buildSubtitleLookup(allSubtitles: SubtitleSource[]): SubtitleLookup {
+  const lookup: SubtitleLookup = {
+    byTrackId: new Map<string, string[]>(),
+    byMediaBase: new Map<string, string[]>(),
+  };
+
+  for (const subtitle of allSubtitles) {
+    const normalized = normalizeSubtitleRelativePath(subtitle.relativePath);
+    if (!normalized) continue;
+    appendLookupValue(lookup.byTrackId, subtitle.trackId, normalized);
+    for (const candidate of subtitleMediaBaseCandidates(normalized)) {
+      appendLookupValue(lookup.byMediaBase, candidate, normalized);
+    }
+  }
+
+  return lookup;
+}
+
+function collectSubtitleRelativePaths(track: LibraryTrack, lookup: SubtitleLookup): string[] {
   const result = new Set<string>();
   const directSubtitles = Array.isArray(track.subtitles) ? track.subtitles : [];
-  [...directSubtitles, ...allSubtitles.filter((subtitle) => subtitle.trackId === track.id)].forEach((subtitle) => {
+  for (const subtitle of directSubtitles) {
     const normalized = normalizeSubtitleRelativePath(subtitle.relativePath);
     if (normalized) result.add(normalized);
-  });
+  }
 
-  const trackBase = stripKnownMediaExtension(track.source.relativePath || '');
+  for (const normalized of lookup.byTrackId.get(track.id) ?? []) result.add(normalized);
+
+  const normalizedTrackPath = normalizeSubtitleRelativePath(track.source.relativePath);
+  const trackBase = normalizedTrackPath ? stripKnownMediaExtension(normalizedTrackPath) : '';
   if (trackBase) {
-    allSubtitles.forEach((subtitle) => {
-      const normalized = normalizeSubtitleRelativePath(subtitle.relativePath);
-      if (!normalized) return;
-      const subtitleBase = normalized.toLowerCase()
-        .replace(/\.(ja|zh|bilingual|jp|cn)\.(lrc|srt|vtt|ass)$/i, '')
-        .replace(/\.(lrc|srt|vtt|ass)$/i, '');
-      if (subtitleBase === trackBase || subtitleBase.startsWith(`${trackBase}.`)) {
-        result.add(normalized);
-      }
-    });
+    for (const normalized of lookup.byMediaBase.get(trackBase) ?? []) result.add(normalized);
   }
 
   return Array.from(result);
 }
 
-function mapIndexedTrack(track: LibraryTrack, collection: LibraryCollection, coverUrl: string, index: number, rootToken?: string, allSubtitles: SubtitleSource[] = []): AudioTrack {
+function mapIndexedTrack(track: LibraryTrack, collection: LibraryCollection, coverUrl: string, index: number, subtitleLookup: SubtitleLookup, rootToken?: string): AudioTrack {
   const type = safeTrackType(collection);
   const relativePath = track.source.relativePath;
   const hasTokenizedLocalSource = Boolean(rootToken && relativePath && track.source.sourceKind === 'local-file');
   const isPlayableAudio = track.kind === 'audio';
-  const subtitleRelativePaths = collectSubtitleRelativePaths(track, allSubtitles);
+  const subtitleRelativePaths = collectSubtitleRelativePaths(track, subtitleLookup);
   return {
     id: track.id,
     title: track.title || relativePath || `Track ${index + 1}`,
@@ -276,6 +321,7 @@ export const libraryIndexAdapter = {
   fromLocalJsonIndexToAppData(index: LocalJsonIndex): { rjWorks: RJWork[]; musicAlbums: MusicAlbum[] } {
     const trackById = new Map(index.tracks.map((track) => [track.id, track]));
     const rootById = new Map(index.roots.map((root) => [root.id, root]));
+    const subtitleLookup = buildSubtitleLookup(index.subtitles);
     const rjWorks: RJWork[] = [];
     const musicAlbums: MusicAlbum[] = [];
     const seenRjIds = new Set<string>();
@@ -286,7 +332,7 @@ export const libraryIndexAdapter = {
       const sourceTracks = collection.trackIds
         .map((trackId) => trackById.get(trackId))
         .filter((track): track is LibraryTrack => Boolean(track));
-      const mappedTracks = sourceTracks.map((track, trackIndex) => mapIndexedTrack(track, collection, coverUrl, trackIndex, rootToken, index.subtitles));
+      const mappedTracks = sourceTracks.map((track, trackIndex) => mapIndexedTrack(track, collection, coverUrl, trackIndex, subtitleLookup, rootToken));
       const totalDuration = mappedTracks.reduce((sum, track) => sum + track.duration, 0);
 
       if (collection.collectionType === 'rj_work') {
