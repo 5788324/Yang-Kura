@@ -60,7 +60,7 @@ Android、OpenList、Downloader、转录、云同步在 Desktop 2.0 稳定前不
 
 ---
 
-## K2-R2 — Local Library DB v2
+## K2-R2 — Local Library DB v2【Foundation Complete / Sidecar】
 
 目标：把 `library-index.json` 从运行时主查询源降级为兼容/导出格式。
 
@@ -73,7 +73,7 @@ Android、OpenList、Downloader、转录、云同步在 Desktop 2.0 稳定前不
 - 备份/恢复；
 - 不直接触碰用户媒体本体。
 
-退出条件：现有资源库可无损导入 DB，旧 JSON 仍可回退。
+退出条件：现有资源库可原子导入 DB，旧 JSON 仍可回退；已满足。Primary-read cutover 明确延后到 K2-R3/R4。
 
 ---
 

@@ -128,3 +128,55 @@ Query v1 已支持：
 - 首页 Recent/Added 数据接口（User State 独立）；
 - 分页排序和 filter contract；
 - Scanner upsert contract。
+
+## 真实规模 Synthetic Benchmark
+
+基于 `E:\\arsm` 实际盘点数量构造：
+
+- 2,663 Collections；
+- 69,285 Tracks；
+- 111,304 Subtitles；
+- 29,930 Artwork；
+- 合计 213,182 个核心模型对象。
+
+GitHub Windows / Node 22.23.2 / SQLite 3.51.3 实测：
+
+| 指标 | 结果 |
+|---|---:|
+| Fixture build | 230 ms |
+| SQLite import | 11,031 ms |
+| Query batch | 6.619 ms |
+| RSS before fixture | 34.6 MiB |
+| RSS after fixture | 141.2 MiB |
+| RSS after import | 206.4 MiB |
+| DB + WAL + SHM | 210,592,448 bytes（约 200.8 MiB） |
+
+结论：
+
+1. SQLite Catalog 在当前真实对象量级下可行；
+2. FTS/filter/facet/keyset 查询不是当前瓶颈；
+3. 约 11 秒的首次 sidecar import 适合后台 Worker，不适合阻塞启动；
+4. 约 206 MiB RSS 峰值主要说明“先构造完整 JS 对象图再整批导入”不能成为 K2-R3 Scanner 的最终方式；
+5. K2-R3 必须流式枚举 + 分批事务写入，避免同时持有文件系统 inventory、Legacy JSON 与 Catalog 对象图；
+6. 此 benchmark 已从普通 CI 移除，仅保留 `benchmark:k2-r2:catalog-real-scale` 按需复测。
+
+## Primary Read Cutover Gate
+
+K2-R2 不把 SQLite 强行切为唯一生产读源。
+
+当前：
+
+```text
+library-index.json = 可回退的兼容主链
+catalog.sqlite     = 非权威 sidecar，可删除/重建
+```
+
+在以下条件满足前禁止切换 primary read：
+
+- K2-R3 增量 Scanner 可直接维护 Catalog；
+- K2-R4 UI Query/Pagination 已通过；
+- Catalog migration/repair/rebuild 流程通过；
+- 真实库首次导入与二次增量扫描完成；
+- 音乐/RJ 关键页面与 Player source resolution 均不再依赖整库对象常驻 Renderer。
+
+因为 Catalog 当前不承载唯一 Progress/Favorites/Notes/User State，所以 sidecar 损坏可直接重建，不会造成用户唯一状态丢失。

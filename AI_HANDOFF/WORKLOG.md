@@ -1,3 +1,13 @@
+## 2026-09-23 — K2-R2 Foundation Closeout
+
+- Catalog compatibility、sidecar worker、Root-scoped import、query contracts 的 Windows CI 均已通过。
+- 真实数量级 synthetic benchmark 以 E:\\arsm 盘点数量构造 2,663 Collections / 69,285 Tracks / 111,304 Subtitles / 29,930 Artwork，共 213,182 modeled rows。
+- Windows Node 22.23.2 / SQLite 3.51.3：fixture 230ms、import 11,031ms、query batch 6.619ms、RSS 34.6→141.2→206.4MiB、DB+WAL+SHM 210,592,448 bytes。
+- 结论：SQLite Catalog 路线 GO；查询不是当前瓶颈。K2-R3 必须 streaming traversal + batch SQLite writes，禁止先构造完整 26.8 万文件 JS 对象图。
+- 一次性 benchmark 从普通 Branch Validation 移除，脚本保留按需复测。
+- K2-R2 不切 primary read：catalog.sqlite 继续作为可重建 sidecar；User State 不存入 Catalog。Primary cutover 等 K2-R3 Scanner + K2-R4 Query/UI 完成。
+- 下一主线切换 K2-R3 Incremental Scanner + Artwork Cache；K2-R5 仅允许轻量 UI 设计支线并行。
+
 ## 2026-09-23 — K2-R2 Catalog Schema v1
 
 - 开始正式实现 SQLite Catalog，但保持 sidecar，不切换现有 library-index.json 生产读链。

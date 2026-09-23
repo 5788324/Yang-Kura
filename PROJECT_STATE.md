@@ -50,11 +50,13 @@ package version on main: 1.0.0-rc.1
 
 ## 4. 当前真实问题
 
-### P0：真实规模基线已取得，K2-R1 剩余性能/UI审计
+### P0：K2-R2 Catalog foundation complete；下一主线转 K2-R3
 
-用户提供的其他项目资料实际针对同一 `E:\\arsm` 做了完整递归只读扫描，可作为 Kura 真实规模输入：268,863 files、69,285 audio、111,304 subtitle、29,930 images、2,663 album directories、10,527.65 GiB，最大文件路径目录深度 18。
+真实 `E:\\arsm` 规模基线已用于 K2-R2 设计。K2-R2 已完成 node:sqlite Schema v1、Legacy JSON 原子兼容导入、Root-scoped sidecar、Worker+SHA guard、FTS/filter/facet/folder/keyset query 和真实数量级 synthetic benchmark。
 
-因此 K2-R2 SQLite schema 不再等待另一次全盘 inventory。仍待 Kura 自身实现后验证：metadata-only scan wall-clock、peak memory、首次 SQLite import、incremental scan、真实 UI query/pagination/artwork 性能。
+真实数量级 benchmark：213,182 modeled rows，import 11.031s、query batch 6.619ms、RSS 206.4MiB、DB≈200.8MiB。SQLite 路线 GO，但 200MiB 级 JS/导入峰值说明 K2-R3 必须改成 streaming + batch write。
+
+当前下一主线：K2-R3 Incremental Scanner + Artwork Cache。SQLite 在 K2-R3/R4 完成前仍是可重建 sidecar，不作为唯一 UI read source。
 
 
 ### P1：依赖安全基线需要刷新
@@ -145,7 +147,7 @@ RJ 侧保持 Work / Circle / CV / Tags / Folder Tree / Subtitle / Attachment / P
 6. **Kura Desktop 技术栈暂不更换。** 继续 React/Electron/mpv，除非 K2-R0 审计发现硬阻塞。
 7. **Android 后续优先基于成熟开源工程二开。** 当前首选候选：APlayer Compose；参考 KikoFlu、Voice、Rhythm、ListenUp。
 8. **OpenList 后续作为 SourceProvider。** 不让 OpenList/WebDAV 绑死媒体领域模型。
-9. **K2-R2 SQLite 采用内建 `node:sqlite`。** Node/Electron Windows POC 已验证 WAL、FTS5、事务和 cursor query；不优先引入 better-sqlite3。
+9. **K2-R2 SQLite 采用内建 `node:sqlite`。** Schema v1、Root-scoped sidecar、Worker 同步、FTS/query 与真实数量级 benchmark 已验证；不优先引入 better-sqlite3。
 10. **Electron 运行时目标升级到 44.x。** 39 已 EOL；升级必须用真实 lockfile + Windows 回归，不手改依赖锁。
 
 ## 6. 当前冻结范围

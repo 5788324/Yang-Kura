@@ -47,7 +47,7 @@
 
 ---
 
-## K2-R2 — IN PROGRESS
+## K2-R2 — FOUNDATION COMPLETE / SIDECAR
 
 - [x] Catalog Schema v1
 - [x] node:sqlite migration/user_version
@@ -58,13 +58,31 @@
 - [x] Cursor-style collection track query
 - [x] Query contracts for RJ/Music filters, facets, Folder Tree and keyset pagination
 - [x] Sidecar import wired to real index read path via Worker + SHA guard（仍非 authoritative）
-- [ ] Real-count synthetic Catalog benchmark（2,663 / 69,285 / 111,304 / 29,930）已接入本轮 CI，等待结果
-- [ ] Migration/backup strategy before primary-read cutover
+- [x] Real-count synthetic Catalog benchmark：213,182 modeled rows；import 11.031s；query batch 6.619ms；RSS peak 206.4MiB；DB≈200.8MiB
+- [x] Primary-read cutover gate fixed：Catalog remains rebuildable sidecar until K2-R3/R4; no unique User State stored in Catalog
+
+## ACTIVE NEXT — K2-R3 Incremental Scanner + Artwork Cache
+
+- [ ] Scanner state model / scan_runs / scan_entries contract
+- [ ] streaming directory traversal
+- [ ] bounded-concurrency stat
+- [ ] batch SQLite upsert transaction
+- [ ] unchanged fast path (mtime/size/directory state)
+- [ ] cancellation / resume / failure state
+- [ ] deletion represented as catalog state first; no media delete
+- [ ] artwork thumbnail cache design + worker
+- [ ] first-scan / second-scan synthetic benchmark
+- [ ] real E:\\arsm validation when Windows library is available
+
+## PARALLEL DESIGN — K2-R5
+
+- [ ] UI benchmark / 2–3 visual directions
+- [ ] new Design System / App Shell prototype
+- [ ] no production UI cutover until selected direction is fixed
 
 ## NEXT
 
-- K2-R2：完成 query contracts / sidecar integration / benchmark
-- K2-R3：Incremental Scanner + Artwork Cache
+- K2-R4：Query / Pagination / Virtualization
 - K2-R4：Query / Pagination / Virtualization
 - K2-R5：Design System + App Shell
 - K2-R6：Music
