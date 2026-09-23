@@ -710,7 +710,7 @@ export class KuraCatalogDatabase {
         error_message AS errorMessage
       FROM scan_runs
       WHERE id = ?
-    `).get(runId) as CatalogScanRunRecord | undefined;
+    `).get(runId) as unknown as CatalogScanRunRecord | undefined;
     if (!row) throw new Error(`Unknown scan run: ${runId}`);
     return row;
   }
@@ -770,7 +770,7 @@ export class KuraCatalogDatabase {
         updated_at AS updatedAt
       FROM artwork_cache
       WHERE root_id = ? AND source_relative_path = ?
-    `).get(rootId, relativePath) as ArtworkCacheRecord | undefined;
+    `).get(rootId, relativePath) as unknown as ArtworkCacheRecord | undefined;
     return row ?? null;
   }
 
