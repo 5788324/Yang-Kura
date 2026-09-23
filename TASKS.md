@@ -18,8 +18,9 @@
 
 ### R1-A — 依赖与运行时
 - [x] 分析 npm audit 1 moderate + 7 high 的直接/间接影响：当前均位于 dev/tooling 依赖链
-- [ ] 决定 Electron 39 的升级路线
-- [ ] 验证 Electron runtime 内建 node:sqlite + FTS5/WAL（POC 已接入 CI）
+- [x] 决定 Electron 39 的升级路线：正式候选 Electron 44.x
+- [x] 验证 Electron runtime 内建 node:sqlite + FTS5/WAL：Windows CI PASS
+- [ ] 在真实 npm/Windows 环境生成 Electron 44 lockfile、调整 install 流程并跑完整回归
 - [x] 安全门禁拆分为 production blocking + tooling reporting
 - [ ] 更新 Electron / toolchain 并清除可修复 advisory
 

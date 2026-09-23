@@ -15,6 +15,8 @@
 - `main@1cc60db...` Windows current-product regression 全绿：production audit、Electron runtime、TypeScript/Renderer/Electron build、current Electron journeys、stable regression 均 PASS。
 - Scanner 静态审计确认历史 dry-run 默认 10k / 硬上限 50k entries，串行目录递归、单文件 stat、全量结果留内存；K2-R3 明确改为增量数据库 Scanner，不再通过提高上限续命。
 - 为 K2-R2 加入内建 `node:sqlite` 隔离 POC：WAL、transaction、25k rows、FTS5、cursor query、user_version；CI 同时用 Node runner 和真正 Electron runtime (`ELECTRON_RUN_AS_NODE`) 验证，不接用户媒体或现有 Index。
+- POC Windows CI PASS：Node 22.23.2/SQLite 3.51.3 25k insert 939ms、FTS 0.518ms；Electron 39.8.10/Node 22.22.1/SQLite 3.51.2 insert 557ms、FTS 0.54ms。K2-R2 决定优先内建 node:sqlite。
+- Electron 维护路线由临时考虑 42 调整为正式候选 44.x：42 将于 2026-10-20 EOL，44 支持更久；静态搜索未命中常见 40～44 breaking API。实际升级等待真实 npm 环境生成 lockfile 并完整 Windows 回归。
 
 ## 2026-09-23 — Kura 2.0 仓库主线收敛与历史清理
 

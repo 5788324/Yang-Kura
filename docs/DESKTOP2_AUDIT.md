@@ -100,7 +100,7 @@ K2-R2 应以 SQLite/FTS 查询层替代 Renderer 对完整 JSON + 完整映射�
 - `npm audit --omit=dev --audit-level=high`：生产依赖硬阻断；
 - 完整 `npm audit --audit-level=high`：开发工具链继续报告，但不阻断产品回归。
 
-这不代表 Electron 39 可长期保留。Electron 运行时版本支持问题独立处理：K2-R1-A 评估升级到仍受支持的 Electron 42+，并同步调整 Electron 42 之后的 binary install 流程。
+这不代表 Electron 39 可长期保留。Electron 39 已 EOL。正式迁移目标调整为 **Electron 44.x**：比 42 有更长维护窗口，并包含 Node 24.21 系列；代码静态搜索未发现 renderer clipboard、clearStorageData quotas、offscreen、showHiddenFiles、select-client-certificate、32-bit 等已知 40～44 breaking API 命中。升级时必须同步改造 Electron 42+ 的 binary on-demand install 流程并完整跑 Windows 回归。
 
 ## 保留 / 重做边界
 
@@ -131,7 +131,14 @@ K2-R2 应以 SQLite/FTS 查询层替代 Renderer 对完整 JSON + 完整映射�
 - cursor-style page query；
 - `PRAGMA user_version` migration 基础。
 
-如果 Electron runtime CI 通过，K2-R2 优先使用内建 `node:sqlite`，避免额外引入 `better-sqlite3` 原生 addon 和相应 rebuild/ABI/打包复杂度。
+Windows CI 已通过。实测：
+
+| Runtime | Node | SQLite | 25k 插入 | FTS 查询 | WAL |
+|---|---|---|---:|---:|---|
+| GitHub Node | 22.23.2 | 3.51.3 | 939 ms | 0.518 ms | PASS |
+| Electron 39.8.10 Node-mode | 22.22.1 | 3.51.2 | 557 ms | 0.54 ms | PASS |
+
+结论：K2-R2 **GO：优先使用内建 `node:sqlite`**，避免额外引入 `better-sqlite3` native addon 和对应 ABI/rebuild/打包复杂度。这组 25k POC 仅证明技术能力与基础性能，不替代真实 8TB 验收。
 
 ## 下一步
 

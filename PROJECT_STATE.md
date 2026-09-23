@@ -143,6 +143,8 @@ RJ 侧保持 Work / Circle / CV / Tags / Folder Tree / Subtitle / Attachment / P
 6. **Kura Desktop 技术栈暂不更换。** 继续 React/Electron/mpv，除非 K2-R0 审计发现硬阻塞。
 7. **Android 后续优先基于成熟开源工程二开。** 当前首选候选：APlayer Compose；参考 KikoFlu、Voice、Rhythm、ListenUp。
 8. **OpenList 后续作为 SourceProvider。** 不让 OpenList/WebDAV 绑死媒体领域模型。
+9. **K2-R2 SQLite 采用内建 `node:sqlite`。** Node/Electron Windows POC 已验证 WAL、FTS5、事务和 cursor query；不优先引入 better-sqlite3。
+10. **Electron 运行时目标升级到 44.x。** 39 已 EOL；升级必须用真实 lockfile + Windows 回归，不手改依赖锁。
 
 ## 6. 当前冻结范围
 
