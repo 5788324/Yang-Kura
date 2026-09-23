@@ -1,7 +1,7 @@
 # K2-R5 UI Multi-Model Handoff
 
 更新日期：2026-09-23  
-状态：**ACTIVE — DESIGN EXPLORATION**
+状态：**DESIGN DECISION LOCKED — K2-R5.2 READY**
 
 ## 当前主线
 
@@ -62,13 +62,24 @@ docs/ui-lab/k2-r5/
 
 如果输出暂时只存在聊天，必须回传给 GPT-6 入库后才算已交接。
 
+## 已完成的多模型阶段
+
+- Claude Sonnet 5 proposal：已回收；
+- Kimi K3 proposal：已回收；
+- Gemini 角色：由 GPT-6 代替完成 cross-model QA；
+- GPT-6 Design Decision：已锁定；
+- Theme Delta Matrix：已锁定；
+- Android Mapping：已锁定。
+
+正式设计真源：
+
+- `docs/ui-lab/k2-r5/03_GPT6_CROSS_REVIEW.md`
+- `docs/ui-lab/k2-r5/04_GPT6_DESIGN_DECISION.md`
+- `docs/ui-lab/k2-r5/05_THEME_DELTA_MATRIX.md`
+- `docs/ui-lab/k2-r5/06_ANDROID_MAPPING.md`
+
 ## 下一动作
 
-1. 用户把 Claude Prompt 发给 Claude；
-2. 用户把 Kimi Prompt 发给 Kimi；
-3. 两份输出回传；
-4. Gemini 做交叉 QA；
-5. GPT-6 形成唯一 Design Decision；
-6. 再继续 K2-R5.2 代码实现。
+直接进入 **K2-R5.2 Shared UI + Home / Music / ASMR 实现**。
 
-不要在 Claude/Kimi 输出回来前让多个模型各自修改 main。
+Claude / Kimi 暂停调用，保留额度用于 Windows 截图阶段的最终视觉审查。

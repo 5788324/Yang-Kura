@@ -1,3 +1,16 @@
+## 2026-09-23 — K2-R5 Claude/Kimi Review + GPT-6 Design Decision
+
+- 用户回传 Claude Sonnet 5 与 Kimi K3 两份完整设计方案，并决定不再消耗 Gemini 额度，由 GPT-6 代替 cross-model QA。
+- 两份方案共同支持：Music/ASMR 一级平权、大库性能优先、滚动数据区去玻璃、Music/RJ Detail 分模板、Player contract 共用、Android 不缩小 Desktop、Theme 不复制三份业务代码。
+- GPT-6 cross review 判定 P0：Theme 不得改变顶级 IA；Aurora 不能只服务 ASMR；scroll viewport 禁 blur；Theme JSX/business logic 禁分叉；Player contract 固定；virtual row height 必须固定。
+- 默认主题冲突裁决：用户默认 Midnight Glass；Studio Graphite 作为工程实现/性能基准先落 primitives。
+- Density 统一为 compact 32 / standard 40 / comfortable 48；4pt spacing grid；Navigation 响应式由 viewport/device 决定。
+- Theme layout branch budget 固定为 3：Player floating/docked、Detail standard/subtitle-first、Ambient none/subtle/artwork-derived。
+- Home 固定为 Continue / Recently Added / Recently Played / Favorites rails，禁止 Dashboard/KPI/巨型 Hero。
+- Android bottom nav 固定 Home / Music / ASMR / 我的；Search 不占 tab；Full Player 使用移动端 full-screen overlay。
+- 已形成 Cross Review、KURA_DESIGN_SYSTEM_V2、Theme Delta Matrix、Android Mapping；K2-R5.2 可以直接开工。
+- Claude/Kimi 暂停调用，额度留给截图终审。
+
 ## 2026-09-23 — K2-R5 Multi-Model UI Collaboration
 
 - 用户确认可使用 GPT-6 / Kimi K3 / Claude Sonnet 5 / Gemini 3.8 Flash；除 GPT-6 外额度较少。

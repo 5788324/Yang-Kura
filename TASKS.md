@@ -149,10 +149,10 @@ Desktop 2.0 稳定前不启动：
 - [x] Gemini 3.8 Flash QA prompt
 - [x] GPT-6 Integrator prompt
 - [x] UI 多模型交接文件
-- [ ] Claude 方案回收并入库
-- [ ] Kimi 方案回收并入库
-- [ ] Gemini 对 Claude/Kimi 做交叉审查
-- [ ] GPT-6 输出唯一 Design Decision
-- [ ] Theme Delta Matrix
-- [ ] Android Compose Mapping
+- [x] Claude 方案回收并规范化入库
+- [x] Kimi 方案回收并规范化入库
+- [x] GPT-6 代替 Gemini 完成 Claude/Kimi 交叉审查
+- [x] GPT-6 输出唯一 Design Decision
+- [x] Theme Delta Matrix
+- [x] Android Compose Mapping
 - [ ] K2-R5.2 Shared UI + Home / Music / ASMR 实现

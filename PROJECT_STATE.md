@@ -206,3 +206,23 @@ Android 当前只做视觉规范和 Compose mapping，正式开发继续冻结�
 - `docs/K2_R5_MULTI_MODEL_UI_WORKFLOW.md`
 - `docs/K2_R5_MODEL_PROMPTS.md`
 - `AI_HANDOFF/K2_R5_UI_MULTI_MODEL_HANDOFF.md`
+
+## 10. K2-R5 Design Decision 已锁定
+
+Claude Sonnet 5 与 Kimi K3 的独立方案已回收。用户决定不再使用 Gemini，本轮由 GPT-6 同时承担 cross-model QA 与最终 Integrator。
+
+最终裁决：
+
+- 用户默认主题：Midnight Glass；
+- 工程实现基准：Studio Graphite；
+- Aurora Dream：全应用可用，但对长音频/RJ Detail 做 subtitle-first 强化；
+- Theme 不得改变顶级路由；
+- Navigation geometry 由 viewport/device 决定，不由 Theme 决定；
+- content scroll surface 一律实色；
+- blur 仅用于 floating/overlay，visible blur surfaces <= 2；
+- fixed density profiles = 32 / 40 / 48；
+- Theme layout branch budget 固定为 3 个：Player geometry / Detail emphasis / Ambient background；
+- Music Detail 与 RJ Detail 分模板，共享 primitives；
+- Android 只做 Design Mapping，正式开发继续冻结。
+
+K2-R5.2 可直接开始。
