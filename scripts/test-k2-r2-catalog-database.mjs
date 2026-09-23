@@ -215,6 +215,35 @@ try {
   const musicSearch = catalog.searchTracks('Moon', 10);
   if (musicSearch.length !== 1 || musicSearch[0]?.id !== 'track-music-1') throw new Error('track FTS search failed');
 
+  // A logical Track may have multiple physical SourceRefs. Query APIs must still return one Track row.
+  const rawForMultiSource = new DatabaseSync(databasePath);
+  try {
+    rawForMultiSource.prepare(`
+      INSERT INTO media_sources (
+        id, track_id, root_id, source_kind, relative_path, extension,
+        size_bytes, mtime_ms, availability, fingerprint
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      'source-rj-1-cache',
+      'track-rj-1',
+      'root-asmr',
+      'cache',
+      'cache/RJ000001/01.wav',
+      'wav',
+      1000,
+      124,
+      'cached',
+      null,
+    );
+  } finally {
+    rawForMultiSource.close();
+  }
+
+  const singleLogicalTrack = catalog.queryTracks({ collectionId: 'rj-001', limit: 10 });
+  if (singleLogicalTrack.length !== 1 || singleLogicalTrack[0]?.id !== 'track-rj-1') {
+    throw new Error(`multi-source query duplicated logical Track: ${JSON.stringify(singleLogicalTrack)}`);
+  }
+
   const rjTracks = catalog.listTracksByCollection('rj-001', '', 10);
   if (rjTracks.length !== 1 || rjTracks[0]?.relativePath !== '新建下载/RJ000001/Voice/01.wav') {
     throw new Error('collection track pagination failed');

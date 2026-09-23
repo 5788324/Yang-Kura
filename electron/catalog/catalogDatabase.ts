@@ -524,7 +524,7 @@ export class KuraCatalogDatabase {
   queryTracks(options: CatalogTrackQuery = {}): CatalogTrackRow[] {
     const clauses = ['t.id > ?'];
     const params: Array<string | number> = [options.afterId ?? ''];
-    const joins: string[] = ['LEFT JOIN media_sources s ON s.track_id = t.id'];
+    const joins: string[] = [];
     const match = options.search ? toFtsQuery(options.search) : null;
 
     if (match) {
@@ -566,7 +566,13 @@ export class KuraCatalogDatabase {
         t.display_artist AS artist,
         t.display_album AS album,
         t.rj_id AS rjId,
-        s.relative_path AS relativePath
+        (
+          SELECT s.relative_path
+          FROM media_sources s
+          WHERE s.track_id = t.id
+          ORDER BY CASE WHEN s.availability = 'available' THEN 0 ELSE 1 END, s.id
+          LIMIT 1
+        ) AS relativePath
       FROM tracks t
       ${joins.join('\n')}
       WHERE ${clauses.join(' AND ')}
@@ -700,10 +706,15 @@ export class KuraCatalogDatabase {
         t.display_artist AS artist,
         t.display_album AS album,
         t.rj_id AS rjId,
-        s.relative_path AS relativePath
+        (
+          SELECT s.relative_path
+          FROM media_sources s
+          WHERE s.track_id = t.id
+          ORDER BY CASE WHEN s.availability = 'available' THEN 0 ELSE 1 END, s.id
+          LIMIT 1
+        ) AS relativePath
       FROM tracks_fts f
       JOIN tracks t ON t.id = f.track_id
-      LEFT JOIN media_sources s ON s.track_id = t.id
       WHERE tracks_fts MATCH ?
       ORDER BY bm25(tracks_fts), t.id
       LIMIT ?
@@ -722,9 +733,14 @@ export class KuraCatalogDatabase {
         t.display_artist AS artist,
         t.display_album AS album,
         t.rj_id AS rjId,
-        s.relative_path AS relativePath
+        (
+          SELECT s.relative_path
+          FROM media_sources s
+          WHERE s.track_id = t.id
+          ORDER BY CASE WHEN s.availability = 'available' THEN 0 ELSE 1 END, s.id
+          LIMIT 1
+        ) AS relativePath
       FROM tracks t
-      LEFT JOIN media_sources s ON s.track_id = t.id
       WHERE t.collection_id = ?
         AND t.id > ?
       ORDER BY t.id

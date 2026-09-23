@@ -61,7 +61,7 @@ Schema 直接针对当前真实 `E:\\arsm`：
 因此：
 
 - Folder Tree 是一等数据；共享祖先目录不强行归属某一个 Work；
-- Track 与 Source 分离；
+- Track 与 Source 分离；一个逻辑 Track 可挂多个 `media_sources`，Query 始终按 Track 返回一行并选择可用 Source 作为当前路径投影；
 - Subtitle 独立表；
 - Artwork 独立表；
 - Attachment 预留独立表；
