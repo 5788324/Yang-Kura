@@ -11,6 +11,7 @@
 - Normalization 的 collection→cover 查询由每 collection 全表 filter 改为预索引 Map；Playback History 的全库 Track Map 从一次调用重复构建两次收敛为一次。
 - 回读发现 History reconcile 不能用对象引用判断 sanitized Track 是否变化；已立即改为内容比较，避免无变化时重复 localStorage 写入和 update event。
 - 真实 8TB 指标仍待 Windows 本机运行 audit 工具；50k synthetic benchmark 不替代真库。
+- K2-R1-A 反向检查 package-lock：当前 npm audit 的 1 moderate + 7 high 均位于 dev/tooling 链。Branch Validation 改为 production audit 硬阻断 + tooling audit 报告，并新增 main push 触发；workflow 自身改动会强制一次完整 Windows 回归。Electron 39 的维护窗口债务继续单独处理。
 
 ## 2026-09-23 — Kura 2.0 仓库主线收敛与历史清理
 

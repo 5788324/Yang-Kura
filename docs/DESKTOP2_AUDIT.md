@@ -70,7 +70,13 @@ K2-R2 应以 SQLite/FTS 查询层替代 Renderer 对完整 JSON + 完整映射�
 
 ### P1 — 依赖安全基线
 
-当前 CI 已发现 1 moderate + 7 high npm advisories。本轮不混入 Electron breaking upgrade；K2-R1-A 单独确认 runtime 影响和安全升级路线。
+当前 CI 已发现 1 moderate + 7 high npm advisories。lockfile 反向依赖检查确认这些 advisory 当前全部落在 dev/tooling 链：Electron npm 下载包装、electron-builder、Babel/Vite/PostCSS 等；生产 dependencies（React / React DOM / lucide-react）不在这批 high 命中内。
+
+门禁调整为：
+- `npm audit --omit=dev --audit-level=high`：生产依赖硬阻断；
+- 完整 `npm audit --audit-level=high`：开发工具链继续报告，但不阻断产品回归。
+
+这不代表 Electron 39 可长期保留。Electron 运行时版本支持问题独立处理：K2-R1-A 评估升级到仍受支持的 Electron 42+，并同步调整 Electron 42 之后的 binary install 流程。
 
 ## 保留 / 重做边界
 

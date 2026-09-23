@@ -17,9 +17,10 @@
 ## ACTIVE — K2-R1 Desktop 2.0 真实审计
 
 ### R1-A — 依赖与运行时
-- [ ] 分析 npm audit 1 moderate + 7 high 的直接/间接影响
+- [x] 分析 npm audit 1 moderate + 7 high 的直接/间接影响：当前均位于 dev/tooling 依赖链
 - [ ] 决定 Electron 39 的升级路线
-- [ ] 更新依赖并恢复有效安全门禁
+- [x] 安全门禁拆分为 production blocking + tooling reporting
+- [ ] 更新 Electron / toolchain 并清除可修复 advisory
 
 ### R1-B — 8TB 大库
 - [ ] 真实 Work / Track / File / Subtitle / Cover 统计（readonly audit 工具已加入）
