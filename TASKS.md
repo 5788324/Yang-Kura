@@ -47,9 +47,23 @@
 
 ---
 
+## K2-R2 — IN PROGRESS
+
+- [x] Catalog Schema v1
+- [x] node:sqlite migration/user_version
+- [x] Legacy JSON → SQLite atomic compatibility import
+- [x] absolutePath/file:// drop boundary
+- [x] Folder Tree derived nodes
+- [x] Collection/Track FTS5 query
+- [x] Cursor-style collection track query
+- [ ] Query contracts for RJ/Music filters and pagination
+- [ ] Sidecar import wired to real index read path (still non-authoritative)
+- [ ] 268k-entry synthetic/real import benchmark
+- [ ] Migration/backup strategy before primary-read cutover
+
 ## NEXT
 
-- K2-R2：SQLite / FTS5 / migration
+- K2-R2：完成 query contracts / sidecar integration / benchmark
 - K2-R3：Incremental Scanner + Artwork Cache
 - K2-R4：Query / Pagination / Virtualization
 - K2-R5：Design System + App Shell

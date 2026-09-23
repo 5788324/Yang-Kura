@@ -1,3 +1,12 @@
+## 2026-09-23 — K2-R2 Catalog Schema v1
+
+- 开始正式实现 SQLite Catalog，但保持 sidecar，不切换现有 library-index.json 生产读链。
+- 新增 `electron/catalog/catalogSchema.ts`：node:sqlite + WAL + user_version migration；schema v1 覆盖 roots/collections/tracks/media_sources/subtitles/artwork/folder_nodes/attachments/scan state/FTS。
+- 新增 `electron/catalog/catalogDatabase.ts`：Legacy JSON 原子 replace import、FTS Collection/Track search、Collection track cursor query。
+- Legacy import 明确丢弃 absolutePath/file://，只保留相对路径与 rootPathToken ref；失败事务完整 rollback。
+- User State/Progress/Favorites/Notes/Playlists 不混入 Catalog，继续保持 Catalog 与 User State 分离。
+- 新增 Node + Electron runtime 双通道 Catalog 数据库回归；不接真实媒体，不修改旧 Index。
+
 ## 2026-09-23 — K2-R1 真实库基线复用
 
 - 用户提供 `RJ_AI_ANALYSIS-20260923.zip`；核对后确认其扫描对象就是同一真实 `E:\\arsm`，不是无关样本。

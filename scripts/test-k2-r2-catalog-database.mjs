@@ -1,0 +1,212 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
+import { KuraCatalogDatabase } from '../dist-electron/catalog/catalogDatabase.js';
+
+const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'yang-kura-catalog-test-'));
+const databasePath = path.join(tempRoot, 'catalog.sqlite');
+
+const fixture = {
+  schemaVersion: 1,
+  generatedAt: '2026-09-23T00:00:00.000Z',
+  sourceKind: 'electron-scan',
+  roots: [
+    {
+      id: 'root-asmr',
+      name: 'ASMR',
+      rootPath: 'E:\\arsm',
+      libraryType: 'asmr',
+      scanProfile: 'asmr-rj',
+      sourceKind: 'electron-scan',
+      createdAt: '2026-09-23T00:00:00.000Z',
+      updatedAt: '2026-09-23T00:00:00.000Z',
+    },
+    {
+      id: 'root-music',
+      name: 'Music',
+      rootPath: 'rootPathToken:music-token',
+      libraryType: 'music',
+      scanProfile: 'music-folder',
+      sourceKind: 'electron-scan',
+      createdAt: '2026-09-23T00:00:00.000Z',
+      updatedAt: '2026-09-23T00:00:00.000Z',
+    },
+  ],
+  collections: [
+    {
+      id: 'rj-001',
+      rootId: 'root-asmr',
+      collectionType: 'rj_work',
+      title: '耳语睡前故事',
+      sortTitle: '耳语睡前故事',
+      codeRaw: 'RJ000001',
+      codeNorm: 'RJ000001',
+      circle: 'Kura Circle',
+      cvs: ['CV A'],
+      folderPath: '新建下载/RJ000001/Voice',
+      tags: ['耳语', '睡眠'],
+      status: 'identified',
+      trackIds: ['track-rj-1'],
+      totalDurationSeconds: 600,
+      addedAt: '2026-09-23T00:00:00.000Z',
+      updatedAt: '2026-09-23T00:00:00.000Z',
+    },
+    {
+      id: 'album-001',
+      rootId: 'root-music',
+      collectionType: 'music_album',
+      title: '夜色钢琴',
+      artist: 'Artist A',
+      album: '夜色钢琴',
+      folderPath: 'Artist A/夜色钢琴',
+      tags: ['钢琴'],
+      status: 'identified',
+      trackIds: ['track-music-1'],
+    },
+  ],
+  tracks: [
+    {
+      id: 'track-rj-1',
+      rootId: 'root-asmr',
+      collectionId: 'rj-001',
+      kind: 'audio',
+      title: '第一轨 耳语',
+      displayArtist: 'CV A',
+      displayAlbum: '耳语睡前故事',
+      rjId: 'RJ000001',
+      trackNo: 1,
+      durationSeconds: 600,
+      source: {
+        id: 'source-rj-1',
+        trackId: 'track-rj-1',
+        sourceKind: 'local-file',
+        absolutePath: 'E:\\arsm\\新建下载\\RJ000001\\Voice\\01.wav',
+        fileUrl: 'file:///E:/arsm/新建下载/RJ000001/Voice/01.wav',
+        relativePath: '新建下载/RJ000001/Voice/01.wav',
+        extension: 'wav',
+        sizeBytes: 1000,
+        mtimeMs: 123,
+      },
+      subtitles: [
+        {
+          id: 'subtitle-rj-1',
+          trackId: 'track-rj-1',
+          sourceKind: 'local-file',
+          relativePath: '新建下载/RJ000001/Voice/01.zh.vtt',
+          format: 'vtt',
+          language: 'zh',
+          lineCount: 12,
+        },
+      ],
+      tags: ['耳语'],
+    },
+    {
+      id: 'track-music-1',
+      rootId: 'root-music',
+      collectionId: 'album-001',
+      kind: 'audio',
+      title: 'Moon Piano',
+      displayArtist: 'Artist A',
+      displayAlbum: '夜色钢琴',
+      trackNo: 1,
+      source: {
+        id: 'source-music-1',
+        trackId: 'track-music-1',
+        sourceKind: 'local-file',
+        relativePath: 'Artist A/夜色钢琴/01.flac',
+        extension: 'flac',
+        sizeBytes: 2000,
+        mtimeMs: 456,
+      },
+      subtitles: [],
+      tags: ['钢琴'],
+    },
+  ],
+  covers: [
+    {
+      id: 'cover-rj-1',
+      collectionId: 'rj-001',
+      sourceKind: 'local-file',
+      absolutePath: 'E:\\arsm\\新建下载\\RJ000001\\cover.jpg',
+      relativePath: '新建下载/RJ000001/cover.jpg',
+      isPrimary: true,
+    },
+  ],
+  subtitles: [
+    {
+      id: 'subtitle-rj-1',
+      trackId: 'track-rj-1',
+      sourceKind: 'local-file',
+      relativePath: '新建下载/RJ000001/Voice/01.zh.vtt',
+      format: 'vtt',
+      language: 'zh',
+      lineCount: 12,
+    },
+  ],
+  warnings: [],
+};
+
+const catalog = new KuraCatalogDatabase(databasePath);
+try {
+  if (catalog.getSchemaVersion() !== 1) throw new Error('schema version mismatch');
+
+  const summary = catalog.replaceFromLegacyIndex(fixture);
+  const expectedCounts = {
+    roots: 2,
+    collections: 2,
+    tracks: 2,
+    mediaSources: 2,
+    subtitles: 1,
+    artwork: 1,
+  };
+  for (const [key, expected] of Object.entries(expectedCounts)) {
+    if (summary[key] !== expected) throw new Error(`${key} mismatch: ${summary[key]} !== ${expected}`);
+  }
+  if (summary.folderNodes < 5) throw new Error(`folder tree unexpectedly small: ${summary.folderNodes}`);
+
+  const rjSearch = catalog.searchCollections('耳语', 10);
+  if (rjSearch.length !== 1 || rjSearch[0]?.id !== 'rj-001') throw new Error('collection FTS search failed');
+
+  const musicSearch = catalog.searchTracks('Moon', 10);
+  if (musicSearch.length !== 1 || musicSearch[0]?.id !== 'track-music-1') throw new Error('track FTS search failed');
+
+  const rjTracks = catalog.listTracksByCollection('rj-001', '', 10);
+  if (rjTracks.length !== 1 || rjTracks[0]?.relativePath !== '新建下载/RJ000001/Voice/01.wav') {
+    throw new Error('collection track pagination failed');
+  }
+
+  const beforeBadImport = catalog.getCounts();
+  const invalidFixture = structuredClone(fixture);
+  invalidFixture.tracks.push({ ...structuredClone(fixture.tracks[0]), title: 'duplicate id' });
+  let rollbackObserved = false;
+  try {
+    catalog.replaceFromLegacyIndex(invalidFixture);
+  } catch {
+    rollbackObserved = true;
+  }
+  if (!rollbackObserved) throw new Error('invalid import should fail');
+  const afterBadImport = catalog.getCounts();
+  if (JSON.stringify(beforeBadImport) !== JSON.stringify(afterBadImport)) {
+    throw new Error('failed import did not roll back atomically');
+  }
+} finally {
+  catalog.close();
+}
+
+const raw = new DatabaseSync(databasePath, { readOnly: true });
+try {
+  const rootRows = raw.prepare('SELECT root_path_ref AS rootPathRef FROM roots ORDER BY id').all();
+  const sourceRows = raw.prepare('SELECT relative_path AS relativePath FROM media_sources ORDER BY id').all();
+  const leaked = JSON.stringify({ rootRows, sourceRows });
+  if (/E:\\\\arsm/i.test(leaked) || /file:\/\//i.test(leaked)) {
+    throw new Error('catalog leaked an absolute path or file:// URL');
+  }
+  if (!leaked.includes('rootPathToken:music-token')) throw new Error('tokenized root reference was not preserved');
+} finally {
+  raw.close();
+  fs.rmSync(tempRoot, { recursive: true, force: true });
+}
+
+console.log('K2-R2 catalog database PASS');
