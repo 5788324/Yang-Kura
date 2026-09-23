@@ -1,13 +1,13 @@
 # PROJECT_STATE
 
-更新日期：2026-09-22
+更新日期：2026-09-23
 
 ## 1. 已验证的远端事实
 
 ```text
 repository: 5788324/Yang-Kura
-remote main: 1ec64e29af794531712d53f62af20d44544d7481
-main commit: ui: simplify daily controls and advanced actions (#94)
+remote main: READ LIVE FROM GIT (do not hard-code current HEAD)
+K2-R0 reference base before validation-hygiene branch: 18a62a958572efede50bbdd3446063785899ca9a
 PR #94 / U42: MERGED
 public release: 1.0.0-rc.1
 public tag: v1.0.0-rc.1
@@ -16,19 +16,20 @@ package version on main: 1.0.0-rc.1
 
 注意：`1.0.0-rc.1` Release 早于 U42 合并，因此“公开 Release”与“main 最新代码”不是完全同一快照。
 
-## 2. 尚未进入 Git 的本机事实
+## 2. K2-R0 基线对账结论
 
-用户确认：
+用户在 2026-09-23 明确确认：`codex/k2-r0-validation-hygiene` 是上周最新可识别源码分支。
 
-- 2026-09 中旬 Kura 仍有继续更新；
-- 更新量不算特别大；
-- 这些更新尚未推送 GitHub。
+审查结果：
 
-因此：
+- 分支基于 `18a62a958572efede50bbdd3446063785899ca9a`，ahead 1 / behind 0；
+- 原提交 `a58070365fde613d6ccb07faf9b0627bfdaf8fcf` 只包含验证卫生、TypeScript 检查范围和交接记录；
+- 没有 Scanner / Library Tree / Player / Importer / Media Index 等业务源码改动；
+- 当前可识别的“上周最新源码”因此等价于既有业务源码 + 本轮验证/交接卫生修复；
+- 未跟踪验收资料、报告与 `RJ_AI_ANALYSIS/` 不进入 Git。
 
-> **GitHub main 是当前可验证远端基线，但不是已知最新开发源码。**
+**K2-R0 在该分支审查并合并后关闭；GitHub `main` 重新成为唯一代码真源。**
 
-任何 Desktop 2.0 代码工作开始前，必须先执行 K2-R0，对账“本机最新源码 vs `1ec64e29af794531712d53f62af20d44544d7481`”。
 
 ## 3. 当前产品能力（远端主线）
 
@@ -49,9 +50,16 @@ package version on main: 1.0.0-rc.1
 
 ## 4. 当前真实问题
 
-### P0：基线未统一
+### P0：Desktop 2.0 真实瓶颈尚未完成审计
 
-本机有较新源码未推 Git，是当前唯一必须先处理的阻塞。
+K2-R1 为当前主任务：以现有代码和真实 8TB+ 资源库确认启动、扫描、搜索、滚动、播放和 UI 流程的主要瓶颈，再决定 K2-R2～R8 的实际实现顺序。
+
+
+### P1：依赖安全基线需要刷新
+
+2026-09-23 PR #97 的 Windows workflows 在 `npm audit` 阶段被新的安全公告阻断：当前 lockfile 报告 1 moderate + 7 high。已确认本分支没有修改 `package.json` / `package-lock.json`，因此这是既有依赖基线随时间产生的新债务，不是 K2-R0 diff 引入的回归。
+
+其中包含 Electron 39 间接依赖 `extract-zip` 的 high advisory；npm 给出的全量自动修复会跳到 Electron 44，属于潜在 breaking upgrade。处理原则：纳入 K2-R1 审计并单独做依赖升级任务，不为了让旧 RC workflow 变绿而在 K2-R0 混入大版本升级。
 
 ### P1：8TB+ 大库架构不够长期
 

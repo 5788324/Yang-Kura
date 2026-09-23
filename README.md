@@ -1,10 +1,9 @@
 # Yang-Kura
 
 > 当前公开版本：`1.0.0-rc.1`
-> 当前远端 `main`：`1ec64e29af794531712d53f62af20d44544d7481`
 > U42 / PR #94：已合并
-> 当前战略阶段：**Kura Desktop 2.0 规划与基线对账**
-> 重要：用户本机存在 2026-09 中旬继续更新但尚未推送 Git 的较新源码；在完成 K2-R0 对账前，GitHub `main` 不是“最新开发源码”。
+> 当前战略阶段：**Kura Desktop 2.0 · K2-R1 真实审计**
+> K2-R0 已收口：用户确认 `codex/k2-r0-validation-hygiene` 是上周最新可识别源码分支；审查未发现额外业务源码，仅包含验证卫生与交接修复。合并后 GitHub `main` 恢复为唯一代码真源。
 
 Yang-Kura 是个人使用的 Windows 音频媒体库，面向 **ASMR/RJ 音声 + 普通音乐**。当前技术栈为 React、Vite、TypeScript、Electron；已经具备本地资源库、播放、字幕、歌单、导入、元数据和 Windows 打包等能力。
 
@@ -20,11 +19,11 @@ Yang-Kura 是个人使用的 Windows 音频媒体库，面向 **ASMR/RJ 音声 +
 
 ## 当前优先级
 
-1. **K2-R0：对账本机最新源码与 GitHub main，确定唯一新基线。**
+1. **K2-R1：审计当前 Desktop 与真实 8TB+ 媒体库，确定瓶颈和保留/重做边界。**
 2. Desktop 2.0 大库 Core：SQLite/FTS、增量扫描、缩略图缓存、分页/虚拟列表。
 3. Desktop 2.0 UI/UX：重新设计 App Shell、音乐库、音声库和播放器体验。
 4. 用真实 8TB+ 媒体库做性能与日常使用验收。
-5. Desktop 2.0 稳定后，再进入 OpenList / Android。
+5. Desktop 2.0 稳定后，再进入 OpenList / Android.
 
 Android、OpenList、Downloader、转录集成等暂不同时展开。
 
@@ -39,4 +38,4 @@ Android、OpenList、Downloader、转录集成等暂不同时展开。
 5. `PROJECT_ROADMAP.md`
 6. `AI_HANDOFF/WORKLOG.md`（仅用于历史追溯）
 
-> 代码事实以 Git/GitHub 为准；若存在“尚未推送的本机较新源码”，必须先执行 K2-R0 对账，禁止直接在旧 main 上继续大改。
+> 代码事实以 Git/GitHub 为准。不要在文档中把某个 `main` SHA 写成长期不变的“当前 HEAD”；需要 SHA 时实时读取 Git。

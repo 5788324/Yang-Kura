@@ -1,6 +1,6 @@
 # PROJECT_ROADMAP — Kura Desktop 2.0
 
-更新日期：2026-09-22
+更新日期：2026-09-23
 
 ## 0. 总目标
 
@@ -24,7 +24,7 @@
 当前：
 
 ```text
-主开发阶段：K2-R0 基线对账
+主开发阶段：K2-R1 Desktop 2.0 真实审计
 设计/研究支线：Desktop 2.0 UI Benchmark + 大库架构参考
 ```
 
@@ -34,27 +34,15 @@ Android、OpenList、Downloader、转录等均进入 Parking Lot，不并行开�
 
 ## Horizon A — 统一基线与真实问题审计
 
-### K2-R0：最新源码对账【当前唯一任务】
+### K2-R0：最新源码对账【已完成】
 
-输入：
+完成结论：
 
-- GitHub main `1ec64e29af794531712d53f62af20d44544d7481`
-- 用户本机 2026-09 中旬最新 Kura 源码
+- 用户确认 `codex/k2-r0-validation-hygiene` 为上周最新可识别源码分支；
+- 与 K2-R0 参考基线相比，没有额外业务源码，只有验证卫生与交接修复；
+- 合并后 GitHub `main` 为唯一代码真源；
+- 当前转入 K2-R1。
 
-输出：
-
-- 变更文件清单；
-- 本机最新版本 / SHA 或源码包 hash；
-- 与 main 的功能差异；
-- 哪些改动保留 / 丢弃 / 重做；
-- 新的唯一 Git 基线；
-- 同步更新 PROJECT_STATE / TASKS / HANDOFF / WORKLOG。
-
-禁止：
-
-- 未完成对账就开始 Desktop 2.0 大改；
-- 假定 GitHub main 就是最新；
-- 假定本机源码一定正确。
 
 ### K2-R1：真实使用 + 8TB 大库审计
 
