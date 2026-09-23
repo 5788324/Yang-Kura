@@ -7,6 +7,7 @@
 - U32/U40B/U41B/U41C 旧 release/acceptance workflows 退出当前 CI；Branch/Docs/Architecture/Player/UI 门禁保留。
 - package.json 移除旧 MVP compatibility/notes 和 U41/U42 专用脚本入口；stable regression 改为当前通用门禁。
 - 当前开发阶段固定为 K2-R1；阶段计划重写为 R1～R9 + 后续 K3/K4。
+- 清理后 main 工作树：296 tracked files、5 workflows、26 docs、3 AI_HANDOFF。远端仍有 92 个非-main历史 branch refs；连接器无 delete-ref 能力，需由原生 Git/Codex 一次性删除。
 
 # Yang-Kura 工作日志
 

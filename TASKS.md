@@ -10,6 +10,7 @@
 - [x] 静态 main SHA 漂移修复
 - [x] 历史 archive / 重复 handoff / 旧 MVP/RC 文档清理
 - [x] 旧 U32/U40/U41 RC workflows 退出当前 CI
+- [ ] 删除远端 92 个历史分支 ref（当前 GitHub 连接器不提供 delete-ref；需原生 Git/Codex 一次性执行）
 
 ---
 

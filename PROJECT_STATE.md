@@ -162,6 +162,8 @@ RJ 侧保持 Work / Circle / CV / Tags / Folder Tree / Subtitle / Attachment / P
 - 旧 U32/U40/U41 release/acceptance workflows 退出当前 CI；
 - 当前 CI 只保留 branch/docs/architecture/player/ui 这类仍有开发价值的门禁；
 - 历史测试脚本暂不一次性删除，K2-R1 根据实际依赖再做第二轮脚本精简，避免误删有效回归。
+- 当前 `main` 工作树已从 1038 个 tracked 文件降到 296 个；workflow 9→5，docs 130→26，AI_HANDOFF 11→3。
+- 远端仍有 92 个非 main 历史 branch refs。当前 GitHub 连接器没有 delete-ref 能力，因此这些 refs 尚未实际删除；它们不再作为开发真源，待 Codex/原生 Git 一次性清理。
 
 ## 8. Git / Drive 事实源
 
