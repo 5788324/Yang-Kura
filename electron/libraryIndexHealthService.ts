@@ -43,6 +43,11 @@ function referenceKey(kind: LibraryIndexHealthItemKind, entityId: string, ownerI
 export function collectLibraryIndexHealthReferences(index: unknown): LibraryIndexHealthReference[] {
   if (!isObject(index)) return [];
   const tracks = Array.isArray(index.tracks) ? index.tracks.filter(isObject) : [];
+  const knownTrackIds = new Set(
+    tracks
+      .map((track) => safeString(track.id))
+      .filter((trackId): trackId is string => Boolean(trackId)),
+  );
   const collections = Array.isArray(index.collections) ? index.collections.filter(isObject) : [];
   const covers = Array.isArray(index.covers) ? index.covers.filter(isObject) : [];
   const subtitles = Array.isArray(index.subtitles) ? index.subtitles.filter(isObject) : [];
@@ -99,7 +104,7 @@ export function collectLibraryIndexHealthReferences(index: unknown): LibraryInde
     for (const rawTrackId of trackIds) {
       const trackId = safeString(rawTrackId);
       if (!trackId) continue;
-      if (!tracks.some((track) => safeString(track.id) === trackId)) {
+      if (!knownTrackIds.has(trackId)) {
         const id = referenceKey('collection-reference', trackId, collectionId, undefined);
         references.set(id, {
           id,

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 // Legacy verifier marker: Demo 模式 / 尚未接入真实扫描 / No SQLite
 import Sidebar from './components/Sidebar';
 import PlayerBar from './components/PlayerBar';
@@ -106,10 +106,10 @@ export default function App() {
   const [isQueueOpen, setIsQueueOpen] = useState<boolean>(false);
   const [isLyricsOpen, setIsLyricsOpen] = useState<boolean>(false);
 
-  const collectAllLibraryTracks = (works: RJWork[], albums: MusicAlbum[]): AudioTrack[] => [
-    ...works.flatMap((work) => work.tracks),
-    ...albums.flatMap((album) => album.tracks),
-  ];
+  const allLibraryTracks = useMemo<AudioTrack[]>(() => [
+    ...rjWorks.flatMap((work) => work.tracks),
+    ...musicAlbums.flatMap((album) => album.tracks),
+  ], [rjWorks, musicAlbums]);
 
   const updatePlaylists = (updater: (previous: Playlist[]) => Playlist[]) => {
     setPlaylists((previous) => {
@@ -218,7 +218,7 @@ export default function App() {
 
   useEffect(() => {
     const refreshPlaybackHistory = () => {
-      setRecentTracks(playbackHistoryService.getRecentTracks(collectAllLibraryTracks(rjWorks, musicAlbums)));
+      setRecentTracks(playbackHistoryService.getRecentTracks(allLibraryTracks));
     };
     refreshPlaybackHistory();
     window.addEventListener('yang-kura-playback-history-updated', refreshPlaybackHistory);
@@ -227,7 +227,7 @@ export default function App() {
       window.removeEventListener('yang-kura-playback-history-updated', refreshPlaybackHistory);
       window.removeEventListener('yang-kura-library-index-loaded', refreshPlaybackHistory);
     };
-  }, [rjWorks, musicAlbums]);
+  }, [allLibraryTracks]);
 
   const {
     playerState,
@@ -247,19 +247,18 @@ export default function App() {
 
   useEffect(() => {
     if (!librarySessionSnapshot.lastIndex) return;
-    const currentLibraryTracks = collectAllLibraryTracks(rjWorks, musicAlbums);
-    if (currentLibraryTracks.length === 0) return;
-    handleReconcileQueueWithLibrary(currentLibraryTracks);
+    if (allLibraryTracks.length === 0) return;
+    handleReconcileQueueWithLibrary(allLibraryTracks);
     setPlaylists((previous) => {
       let changed = false;
       const next = previous.map((playlist) => {
-        const tracks = reconcileTracksWithLibrary(playlist.tracks, currentLibraryTracks);
+        const tracks = reconcileTracksWithLibrary(playlist.tracks, allLibraryTracks);
         if (tracks.some((track, index) => track !== playlist.tracks[index])) changed = true;
         return tracks === playlist.tracks ? playlist : { ...playlist, tracks, tracksCount: tracks.length };
       });
       return changed ? next : previous;
     });
-  }, [rjWorks, musicAlbums, librarySessionSnapshot.lastIndex?.displayName, handleReconcileQueueWithLibrary]);
+  }, [allLibraryTracks, librarySessionSnapshot.lastIndex?.displayName, handleReconcileQueueWithLibrary]);
 
   const handleScanLibrary = () => {
     applyStoredLibraryIndexToUi();

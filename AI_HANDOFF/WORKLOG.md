@@ -1,3 +1,13 @@
+## 2026-09-23 — K2-R1 第一批开发：大库止损与真实库审计工具
+
+- 对 App / ASMR / Music / Index Health 做静态性能审计。
+- App 复用 memoized 全库 Track 派生数组，避免历史刷新和队列对账重复 flatMap。
+- ASMR / Music 大型文本搜索索引改为仅在实际搜索时构建。
+- Index Health collection track reference 校验从重复 tracks.some 改为 Set membership。
+- 新增 `scripts/audit-k2-r1-library.mjs`：8TB+ 真实库只读 inventory，不读取媒体正文、不修改资源、不跟随符号链接。
+- 新增 `docs/DESKTOP2_AUDIT.md`，固定当前静态结论与 K2-R2/R4 边界。
+- 真实 8TB 指标仍待 Windows 本机运行 audit 工具；50k synthetic benchmark 不替代真库。
+
 ## 2026-09-23 — Kura 2.0 仓库主线收敛与历史清理
 
 - 用户要求仓库收敛为唯一主线并删除老旧无价值内容。

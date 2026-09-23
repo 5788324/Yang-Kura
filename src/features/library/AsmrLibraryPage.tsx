@@ -104,6 +104,10 @@ export default function AsmrLibraryPage({
   const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
   const deferredGlobalQuery = useDeferredValue(searchQuery);
   const deferredLocalQuery = useDeferredValue(localQuery);
+  const normalizedQuery = useMemo(
+    () => libraryPerformanceService.normalizeQuery(deferredLocalQuery || deferredGlobalQuery || ''),
+    [deferredGlobalQuery, deferredLocalQuery],
+  );
 
   useEffect(() => {
     if (!targetPlaylistId && playlists[0]?.id) setTargetPlaylistId(playlists[0].id);
@@ -120,14 +124,18 @@ export default function AsmrLibraryPage({
     });
   }, [rjWorks]);
 
-  const searchIndex = useMemo(() => libraryPerformanceService.buildAsmrSearchIndex(rjWorks), [rjWorks]);
+  const searchIndex = useMemo(
+    () => normalizedQuery && searchField === 'all'
+      ? libraryPerformanceService.buildAsmrSearchIndex(rjWorks)
+      : new Map<string, string>(),
+    [normalizedQuery, rjWorks, searchField],
+  );
   const circleOptions = useMemo(() => [...new Set(rjWorks.map((work) => work.circle).filter(Boolean))].sort(), [rjWorks]);
   const cvOptions = useMemo(() => [...new Set(rjWorks.flatMap((work) => work.cvs).filter(Boolean))].sort(), [rjWorks]);
   const tagOptions = useMemo(() => [...new Set(rjWorks.flatMap((work) => work.tags).filter(Boolean))].sort(), [rjWorks]);
 
   const filteredWorks = useMemo(() => {
     const historyMap = libraryBrowseService.buildHistoryMap();
-    const normalizedQuery = libraryPerformanceService.normalizeQuery(deferredLocalQuery || deferredGlobalQuery || '');
     const list = rjWorks.filter((work) => {
       if (normalizedQuery) {
         const matches = searchField === 'id'
@@ -168,7 +176,7 @@ export default function AsmrLibraryPage({
       }
       return (b.addedAt ?? '').localeCompare(a.addedAt ?? '');
     });
-  }, [circleFilter, cvFilter, deferredGlobalQuery, deferredLocalQuery, personalStatusFilter, playbackFilter, rjWorks, searchField, searchIndex, sortBy, sourceFilter, subtitleFilter, tagFilter]);
+  }, [circleFilter, cvFilter, normalizedQuery, personalStatusFilter, playbackFilter, rjWorks, searchField, searchIndex, sortBy, sourceFilter, subtitleFilter, tagFilter]);
 
   useEffect(() => {
     setRenderLimit(LARGE_LIBRARY_RENDER_LIMITS.asmrInitial);

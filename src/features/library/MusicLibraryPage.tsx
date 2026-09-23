@@ -133,11 +133,17 @@ export default function MusicLibraryPage({
   const [feedback, setFeedback] = useState<string | null>(null);
   const deferredGlobalQuery = useDeferredValue(searchQuery);
   const deferredLocalQuery = useDeferredValue(localQuery);
-
-  const allTracks = useMemo(() => albums.flatMap((album) => album.tracks), [albums]);
-  const searchIndex = useMemo(() => libraryPerformanceService.buildMusicSearchIndex(albums), [albums]);
   const normalizedGlobalQuery = libraryPerformanceService.normalizeQuery(deferredGlobalQuery);
   const normalizedLocalQuery = libraryPerformanceService.normalizeQuery(deferredLocalQuery);
+  const hasSearchQuery = Boolean(normalizedGlobalQuery || normalizedLocalQuery);
+
+  const allTracks = useMemo(() => albums.flatMap((album) => album.tracks), [albums]);
+  const searchIndex = useMemo(
+    () => hasSearchQuery
+      ? libraryPerformanceService.buildMusicSearchIndex(albums)
+      : { albumTextById: new Map<string, string>(), trackTextById: new Map<string, string>() },
+    [albums, hasSearchQuery],
+  );
   const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
 
   const matchesQueries = (text: string | undefined) => {
