@@ -50,6 +50,30 @@ npm run audit:k2-r1-library -- --root "E:\arsm" --out "E:\KuraAudit\k2-r1-librar
 - 无法读取的路径错误；
 - 总扫描耗时。
 
+## 现有 Scanner 边界
+
+当前正式 `runReadOnlyDryRun()`：
+
+- 默认 `maxEntries = 10,000`；
+- 硬上限 `50,000`；
+- 默认最大深度 12，硬上限 24；
+- 目录递归按目录串行；
+- 每个普通文件单独执行 `fs.stat()`；
+- 全部 discovered entries 累积在内存后再构建 Index Preview。
+
+因此它适合作为历史小/中型库安全 dry-run，不适合作为 8TB+ 长期 Scanner。K2-R3 不采用“简单放大 maxEntries”的方案，而改为数据库目录状态 + 流式批处理 + 增量更新。
+
+## CI 验证
+
+2026-09-23，`main@1cc60db...` 的 Windows current-product regression 全绿：
+
+- production dependency audit PASS；
+- development toolchain advisory 正常报告；
+- Electron runtime preparation PASS；
+- TypeScript + Renderer/Electron build PASS；
+- current Electron journeys PASS；
+- stable regression + final build PASS。
+
 ## 当前 P0/P1
 
 ### P0 — 缺少真实 8TB 库指标

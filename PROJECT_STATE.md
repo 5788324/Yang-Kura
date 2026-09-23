@@ -61,6 +61,10 @@ K2-R1 为当前主任务：以现有代码和真实 8TB+ 资源库确认启动�
 
 其中包含 Electron 39 间接依赖 `extract-zip` 的 high advisory。K2-R1 lockfile 反向依赖检查确认当前 1 moderate + 7 high 全部位于 dev/tooling 链，生产 dependencies 不在这批 high 命中内。CI 已改为 production audit 硬阻断、完整 tooling audit 继续报告。Electron 39 本身已超出当前官方维护窗口，仍必须单独升级，不能用 dev-only 分类掩盖运行时版本债务。
 
+### P1：现有 Scanner 有明确规模上限
+
+当前生产 dry-run 默认 10,000 entries、硬上限 50,000 entries，并采用串行目录递归 + 单文件 stat + 内存累积结果。对 8TB+ 库必须由 K2-R3 的增量数据库 Scanner 替代，而不是继续放大 JSON/内存上限。
+
 ### P1：8TB+ 大库架构不够长期
 
 现有 Local JSON Index 已经完成过约 50,000 track 合成基准，但用户真实资源规模已经达到 8TB+，后续还会增长。

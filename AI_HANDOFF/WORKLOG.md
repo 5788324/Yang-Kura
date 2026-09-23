@@ -12,6 +12,8 @@
 - 回读发现 History reconcile 不能用对象引用判断 sanitized Track 是否变化；已立即改为内容比较，避免无变化时重复 localStorage 写入和 update event。
 - 真实 8TB 指标仍待 Windows 本机运行 audit 工具；50k synthetic benchmark 不替代真库。
 - K2-R1-A 反向检查 package-lock：当前 npm audit 的 1 moderate + 7 high 均位于 dev/tooling 链。Branch Validation 改为 production audit 硬阻断 + tooling audit 报告，并新增 main push 触发；workflow 自身改动会强制一次完整 Windows 回归。Electron 39 的维护窗口债务继续单独处理。
+- `main@1cc60db...` Windows current-product regression 全绿：production audit、Electron runtime、TypeScript/Renderer/Electron build、current Electron journeys、stable regression 均 PASS。
+- Scanner 静态审计确认历史 dry-run 默认 10k / 硬上限 50k entries，串行目录递归、单文件 stat、全量结果留内存；K2-R3 明确改为增量数据库 Scanner，不再通过提高上限续命。
 
 ## 2026-09-23 — Kura 2.0 仓库主线收敛与历史清理
 
