@@ -120,6 +120,8 @@ jobs:
           npm run test:k2-r2:catalog
           npm run test:k2-r2:catalog-electron
           npm run test:k2-r2:catalog-sidecar
+      - name: K2-R2 one-time real-scale Catalog benchmark
+        run: npm run benchmark:k2-r2:catalog-real-scale
       - name: Current Electron journeys
         run: |
           npm run test:u28:electron-e2e

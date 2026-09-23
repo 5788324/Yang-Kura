@@ -58,7 +58,7 @@
 - [x] Cursor-style collection track query
 - [x] Query contracts for RJ/Music filters, facets, Folder Tree and keyset pagination
 - [x] Sidecar import wired to real index read path via Worker + SHA guard（仍非 authoritative）
-- [ ] 268k-entry synthetic/real import benchmark
+- [ ] Real-count synthetic Catalog benchmark（2,663 / 69,285 / 111,304 / 29,930）已接入本轮 CI，等待结果
 - [ ] Migration/backup strategy before primary-read cutover
 
 ## NEXT

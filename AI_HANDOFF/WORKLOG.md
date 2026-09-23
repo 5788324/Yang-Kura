@@ -10,6 +10,7 @@
 - Catalog 导入增加 Root-scoped atomic replace；ASMR Root 刷新不会清空 Music Root，为真实多资源库 sidecar 接入做准备。
 - `readLibraryIndex()` 正式接入非权威 sidecar：JSON 先照常返回，后台 Worker 串行同步 SQLite；Worker 重新读源文件并核对 SHA，期间 Index 变化则跳过；任何 sidecar 失败都不阻断旧 JSON 主链。
 - Query v1 增加 RJ Circle/CV/Tag、Music Artist、Track Tag/Artist、facets、Folder Tree 与 afterId keyset pagination；筛选从 Renderer 迁入 DB contract 的接口已具备。
+- 增加一次性真实规模 synthetic benchmark：2,663 Collections + 69,285 Tracks + 111,304 Subtitles + 29,930 Artwork，记录 import/query/RSS/DB bytes；结果取得后从普通 CI 移除，只保留按需脚本。
 
 ## 2026-09-23 — K2-R1 真实库基线复用
 
