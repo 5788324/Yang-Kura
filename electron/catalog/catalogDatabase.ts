@@ -189,6 +189,14 @@ export class KuraCatalogDatabase {
   }
 
   replaceFromLegacyIndex(index: LegacyLocalJsonIndex): CatalogImportSummary {
+    return this.importLegacyIndex(index, true);
+  }
+
+  upsertFromLegacyIndex(index: LegacyLocalJsonIndex): CatalogImportSummary {
+    return this.importLegacyIndex(index, false);
+  }
+
+  private importLegacyIndex(index: LegacyLocalJsonIndex, replaceAll: boolean): CatalogImportSummary {
     validateLegacyIndex(index);
     const database = this.database;
     const importedAt = new Date().toISOString();
@@ -246,24 +254,42 @@ export class KuraCatalogDatabase {
 
     database.exec('BEGIN IMMEDIATE;');
     try {
-      database.exec(`
-        DELETE FROM collections_fts;
-        DELETE FROM tracks_fts;
-        DELETE FROM attachments;
-        DELETE FROM scan_entries;
-        DELETE FROM scan_runs;
-        DELETE FROM artwork;
-        DELETE FROM subtitles;
-        DELETE FROM media_sources;
-        DELETE FROM track_tags;
-        DELETE FROM tracks;
-        DELETE FROM folder_nodes;
-        DELETE FROM collection_tags;
-        DELETE FROM collection_cvs;
-        DELETE FROM collections;
-        DELETE FROM roots;
-        DELETE FROM catalog_meta;
-      `);
+      if (replaceAll) {
+        database.exec(`
+          DELETE FROM collections_fts;
+          DELETE FROM tracks_fts;
+          DELETE FROM attachments;
+          DELETE FROM scan_entries;
+          DELETE FROM scan_runs;
+          DELETE FROM artwork;
+          DELETE FROM subtitles;
+          DELETE FROM media_sources;
+          DELETE FROM track_tags;
+          DELETE FROM tracks;
+          DELETE FROM folder_nodes;
+          DELETE FROM collection_tags;
+          DELETE FROM collection_cvs;
+          DELETE FROM collections;
+          DELETE FROM roots;
+          DELETE FROM catalog_meta;
+        `);
+      } else {
+        const deleteTrackFts = database.prepare(
+          'DELETE FROM tracks_fts WHERE track_id IN (SELECT id FROM tracks WHERE root_id = ?)',
+        );
+        const deleteCollectionFts = database.prepare(
+          'DELETE FROM collections_fts WHERE collection_id IN (SELECT id FROM collections WHERE root_id = ?)',
+        );
+        const deleteRoot = database.prepare('DELETE FROM roots WHERE id = ?');
+        const deleteRootMeta = database.prepare('DELETE FROM catalog_meta WHERE key LIKE ?');
+
+        for (const root of index.roots) {
+          deleteTrackFts.run(root.id);
+          deleteCollectionFts.run(root.id);
+          deleteRoot.run(root.id);
+          deleteRootMeta.run(`root:${root.id}:%`);
+        }
+      }
 
       for (const root of index.roots) {
         insertRoot.run(
@@ -391,9 +417,15 @@ export class KuraCatalogDatabase {
         );
       }
 
-      database.prepare('INSERT INTO catalog_meta (key, value) VALUES (?, ?)').run('source_generated_at', index.generatedAt);
-      database.prepare('INSERT INTO catalog_meta (key, value) VALUES (?, ?)').run('source_kind', index.sourceKind);
-      database.prepare('INSERT INTO catalog_meta (key, value) VALUES (?, ?)').run('imported_at', importedAt);
+      const upsertMeta = database.prepare(
+        'INSERT INTO catalog_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
+      );
+      for (const root of index.roots) {
+        upsertMeta.run(`root:${root.id}:source_generated_at`, index.generatedAt);
+        upsertMeta.run(`root:${root.id}:source_kind`, index.sourceKind);
+        upsertMeta.run(`root:${root.id}:imported_at`, importedAt);
+      }
+      upsertMeta.run('last_imported_at', importedAt);
       database.exec('COMMIT;');
       database.exec('PRAGMA optimize;');
     } catch (error) {

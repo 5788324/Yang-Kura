@@ -77,6 +77,7 @@ Legacy JSON → Catalog 导入时：
 - **丢弃 absolutePath 和 file://**；
 - 只有 `rootPathToken:...` 形式的 root reference 允许进入 Catalog；
 - 整次 replace import 使用单一事务；
+- 生产 sidecar 使用 Root-scoped atomic replace：更新一个 Root 不清空其他音声/音乐 Root；
 - 任一 FK/唯一约束错误会完整 rollback；
 - 不删除、移动、重命名、覆盖任何媒体文件；
 - 不修改旧 `library-index.json`。

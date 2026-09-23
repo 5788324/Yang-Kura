@@ -7,6 +7,7 @@
 - User State/Progress/Favorites/Notes/Playlists 不混入 Catalog，继续保持 Catalog 与 User State 分离。
 - 新增 Node + Electron runtime 双通道 Catalog 数据库回归；不接真实媒体，不修改旧 Index。
 - 回读立即修复 Folder Tree 导入热点：global subtitle → track 从逐项 `tracks.find()` 改为预索引 Map，避免真实 111k 字幕 × 69k 音轨的 O(N²)；共享祖先目录不再错误绑定单一 Collection。
+- Catalog 导入增加 Root-scoped atomic replace；ASMR Root 刷新不会清空 Music Root，为真实多资源库 sidecar 接入做准备。
 
 ## 2026-09-23 — K2-R1 真实库基线复用
 

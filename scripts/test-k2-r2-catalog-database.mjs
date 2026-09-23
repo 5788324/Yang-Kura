@@ -177,6 +177,45 @@ try {
     throw new Error('collection track pagination failed');
   }
 
+  const asmrRefresh = {
+    ...structuredClone(fixture),
+    roots: [structuredClone(fixture.roots[0])],
+    collections: [{
+      ...structuredClone(fixture.collections[0]),
+      id: 'rj-002',
+      title: '更新后的耳语作品',
+      trackIds: ['track-rj-2'],
+    }],
+    tracks: [{
+      ...structuredClone(fixture.tracks[0]),
+      id: 'track-rj-2',
+      collectionId: 'rj-002',
+      title: '更新后的第一轨',
+      source: {
+        ...structuredClone(fixture.tracks[0].source),
+        id: 'source-rj-2',
+        trackId: 'track-rj-2',
+        relativePath: '新建下载/RJ000002/Voice/01.wav',
+      },
+      subtitles: [],
+    }],
+    covers: [],
+    subtitles: [],
+  };
+  const scopedSummary = catalog.upsertFromLegacyIndex(asmrRefresh);
+  if (scopedSummary.roots !== 2 || scopedSummary.collections !== 2 || scopedSummary.tracks !== 2) {
+    throw new Error(`root-scoped import damaged another root: ${JSON.stringify(scopedSummary)}`);
+  }
+  if (catalog.searchCollections('夜色', 10)[0]?.id !== 'album-001') {
+    throw new Error('music root disappeared after ASMR root refresh');
+  }
+  if (catalog.searchCollections('更新后的耳语', 10)[0]?.id !== 'rj-002') {
+    throw new Error('ASMR root was not atomically replaced');
+  }
+  if (catalog.searchCollections('耳语睡前故事', 10).length !== 0) {
+    throw new Error('stale ASMR collection survived root-scoped replacement');
+  }
+
   const beforeBadImport = catalog.getCounts();
   const invalidFixture = structuredClone(fixture);
   invalidFixture.tracks.push({ ...structuredClone(fixture.tracks[0]), title: 'duplicate id' });
