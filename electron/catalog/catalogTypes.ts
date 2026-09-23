@@ -279,3 +279,43 @@ export interface CatalogTrackPageQuery extends Omit<CatalogTrackQuery, 'afterId'
   sort?: CatalogTrackSort;
   cursor?: CatalogKeysetCursor | null;
 }
+
+export type CatalogQueryRequest =
+  | {
+      mode: 'collections';
+      rootPathToken: string;
+      collectionType?: CatalogCollectionType | string;
+      search?: string;
+      circle?: string;
+      cv?: string;
+      tag?: string;
+      artist?: string;
+      sort?: CatalogCollectionSort;
+      cursor?: CatalogKeysetCursor | null;
+      limit?: number;
+    }
+  | {
+      mode: 'tracks';
+      rootPathToken: string;
+      collectionId?: string;
+      kind?: CatalogMediaKind | string;
+      search?: string;
+      artist?: string;
+      tag?: string;
+      sort?: CatalogTrackSort;
+      cursor?: CatalogKeysetCursor | null;
+      limit?: number;
+    }
+  | {
+      mode: 'facets';
+      rootPathToken: string;
+      facet: CatalogFacetKind;
+      collectionType?: string;
+      limit?: number;
+    }
+  | {
+      mode: 'folders';
+      rootPathToken: string;
+      parentRelativePath?: string | null;
+      limit?: number;
+    };

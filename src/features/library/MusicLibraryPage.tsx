@@ -295,7 +295,7 @@ export default function MusicLibraryPage({
     sortMode,
   ]);
 
-  const trackVirtualWindow = useWindowVirtualList(currentTracks, {
+  const trackVirtualWindow = useWindowVirtualList<AudioTrack>(currentTracks, {
     enabled: activeView === 'tracks' || Boolean(detail),
     itemHeight: 72,
     overscan: 10,

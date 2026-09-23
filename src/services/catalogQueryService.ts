@@ -4,20 +4,24 @@ export interface CatalogPagePayload<T> {
   nextCursor: YangKuraCatalogCursor | null;
 }
 
+async function queryCatalog<T>(request: YangKuraCatalogQueryRequest): Promise<T | null> {
+  if (!window.yangKura?.requestCatalogQuery) return null;
+  const result = await window.yangKura.requestCatalogQuery(request);
+  return result.ok ? result.payload as T : null;
+}
+
 export const catalogQueryService = {
   isAvailable(): boolean {
     return Boolean(window.yangKura?.requestCatalogQuery);
   },
 
-  async query<T>(request: YangKuraCatalogQueryRequest): Promise<T | null> {
-    if (!window.yangKura?.requestCatalogQuery) return null;
-    const result = await window.yangKura.requestCatalogQuery(request);
-    return result.ok ? result.payload as T : null;
+  query<T>(request: YangKuraCatalogQueryRequest): Promise<T | null> {
+    return queryCatalog<T>(request);
   },
 
-  async page<T>(
+  page<T>(
     request: Extract<YangKuraCatalogQueryRequest, { mode: 'collections' | 'tracks' }>,
   ): Promise<CatalogPagePayload<T> | null> {
-    return this.query<CatalogPagePayload<T>>(request);
+    return queryCatalog<CatalogPagePayload<T>>(request);
   },
 };

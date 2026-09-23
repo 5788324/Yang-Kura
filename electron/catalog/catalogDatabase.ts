@@ -1204,6 +1204,12 @@ export class KuraCatalogDatabase {
     `).all(collectionId, afterId, safeLimit) as unknown as CatalogTrackRow[];
   }
 
+  hasRoot(rootId: string): boolean {
+    return Boolean(
+      this.database.prepare('SELECT 1 AS present FROM roots WHERE id = ? LIMIT 1').get(rootId),
+    );
+  }
+
   getSchemaVersion(): number {
     return KURA_CATALOG_SCHEMA_VERSION;
   }
