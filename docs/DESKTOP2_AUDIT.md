@@ -119,6 +119,20 @@ K2-R2 应以 SQLite/FTS 查询层替代 Renderer 对完整 JSON + 完整映射�
 - 当前 App 过度集中式状态；
 - Library 页面仅靠 renderLimit 的“大库优化”。
 
+## K2-R2 SQLite 技术 POC
+
+本轮新增不接生产数据的 `node:sqlite` POC，同时在普通 Node 和 `ELECTRON_RUN_AS_NODE=1` 的 Electron runtime 中验证：
+
+- 文件数据库打开/关闭；
+- WAL；
+- transaction；
+- 25,000 行批量写入；
+- FTS5 `MATCH`；
+- cursor-style page query；
+- `PRAGMA user_version` migration 基础。
+
+如果 Electron runtime CI 通过，K2-R2 优先使用内建 `node:sqlite`，避免额外引入 `better-sqlite3` 原生 addon 和相应 rebuild/ABI/打包复杂度。
+
 ## 下一步
 
 1. 在真实 8TB 库运行 readonly inventory；

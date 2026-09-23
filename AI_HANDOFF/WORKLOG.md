@@ -1,4 +1,4 @@
-## 2026-09-23 — K2-R1 第一批开发：大库止损、门禁清理与真实库审计工具
+## 2026-09-23 — K2-R1 第一批开发：大库止损、SQLite POC、门禁清理与真实库审计工具
 
 - 对 App / ASMR / Music / Index Health 做静态性能审计。
 - 清理后发现 `desktop-smoke-check` 仍依赖已删除的 MVP129/archive/旧 handoff 文件；已重写为 Kura 2.0 当前事实门禁，避免无价值的假 WARN。
@@ -14,6 +14,7 @@
 - K2-R1-A 反向检查 package-lock：当前 npm audit 的 1 moderate + 7 high 均位于 dev/tooling 链。Branch Validation 改为 production audit 硬阻断 + tooling audit 报告，并新增 main push 触发；workflow 自身改动会强制一次完整 Windows 回归。Electron 39 的维护窗口债务继续单独处理。
 - `main@1cc60db...` Windows current-product regression 全绿：production audit、Electron runtime、TypeScript/Renderer/Electron build、current Electron journeys、stable regression 均 PASS。
 - Scanner 静态审计确认历史 dry-run 默认 10k / 硬上限 50k entries，串行目录递归、单文件 stat、全量结果留内存；K2-R3 明确改为增量数据库 Scanner，不再通过提高上限续命。
+- 为 K2-R2 加入内建 `node:sqlite` 隔离 POC：WAL、transaction、25k rows、FTS5、cursor query、user_version；CI 同时用 Node runner 和真正 Electron runtime (`ELECTRON_RUN_AS_NODE`) 验证，不接用户媒体或现有 Index。
 
 ## 2026-09-23 — Kura 2.0 仓库主线收敛与历史清理
 

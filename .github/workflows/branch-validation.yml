@@ -104,6 +104,10 @@ jobs:
         run: |
           npm rebuild electron
           npm run patch:electron-builder
+      - name: K2-R2 built-in SQLite capability
+        run: |
+          npm run test:k2-r2:sqlite-node
+          npm run test:k2-r2:sqlite-electron
       - name: TypeScript and production builds
         env:
           NODE_OPTIONS: --max-old-space-size=8192

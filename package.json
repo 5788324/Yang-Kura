@@ -45,7 +45,9 @@
     "test:u31:importer-transactions": "node scripts/test-u31-importer-transactions.mjs",
     "verify:u31-importer-transaction-hardening": "node scripts/verify-u31-importer-transaction-hardening.mjs",
     "verify:u38a-player-session-boundaries": "node scripts/verify-u38a-player-session-boundaries.mjs",
-    "audit:k2-r1-library": "node scripts/audit-k2-r1-library.mjs"
+    "audit:k2-r1-library": "node scripts/audit-k2-r1-library.mjs",
+    "test:k2-r2:sqlite-node": "node scripts/poc-k2-r2-sqlite.mjs",
+    "test:k2-r2:sqlite-electron": "node scripts/run-electron-as-node.mjs scripts/poc-k2-r2-sqlite.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.546.0",
