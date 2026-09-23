@@ -1223,14 +1223,14 @@ export class KuraCatalogDatabase {
 
   getRootCounts(rootId: string): Pick<CatalogCounts, 'collections' | 'tracks' | 'mediaSources' | 'subtitles' | 'artwork' | 'folderNodes'> {
     const count = (table: string): number => {
-      const row = this.database.prepare(`SELECT COUNT(*) AS count FROM ${table} WHERE root_id = ?`).get(rootId)
-        as { count?: number | bigint } | undefined;
+      const row = this.database.prepare(`SELECT COUNT(*) AS count FROM ${table} WHERE root_id = ?`).get(rootId) as
+        { count?: number | bigint } | undefined;
       return Number(row?.count ?? 0);
     };
 
     const relatedCount = (sql: string): number => {
-      const row = this.database.prepare(sql).get(rootId)
-        as { count?: number | bigint } | undefined;
+      const row = this.database.prepare(sql).get(rootId) as
+        { count?: number | bigint } | undefined;
       return Number(row?.count ?? 0);
     };
 
