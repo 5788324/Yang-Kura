@@ -166,6 +166,49 @@ try {
   }
   if (summary.folderNodes < 5) throw new Error(`folder tree unexpectedly small: ${summary.folderNodes}`);
 
+  const filteredMusic = catalog.queryCollections({
+    collectionType: 'music_album',
+    artist: 'Artist A',
+    limit: 10,
+  });
+  if (filteredMusic.length !== 1 || filteredMusic[0]?.id !== 'album-001') {
+    throw new Error('music collection filter contract failed');
+  }
+
+  const filteredRj = catalog.queryCollections({
+    collectionType: 'rj_work',
+    circle: 'Kura Circle',
+    cv: 'CV A',
+    tag: '耳语',
+    limit: 10,
+  });
+  if (filteredRj.length !== 1 || filteredRj[0]?.id !== 'rj-001') {
+    throw new Error('RJ collection filter contract failed');
+  }
+
+  const taggedTrack = catalog.queryTracks({ tag: '钢琴', artist: 'Artist A', limit: 10 });
+  if (taggedTrack.length !== 1 || taggedTrack[0]?.id !== 'track-music-1') {
+    throw new Error('track filter contract failed');
+  }
+
+  const rootFolders = catalog.listFolderChildren('root-asmr');
+  if (!rootFolders.some((row) => row.relativePath === '新建下载')) {
+    throw new Error('folder root query contract failed');
+  }
+  const nestedFolders = catalog.listFolderChildren('root-asmr', '新建下载');
+  if (!nestedFolders.some((row) => row.relativePath === '新建下载/RJ000001')) {
+    throw new Error('folder child query contract failed');
+  }
+
+  const circles = catalog.listCollectionFacets('circle', { collectionType: 'rj_work' });
+  if (circles[0]?.value !== 'Kura Circle' || Number(circles[0]?.count) !== 1) {
+    throw new Error('circle facet contract failed');
+  }
+  const cvs = catalog.listCollectionFacets('cv', { collectionType: 'rj_work' });
+  if (cvs[0]?.value !== 'CV A' || Number(cvs[0]?.count) !== 1) {
+    throw new Error('CV facet contract failed');
+  }
+
   const rjSearch = catalog.searchCollections('耳语', 10);
   if (rjSearch.length !== 1 || rjSearch[0]?.id !== 'rj-001') throw new Error('collection FTS search failed');
 

@@ -110,18 +110,21 @@ PRAGMA user_version
 
 ## Query v1
 
-当前 POC 支持：
+Query v1 已支持：
 
 - FTS5 Collection 搜索；
 - FTS5 Track 搜索；
-- Collection Track cursor page；
+- Collection / Track keyset-style `afterId` pagination；
+- Music Album/Artist 精确筛选；
+- RJ Circle/CV/Tag 精确筛选；
+- Track Artist/Tag 筛选；
+- Circle/Artist/CV/Tag facets；
+- Folder Tree child query；
 - 基础 Catalog count。
 
-下一步会增加：
+后续 K2-R4 再增加：
 
-- Music Album/Artist query；
-- RJ Circle/CV/Tag query；
-- Folder tree query；
+- 用户可见排序（Added/Title/Play 状态等）对应的稳定 keyset cursor；
 - 首页 Recent/Added 数据接口（User State 独立）；
 - 分页排序和 filter contract；
 - Scanner upsert contract。

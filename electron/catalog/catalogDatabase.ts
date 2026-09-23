@@ -4,9 +4,14 @@ import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { initializeCatalogSchema, KURA_CATALOG_SCHEMA_VERSION } from './catalogSchema.js';
 import type {
+  CatalogCollectionQuery,
   CatalogCollectionRow,
   CatalogCounts,
+  CatalogFacetKind,
+  CatalogFacetRow,
+  CatalogFolderNodeRow,
   CatalogImportSummary,
+  CatalogTrackQuery,
   CatalogTrackRow,
   LegacyCatalogCollection,
   LegacyCatalogCover,
@@ -457,6 +462,206 @@ export class KuraCatalogDatabase {
       artwork: count('artwork'),
       folderNodes: count('folder_nodes'),
     };
+  }
+
+  queryCollections(options: CatalogCollectionQuery = {}): CatalogCollectionRow[] {
+    const clauses = ['c.id > ?'];
+    const params: Array<string | number> = [options.afterId ?? ''];
+    const joins: string[] = [];
+    const match = options.search ? toFtsQuery(options.search) : null;
+
+    if (match) {
+      joins.push('JOIN collections_fts ON collections_fts.collection_id = c.id');
+      clauses.push('collections_fts MATCH ?');
+      params.push(match);
+    }
+    if (options.rootId) {
+      clauses.push('c.root_id = ?');
+      params.push(options.rootId);
+    }
+    if (options.collectionType) {
+      clauses.push('c.collection_type = ?');
+      params.push(options.collectionType);
+    }
+    if (options.circle) {
+      clauses.push('c.circle = ?');
+      params.push(options.circle);
+    }
+    if (options.artist) {
+      clauses.push('c.artist = ?');
+      params.push(options.artist);
+    }
+    if (options.cv) {
+      clauses.push('EXISTS (SELECT 1 FROM collection_cvs cv WHERE cv.collection_id = c.id AND cv.value = ?)');
+      params.push(options.cv);
+    }
+    if (options.tag) {
+      clauses.push('EXISTS (SELECT 1 FROM collection_tags tag WHERE tag.collection_id = c.id AND tag.value = ?)');
+      params.push(options.tag);
+    }
+
+    const safeLimit = Math.max(1, Math.min(Math.floor(options.limit ?? 100), 500));
+    params.push(safeLimit);
+
+    return this.database.prepare(`
+      SELECT
+        c.id,
+        c.root_id AS rootId,
+        c.collection_type AS collectionType,
+        c.title,
+        c.code_norm AS codeNorm,
+        c.artist,
+        c.circle,
+        c.folder_path AS folderPath
+      FROM collections c
+      ${joins.join('\n')}
+      WHERE ${clauses.join(' AND ')}
+      ORDER BY c.id
+      LIMIT ?
+    `).all(...params) as unknown as CatalogCollectionRow[];
+  }
+
+  queryTracks(options: CatalogTrackQuery = {}): CatalogTrackRow[] {
+    const clauses = ['t.id > ?'];
+    const params: Array<string | number> = [options.afterId ?? ''];
+    const joins: string[] = ['LEFT JOIN media_sources s ON s.track_id = t.id'];
+    const match = options.search ? toFtsQuery(options.search) : null;
+
+    if (match) {
+      joins.push('JOIN tracks_fts ON tracks_fts.track_id = t.id');
+      clauses.push('tracks_fts MATCH ?');
+      params.push(match);
+    }
+    if (options.rootId) {
+      clauses.push('t.root_id = ?');
+      params.push(options.rootId);
+    }
+    if (options.collectionId) {
+      clauses.push('t.collection_id = ?');
+      params.push(options.collectionId);
+    }
+    if (options.kind) {
+      clauses.push('t.kind = ?');
+      params.push(options.kind);
+    }
+    if (options.artist) {
+      clauses.push('t.display_artist = ?');
+      params.push(options.artist);
+    }
+    if (options.tag) {
+      clauses.push('EXISTS (SELECT 1 FROM track_tags tag WHERE tag.track_id = t.id AND tag.value = ?)');
+      params.push(options.tag);
+    }
+
+    const safeLimit = Math.max(1, Math.min(Math.floor(options.limit ?? 200), 500));
+    params.push(safeLimit);
+
+    return this.database.prepare(`
+      SELECT
+        t.id,
+        t.root_id AS rootId,
+        t.collection_id AS collectionId,
+        t.kind,
+        t.title,
+        t.display_artist AS artist,
+        t.display_album AS album,
+        t.rj_id AS rjId,
+        s.relative_path AS relativePath
+      FROM tracks t
+      ${joins.join('\n')}
+      WHERE ${clauses.join(' AND ')}
+      ORDER BY t.id
+      LIMIT ?
+    `).all(...params) as unknown as CatalogTrackRow[];
+  }
+
+  listFolderChildren(rootId: string, parentRelativePath: string | null = null, limit = 500): CatalogFolderNodeRow[] {
+    const safeLimit = Math.max(1, Math.min(Math.floor(limit), 1000));
+    if (parentRelativePath) {
+      const normalized = safeRelativePath(parentRelativePath);
+      if (!normalized) return [];
+      const parent = this.database.prepare(
+        'SELECT id FROM folder_nodes WHERE root_id = ? AND relative_path = ?',
+      ).get(rootId, normalized) as { id?: string } | undefined;
+      if (!parent?.id) return [];
+      return this.database.prepare(`
+        SELECT
+          id,
+          root_id AS rootId,
+          collection_id AS collectionId,
+          parent_id AS parentId,
+          name,
+          relative_path AS relativePath,
+          depth
+        FROM folder_nodes
+        WHERE root_id = ? AND parent_id = ?
+        ORDER BY name COLLATE NOCASE, id
+        LIMIT ?
+      `).all(rootId, parent.id, safeLimit) as unknown as CatalogFolderNodeRow[];
+    }
+
+    return this.database.prepare(`
+      SELECT
+        id,
+        root_id AS rootId,
+        collection_id AS collectionId,
+        parent_id AS parentId,
+        name,
+        relative_path AS relativePath,
+        depth
+      FROM folder_nodes
+      WHERE root_id = ? AND parent_id IS NULL
+      ORDER BY name COLLATE NOCASE, id
+      LIMIT ?
+    `).all(rootId, safeLimit) as unknown as CatalogFolderNodeRow[];
+  }
+
+  listCollectionFacets(
+    facet: CatalogFacetKind,
+    options: { rootId?: string; collectionType?: string; limit?: number } = {},
+  ): CatalogFacetRow[] {
+    const safeLimit = Math.max(1, Math.min(Math.floor(options.limit ?? 200), 1000));
+    const filters: string[] = [];
+    const params: Array<string | number> = [];
+    if (options.rootId) {
+      filters.push('c.root_id = ?');
+      params.push(options.rootId);
+    }
+    if (options.collectionType) {
+      filters.push('c.collection_type = ?');
+      params.push(options.collectionType);
+    }
+    const where = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
+
+    if (facet === 'cv' || facet === 'tag') {
+      const table = facet === 'cv' ? 'collection_cvs' : 'collection_tags';
+      const alias = facet === 'cv' ? 'cv' : 'tag';
+      params.push(safeLimit);
+      return this.database.prepare(`
+        SELECT ${alias}.value AS value, COUNT(DISTINCT c.id) AS count
+        FROM ${table} ${alias}
+        JOIN collections c ON c.id = ${alias}.collection_id
+        ${where}
+        GROUP BY ${alias}.value
+        ORDER BY count DESC, value COLLATE NOCASE
+        LIMIT ?
+      `).all(...params) as unknown as CatalogFacetRow[];
+    }
+
+    const column = facet === 'circle' ? 'c.circle' : 'c.artist';
+    const columnFilter = `${column} IS NOT NULL AND TRIM(${column}) <> ''`;
+    const combinedWhere = filters.length
+      ? `WHERE ${filters.join(' AND ')} AND ${columnFilter}`
+      : `WHERE ${columnFilter}`;
+    params.push(safeLimit);
+    return this.database.prepare(`
+      SELECT ${column} AS value, COUNT(*) AS count
+      FROM collections c
+      ${combinedWhere}
+      GROUP BY ${column}
+      ORDER BY count DESC, value COLLATE NOCASE
+      LIMIT ?
+    `).all(...params) as unknown as CatalogFacetRow[];
   }
 
   searchCollections(query: string, limit = 50): CatalogCollectionRow[] {

@@ -139,3 +139,43 @@ export interface CatalogTrackRow {
   rjId: string | null;
   relativePath: string | null;
 }
+
+export interface CatalogCollectionQuery {
+  rootId?: string;
+  collectionType?: CatalogCollectionType | string;
+  search?: string;
+  circle?: string;
+  cv?: string;
+  tag?: string;
+  artist?: string;
+  afterId?: string;
+  limit?: number;
+}
+
+export interface CatalogTrackQuery {
+  rootId?: string;
+  collectionId?: string;
+  kind?: CatalogMediaKind | string;
+  search?: string;
+  artist?: string;
+  tag?: string;
+  afterId?: string;
+  limit?: number;
+}
+
+export interface CatalogFolderNodeRow {
+  id: string;
+  rootId: string;
+  collectionId: string | null;
+  parentId: string | null;
+  name: string;
+  relativePath: string;
+  depth: number;
+}
+
+export type CatalogFacetKind = 'circle' | 'artist' | 'cv' | 'tag';
+
+export interface CatalogFacetRow {
+  value: string;
+  count: number;
+}
