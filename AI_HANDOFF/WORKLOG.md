@@ -1,6 +1,7 @@
-## 2026-09-23 — K2-R1 第一批开发：大库止损与真实库审计工具
+## 2026-09-23 — K2-R1 第一批开发：大库止损、门禁清理与真实库审计工具
 
 - 对 App / ASMR / Music / Index Health 做静态性能审计。
+- 清理后发现 `desktop-smoke-check` 仍依赖已删除的 MVP129/archive/旧 handoff 文件；已重写为 Kura 2.0 当前事实门禁，避免无价值的假 WARN。
 - App 复用 memoized 全库 Track 派生数组，避免历史刷新和队列对账重复 flatMap。
 - ASMR / Music 大型文本搜索索引改为仅在实际搜索时构建。
 - Index Health collection track reference 校验从重复 tracks.some 改为 Set membership。
