@@ -9,6 +9,7 @@
 - 将根 TypeScript 检查范围限定为正式 `src/` 与 Vite 配置，避免未跟踪历史验收副本造成伪失败；不改变 Electron 编译范围、扫描逻辑或媒体文件。
 - 本机隔离验证通过：`lint`、Vite build、Electron build、MVP127/128/129、导入事务 smoke、5 万条音轨合成性能基准。该基准不替代 8TB 真库验收。
 - 用户随后确认 `codex/k2-r0-validation-hygiene` 即上周最新可识别源码分支；远端审查确认该分支没有 Scanner/Library Tree/Player/Importer 等业务源码差异，只有验证卫生、TypeScript 检查范围和交接修复。K2-R0 因此在本分支合并后关闭，下一主任务转为 K2-R1。
+- PR #97 GitHub Actions 暴露新的依赖基线债务：`npm audit` 现报 1 moderate + 7 high（含 Electron 39 间接依赖 `extract-zip`）；本分支未改 package/lockfile，因此不是本次回归。该问题进入 K2-R1 单独评估，禁止为过旧 RC workflow 直接混入 Electron 大版本升级。
 
 
 - U34～U37：架构、Design System、IPC 分域和正式媒体库页面完成。

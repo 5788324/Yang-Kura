@@ -55,6 +55,12 @@ package version on main: 1.0.0-rc.1
 K2-R1 为当前主任务：以现有代码和真实 8TB+ 资源库确认启动、扫描、搜索、滚动、播放和 UI 流程的主要瓶颈，再决定 K2-R2～R8 的实际实现顺序。
 
 
+### P1：依赖安全基线需要刷新
+
+2026-09-23 PR #97 的 Windows workflows 在 `npm audit` 阶段被新的安全公告阻断：当前 lockfile 报告 1 moderate + 7 high。已确认本分支没有修改 `package.json` / `package-lock.json`，因此这是既有依赖基线随时间产生的新债务，不是 K2-R0 diff 引入的回归。
+
+其中包含 Electron 39 间接依赖 `extract-zip` 的 high advisory；npm 给出的全量自动修复会跳到 Electron 44，属于潜在 breaking upgrade。处理原则：纳入 K2-R1 审计并单独做依赖升级任务，不为了让旧 RC workflow 变绿而在 K2-R0 混入大版本升级。
+
 ### P1：8TB+ 大库架构不够长期
 
 现有 Local JSON Index 已经完成过约 50,000 track 合成基准，但用户真实资源规模已经达到 8TB+，后续还会增长。
