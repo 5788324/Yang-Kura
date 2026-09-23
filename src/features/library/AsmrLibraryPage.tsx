@@ -27,6 +27,7 @@ import {
   libraryPerformanceService,
 } from '../../services/libraryPerformanceService';
 import { Button, Dialog, Feedback, MediaCard, Surface, TrackRow } from '../../shared/ui';
+import { useWindowVirtualList } from '../../hooks/useWindowVirtualList';
 import type { Playlist, RJStatus, RJWork } from '../../types';
 
 export interface AsmrLibraryPageProps {
@@ -182,9 +183,16 @@ export default function AsmrLibraryPage({
     setRenderLimit(LARGE_LIBRARY_RENDER_LIMITS.asmrInitial);
   }, [circleFilter, cvFilter, deferredGlobalQuery, deferredLocalQuery, personalStatusFilter, playbackFilter, searchField, sortBy, sourceFilter, subtitleFilter, tagFilter, viewMode]);
 
+  const virtualWorks = useWindowVirtualList(filteredWorks, {
+    enabled: viewMode === 'list',
+    itemHeight: 76,
+    overscan: 8,
+  });
   const visibleWorks = useMemo(
-    () => libraryPerformanceService.sliceRenderWindow(filteredWorks, renderLimit),
-    [filteredWorks, renderLimit],
+    () => viewMode === 'list'
+      ? virtualWorks.items
+      : libraryPerformanceService.sliceRenderWindow(filteredWorks, renderLimit),
+    [filteredWorks, renderLimit, viewMode, virtualWorks.items],
   );
   const renderWindow = useMemo(
     () => libraryPerformanceService.getRenderWindowModel(filteredWorks.length, visibleWorks.length, LARGE_LIBRARY_RENDER_LIMITS.asmrStep, '音声作品'),
@@ -468,7 +476,11 @@ export default function AsmrLibraryPage({
 
       <div id="mvp126-asmr-render-window" className="u37b-render-window">
         <span>{isSearchPending ? '正在更新搜索结果…' : renderWindow.summary}</span>
-        {renderWindow.hasMore ? (
+        {viewMode === 'list' ? (
+          <span data-k2-r4-virtual-window="asmr">
+            虚拟窗口 {virtualWorks.start + (virtualWorks.visibleCount ? 1 : 0)}–{virtualWorks.end} / {filteredWorks.length}
+          </span>
+        ) : renderWindow.hasMore ? (
           <Button variant="ghost" size="sm" onClick={() => setRenderLimit((value) => value + LARGE_LIBRARY_RENDER_LIMITS.asmrStep)}>
             再显示 {renderWindow.nextCount} 项
           </Button>
@@ -535,7 +547,9 @@ export default function AsmrLibraryPage({
           ))}
         </div>
       ) : (
-        <Surface padding="sm" className="u37b-track-list u37b-asmr-list" aria-label="音声作品列表">
+        <div ref={virtualWorks.containerRef} data-k2-r4-virtual-list="asmr">
+          <div aria-hidden="true" style={{ height: virtualWorks.paddingTop }} />
+          <Surface padding="sm" className="u37b-track-list u37b-asmr-list" aria-label="音声作品列表">
           {visibleWorks.map((work) => (
             <TrackRow
               key={work.id}
@@ -567,7 +581,9 @@ export default function AsmrLibraryPage({
               )}
             />
           ))}
-        </Surface>
+          </Surface>
+          <div aria-hidden="true" style={{ height: virtualWorks.paddingBottom }} />
+        </div>
       )}
 
       {feedback ? <div className="u37b-toast" role="status"><Check aria-hidden="true" />{feedback}</div> : null}

@@ -25,6 +25,7 @@ import {
   libraryPerformanceService,
 } from '../../services/libraryPerformanceService';
 import { Button, Feedback, MediaCard, Surface, TrackRow } from '../../shared/ui';
+import { useWindowVirtualList } from '../../hooks/useWindowVirtualList';
 import type { AudioTrack, MusicAlbum } from '../../types';
 
 export interface MusicLibraryPageProps {
@@ -294,10 +295,12 @@ export default function MusicLibraryPage({
     sortMode,
   ]);
 
-  const visibleTracks = useMemo(
-    () => libraryPerformanceService.sliceRenderWindow(currentTracks, renderLimit),
-    [currentTracks, renderLimit],
-  );
+  const trackVirtualWindow = useWindowVirtualList(currentTracks, {
+    enabled: activeView === 'tracks' || Boolean(detail),
+    itemHeight: 72,
+    overscan: 10,
+  });
+  const visibleTracks = trackVirtualWindow.items;
   const visibleAlbums = useMemo(
     () => libraryPerformanceService.sliceRenderWindow(filteredAlbums, renderLimit),
     [filteredAlbums, renderLimit],
@@ -536,7 +539,12 @@ export default function MusicLibraryPage({
     }
 
     return (
-      <div className="u37d-track-list" data-u37d-track-list="ready">
+      <div ref={trackVirtualWindow.containerRef} data-k2-r4-virtual-list="music-tracks">
+        <div className="u37d-render-window" data-k2-r4-virtual-window="music-tracks">
+          虚拟窗口 {trackVirtualWindow.start + (trackVirtualWindow.visibleCount ? 1 : 0)}–{trackVirtualWindow.end} / {tracks.length}
+        </div>
+        <div aria-hidden="true" style={{ height: trackVirtualWindow.paddingTop }} />
+        <div className="u37d-track-list" data-u37d-track-list="ready">
         {visibleTracks.map((track) => (
           <div key={track.id} data-u37d-track-row={track.id}>
             <TrackRow
@@ -559,6 +567,8 @@ export default function MusicLibraryPage({
             />
           </div>
         ))}
+        </div>
+        <div aria-hidden="true" style={{ height: trackVirtualWindow.paddingBottom }} />
       </div>
     );
   };
@@ -834,7 +844,7 @@ export default function MusicLibraryPage({
         {activeView === 'tracks' || detail ? renderTrackList(currentTracks) : renderCollections()}
       </section>
 
-      {renderWindow.hasMore ? (
+      {!(activeView === 'tracks' || detail) && renderWindow.hasMore ? (
         <div className="u37d-load-more">
           <span>{renderWindow.summary}</span>
           <Button size="sm" onClick={() => setRenderLimit((current) => current + currentStep)}>

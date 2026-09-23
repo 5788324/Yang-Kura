@@ -4,8 +4,11 @@ import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { initializeCatalogSchema, KURA_CATALOG_SCHEMA_VERSION } from './catalogSchema.js';
 import type {
+  CatalogCollectionPageQuery,
   CatalogCollectionQuery,
   CatalogCollectionRow,
+  CatalogKeysetCursor,
+  CatalogPage,
   CatalogCounts,
   CatalogFacetKind,
   CatalogFacetRow,
@@ -16,6 +19,7 @@ import type {
   CatalogScanEntry,
   CatalogScanEntryRow,
   CatalogScanRunRecord,
+  CatalogTrackPageQuery,
   CatalogTrackQuery,
   CatalogTrackRow,
   ArtworkCacheRecord,
@@ -77,6 +81,51 @@ function toFtsQuery(value: string): string | null {
   const text = value.trim();
   if (!text) return null;
   return `"${text.replace(/"/g, '""')}"`;
+}
+
+type SearchPlan =
+  | { kind: 'none'; value: null }
+  | { kind: 'unicode'; value: string }
+  | { kind: 'trigram'; value: string }
+  | { kind: 'like'; value: string };
+
+const CJK_PATTERN = /[\u3040-\u30ff\u3400-\u9fff\uf900-\ufaff]/u;
+
+function planSearch(value: string | undefined): SearchPlan {
+  const text = value?.trim().normalize('NFKC') ?? '';
+  if (!text) return { kind: 'none', value: null };
+  if (CJK_PATTERN.test(text)) {
+    return Array.from(text).length >= 3
+      ? { kind: 'trigram', value: toFtsQuery(text) ?? text }
+      : { kind: 'like', value: `%${text}%` };
+  }
+  return { kind: 'unicode', value: toFtsQuery(text) ?? text };
+}
+
+function collectionSearchText(collection: LegacyCatalogCollection, folderPath: string | null): string {
+  return [
+    collection.id,
+    collection.title,
+    collection.sortTitle ?? '',
+    collection.codeNorm ?? collection.codeRaw ?? '',
+    collection.artist ?? '',
+    collection.circle ?? '',
+    ...(collection.cvs ?? []),
+    ...(collection.tags ?? []),
+    folderPath ?? '',
+  ].join('\u0001');
+}
+
+function trackSearchText(track: LegacyCatalogTrack, relativePath: string | null): string {
+  return [
+    track.id,
+    track.title,
+    track.displayArtist ?? '',
+    track.displayAlbum ?? '',
+    track.rjId ?? '',
+    relativePath ?? '',
+    ...(track.tags ?? []),
+  ].join('\u0001');
 }
 
 function validateLegacyIndex(index: LegacyLocalJsonIndex): void {
@@ -254,6 +303,9 @@ export class KuraCatalogDatabase {
         id, collection_id, track_id, source_kind, relative_path, url, is_primary
       ) VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
+    const insertTrackTrigram = database.prepare(
+      'INSERT INTO tracks_fts_trigram (track_id, search_text) VALUES (?, ?)',
+    );
     const insertFolder = database.prepare(`
       INSERT INTO folder_nodes (
         id, root_id, collection_id, parent_id, name, relative_path, depth
@@ -264,6 +316,9 @@ export class KuraCatalogDatabase {
         collection_id, title, sort_title, code, artist, circle, cvs, tags, folder_path
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
+    const insertCollectionTrigram = database.prepare(
+      'INSERT INTO collections_fts_trigram (collection_id, search_text) VALUES (?, ?)',
+    );
     const insertTrackFts = database.prepare(`
       INSERT INTO tracks_fts (
         track_id, title, artist, album, rj_id, relative_path, tags
@@ -276,6 +331,8 @@ export class KuraCatalogDatabase {
         database.exec(`
           DELETE FROM collections_fts;
           DELETE FROM tracks_fts;
+          DELETE FROM collections_fts_trigram;
+          DELETE FROM tracks_fts_trigram;
           DELETE FROM attachments;
           DELETE FROM scan_entries;
           DELETE FROM scan_runs;
@@ -298,6 +355,12 @@ export class KuraCatalogDatabase {
         const deleteCollectionFts = database.prepare(
           'DELETE FROM collections_fts WHERE collection_id IN (SELECT id FROM collections WHERE root_id = ?)',
         );
+        const deleteTrackTrigram = database.prepare(
+          'DELETE FROM tracks_fts_trigram WHERE track_id IN (SELECT id FROM tracks WHERE root_id = ?)',
+        );
+        const deleteCollectionTrigram = database.prepare(
+          'DELETE FROM collections_fts_trigram WHERE collection_id IN (SELECT id FROM collections WHERE root_id = ?)',
+        );
         const deleteFolderNodes = database.prepare('DELETE FROM folder_nodes WHERE root_id = ?');
         const deleteCollections = database.prepare('DELETE FROM collections WHERE root_id = ?');
         const deleteRootMeta = database.prepare('DELETE FROM catalog_meta WHERE key LIKE ?');
@@ -305,6 +368,8 @@ export class KuraCatalogDatabase {
         for (const root of index.roots) {
           deleteTrackFts.run(root.id);
           deleteCollectionFts.run(root.id);
+          deleteTrackTrigram.run(root.id);
+          deleteCollectionTrigram.run(root.id);
           deleteFolderNodes.run(root.id);
           deleteCollections.run(root.id);
           deleteRootMeta.run(`root:${root.id}:%`);
@@ -358,6 +423,7 @@ export class KuraCatalogDatabase {
           joined(collection.tags),
           folderPath ?? '',
         );
+        insertCollectionTrigram.run(collection.id, collectionSearchText(collection, folderPath));
       }
 
       for (const track of index.tracks) {
@@ -399,6 +465,7 @@ export class KuraCatalogDatabase {
           relativePath ?? '',
           joined(track.tags),
         );
+        insertTrackTrigram.run(track.id, trackSearchText(track, relativePath));
       }
 
       for (const subtitle of mergeLegacySubtitles(index)) {
@@ -814,32 +881,54 @@ export class KuraCatalogDatabase {
   }
 
   queryCollections(options: CatalogCollectionQuery = {}): CatalogCollectionRow[] {
-    const clauses = ['c.id > ?'];
-    const params: Array<string | number> = [options.afterId ?? ''];
-    const joins: string[] = [];
-    const match = options.search ? toFtsQuery(options.search) : null;
+    return this.pageCollections({
+      ...options,
+      sort: 'id-asc',
+      cursor: options.afterId ? { sortValue: options.afterId, id: options.afterId } : null,
+    }).items;
+  }
 
-    if (match) {
-      joins.push('JOIN collections_fts ON collections_fts.collection_id = c.id');
+  queryTracks(options: CatalogTrackQuery = {}): CatalogTrackRow[] {
+    return this.pageTracks({
+      ...options,
+      sort: 'id-asc',
+      cursor: options.afterId ? { sortValue: options.afterId, id: options.afterId } : null,
+    }).items;
+  }
+
+  pageCollections(options: CatalogCollectionPageQuery = {}): CatalogPage<CatalogCollectionRow> {
+    const joins: string[] = [];
+    const clauses: string[] = [];
+    const params: Array<string | number> = [];
+    const search = planSearch(options.search);
+
+    if (search.kind === 'unicode') {
+      joins.push('JOIN collections_fts ftu ON ftu.collection_id = c.id');
       clauses.push('collections_fts MATCH ?');
-      params.push(match);
+      params.push(search.value);
+    } else if (search.kind === 'trigram') {
+      joins.push('JOIN collections_fts_trigram ftt ON ftt.collection_id = c.id');
+      clauses.push('collections_fts_trigram MATCH ?');
+      params.push(search.value);
+    } else if (search.kind === 'like') {
+      clauses.push(`(
+        c.title LIKE ?
+        OR COALESCE(c.sort_title, '') LIKE ?
+        OR COALESCE(c.code_norm, '') LIKE ?
+        OR COALESCE(c.code_raw, '') LIKE ?
+        OR COALESCE(c.artist, '') LIKE ?
+        OR COALESCE(c.circle, '') LIKE ?
+        OR COALESCE(c.folder_path, '') LIKE ?
+        OR EXISTS (SELECT 1 FROM collection_cvs scv WHERE scv.collection_id = c.id AND scv.value LIKE ?)
+        OR EXISTS (SELECT 1 FROM collection_tags stg WHERE stg.collection_id = c.id AND stg.value LIKE ?)
+      )`);
+      for (let i = 0; i < 9; i += 1) params.push(search.value);
     }
-    if (options.rootId) {
-      clauses.push('c.root_id = ?');
-      params.push(options.rootId);
-    }
-    if (options.collectionType) {
-      clauses.push('c.collection_type = ?');
-      params.push(options.collectionType);
-    }
-    if (options.circle) {
-      clauses.push('c.circle = ?');
-      params.push(options.circle);
-    }
-    if (options.artist) {
-      clauses.push('c.artist = ?');
-      params.push(options.artist);
-    }
+
+    if (options.rootId) { clauses.push('c.root_id = ?'); params.push(options.rootId); }
+    if (options.collectionType) { clauses.push('c.collection_type = ?'); params.push(options.collectionType); }
+    if (options.circle) { clauses.push('c.circle = ?'); params.push(options.circle); }
+    if (options.artist) { clauses.push('c.artist = ?'); params.push(options.artist); }
     if (options.cv) {
       clauses.push('EXISTS (SELECT 1 FROM collection_cvs cv WHERE cv.collection_id = c.id AND cv.value = ?)');
       params.push(options.cv);
@@ -849,10 +938,26 @@ export class KuraCatalogDatabase {
       params.push(options.tag);
     }
 
-    const safeLimit = Math.max(1, Math.min(Math.floor(options.limit ?? 100), 500));
-    params.push(safeLimit);
+    const sort = options.sort ?? 'id-asc';
+    const spec = sort === 'title-asc'
+      ? { expression: "COALESCE(NULLIF(c.sort_title, ''), c.title)", direction: 'ASC', idDirection: 'ASC' }
+      : sort === 'added-desc'
+        ? { expression: "COALESCE(c.added_at, '')", direction: 'DESC', idDirection: 'DESC' }
+        : sort === 'duration-desc'
+          ? { expression: 'COALESCE(c.total_duration_seconds, 0)', direction: 'DESC', idDirection: 'DESC' }
+          : { expression: 'c.id', direction: 'ASC', idDirection: 'ASC' };
 
-    return this.database.prepare(`
+    if (options.cursor) {
+      const op = spec.direction === 'ASC' ? '>' : '<';
+      const idOp = spec.idDirection === 'ASC' ? '>' : '<';
+      clauses.push(`(${spec.expression} ${op} ? OR (${spec.expression} = ? AND c.id ${idOp} ?))`);
+      params.push(options.cursor.sortValue, options.cursor.sortValue, options.cursor.id);
+    }
+
+    const limit = Math.max(1, Math.min(Math.trunc(options.limit ?? 100), 500));
+    params.push(limit + 1);
+    const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    const rows = this.database.prepare(`
       SELECT
         c.id,
         c.root_id AS rootId,
@@ -861,51 +966,84 @@ export class KuraCatalogDatabase {
         c.code_norm AS codeNorm,
         c.artist,
         c.circle,
-        c.folder_path AS folderPath
+        c.folder_path AS folderPath,
+        ${spec.expression} AS __sortValue
       FROM collections c
       ${joins.join('\n')}
-      WHERE ${clauses.join(' AND ')}
-      ORDER BY c.id
+      ${where}
+      ORDER BY ${spec.expression} ${spec.direction}, c.id ${spec.idDirection}
       LIMIT ?
-    `).all(...params) as unknown as CatalogCollectionRow[];
+    `).all(...params) as unknown as Array<CatalogCollectionRow & { __sortValue: string | number }>;
+
+    const hasMore = rows.length > limit;
+    const visible = rows.slice(0, limit);
+    const last = visible.at(-1);
+    return {
+      items: visible.map(({ __sortValue: _value, ...row }) => row),
+      hasMore,
+      nextCursor: hasMore && last
+        ? { sortValue: last.__sortValue, id: last.id } satisfies CatalogKeysetCursor
+        : null,
+    };
   }
 
-  queryTracks(options: CatalogTrackQuery = {}): CatalogTrackRow[] {
-    const clauses = ['t.id > ?'];
-    const params: Array<string | number> = [options.afterId ?? ''];
+  pageTracks(options: CatalogTrackPageQuery = {}): CatalogPage<CatalogTrackRow> {
     const joins: string[] = [];
-    const match = options.search ? toFtsQuery(options.search) : null;
+    const clauses: string[] = [];
+    const params: Array<string | number> = [];
+    const search = planSearch(options.search);
 
-    if (match) {
-      joins.push('JOIN tracks_fts ON tracks_fts.track_id = t.id');
+    if (search.kind === 'unicode') {
+      joins.push('JOIN tracks_fts ftu ON ftu.track_id = t.id');
       clauses.push('tracks_fts MATCH ?');
-      params.push(match);
+      params.push(search.value);
+    } else if (search.kind === 'trigram') {
+      joins.push('JOIN tracks_fts_trigram ftt ON ftt.track_id = t.id');
+      clauses.push('tracks_fts_trigram MATCH ?');
+      params.push(search.value);
+    } else if (search.kind === 'like') {
+      clauses.push(`(
+        t.title LIKE ?
+        OR COALESCE(t.display_artist, '') LIKE ?
+        OR COALESCE(t.display_album, '') LIKE ?
+        OR COALESCE(t.rj_id, '') LIKE ?
+        OR EXISTS (SELECT 1 FROM media_sources src WHERE src.track_id = t.id AND COALESCE(src.relative_path, '') LIKE ?)
+        OR EXISTS (SELECT 1 FROM track_tags tag WHERE tag.track_id = t.id AND tag.value LIKE ?)
+      )`);
+      for (let i = 0; i < 6; i += 1) params.push(search.value);
     }
-    if (options.rootId) {
-      clauses.push('t.root_id = ?');
-      params.push(options.rootId);
-    }
-    if (options.collectionId) {
-      clauses.push('t.collection_id = ?');
-      params.push(options.collectionId);
-    }
-    if (options.kind) {
-      clauses.push('t.kind = ?');
-      params.push(options.kind);
-    }
-    if (options.artist) {
-      clauses.push('t.display_artist = ?');
-      params.push(options.artist);
-    }
+
+    if (options.rootId) { clauses.push('t.root_id = ?'); params.push(options.rootId); }
+    if (options.collectionId) { clauses.push('t.collection_id = ?'); params.push(options.collectionId); }
+    if (options.kind) { clauses.push('t.kind = ?'); params.push(options.kind); }
+    if (options.artist) { clauses.push('t.display_artist = ?'); params.push(options.artist); }
     if (options.tag) {
-      clauses.push('EXISTS (SELECT 1 FROM track_tags tag WHERE tag.track_id = t.id AND tag.value = ?)');
+      clauses.push('EXISTS (SELECT 1 FROM track_tags tag_filter WHERE tag_filter.track_id = t.id AND tag_filter.value = ?)');
       params.push(options.tag);
     }
 
-    const safeLimit = Math.max(1, Math.min(Math.floor(options.limit ?? 200), 500));
-    params.push(safeLimit);
+    const sort = options.sort ?? 'id-asc';
+    const spec = sort === 'title-asc'
+      ? { expression: 't.title', direction: 'ASC', idDirection: 'ASC' }
+      : sort === 'album-asc'
+        ? { expression: "COALESCE(t.display_album, '')", direction: 'ASC', idDirection: 'ASC' }
+        : sort === 'added-desc'
+          ? { expression: "COALESCE(t.added_at, '')", direction: 'DESC', idDirection: 'DESC' }
+          : sort === 'duration-desc'
+            ? { expression: 'COALESCE(t.duration_seconds, 0)', direction: 'DESC', idDirection: 'DESC' }
+            : { expression: 't.id', direction: 'ASC', idDirection: 'ASC' };
 
-    return this.database.prepare(`
+    if (options.cursor) {
+      const op = spec.direction === 'ASC' ? '>' : '<';
+      const idOp = spec.idDirection === 'ASC' ? '>' : '<';
+      clauses.push(`(${spec.expression} ${op} ? OR (${spec.expression} = ? AND t.id ${idOp} ?))`);
+      params.push(options.cursor.sortValue, options.cursor.sortValue, options.cursor.id);
+    }
+
+    const limit = Math.max(1, Math.min(Math.trunc(options.limit ?? 200), 500));
+    params.push(limit + 1);
+    const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    const rows = this.database.prepare(`
       SELECT
         t.id,
         t.root_id AS rootId,
@@ -921,13 +1059,25 @@ export class KuraCatalogDatabase {
           WHERE s.track_id = t.id
           ORDER BY CASE WHEN s.availability = 'available' THEN 0 ELSE 1 END, s.id
           LIMIT 1
-        ) AS relativePath
+        ) AS relativePath,
+        ${spec.expression} AS __sortValue
       FROM tracks t
       ${joins.join('\n')}
-      WHERE ${clauses.join(' AND ')}
-      ORDER BY t.id
+      ${where}
+      ORDER BY ${spec.expression} ${spec.direction}, t.id ${spec.idDirection}
       LIMIT ?
-    `).all(...params) as unknown as CatalogTrackRow[];
+    `).all(...params) as unknown as Array<CatalogTrackRow & { __sortValue: string | number }>;
+
+    const hasMore = rows.length > limit;
+    const visible = rows.slice(0, limit);
+    const last = visible.at(-1);
+    return {
+      items: visible.map(({ __sortValue: _value, ...row }) => row),
+      hasMore,
+      nextCursor: hasMore && last
+        ? { sortValue: last.__sortValue, id: last.id } satisfies CatalogKeysetCursor
+        : null,
+    };
   }
 
   listFolderChildren(rootId: string, parentRelativePath: string | null = null, limit = 500): CatalogFolderNodeRow[] {
@@ -1020,54 +1170,11 @@ export class KuraCatalogDatabase {
   }
 
   searchCollections(query: string, limit = 50): CatalogCollectionRow[] {
-    const match = toFtsQuery(query);
-    if (!match) return [];
-    const safeLimit = Math.max(1, Math.min(Math.floor(limit), 200));
-    return this.database.prepare(`
-      SELECT
-        c.id,
-        c.root_id AS rootId,
-        c.collection_type AS collectionType,
-        c.title,
-        c.code_norm AS codeNorm,
-        c.artist,
-        c.circle,
-        c.folder_path AS folderPath
-      FROM collections_fts f
-      JOIN collections c ON c.id = f.collection_id
-      WHERE collections_fts MATCH ?
-      ORDER BY bm25(collections_fts), c.id
-      LIMIT ?
-    `).all(match, safeLimit) as unknown as CatalogCollectionRow[];
+    return this.pageCollections({ search: query, limit, sort: 'id-asc' }).items;
   }
 
   searchTracks(query: string, limit = 50): CatalogTrackRow[] {
-    const match = toFtsQuery(query);
-    if (!match) return [];
-    const safeLimit = Math.max(1, Math.min(Math.floor(limit), 200));
-    return this.database.prepare(`
-      SELECT
-        t.id,
-        t.root_id AS rootId,
-        t.collection_id AS collectionId,
-        t.kind,
-        t.title,
-        t.display_artist AS artist,
-        t.display_album AS album,
-        t.rj_id AS rjId,
-        (
-          SELECT s.relative_path
-          FROM media_sources s
-          WHERE s.track_id = t.id
-          ORDER BY CASE WHEN s.availability = 'available' THEN 0 ELSE 1 END, s.id
-          LIMIT 1
-        ) AS relativePath
-      FROM tracks_fts f
-      JOIN tracks t ON t.id = f.track_id
-      WHERE tracks_fts MATCH ?
-      ORDER BY bm25(tracks_fts), t.id
-      LIMIT ?
-    `).all(match, safeLimit) as unknown as CatalogTrackRow[];
+    return this.pageTracks({ search: query, limit, sort: 'id-asc' }).items;
   }
 
   listTracksByCollection(collectionId: string, afterId = '', limit = 200): CatalogTrackRow[] {

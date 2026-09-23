@@ -106,3 +106,18 @@ Desktop 2.0 稳定前不启动：
 - 云同步
 - 插件市场
 - AI Agent 大功能
+
+## K2-R4 — CORE IMPLEMENTED / CI PENDING
+
+- [x] Schema v3 trigram FTS
+- [x] CJK 3+ substring search
+- [x] CJK 1–2 char DB fallback
+- [x] ASCII / RJ unicode61 FTS
+- [x] Collection stable keyset pagination
+- [x] Track stable keyset pagination
+- [x] ASMR list virtual window
+- [x] Music track/detail virtual window
+- [x] K2-R4 query + virtualization regression
+- [ ] Windows CI
+- [ ] Catalog Query IPC + Renderer page adapter
+- [ ] E:\\arsm query/scroll evidence

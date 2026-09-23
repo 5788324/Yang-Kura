@@ -255,3 +255,27 @@ export interface ArtworkCacheRecord {
   errorCode: string | null;
   updatedAt: string;
 }
+
+export type CatalogCollectionSort = 'id-asc' | 'title-asc' | 'added-desc' | 'duration-desc';
+export type CatalogTrackSort = 'id-asc' | 'title-asc' | 'album-asc' | 'added-desc' | 'duration-desc';
+
+export interface CatalogKeysetCursor {
+  sortValue: string | number;
+  id: string;
+}
+
+export interface CatalogPage<T> {
+  items: T[];
+  hasMore: boolean;
+  nextCursor: CatalogKeysetCursor | null;
+}
+
+export interface CatalogCollectionPageQuery extends Omit<CatalogCollectionQuery, 'afterId'> {
+  sort?: CatalogCollectionSort;
+  cursor?: CatalogKeysetCursor | null;
+}
+
+export interface CatalogTrackPageQuery extends Omit<CatalogTrackQuery, 'afterId'> {
+  sort?: CatalogTrackSort;
+  cursor?: CatalogKeysetCursor | null;
+}

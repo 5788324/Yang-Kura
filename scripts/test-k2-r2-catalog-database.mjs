@@ -150,7 +150,7 @@ const fixture = {
 
 const catalog = new KuraCatalogDatabase(databasePath);
 try {
-  if (catalog.getSchemaVersion() !== 2) throw new Error('schema version mismatch');
+  if (catalog.getSchemaVersion() !== 3) throw new Error('schema version mismatch');
 
   const summary = catalog.replaceFromLegacyIndex(fixture);
   const expectedCounts = {

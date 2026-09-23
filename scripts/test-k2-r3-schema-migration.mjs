@@ -48,14 +48,17 @@ try {
     `);
 
     const version = initializeCatalogSchema(database);
-    if (version !== 2) throw new Error(`expected schema 2, got ${version}`);
+    if (version !== 3) throw new Error(`expected schema 3, got ${version}`);
 
     const columns = database.prepare('PRAGMA table_info(scan_runs)').all().map((row) => row.name);
     for (const required of ['checkpoint_relative_path', 'resume_count', 'cancelled_at', 'error_message']) {
       if (!columns.includes(required)) throw new Error(`missing migrated scan_runs column: ${required}`);
     }
     const table = database.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='artwork_cache'").get();
-    if (!table) throw new Error('artwork_cache table missing after v1 -> v2 migration');
+    if (!table) throw new Error('artwork_cache table missing after v1 -> v3 migration');
+    const cjkCollections = database.prepare("SELECT name FROM sqlite_master WHERE name='collections_fts_trigram'").get();
+    const cjkTracks = database.prepare("SELECT name FROM sqlite_master WHERE name='tracks_fts_trigram'").get();
+    if (!cjkCollections || !cjkTracks) throw new Error('schema v3 trigram FTS tables missing');
   } finally {
     database.close();
   }

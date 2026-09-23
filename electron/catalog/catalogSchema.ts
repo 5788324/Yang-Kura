@@ -1,6 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 
-export const KURA_CATALOG_SCHEMA_VERSION = 2;
+export const KURA_CATALOG_SCHEMA_VERSION = 3;
 
 const SCHEMA_V1 = `
 CREATE TABLE IF NOT EXISTS catalog_meta (
@@ -257,9 +257,24 @@ CREATE INDEX IF NOT EXISTS artwork_cache_state
   ON artwork_cache(root_id, state, updated_at DESC);
 `;
 
+const SCHEMA_V3 = `
+CREATE VIRTUAL TABLE IF NOT EXISTS collections_fts_trigram USING fts5(
+  collection_id UNINDEXED,
+  search_text,
+  tokenize='trigram'
+);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS tracks_fts_trigram USING fts5(
+  track_id UNINDEXED,
+  search_text,
+  tokenize='trigram'
+);
+`;
+
 const MIGRATIONS = new Map<number, string>([
   [1, SCHEMA_V1],
   [2, SCHEMA_V2],
+  [3, SCHEMA_V3],
 ]);
 
 function readUserVersion(database: DatabaseSync): number {

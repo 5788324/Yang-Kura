@@ -1,3 +1,14 @@
+## 2026-09-23 — K2-R4 Core batch
+
+- 按单批 Git 流程开发；本批只做可独立验证的 R4 Core，不把 IPC/Primary Read 一次塞进同一改动。
+- Schema v3 新增 Collection/Track FTS5 trigram。
+- 搜索策略：ASCII/RJ=unicode61；CJK>=3 chars=trigram；CJK 1-2 chars=DB LIKE fallback。
+- Collections 增加 id/title/added/duration stable keyset pagination；Tracks 增加 id/title/album/added/duration stable keyset pagination；cursor=sortValue+id，不用大 OFFSET。
+- ASMR list mode、Music track/detail 接入 Window virtual list；viewport+overscan+spacer 控制实际 DOM 行数。
+- Grid 继续 bounded render window，等待 K2-R5 新网格视觉时一起做 grid virtualization。
+- 新增 K2-R4 query/pagination 与 virtualization regression。
+- K2-R3 已在 main@c56dd3d... Windows 全绿；真实 E:\\arsm 门禁稍后合并执行。
+
 ## 2026-09-23 — K2-R3 Incremental Scanner + Artwork Cache batch implementation
 
 - 按用户要求切换 Git 节奏：本轮集中读取、集中开发、静态复核后只做一个 commit/push；不再按小修复连续推送。
