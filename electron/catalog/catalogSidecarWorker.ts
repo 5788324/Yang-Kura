@@ -46,12 +46,13 @@ async function run(): Promise<void> {
   }
 
   const catalog = new KuraCatalogDatabase(payload.databasePath);
+  let summary: unknown;
   try {
-    const summary = catalog.upsertFromLegacyIndex(parsed.value as LegacyLocalJsonIndex);
-    post({ ok: true, code: 'SYNCED', summary });
+    summary = catalog.upsertFromLegacyIndex(parsed.value as LegacyLocalJsonIndex);
   } finally {
     catalog.close();
   }
+  post({ ok: true, code: 'SYNCED', summary });
 }
 
 run().catch((error) => {

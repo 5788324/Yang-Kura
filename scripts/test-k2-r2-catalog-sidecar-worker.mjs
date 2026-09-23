@@ -62,10 +62,17 @@ function runWorker(expectedSha256) {
     const worker = new Worker(new URL('../dist-electron/catalog/catalogSidecarWorker.js', import.meta.url), {
       workerData: { databasePath, indexPath, expectedSha256 },
     });
-    worker.once('message', resolve);
+    let result;
+    worker.once('message', (message) => {
+      result = message;
+    });
     worker.once('error', reject);
     worker.once('exit', (code) => {
-      if (code !== 0) reject(new Error(`worker exited ${code}`));
+      if (code !== 0) {
+        reject(new Error(`worker exited ${code}`));
+        return;
+      }
+      resolve(result);
     });
   });
 }

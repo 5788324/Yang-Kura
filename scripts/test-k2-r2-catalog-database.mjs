@@ -249,7 +249,12 @@ try {
   if (scopedSummary.roots !== 2 || scopedSummary.collections !== 2 || scopedSummary.tracks !== 2) {
     throw new Error(`root-scoped import damaged another root: ${JSON.stringify(scopedSummary)}`);
   }
-  if (catalog.searchCollections('夜色', 10)[0]?.id !== 'album-001') {
+  const preservedMusic = catalog.queryCollections({
+    collectionType: 'music_album',
+    artist: 'Artist A',
+    limit: 10,
+  });
+  if (preservedMusic.length !== 1 || preservedMusic[0]?.id !== 'album-001') {
     throw new Error('music root disappeared after ASMR root refresh');
   }
   if (catalog.searchCollections('更新后的耳语', 10)[0]?.id !== 'rj-002') {
