@@ -27,10 +27,13 @@ public tag: v1.0.0-rc.1
 
 因此：
 
-- K2-R0 在该分支合并后关闭；
-- GitHub `main` 重新成为唯一代码真源；
-- 当前主任务切换为 **K2-R1 Desktop 2.0 真实使用 + 8TB 大库审计**；
-- Android / OpenList 继续冻结。
+- K2-R0 已关闭；
+- GitHub `main` 是唯一代码真源；
+- K2-R2 SQLite Catalog foundation 已完成；
+- K2-R3 Incremental Scanner + Artwork backend 已完成，真实库验收后置 K2-R9；
+- K2-R4 Query / Pagination / Virtualization / Catalog IPC 已完成并通过 Windows CI；
+- 当前主任务是 **K2-R5 Desktop 2.0 Design System + UI/UX**；
+- Android 正式开发仍冻结，但允许同步设计 Android UI/Compose mapping。
 
 
 ## 4. 产品硬要求
@@ -89,18 +92,18 @@ RJ/长音频体验参考：KikoFlu、Kikoeru、Voice、Audiobookshelf。
 
 ```text
 K2-R0  已完成：最新源码 ↔ GitHub 对账
-K2-R1  ACTIVE：真实使用 + 8TB 大库审计
-K2-R2  SQLite / FTS5 Core
-K2-R3  增量 Scanner + Thumbnail Cache
-K2-R4  大库查询 / 分页 / 虚拟化
-K2-R5  新 Design System + App Shell
+K2-R1  审计证据持续补充
+K2-R2  COMPLETE：SQLite / FTS5 Core
+K2-R3  BACKEND COMPLETE：增量 Scanner + Thumbnail Cache
+K2-R4  FUNCTIONAL COMPLETE：大库查询 / 分页 / 虚拟化
+K2-R5  ACTIVE：新 Design System + App Shell
 K2-R6  音乐库重做
 K2-R7  音声库重做
 K2-R8  Player / Lyrics / Motion 收口
 K2-R9  8TB 实库验收
 ```
 
-只有 K2-R9 以后才解冻 OpenList / Android。
+只有 K2-R9 以后才解冻 OpenList / Android **正式开发**。K2-R5 期间允许 Android 视觉方案、Design Token 和 Compose component mapping。
 
 ## 7. 后续 Android / OpenList 方向（当前冻结）
 
@@ -140,10 +143,11 @@ K2-R0 完成后，代码仍必须回归 GitHub。
 
 1. `START_HERE.md`
 2. 本文
-3. `PROJECT_STATE.md`
-4. `TASKS.md`
-5. `PROJECT_ROADMAP.md`
-6. 需要历史原因时再读 `AI_HANDOFF/WORKLOG.md`
+3. `AI_HANDOFF/K2_R5_UI_MULTI_MODEL_HANDOFF.md`（K2-R5期间）
+4. `PROJECT_STATE.md`
+5. `TASKS.md`
+6. `PROJECT_ROADMAP.md`
+7. 需要历史原因时再读 `AI_HANDOFF/WORKLOG.md`
 
 ## 10. 接手后禁止立即做的事
 

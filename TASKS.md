@@ -88,7 +88,7 @@
 - [x] Main stage visual layer
 - [x] Player dock visual upgrade
 - [x] Grid content-visibility baseline
-- [ ] K2-R5.1 Windows CI
+- [x] K2-R5.1 Windows CI
 - [ ] Shared UI primitives visual unification
 - [ ] Home redesign
 - [ ] ASMR library visual redesign
@@ -138,3 +138,21 @@ Desktop 2.0 稳定前不启动：
 - [x] Catalog summary query
 - [x] Primary Read Gate: schema + root collection/track parity
 - [x] JSON automatic fallback when gate is not ready
+
+## K2-R5 MULTI-MODEL UI COLLAB — ACTIVE
+
+- [x] 固定 4 模型职责与额度策略
+- [x] 固定 3 Design Modes：Midnight Glass / Studio Graphite / Aurora Dream
+- [x] Desktop/Android 共享 Design Language、不同布局原则
+- [x] Claude Sonnet 5 prompt
+- [x] Kimi K3 prompt
+- [x] Gemini 3.8 Flash QA prompt
+- [x] GPT-6 Integrator prompt
+- [x] UI 多模型交接文件
+- [ ] Claude 方案回收并入库
+- [ ] Kimi 方案回收并入库
+- [ ] Gemini 对 Claude/Kimi 做交叉审查
+- [ ] GPT-6 输出唯一 Design Decision
+- [ ] Theme Delta Matrix
+- [ ] Android Compose Mapping
+- [ ] K2-R5.2 Shared UI + Home / Music / ASMR 实现

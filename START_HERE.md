@@ -11,11 +11,12 @@ ChatGPT 网页端经常因上下文上限被迫新开对话。**不要依赖旧�
 请严格按顺序读取：
 
 1. `AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md`
-2. `PROJECT_STATE.md`
-3. `TASKS.md`
-4. `PROJECT_ROADMAP.md`
-5. `README.md`
-6. 只有需要历史原因时才读取 `AI_HANDOFF/WORKLOG.md`
+2. `AI_HANDOFF/K2_R5_UI_MULTI_MODEL_HANDOFF.md`（K2-R5 期间必读）
+3. `PROJECT_STATE.md`
+4. `TASKS.md`
+5. `PROJECT_ROADMAP.md`
+6. `README.md`
+7. 只有需要历史原因时才读取 `AI_HANDOFF/WORKLOG.md`
 
 ## 文档职责 / 冲突优先级
 
@@ -38,7 +39,7 @@ ChatGPT 网页端经常因上下文上限被迫新开对话。**不要依赖旧�
 - U42 / PR #94：已合并
 - 公开版本：`1.0.0-rc.1`
 - K2-R0 已收口：用户确认 `codex/k2-r0-validation-hygiene` 是上周最新可识别源码；审查未发现额外业务源码。
-- 当前主任务：**K2-R1 Desktop 2.0 真实使用 + 8TB 大库审计**。
+- K2-R2～R4 基础能力已完成；当前主任务：**K2-R5 Desktop 2.0 UI/UX Design System**。
 - 用户真实音声库已 **8TB+** 且还会继续增长。
 - 用户对现有 Desktop 成熟度与顺滑度不满意，要求 Desktop 2.0。
 - UI 是硬要求：**好看、惊艳、成熟**。

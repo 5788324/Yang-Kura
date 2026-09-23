@@ -1,3 +1,13 @@
+## 2026-09-23 — K2-R5 Multi-Model UI Collaboration
+
+- 用户确认可使用 GPT-6 / Kimi K3 / Claude Sonnet 5 / Gemini 3.8 Flash；除 GPT-6 外额度较少。
+- 协作改为单集成者：GPT-6 负责最终设计裁决、代码、测试、Git；其他模型不直接各自修改 main。
+- Claude 只做 1 次完整视觉提案 + 1 次最终截图总审；Kimi 只做 1 次独立 Design System / Android mapping + 1 次一致性审查；Gemini Flash 用于批量低成本 QA。
+- 三 Design Modes 固定研究：Midnight Glass / Studio Graphite / Aurora Dream；明确必须在 Material、Density、Player、Navigation、Motion、Artwork 上存在结构差异，不接受换色主题。
+- Android 只做设计和 Compose mapping，正式工程继续冻结到 Desktop 2.0 稳定后。
+- 新增 workflow/prompts/handoff 文件；K2-R5 期间新对话必须读取 UI 多模型交接。
+- 外部模型结果只有写入 docs/ui-lab/k2-r5 后才视为正式交接。
+
 ## 2026-09-23 — K2-R4 PASS → K2-R5.1 Midnight Glass
 
 - main@616740a Windows Branch Validation 全绿：build / K2-R2 / K2-R3 / K2-R4 Query / K2-R4 Catalog IPC / Electron Journey / Stable Regression 全 PASS。

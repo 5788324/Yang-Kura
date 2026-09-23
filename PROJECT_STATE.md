@@ -182,3 +182,27 @@ RJ 侧保持 Work / Circle / CV / Tags / Folder Tree / Subtitle / Attachment / P
 - Drive 不作为长期代码真源。
 - K2-R0 完成后，新的统一源码必须重新回到 GitHub。
 
+
+## 9. K2-R5 多模型 UI 协作
+
+2026-09-23 起，K2-R5 采用多模型但单集成者模式：
+
+- GPT-6：唯一主集成者、最终设计裁决和源码实现；
+- Claude Sonnet 5：高价值视觉方向与最终截图审查；
+- Kimi K3：独立 UI System 方案与长上下文一致性审查；
+- Gemini 3.8 Flash：低成本批量 UI QA。
+
+三 Design Modes：
+
+- Midnight Glass；
+- Studio Graphite；
+- Aurora Dream。
+
+主题必须允许 Material / Density / Navigation presentation / Player geometry / Motion / Artwork treatment 等结构差异，不接受单纯换色。
+
+Android 当前只做视觉规范和 Compose mapping，正式开发继续冻结。
+
+详细流程：
+- `docs/K2_R5_MULTI_MODEL_UI_WORKFLOW.md`
+- `docs/K2_R5_MODEL_PROMPTS.md`
+- `AI_HANDOFF/K2_R5_UI_MULTI_MODEL_HANDOFF.md`

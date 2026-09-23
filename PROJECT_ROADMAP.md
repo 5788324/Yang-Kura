@@ -110,6 +110,9 @@ Android、OpenList、Downloader、转录、云同步在 Desktop 2.0 稳定前不
 ## K2-R5 — 全新 Design System + App Shell【ACTIVE】
 
 任务：
+- 多模型 UI 设计探索：GPT-6 + Claude Sonnet 5 + Kimi K3 + Gemini 3.8 Flash；
+- 3 Design Modes：Midnight Glass / Studio Graphite / Aurora Dream；
+- Desktop 与 Android 共享 Design Language，但不共用错误的平台布局；
 - 重新定义视觉语言、Typography、Spacing、Motion、Material；
 - Sidebar / TopBar / Search / PlayerBar；
 - Light/Dark；
