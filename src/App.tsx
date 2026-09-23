@@ -445,7 +445,8 @@ export default function App() {
   return (
     <div
       data-u30-theme={settings.currentTheme}
-      className={`u32-release-ui h-screen w-screen min-w-0 flex flex-col theme-${settings.currentTheme} transition-all duration-300 overflow-hidden`}
+      data-k2-desktop-shell="midnight-glass"
+      className={`k2-desktop-shell u32-release-ui h-screen w-screen min-w-0 flex flex-col theme-${settings.currentTheme} transition-all duration-300 overflow-hidden`}
     >
       <TopBar librarySessionSnapshot={librarySessionSnapshot} />
 
@@ -462,7 +463,7 @@ export default function App() {
 
         <main
           ref={mainContentRef}
-          className="flex-1 min-w-0 h-full overflow-y-auto overflow-x-hidden scrollbar-thin px-4 md:px-6 xl:px-8 py-4 md:py-5 pb-24 bg-bg-primary"
+          className="k2-main-stage flex-1 min-w-0 h-full overflow-y-auto overflow-x-hidden scrollbar-thin px-4 md:px-6 xl:px-8 py-4 md:py-5 pb-24"
         >
           <AppRouter
             currentPage={currentPage}

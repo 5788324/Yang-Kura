@@ -78,11 +78,23 @@
 - [x] real-library acceptance script（media read-only / temp DB）
 - [ ] real E:\\arsm first + second scan evidence
 
-## PARALLEL DESIGN — K2-R5
+## ACTIVE — K2-R5 Desktop 2.0 Design System
 
-- [ ] UI benchmark / 2–3 visual directions
-- [ ] new Design System / App Shell prototype
-- [ ] no production UI cutover until selected direction is fixed
+- [x] Visual direction fixed：Midnight Glass
+- [x] ASMR / Music fixed as first-class media navigation
+- [x] Desktop 2.0 shell token and ambient background
+- [x] Sidebar information hierarchy redesign
+- [x] TopBar visual/status redesign
+- [x] Main stage visual layer
+- [x] Player dock visual upgrade
+- [x] Grid content-visibility baseline
+- [ ] K2-R5.1 Windows CI
+- [ ] Shared UI primitives visual unification
+- [ ] Home redesign
+- [ ] ASMR library visual redesign
+- [ ] Music library visual redesign
+- [ ] detail / immersive player polish
+- [ ] Windows screenshot visual QA
 
 ## NEXT
 
@@ -118,7 +130,7 @@ Desktop 2.0 稳定前不启动：
 - [x] ASMR list virtual window
 - [x] Music track/detail virtual window
 - [x] K2-R4 query + virtualization regression
-- [ ] Windows CI
+- [x] Windows CI
 - [x] Catalog Query IPC + Renderer query adapter
 - [ ] E:\\arsm query/scroll evidence
 

@@ -8,45 +8,39 @@ export default function TopBar({ librarySessionSnapshot }: TopBarProps) {
   const selectedRootCount = Object.keys(librarySessionSnapshot.selectedRoots).length;
   const attempt = librarySessionSnapshot.lastReadAttempt;
   const status = attempt?.status === 'reading'
-    ? '正在读取资源库…'
+    ? '正在读取资源库'
     : attempt?.status === 'timed-out'
-      ? '读取等待超时，可重试'
+      ? '读取超时，可重试'
       : attempt?.status === 'interrupted'
-        ? '读取未完成，可重试'
+        ? '读取未完成'
         : attempt?.status === 'failed'
           ? '资源库读取失败'
           : librarySessionSnapshot.lastIndex
-            ? `已加载 ${librarySessionSnapshot.lastIndex.trackCount} 条音轨`
+            ? `${librarySessionSnapshot.lastIndex.trackCount} 条音轨已就绪`
             : selectedRootCount > 0
               ? '资源库待读取'
-              : '尚未选择资源库';
-  const tone = attempt?.status === 'reading'
-    ? 'text-sky-500'
+              : '等待连接资源库';
+  const state = attempt?.status === 'reading'
+    ? 'reading'
     : attempt && ['timed-out', 'interrupted', 'failed'].includes(attempt.status)
-      ? 'text-amber-500'
+      ? 'warning'
       : librarySessionSnapshot.lastIndex
-        ? 'text-emerald-500'
+        ? 'ready'
         : selectedRootCount > 0
-          ? 'text-amber-500'
-          : 'text-text-muted';
-  const dot = attempt?.status === 'reading'
-    ? 'bg-sky-500'
-    : attempt && ['timed-out', 'interrupted', 'failed'].includes(attempt.status)
-      ? 'bg-amber-500'
-      : librarySessionSnapshot.lastIndex
-        ? 'bg-emerald-500'
-        : selectedRootCount > 0
-          ? 'bg-amber-500'
-          : 'bg-zinc-500';
+          ? 'pending'
+          : 'idle';
 
   return (
     <header
       id="windows-app-bar"
-      className="h-9 min-w-0 flex items-center justify-between gap-3 px-3 sm:px-4 bg-sidebar-bg/60 border-b border-border-color/60 text-xs text-text-secondary select-none z-50"
+      className="k2-topbar h-10 min-w-0 flex items-center justify-between gap-3 px-3 sm:px-4 text-xs text-text-secondary select-none z-50"
     >
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="h-2 w-2 flex-shrink-0 rounded-full bg-brand-color" />
-        <span className="truncate font-semibold text-[11px] text-text-primary">Yang-Kura</span>
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="k2-topbar__signal" aria-hidden="true" />
+        <span className="truncate font-semibold text-[10px] uppercase tracking-[0.16em] text-text-secondary">
+          Kura Desktop
+        </span>
+        <span className="hidden sm:inline text-[10px] text-text-muted">Local Media Studio</span>
       </div>
       <div className="flex min-w-0 items-center gap-2 font-sans">
         <span
@@ -55,10 +49,11 @@ export default function TopBar({ librarySessionSnapshot }: TopBarProps) {
           aria-atomic="true"
           data-u30-runtime-status
           data-u40d-library-status={attempt?.status ?? (librarySessionSnapshot.lastIndex ? 'loaded' : 'idle')}
-          className={`${tone} u30-runtime-label flex min-w-0 items-center space-x-1 font-semibold text-[10px]`}
+          data-k2-library-state={state}
+          className="k2-topbar__status u30-runtime-label flex min-w-0 items-center gap-2"
         >
-          <span className={`inline-block w-1.5 h-1.5 rounded-full ${dot}`} />
-          <span>{status}</span>
+          <span className="k2-topbar__status-dot" aria-hidden="true" />
+          <span className="truncate">{status}</span>
         </span>
       </div>
     </header>

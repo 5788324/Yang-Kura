@@ -112,7 +112,7 @@ export default function PlayerBar({
   return (
     <div
       id="app-player-bar"
-      className="h-20 min-w-0 bg-player-bg/95 border-t border-border-color/80 px-3 lg:px-5 xl:px-8 gap-2 flex items-center justify-between select-none relative z-50 text-text-primary shadow-[0_-12px_32px_rgba(0,0,0,0.14)] backdrop-blur-xl"
+      className="k2-player-dock h-20 min-w-0 bg-player-bg/95 border-t border-border-color/80 px-3 lg:px-5 xl:px-8 gap-2 flex items-center justify-between select-none relative z-50 text-text-primary shadow-[0_-12px_32px_rgba(0,0,0,0.14)] backdrop-blur-xl"
       role="region"
       aria-label="全局播放器"
       data-mvp79-player-ui-bugfix="true"

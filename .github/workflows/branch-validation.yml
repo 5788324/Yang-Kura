@@ -126,6 +126,8 @@ jobs:
         run: npm run test:k2-r4
       - name: K2-R4 Catalog IPC
         run: npm run test:k2-r4:ipc
+      - name: K2-R5 Desktop 2.0 App Shell
+        run: npm run test:k2-r5-shell
       - name: Current Electron journeys
         run: |
           npm run test:u28:electron-e2e

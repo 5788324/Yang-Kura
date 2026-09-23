@@ -1,3 +1,14 @@
+## 2026-09-23 — K2-R4 PASS → K2-R5.1 Midnight Glass
+
+- main@616740a Windows Branch Validation 全绿：build / K2-R2 / K2-R3 / K2-R4 Query / K2-R4 Catalog IPC / Electron Journey / Stable Regression 全 PASS。
+- K2-R4 功能收口；E:\\arsm 的真实 scan/query/scroll 证据不阻塞继续开发，统一放 K2-R9 真实库验收。
+- K2-R5 视觉方向固定为 Midnight Glass：深夜黑蓝、低饱和玻璃、紫粉蓝品牌光、低边框噪音、封面优先。
+- 音声与音乐在 Sidebar 提升为并列一级 Media Card；Home/歌单/导入/设置降为二级空间导航。
+- K2-R5.1 只改 App Shell：Design tokens / TopBar / Sidebar / Main Stage / Player Dock / Grid content-visibility；业务行为不变。
+- 不复制网易云红黑皮肤；借鉴成熟音乐播放器的层级、密度、主次关系，保持 Kura 自己的品牌语义。
+- 下一批 K2-R5.2 统一 Surface/Button/MediaCard/TrackRow，再重构 Home、音声库、音乐库。
+- 视觉是否“惊艳”必须以后用 Windows 实际截图 QA；静态 verifier 只保证结构和设计 token 已落地。
+
 ## 2026-09-23 — K2-R4 Primary Read Gate closeout
 
 - fc4884b Windows Branch Validation 全绿：build、K2-R2、K2-R3、K2-R4 query/virtualization、Electron journeys、stable regression 全 PASS。

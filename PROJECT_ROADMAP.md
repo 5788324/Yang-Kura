@@ -77,7 +77,7 @@ Android、OpenList、Downloader、转录、云同步在 Desktop 2.0 稳定前不
 
 ---
 
-## K2-R3 — 增量 Scanner + Artwork Cache
+## K2-R3 — 增量 Scanner + Artwork Cache【Backend Complete / Real Library Gate Pending】
 
 任务：
 - 文件指纹和目录变更检测；
@@ -92,7 +92,7 @@ Android、OpenList、Downloader、转录、云同步在 Desktop 2.0 稳定前不
 
 ---
 
-## K2-R4 — 大库 Query + 前端性能
+## K2-R4 — 大库 Query + 前端性能【Functional Complete / Real Library Gate Pending】
 
 任务：
 - DB 搜索/排序/筛选；
@@ -107,7 +107,7 @@ Android、OpenList、Downloader、转录、云同步在 Desktop 2.0 稳定前不
 
 ---
 
-## K2-R5 — 全新 Design System + App Shell
+## K2-R5 — 全新 Design System + App Shell【ACTIVE】
 
 任务：
 - 重新定义视觉语言、Typography、Spacing、Motion、Material；
