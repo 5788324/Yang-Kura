@@ -88,7 +88,9 @@ function reconcileEntriesWithTrackMap(
       const freshTrack = byId.get(entry.trackId);
       if (!freshTrack) return entry;
       const sanitized = sanitizeTrack(freshTrack);
-      if (sanitized.id !== entry.track.id || sanitized !== entry.track) changed = true;
+      const trackChanged = JSON.stringify(sanitized) !== JSON.stringify(entry.track);
+      if (!trackChanged) return entry;
+      changed = true;
       return { ...entry, track: sanitized };
     });
   return { entries: next, changed };

@@ -8,6 +8,7 @@
 - 新增 `docs/DESKTOP2_AUDIT.md`，固定当前静态结论与 K2-R2/R4 边界。
 - 继续发现并修复 Index Adapter 的 O(Track × Subtitle) 映射热点：全局字幕先构建 `byTrackId/byMediaBase` lookup，Track 映射不再重复全表扫描。
 - Normalization 的 collection→cover 查询由每 collection 全表 filter 改为预索引 Map；Playback History 的全库 Track Map 从一次调用重复构建两次收敛为一次。
+- 回读发现 History reconcile 不能用对象引用判断 sanitized Track 是否变化；已立即改为内容比较，避免无变化时重复 localStorage 写入和 update event。
 - 真实 8TB 指标仍待 Windows 本机运行 audit 工具；50k synthetic benchmark 不替代真库。
 
 ## 2026-09-23 — Kura 2.0 仓库主线收敛与历史清理
