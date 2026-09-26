@@ -134,3 +134,12 @@ Claude / Kimi 暂停调用，保留额度用于 Windows 截图阶段的最终视
 - 不批量迁移 ASMR；
 - 不继续大范围 Shared UI 风格替换；
 - 不声明最终视觉完成。
+
+## Automated screenshot gate
+
+K2-R5 reference sample 已接入现有 U30 Electron/CDP 自动化。
+
+Artifact：
+`k2-r5-reference-screenshots-<SHA>`
+
+审图前仍禁止把 Music 样板批量扩散到 ASMR。

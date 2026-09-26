@@ -282,3 +282,15 @@ PASS：
 - Stable regression + final build。
 
 当前唯一剩余门禁：Windows 实际截图视觉 QA。
+
+## 13. K2-R5 Automated Screenshot Gate
+
+视觉门禁复用现有 U30 Electron/CDP runner，不新增浏览器自动化依赖。
+
+固定输出：
+- 1440×900 Music Albums；
+- 1440×900 Album Detail；
+- 1024×720 Music Tracks；
+- 1024×720 Music Albums。
+
+fixture 只写入 GitHub Actions 隔离 profile 的 localStorage，使用内嵌 SVG artwork 和 mock Player queue；不访问或修改真实媒体。

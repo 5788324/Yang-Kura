@@ -1,3 +1,12 @@
+## 2026-09-26 — K2-R5 Screenshot Gate wired into U30
+
+- 放弃单独维护第二套 CDP driver，直接复用已长期通过的 U30 UI Matrix。
+- U30 隔离 profile 增加 6 专辑 / 24 曲 Music fixture、内嵌 SVG covers、稳定 Player queue。
+- 自动输出 1440×900 Albums / Album Detail 与 1024×720 Tracks / Albums。
+- 增加 PNG exact dimension、横向溢出、Music surface、PlayerBar 可见性断言。
+- Branch Validation 上传独立 k2-r5-reference-screenshots artifact，保留 14 天。
+- 不读 E:\\arsm，不修改用户媒体。
+
 ## 2026-09-26 — Reference-derived Desktop Sample Windows PASS
 
 - main@fd1de72a... Branch Validation run 36249147098 完整成功。

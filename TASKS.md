@@ -185,3 +185,17 @@ Desktop 2.0 稳定前不启动：
 - [x] dedicated regression verifier
 - [x] Windows CI
 - [ ] Windows screenshot QA
+
+## K2-R5 AUTOMATED SCREENSHOT GATE — IMPLEMENTED / CI PENDING
+
+- [x] reuse stable U30 Electron/CDP driver
+- [x] deterministic 6-album / 24-track Music fixture
+- [x] populated PlayerBar fixture
+- [x] 1440×900 Album Grid
+- [x] 1440×900 Album Detail
+- [x] 1024×720 Track List
+- [x] 1024×720 Album Grid
+- [x] PNG size / horizontal overflow / player visibility assertions
+- [x] GitHub Actions artifact upload
+- [ ] screenshot CI PASS
+- [ ] GPT-6 visual review of generated PNGs

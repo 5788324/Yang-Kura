@@ -137,6 +137,14 @@ jobs:
           npm run test:u30:ui-matrix
           npm run test:u31:importer-transactions
           node scripts/test-u32-ui-audit.mjs
+      - name: Upload K2-R5 visual screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k2-r5-reference-screenshots-${{ github.sha }}
+          path: artifacts/k2-r5-reference-screenshots/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Stable regression and final build
         env:
           NODE_OPTIONS: --max-old-space-size=8192
