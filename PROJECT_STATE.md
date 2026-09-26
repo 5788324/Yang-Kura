@@ -316,3 +316,23 @@ v2 决策：
 - larger album cards；
 - advanced metadata disclosure；
 - quieter top chrome。
+
+## 15. CI integrity correction
+
+K2-R5 v2 首次 run `36251643994` 暴露 Windows PowerShell 多命令 step 的 false-green 问题：
+
+- U30 实际因 Sidebar 旧阈值 190px 失败；
+- 后续 U31/U32 成功导致该 step 最终被标记 success；
+- `verify:handoff` 实际失败；
+- 后续 Vite build 成功又掩盖 stable step 失败；
+- screenshot upload 因 `if-no-files-found: warn` 仅警告，因此没有 artifact 仍显示 success。
+
+因此该 run **不得作为 v2 PASS 证据**。
+
+修复：
+- multi-command steps 改为 PowerShell 7 `&&` fail-fast；
+- U30 Sidebar 合同改为 >=176px，覆盖 intentional 188px responsive width；
+- screenshot artifact 缺失改为 hard error；
+- handoff verifier / START_HERE / NEXT prompt 对齐 K2-R5。
+
+只有修复后的下一次 run 才可用于 v2 结论。

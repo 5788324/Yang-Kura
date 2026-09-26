@@ -235,7 +235,7 @@ try {
     const layout = await cdp.evaluate('(() => { const sidebar=document.querySelector("#app-sidebar")?.getBoundingClientRect(); const player=document.querySelector("#app-player-bar")?.getBoundingClientRect(); const root=document.querySelector("#root > div")?.getBoundingClientRect(); return { innerWidth, innerHeight, scrollWidth:document.documentElement.scrollWidth, rootRight:root?.right??0, sidebarWidth:sidebar?.width??0, playerBottom:player?.bottom??0, playerWidth:player?.width??0 }; })()');
     assert.ok(layout.scrollWidth <= item.width + 1, item.theme + ' has no horizontal document overflow');
     assert.ok(layout.rootRight <= item.width + 1, item.theme + ' root stays inside viewport');
-    assert.ok(layout.sidebarWidth >= 190, item.theme + ' sidebar remains usable');
+    assert.ok(layout.sidebarWidth >= 176, item.theme + ' responsive sidebar remains usable');
     assert.ok(layout.playerWidth >= item.width - 2 && layout.playerBottom <= item.height + 1, item.theme + ' PlayerBar remains visible');
     report.checks.push(item.theme + ' ' + item.width + 'x' + item.height + ' layout');
     await screenshot(cdp, item.theme + '-' + item.width + 'x' + item.height + '-scale-' + String(item.scale).replace('.', '_'));

@@ -1,3 +1,14 @@
+## 2026-09-26 — CI false-green found and repaired
+
+- 审 v2 artifact 时发现 GitHub 没有任何 artifact，进一步读取 Windows job 日志。
+- 证实 U30 在 `dark sidebar remains usable` 断言失败（新 responsive Sidebar 188px，旧阈值 190px）。
+- 同一个 PowerShell step 继续跑 U31/U32，最终 exit=0，GitHub 错误标记 success。
+- `verify:handoff` 也因 START_HERE stale literals 失败，但同 step 后续 Vite build 成功再次掩盖。
+- upload-artifact 因 `if-no-files-found: warn` 在截图不存在时仍显示 success。
+- 修复所有关键多命令 step 为 `&&` fail-fast；artifact 缺失改 hard fail；U30 断言改为 intentional responsive contract >=176px。
+- 交接 verifier 从历史 K2-R1 对齐当前 K2-R5，并更新 START_HERE / NEXT prompt / TASKS。
+- run 36251643994 明确作废，不作为 v2 PASS 证据。
+
 ## 2026-09-26 — K2-R5 Screenshot v1 reviewed, v2 light-first started
 
 - 自动截图 artifact 成功生成并由 GPT-6 实际查看 4 张 PNG。

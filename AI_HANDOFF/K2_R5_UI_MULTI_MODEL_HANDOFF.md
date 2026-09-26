@@ -156,3 +156,15 @@ v1 screenshots 已真实下载并审查：**VISUAL NO-GO / FUNCTIONAL PASS**。
 - fewer/larger album columns；
 - metadata retreat；
 - quieter TopBar/player chrome。
+
+## CI truth correction
+
+注意：run `36251643994` 虽在 GitHub UI 显示 success，但日志证明是 **FALSE GREEN**，不得作为 v2 验收证据。
+
+根因：
+- PowerShell 多命令没有 fail-fast；
+- U30 失败后继续运行；
+- verify:handoff 失败后继续 build；
+- artifact 缺失仅 warn。
+
+已修 CI。下一 run 才是可信 v2 门禁。

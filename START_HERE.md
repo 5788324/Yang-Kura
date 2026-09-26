@@ -1,6 +1,6 @@
 # START_HERE — Yang-Kura 新对话接手入口
 
-更新日期：2026-09-23
+更新日期：2026-09-26
 
 ## 目的
 
@@ -49,14 +49,14 @@ ChatGPT 网页端经常因上下文上限被迫新开对话。**不要依赖旧�
 
 以下内容是历史状态，不得作为“当前任务”继续执行：
 
-- “PR #94 仍 Draft”
-- “U42 尚未合并”
-- “当前 main = 72066aa...”
+- 旧文档把 PR #94 标成 Draft 的状态
+- 旧文档把 U42 标成未合并的状态
+- 旧文档硬编码的 `72066aa...` main SHA
 - 继续按旧 MVP/Uxx 清单机械追加功能
 - 立即启动 Downloader / Android / OpenList 大开发
 - 继续让 `library-index.json` 承担未来 8TB+ 主查询数据库职责
 
 ## 新对话第一句话应确认
 
-> 已读取 START_HERE / HANDOFF / STATE / TASKS / ROADMAP；K2-R0 已完成，当前执行 K2-R1，不从旧 U42 或旧聊天记忆继续。
+> 已读取 START_HERE / HANDOFF / K2-R5 UI HANDOFF / STATE / TASKS / ROADMAP；K2-R2～R4 基础已完成，当前执行 K2-R5 reference-driven UI，不从旧 U42 / K2-R1 主线继续。
 

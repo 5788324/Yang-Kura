@@ -16,12 +16,12 @@ const required = [
 
 const tokens = [
   ['README.md', 'Kura Desktop 2.0'],
-  ['START_HERE.md', 'K2-R1'],
-  ['PROJECT_STATE.md', 'K2-R1'],
+  ['START_HERE.md', 'K2-R5'],
+  ['PROJECT_STATE.md', 'K2-R5'],
   ['PROJECT_ROADMAP.md', 'K2-R9'],
-  ['TASKS.md', 'ACTIVE — K2-R1'],
-  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'K2-R1'],
-  ['AI_HANDOFF/NEXT_CONVERSATION_PROMPT.md', 'K2-R1'],
+  ['TASKS.md', 'ACTIVE — K2-R5'],
+  ['AI_HANDOFF/CURRENT_PROJECT_HANDOFF.md', 'K2-R5'],
+  ['AI_HANDOFF/NEXT_CONVERSATION_PROMPT.md', 'K2-R5'],
   ['AI_HANDOFF/WORKLOG.md', 'K2-R0'],
 ];
 

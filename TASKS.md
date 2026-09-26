@@ -1,6 +1,6 @@
 # TASKS — 当前唯一执行队列
 
-更新日期：2026-09-23
+更新日期：2026-09-26
 
 ## COMPLETED — K2-R0
 
@@ -14,7 +14,7 @@
 
 ---
 
-## ACTIVE — K2-R1 Desktop 2.0 真实审计
+## OPEN ACCEPTANCE / RUNTIME DEBT — K2-R1
 
 ### R1-A — 依赖与运行时
 - [x] 分析 npm audit 1 moderate + 7 high 的直接/间接影响：当前均位于 dev/tooling 依赖链
@@ -61,7 +61,7 @@
 - [x] Real-count synthetic Catalog benchmark：213,182 modeled rows；import 11.031s；query batch 6.619ms；RSS peak 206.4MiB；DB≈200.8MiB
 - [x] Primary-read cutover gate fixed：Catalog remains rebuildable sidecar until K2-R3/R4; no unique User State stored in Catalog
 
-## ACTIVE — K2-R3 Incremental Scanner + Artwork Cache
+## BACKEND COMPLETE / REAL-LIBRARY GATE — K2-R3
 
 - [x] Schema v2 scan checkpoint / resume / artwork cache migration
 - [x] Scanner state model / scan_runs / scan_entries contract
@@ -119,7 +119,7 @@ Desktop 2.0 稳定前不启动：
 - 插件市场
 - AI Agent 大功能
 
-## K2-R4 — CORE IMPLEMENTED / CI PENDING
+## K2-R4 — FUNCTIONAL COMPLETE / REAL-LIBRARY GATE
 
 - [x] Schema v3 trigram FTS
 - [x] CJK 3+ substring search
@@ -168,7 +168,7 @@ Desktop 2.0 稳定前不启动：
 - [x] license reuse gate
 - [x] Kura Reference UI Map
 - [x] R5.2 implementation ordering from mature projects
-- [ ] build first reference-derived Kura Desktop sample
+- [x] build first reference-derived Kura Desktop sample
 - [ ] screenshot QA before broad page migration
 
 ## K2-R5 REFERENCE-DERIVED DESKTOP SAMPLE — CI PASS / SCREENSHOT QA PENDING
@@ -214,3 +214,15 @@ Desktop 2.0 稳定前不启动：
 - [x] 1024 toolbar density reduced
 - [ ] v2 Windows CI
 - [ ] v2 screenshot visual review
+
+## CI INTEGRITY REPAIR — 2026-09-26
+
+- [x] identified false-green PowerShell multi-command behavior
+- [x] U30 responsive Sidebar contract updated for intentional 188px width
+- [x] grouped native commands changed to fail-fast `&&`
+- [x] screenshot artifact missing => hard failure
+- [x] handoff verifier updated from historical K2-R1 to current K2-R5
+- [x] START_HERE stale literal tokens removed
+- [x] NEXT_CONVERSATION_PROMPT rewritten for current K2-R5
+- [ ] rerun v2 under trustworthy CI
+- [ ] retrieve and review v2 screenshot artifact

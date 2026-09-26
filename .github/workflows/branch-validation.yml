@@ -101,25 +101,15 @@ jobs:
         continue-on-error: true
         run: npm audit --audit-level=high
       - name: Prepare Electron runtime
-        run: |
-          npm rebuild electron
-          npm run patch:electron-builder
+        run: npm rebuild electron && npm run patch:electron-builder
       - name: K2-R2 built-in SQLite capability
-        run: |
-          npm run test:k2-r2:sqlite-node
-          npm run test:k2-r2:sqlite-electron
+        run: npm run test:k2-r2:sqlite-node && npm run test:k2-r2:sqlite-electron
       - name: TypeScript and production builds
         env:
           NODE_OPTIONS: --max-old-space-size=8192
-        run: |
-          npm run lint
-          npm run build
-          npm run build:electron
+        run: npm run lint && npm run build && npm run build:electron
       - name: K2-R2 Catalog database compatibility
-        run: |
-          npm run test:k2-r2:catalog
-          npm run test:k2-r2:catalog-electron
-          npm run test:k2-r2:catalog-sidecar
+        run: npm run test:k2-r2:catalog && npm run test:k2-r2:catalog-electron && npm run test:k2-r2:catalog-sidecar
       - name: K2-R3 Incremental Scanner and Artwork Cache
         run: npm run test:k2-r3
       - name: K2-R4 Query Pagination Virtualization
@@ -131,23 +121,16 @@ jobs:
       - name: K2-R5 Reference-derived Desktop Sample
         run: npm run test:k2-r5-reference
       - name: Current Electron journeys
-        run: |
-          npm run test:u28:electron-e2e
-          npm run test:u29:electron-e2e
-          npm run test:u30:ui-matrix
-          npm run test:u31:importer-transactions
-          node scripts/test-u32-ui-audit.mjs
+        run: npm run test:u28:electron-e2e && npm run test:u29:electron-e2e && npm run test:u30:ui-matrix && npm run test:u31:importer-transactions && node scripts/test-u32-ui-audit.mjs
       - name: Upload K2-R5 visual screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: k2-r5-reference-screenshots-${{ github.sha }}
           path: artifacts/k2-r5-reference-screenshots/
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
       - name: Stable regression and final build
         env:
           NODE_OPTIONS: --max-old-space-size=8192
-        run: |
-          npm run verify:stable
-          npm run build
+        run: npm run verify:stable && npm run build
