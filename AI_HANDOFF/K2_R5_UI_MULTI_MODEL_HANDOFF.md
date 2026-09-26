@@ -103,3 +103,22 @@ Claude / Kimi 暂停调用，保留额度用于 Windows 截图阶段的最终视
 - `docs/ui-lab/k2-r5/08_REFERENCE_MAP.md`
 
 下一步不是继续画概念图，而是做第一版 reference-derived Desktop sample。
+
+## First reference-derived sample
+
+已实现第一批真实页面样板：
+
+- Music Library；
+- Album/Artist/Folder Detail visual layer；
+- PlayerBar。
+
+样板 marker：
+
+- `data-k2-reference-sample="music-library-v1"`
+- `data-k2-reference-player="v1"`
+
+下一门禁：
+
+1. Windows CI；
+2. 1440×900 / 1024×720 screenshot；
+3. 视觉方向通过后再迁移 ASMR 和 Shared UI。

@@ -170,3 +170,18 @@ Desktop 2.0 稳定前不启动：
 - [x] R5.2 implementation ordering from mature projects
 - [ ] build first reference-derived Kura Desktop sample
 - [ ] screenshot QA before broad page migration
+
+## K2-R5 REFERENCE-DERIVED DESKTOP SAMPLE — IMPLEMENTED / CI PENDING
+
+- [x] Music Library reference marker
+- [x] content-first Music header
+- [x] flat Header / Search / Filter treatment
+- [x] album grid removes card-box visual
+- [x] track actions retreat until hover/focus
+- [x] album detail adopts cover + metadata + action hierarchy
+- [x] Player artwork changed from spinning vinyl to stable square cover
+- [x] engineering status chips removed from daily Player visual
+- [x] Player transport visual noise reduced
+- [x] dedicated regression verifier
+- [ ] Windows CI
+- [ ] Windows screenshot QA

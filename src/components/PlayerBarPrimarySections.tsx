@@ -56,9 +56,7 @@ export function PlayerTrackSummary({
     <>
       <div
         onClick={onOpenLyrics}
-        className={`relative w-12 h-12 rounded-full overflow-hidden bg-card-bg/70 border border-border-color flex-shrink-0 cursor-pointer shadow-lg group/album transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-color ${
-          isPlaying ? 'animate-spin-slow' : ''
-        }`}
+        className="k2-ref-player-artwork relative w-12 h-12 overflow-hidden bg-card-bg/70 border border-border-color flex-shrink-0 cursor-pointer group/album transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-color"
         role="button"
         tabIndex={0}
         aria-label={`打开《${track.title}》全屏歌词`}
@@ -74,15 +72,11 @@ export function PlayerTrackSummary({
           title={track.title}
           subtitle={track.artist}
           kind={track.type === 'asmr' ? 'asmr' : 'music'}
-          className="w-full h-full object-cover rounded-full p-1"
-          rounded
+          className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 m-auto w-3.5 h-3.5 bg-player-bg border border-border-color rounded-full flex items-center justify-center">
-          <div className="w-1 h-1 bg-text-primary rounded-full" />
-        </div>
       </div>
 
-      <div className="min-w-0 flex-1">
+      <div className="k2-ref-player-copy min-w-0 flex-1">
         <div className="flex items-center space-x-2">
           <button
             type="button"
@@ -92,9 +86,7 @@ export function PlayerTrackSummary({
           >
             {track.title}
           </button>
-          <span className="text-[8px] bg-brand-color/15 text-brand-color border border-brand-color/25 px-1 py-px rounded font-extrabold uppercase tracking-wide flex-shrink-0">
-            本地
-          </span>
+          <span className="k2-ref-player-source flex-shrink-0">LOCAL</span>
         </div>
         <p className="text-xs text-text-secondary truncate mt-1" title={track.artist}>
           {track.artist}
@@ -109,20 +101,9 @@ export function PlayerTrackSummary({
           </p>
         ) : (
           <>
-            <div
-              id="mvp74-playerbar-daily-control-strip"
-              className="mt-1.5 flex items-center gap-1.5 text-[9px] text-text-muted truncate"
-              title={hiddenMaintenanceNote}
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-brand-color flex-shrink-0" />
-              <span className="truncate">{compactStatus}</span>
-            </div>
-            <div className="mt-1 flex flex-wrap gap-1">
-              {visibleBadges.slice(0, 3).map((badge) => (
-                <span key={badge} className="rounded-full border border-border-color bg-card-bg/55 px-1.5 py-0.5 text-[8px] font-bold text-text-secondary">
-                  {badge}
-                </span>
-              ))}
+            <div id="mvp74-playerbar-daily-control-strip" hidden aria-hidden="true" title={hiddenMaintenanceNote}>
+              <span>{compactStatus}</span>
+              {visibleBadges.slice(0, 3).map((badge) => <span key={badge}>{badge}</span>)}
             </div>
             <div id="mvp49-player-status-strip" hidden aria-hidden="true" title={completionModeDescription}>
               {statusBadges.slice(0, 3).map((badge) => (
@@ -207,7 +188,7 @@ export function PlayerTransportControls({
   return (
     <div className="u30-player-transport flex-1 min-w-0 flex items-center justify-center" onClick={(event) => event.stopPropagation()}>
       <div
-        className="flex min-w-0 items-center bg-card-bg/55 border border-border-color px-3 xl:px-5 py-2.5 rounded-full shadow-inner space-x-2 xl:space-x-5"
+        className="k2-ref-player-transport-shell flex min-w-0 items-center bg-card-bg/55 border border-border-color px-3 xl:px-5 py-2.5 rounded-full shadow-inner space-x-2 xl:space-x-5"
         role="group"
         aria-label="播放控制"
       >

@@ -1,3 +1,13 @@
+## 2026-09-26 — K2-R5 Reference-derived Desktop Sample v1
+
+- 基于 Reference Map 开始真实页面样板，不创建假的独立 demo。
+- Music Library 改为 content-first header；toolbar 去 Raised Dashboard card；album grid 去卡片盒子感，采用 cover > title > metadata 的成熟播放器层级。
+- Track list 增加轻量 column header，行内动作默认后退，hover/focus 才展开；保留原有 virtual list 和全部操作。
+- Album/Artist/Folder Detail 去 Dashboard hero card，改为大封面 + title/meta + primary actions 的音乐详情比例。
+- PlayerBar 保留现有 state/queue/seek/aux logic；封面从旋转黑胶改为稳定方形 artwork，隐藏工程状态 chips，transport pill 降噪。
+- 新 CSS 完全独立实现，没有复制 SPlayer/Feishin GPL/AGPL 源码。
+- ASMR 不跟随本批修改，等待 Music sample Windows screenshot QA 后再迁移。
+
 ## 2026-09-26 — K2-R5 Reference UI Audit
 
 - 用户明确反馈 AI 从零生成视觉仍显一般，决定直接借成熟播放器做 Kura。

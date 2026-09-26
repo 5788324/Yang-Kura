@@ -59,7 +59,7 @@ export function PlayerAuxiliaryControls({
 }: PlayerAuxiliaryControlsProps) {
   return (
     <div
-      className="u30-player-aux w-[30%] min-w-0 flex items-center justify-end space-x-1 xl:space-x-4 pl-1 xl:pl-4"
+      className="k2-ref-player-aux u30-player-aux w-[30%] min-w-0 flex items-center justify-end space-x-1 xl:space-x-4 pl-1 xl:pl-4"
       onClick={(event) => event.stopPropagation()}
       role="group"
       aria-label="辅助播放控制"

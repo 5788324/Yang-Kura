@@ -539,7 +539,11 @@ export default function MusicLibraryPage({
     }
 
     return (
-      <div ref={trackVirtualWindow.containerRef} data-k2-r4-virtual-list="music-tracks">
+      <div ref={trackVirtualWindow.containerRef} className="k2-ref-track-table" data-k2-r4-virtual-list="music-tracks">
+        <div className="k2-ref-track-table__header" aria-hidden="true">
+          <span>标题</span>
+          <span>时长</span>
+        </div>
         <div className="u37d-render-window" data-k2-r4-virtual-window="music-tracks">
           虚拟窗口 {trackVirtualWindow.start + (trackVirtualWindow.visibleCount ? 1 : 0)}–{trackVirtualWindow.end} / {tracks.length}
         </div>
@@ -683,7 +687,11 @@ export default function MusicLibraryPage({
   };
 
   return (
-    <div className="u37d-music-library" data-u37d-music-library={detail ? `detail-${detail.kind}` : activeView}>
+    <div
+      className="k2-ref-music u37d-music-library"
+      data-k2-reference-sample="music-library-v1"
+      data-u37d-music-library={detail ? `detail-${detail.kind}` : activeView}
+    >
       {feedback ? (
         <div className="u37d-toast" role="status">
           {feedback}
@@ -692,9 +700,9 @@ export default function MusicLibraryPage({
 
       <header className="u37d-heading">
         <div>
-          <p className="u37d-eyebrow">本地音乐</p>
-          <h2><Music2 />音乐库</h2>
-          <p>浏览歌曲、专辑、艺术家与文件夹分组；播放、收藏和整理操作保持在同一条日常路径内。</p>
+          <p className="u37d-eyebrow">MUSIC LIBRARY</p>
+          <h2><Music2 />音乐</h2>
+          <p>歌曲、专辑、艺术家与本地文件夹。</p>
         </div>
         <div className="u37d-heading__stats">
           <strong>{allTracks.length}</strong>
@@ -773,7 +781,7 @@ export default function MusicLibraryPage({
           </div>
         </>
       ) : (
-        <Surface className="u37d-detail-hero" padding="lg" elevation="raised" data-u37d-detail={detail.kind}>
+        <Surface className="k2-ref-detail u37d-detail-hero" padding="lg" elevation="raised" data-u37d-detail={detail.kind}>
           <Button variant="ghost" size="sm" leadingIcon={<ArrowLeft />} onClick={() => setDetail(null)}>
             返回{activeView === 'albums' ? '专辑' : activeView === 'artists' ? '艺术家' : '文件夹'}
           </Button>

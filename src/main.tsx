@@ -18,6 +18,7 @@ import './styles/library-pages.css';
 import './styles/rj-detail.css';
 import './styles/music-library.css';
 import './styles/music-library-track-row.css';
+import './styles/reference-desktop-sample.css';
 import './styles/u40c-ui-polish.css';
 
 async function bootstrap(): Promise<void> {

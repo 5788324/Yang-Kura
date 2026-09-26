@@ -244,3 +244,21 @@ Android：
 GPL/AGPL 项目禁止生产源码复制，只允许独立重写其行为/布局思想。
 
 下一任务：基于 Reference Map 构建 Kura 第一版 Desktop 视觉样板，再截图审查。
+
+## 12. K2-R5 First Reference-derived Desktop Sample
+
+Music Library / Album Detail / PlayerBar 已进入第一版 reference-derived visual implementation。
+
+本批只改变视觉和结构层级，不改变：
+- Catalog；
+- search/filter semantics；
+- queue/player state；
+- import/scanner；
+- media files。
+
+视觉来源：
+- YesPlayMusic：Music/Album content hierarchy；
+- Feishin：large-library header/filter/list separation；
+- SPlayer：Player geometry/decomposition inspiration（独立实现，未复制 AGPL 源码）。
+
+ASMR 暂未迁移，等待 Music 样板截图审查。
