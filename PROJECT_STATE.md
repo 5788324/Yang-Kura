@@ -262,3 +262,23 @@ Music Library / Album Detail / PlayerBar 已进入第一版 reference-derived vi
 - SPlayer：Player geometry/decomposition inspiration（独立实现，未复制 AGPL 源码）。
 
 ASMR 暂未迁移，等待 Music 样板截图审查。
+
+### Reference-derived sample Windows gate
+
+Commit `fd1de72a9976c077988cb7baa595cf841a586447` 已通过 Branch Validation run `36249147098`。
+
+PASS：
+
+- dependency/runtime setup；
+- production audit；
+- TypeScript + production builds；
+- K2-R2；
+- K2-R3；
+- K2-R4 Query；
+- K2-R4 Catalog IPC；
+- K2-R5 App Shell；
+- K2-R5 Reference-derived Desktop Sample；
+- Current Electron Journeys；
+- Stable regression + final build。
+
+当前唯一剩余门禁：Windows 实际截图视觉 QA。

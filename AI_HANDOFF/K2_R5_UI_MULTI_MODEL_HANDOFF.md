@@ -122,3 +122,15 @@ Claude / Kimi 暂停调用，保留额度用于 Windows 截图阶段的最终视
 1. Windows CI；
 2. 1440×900 / 1024×720 screenshot；
 3. 视觉方向通过后再迁移 ASMR 和 Shared UI。
+
+### Sample CI result
+
+`fd1de72a9976c077988cb7baa595cf841a586447` Windows Branch Validation **PASS**。
+
+因此第一版 reference-derived Music/Detail/Player 样板已经具备截图验收资格。
+
+在视觉截图未审查前：
+
+- 不批量迁移 ASMR；
+- 不继续大范围 Shared UI 风格替换；
+- 不声明最终视觉完成。

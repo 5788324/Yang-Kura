@@ -1,3 +1,10 @@
+## 2026-09-26 — Reference-derived Desktop Sample Windows PASS
+
+- main@fd1de72a... Branch Validation run 36249147098 完整成功。
+- TypeScript/build、R2、R3、R4、R5 Shell、Reference Sample、Electron Journeys、final build 全 PASS。
+- 功能回归已过；下一门禁只剩 Windows screenshot visual QA。
+- 未经截图审查，不扩散到 ASMR，避免视觉方向不满意后产生大面积返工。
+
 ## 2026-09-26 — K2-R5 Reference-derived Desktop Sample v1
 
 - 基于 Reference Map 开始真实页面样板，不创建假的独立 demo。

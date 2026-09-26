@@ -171,7 +171,7 @@ Desktop 2.0 稳定前不启动：
 - [ ] build first reference-derived Kura Desktop sample
 - [ ] screenshot QA before broad page migration
 
-## K2-R5 REFERENCE-DERIVED DESKTOP SAMPLE — IMPLEMENTED / CI PENDING
+## K2-R5 REFERENCE-DERIVED DESKTOP SAMPLE — CI PASS / SCREENSHOT QA PENDING
 
 - [x] Music Library reference marker
 - [x] content-first Music header
@@ -183,5 +183,5 @@ Desktop 2.0 稳定前不启动：
 - [x] engineering status chips removed from daily Player visual
 - [x] Player transport visual noise reduced
 - [x] dedicated regression verifier
-- [ ] Windows CI
+- [x] Windows CI
 - [ ] Windows screenshot QA
