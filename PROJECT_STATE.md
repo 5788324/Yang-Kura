@@ -294,3 +294,25 @@ PASS：
 - 1024×720 Music Albums。
 
 fixture 只写入 GitHub Actions 隔离 profile 的 localStorage，使用内嵌 SVG artwork 和 mock Player queue；不访问或修改真实媒体。
+
+## 14. K2-R5 Screenshot Review v1 = Visual NO-GO
+
+实际 Electron PNG 审查后确认 v1 功能稳定，但视觉未达到产品目标：
+
+- 深棕/橙仍过重；
+- 与用户“浅色为主”偏好冲突；
+- Sidebar 236px 在 1024 下过宽；
+- 一级媒体入口仍有明显 card 化；
+- 1440 专辑 6 列偏碎；
+- Metadata 管理工具侵入日常页面；
+- idle 资源库状态和 Theme label 仍有工程壳感。
+
+因此没有扩散到 ASMR，直接进入 reference sample v2。
+
+v2 决策：
+- clean profile 默认 Mist Ivory；
+- light compatibility 覆盖旧 Tailwind aliases；
+- flat navigation；
+- larger album cards；
+- advanced metadata disclosure；
+- quieter top chrome。

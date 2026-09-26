@@ -861,16 +861,19 @@ export default function MusicLibraryPage({
         </div>
       ) : null}
 
-      <Surface className="u37d-metadata-tools" padding="md" tone="subtle">
-        <MusicMetadataManagementPanel
-          albums={albums}
-          onUpdateAlbum={onUpdateMusicAlbum}
-          onUpdateTrack={onUpdateMusicTrack}
-          onClearAlbumOverride={onClearMusicAlbumOverride}
-          onClearTrackOverride={onClearMusicTrackOverride}
-          onMetadataStoreChanged={onMetadataStoreChanged}
-        />
-      </Surface>
+      <details className="k2-ref-metadata-disclosure">
+        <summary>高级 · 元数据整理</summary>
+        <Surface className="u37d-metadata-tools" padding="md" tone="subtle">
+          <MusicMetadataManagementPanel
+            albums={albums}
+            onUpdateAlbum={onUpdateMusicAlbum}
+            onUpdateTrack={onUpdateMusicTrack}
+            onClearAlbumOverride={onClearMusicAlbumOverride}
+            onClearTrackOverride={onClearMusicTrackOverride}
+            onMetadataStoreChanged={onMetadataStoreChanged}
+          />
+        </Surface>
+      </details>
     </div>
   );
 }

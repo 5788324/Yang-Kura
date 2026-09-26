@@ -199,3 +199,18 @@ Desktop 2.0 稳定前不启动：
 - [x] GitHub Actions artifact upload
 - [ ] screenshot CI PASS
 - [ ] GPT-6 visual review of generated PNGs
+
+## K2-R5 REFERENCE SAMPLE V2 — IMPLEMENTED / CI PENDING
+
+- [x] actual screenshot review marked v1 visual NO-GO
+- [x] clean-profile theme shifts to Mist Ivory light-first
+- [x] canonical theme label replaces legacy label in quick toggle
+- [x] legacy Tailwind background/player aliases aligned to light theme
+- [x] Sidebar narrowed and media navigation flattened
+- [x] idle library status visually retreats
+- [x] theme quick toggle reduced to icon
+- [x] album grid made larger / fewer columns
+- [x] metadata management collapsed under Advanced
+- [x] 1024 toolbar density reduced
+- [ ] v2 Windows CI
+- [ ] v2 screenshot visual review

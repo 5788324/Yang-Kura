@@ -96,7 +96,7 @@ export default function App() {
       { id: 'music-2', type: 'webdav', path: '<后置：WebDAV 连接>', label: 'WebDAV 音乐库（后置）' },
     ],
     tempDownloadPath: '<后置：下载缓存目录>',
-    currentTheme: 'acrylic-mist',
+    currentTheme: 'ocean-drops',
     enableOverlay: true,
     privacyMode: true,
   }, settingsPathPrivacyService.sanitizeSettings.bind(settingsPathPrivacyService));

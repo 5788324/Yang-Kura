@@ -143,3 +143,16 @@ Artifact：
 `k2-r5-reference-screenshots-<SHA>`
 
 审图前仍禁止把 Music 样板批量扩散到 ASMR。
+
+## Visual review result
+
+v1 screenshots 已真实下载并审查：**VISUAL NO-GO / FUNCTIONAL PASS**。
+
+不要基于 v1 扩散 ASMR。
+
+当前正在验证 v2：
+- light-first Mist Ivory；
+- narrower/flat Sidebar；
+- fewer/larger album columns；
+- metadata retreat；
+- quieter TopBar/player chrome。

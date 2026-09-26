@@ -1,3 +1,12 @@
+## 2026-09-26 — K2-R5 Screenshot v1 reviewed, v2 light-first started
+
+- 自动截图 artifact 成功生成并由 GPT-6 实际查看 4 张 PNG。
+- v1 判定：FUNCTIONAL PASS / VISUAL NO-GO。
+- 主要问题：深棕橙偏重、工程壳感、1024 Sidebar 太宽、media nav card 化、专辑 6 列偏碎、Metadata 工具侵入日常 UI。
+- 根据用户此前“浅色为主”要求，clean profile 默认切到 canonical Mist Ivory；旧 legacy vars 同步 light surface，避免新 token 浅而旧 Tailwind 仍深。
+- Sidebar 缩窄并扁平化；idle status 降权；theme toggle 只留图标；专辑 grid 放大；metadata tools 折叠到 Advanced。
+- 截图 fixture 明确切 Mist Ivory，下一轮仍自动生成相同 4 个 viewport 用于 A/B 审查。
+
 ## 2026-09-26 — K2-R5 Screenshot Gate wired into U30
 
 - 放弃单独维护第二套 CDP driver，直接复用已长期通过的 U30 UI Matrix。

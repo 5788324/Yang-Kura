@@ -4,7 +4,7 @@ import { MoonStar, SunMedium } from 'lucide-react';
 import {
   applyBeta2Theme,
   getLegacyThemeCompatibilityId,
-  getLegacyThemeLabel,
+  getBeta2ThemeLabel,
   normalizeBeta2Theme,
   normalizeLegacyThemeCompatibilityId,
   persistBeta2Theme,
@@ -89,8 +89,8 @@ export function ThemeRuntimeBridge({ children }: ThemeRuntimeBridgeProps) {
 
   const nextTheme: Beta2ThemeId = theme === 'dusk-amber' ? 'mist-ivory' : 'dusk-amber';
   const nextLegacyTheme = getLegacyThemeCompatibilityId(nextTheme);
-  const currentThemeLabel = getLegacyThemeLabel(legacyTheme);
-  const nextThemeLabel = getLegacyThemeLabel(nextLegacyTheme);
+  const currentThemeLabel = getBeta2ThemeLabel(theme);
+  const nextThemeLabel = getBeta2ThemeLabel(nextTheme);
 
   return (
     <>

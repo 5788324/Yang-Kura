@@ -25,7 +25,7 @@ export const normalizeLegacyThemeCompatibilityId = (value: unknown): LegacyTheme
 export const normalizeBeta2Theme = (value: unknown): Beta2ThemeId =>
   typeof value === 'string' && value in LEGACY_THEME_MAP
     ? LEGACY_THEME_MAP[value]
-    : 'dusk-amber';
+    : 'mist-ivory';
 
 const readLegacyTheme = (): unknown => {
   if (typeof localStorage === 'undefined') return undefined;
@@ -43,7 +43,7 @@ export const readLegacyThemeCompatibilityId = (): LegacyThemeCompatibilityId =>
   normalizeLegacyThemeCompatibilityId(readLegacyTheme());
 
 export const readBeta2Theme = (): Beta2ThemeId => {
-  if (typeof localStorage === 'undefined') return 'dusk-amber';
+  if (typeof localStorage === 'undefined') return 'mist-ivory';
   const explicit = localStorage.getItem(BETA2_THEME_STORAGE_KEY);
   return normalizeBeta2Theme(explicit ?? readLegacyTheme());
 };

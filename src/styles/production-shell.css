@@ -111,7 +111,7 @@ body[data-yk-theme] #root {
 }
 
 .yk-app-shell--bridge #app-sidebar {
-  width: 14.75rem;
+  width: 13rem;
   border-color: var(--yk-border-subtle);
   background: color-mix(in srgb, var(--yk-surface-1) 96%, transparent);
   box-shadow: inset -1px 0 color-mix(in srgb, var(--yk-border-strong) 25%, transparent);
@@ -194,9 +194,9 @@ body[data-yk-theme] #root {
   backdrop-filter: blur(22px);
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1180px) {
   .yk-app-shell--bridge #app-sidebar {
-    width: 12.5rem;
+    width: 11.75rem;
   }
 
   .yk-theme-toggle span {

@@ -6,6 +6,25 @@
  * retired, otherwise old pages regress while newer surfaces remain readable.
  */
 .theme-mist-ivory {
+
+  /* K2-R5: make legacy Tailwind aliases genuinely light while migration continues. */
+  --bg-primary: #f2ede6;
+  --sidebar-bg: #f8f4ee;
+  --card-bg: #fffdf9;
+  --input-bg: #ebe3da;
+  --text-primary: #302821;
+  --text-secondary: #67594d;
+  --hover-bg: #e7ded4;
+  --player-bg: #fffdf9;
+
+  /* K2 shell compatibility: light-first, nearly no ambient glow. */
+  --k2-shell-base: #f2ede6;
+  --k2-shell-elevated: rgb(255 253 249 / 96%);
+  --k2-shell-glass: rgb(255 253 249 / 88%);
+  --k2-shell-line: rgb(48 40 33 / 12%);
+  --k2-accent-a: #9c482f;
+  --k2-accent-b: #7f6d60;
+  --k2-accent-c: #48667f;
   /* Visible component boundaries: >= 3:1 against every light surface. */
   --yk-border-subtle: #8f8074;
   --yk-border-strong: #78685c;
@@ -39,4 +58,28 @@
 
 .theme-mist-ivory :where(button, [role="button"], input, select, textarea, a):focus-visible {
   outline-color: var(--yk-focus);
+}
+
+.theme-mist-ivory.k2-desktop-shell::before,
+.theme-mist-ivory.k2-desktop-shell::after {
+  opacity: 0.035;
+}
+
+.theme-mist-ivory .k2-topbar {
+  background: rgb(248 244 238 / 92%);
+  box-shadow: none;
+}
+
+.theme-mist-ivory .k2-sidebar {
+  background: #f8f4ee;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.theme-mist-ivory .k2-player-dock {
+  background: rgb(255 253 249 / 98%) !important;
+  box-shadow: 0 -1px 0 rgb(48 40 33 / 10%) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
