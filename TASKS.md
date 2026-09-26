@@ -156,3 +156,17 @@ Desktop 2.0 稳定前不启动：
 - [x] Theme Delta Matrix
 - [x] Android Compose Mapping
 - [ ] K2-R5.2 Shared UI + Home / Music / ASMR 实现
+
+## K2-R5 REFERENCE UI AUDIT — COMPLETE
+
+- [x] YesPlayMusic source audit
+- [x] SPlayer-Next source audit
+- [x] Feishin source architecture audit
+- [x] fooyin management UX audit
+- [x] Resonate Android source audit
+- [x] Aurora Android source audit
+- [x] license reuse gate
+- [x] Kura Reference UI Map
+- [x] R5.2 implementation ordering from mature projects
+- [ ] build first reference-derived Kura Desktop sample
+- [ ] screenshot QA before broad page migration

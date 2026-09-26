@@ -1,3 +1,16 @@
+## 2026-09-26 — K2-R5 Reference UI Audit
+
+- 用户明确反馈 AI 从零生成视觉仍显一般，决定直接借成熟播放器做 Kura。
+- 重新核对 YesPlayMusic / SPlayer-Next / Feishin / fooyin / Resonate / Aurora 的当前仓库、技术栈、活跃性和许可证。
+- YesPlayMusic：核对 library.vue / album.vue / TrackList.vue / CoverRow.vue；用于 Music hierarchy、Album ratio、CoverRow、desktop track interactions。
+- SPlayer-Next：核对 MainLayout / PlayerBar / FullPlayer / Lyrics 结构；用于 floating/docked player、player decomposition、full-player interaction，仅参考不复制（AGPL）。
+- Feishin：核对 feature-first structure、Album header/filter/content/infinite grid；用于大库 React/Electron architecture，仅参考不复制（GPL）。
+- fooyin：用于 Studio Graphite 的 dense library / metadata / workspace thinking，不采用无限插件画布（GPL）。
+- Resonate：核对 Compose RootScaffold/NowPlaying；MIT，作为 Android Scaffold/MiniPlayer/FullPlayer/Chroma 首选可移植候选。
+- Aurora：Apache-2.0，用于 Android adaptive rail、多来源、下载/缓存、高级播放模式；避免复制其巨型 AuroraApp 结构。
+- 形成 Reference Audit + Reference Map；正式路线由 AI-first design 改为 reference-driven reconstruction。
+- 下一步：先实现一版 reference-derived Desktop sample，截图通过后再批量迁移 R5.2 页面。
+
 ## 2026-09-23 — K2-R5 Claude/Kimi Review + GPT-6 Design Decision
 
 - 用户回传 Claude Sonnet 5 与 Kimi K3 两份完整设计方案，并决定不再消耗 Gemini 额度，由 GPT-6 代替 cross-model QA。

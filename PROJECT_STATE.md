@@ -226,3 +226,21 @@ Claude Sonnet 5 与 Kimi K3 的独立方案已回收。用户决定不再使用 
 - Android 只做 Design Mapping，正式开发继续冻结。
 
 K2-R5.2 可直接开始。
+
+## 11. K2-R5 Reference-driven UI
+
+用户对 AI 从零生成的视觉样板不满意。K2-R5 已切换为 mature-project reference-driven reconstruction。
+
+Desktop：
+- YesPlayMusic 负责 Music visual hierarchy；
+- SPlayer 负责 Player/FullPlayer/Lyrics 交互参考；
+- Feishin 负责 large-library list/grid/filter architecture；
+- fooyin 负责 Studio management 思路。
+
+Android：
+- Resonate(MIT) 作为优先可移植 Scaffold/Player 基础；
+- Aurora(Apache-2.0) 补 adaptive/multi-source/player patterns。
+
+GPL/AGPL 项目禁止生产源码复制，只允许独立重写其行为/布局思想。
+
+下一任务：基于 Reference Map 构建 Kura 第一版 Desktop 视觉样板，再截图审查。

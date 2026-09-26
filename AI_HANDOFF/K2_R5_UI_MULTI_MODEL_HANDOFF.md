@@ -83,3 +83,23 @@ docs/ui-lab/k2-r5/
 直接进入 **K2-R5.2 Shared UI + Home / Music / ASMR 实现**。
 
 Claude / Kimi 暂停调用，保留额度用于 Windows 截图阶段的最终视觉审查。
+
+## Reference-driven UI route
+
+2026-09-26 起，K2-R5 不再以 AI 从零设计为主。
+
+正式参考：
+
+- Desktop Music hierarchy：YesPlayMusic；
+- Desktop Player / Lyrics：SPlayer-Next（reference only, AGPL）；
+- Desktop large-library architecture：Feishin（reference only, GPL）；
+- Studio management：fooyin（reference only, GPL）；
+- Android Scaffold/Player：Resonate（MIT code candidate）；
+- Android multi-source/adaptive：Aurora（Apache-2.0 code candidate）。
+
+必读：
+
+- `docs/ui-lab/k2-r5/07_REFERENCE_UI_AUDIT.md`
+- `docs/ui-lab/k2-r5/08_REFERENCE_MAP.md`
+
+下一步不是继续画概念图，而是做第一版 reference-derived Desktop sample。
