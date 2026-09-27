@@ -168,3 +168,17 @@ v1 screenshots 已真实下载并审查：**VISUAL NO-GO / FUNCTIONAL PASS**。
 - artifact 缺失仅 warn。
 
 已修 CI。下一 run 才是可信 v2 门禁。
+
+## Automated screenshot gate
+
+新增 `scripts/capture-k2-r5-reference-screenshots.mjs`。
+
+固定输出到 `artifacts/k2-r5-reference-screenshots/`：
+
+1. Music Albums 1440×900；
+2. Album Detail 1440×900；
+3. Music Tracks + Player 1024×720。
+
+使用独立临时 profile + synthetic music visual dataset，不访问真实用户库。
+
+下一门禁：读取 CI artifact 实际图片做视觉 QA；视觉未通过前不迁移 ASMR。

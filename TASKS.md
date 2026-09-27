@@ -185,6 +185,10 @@ Desktop 2.0 稳定前不启动：
 - [x] dedicated regression verifier
 - [x] Windows CI
 - [ ] Windows screenshot QA
+  - [x] automated Electron screenshot capture implemented
+  - [ ] inspect 1440×900 Music Albums
+  - [ ] inspect 1440×900 Album Detail
+  - [ ] inspect 1024×720 Music Tracks + Player
 
 ## K2-R5 AUTOMATED SCREENSHOT GATE — IMPLEMENTED / CI PENDING
 

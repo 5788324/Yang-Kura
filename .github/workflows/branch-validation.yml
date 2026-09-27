@@ -120,6 +120,8 @@ jobs:
         run: npm run test:k2-r5-shell
       - name: K2-R5 Reference-derived Desktop Sample
         run: npm run test:k2-r5-reference
+      - name: Capture K2-R5 visual screenshots
+        run: npm run capture:k2-r5-reference
       - name: Current Electron journeys
         run: npm run test:u28:electron-e2e && npm run test:u29:electron-e2e && npm run test:u30:ui-matrix && npm run test:u31:importer-transactions && node scripts/test-u32-ui-audit.mjs
       - name: Upload K2-R5 visual screenshots

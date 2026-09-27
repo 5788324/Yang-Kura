@@ -1,3 +1,13 @@
+## 2026-09-27 — K2-R5 Automated Electron Screenshot Gate
+
+- 复用现有 Electron Chromium CDP 测试驱动，不引入 Playwright。
+- 新增独立 visual dataset：8 张专辑、64 首曲目、稳定 artwork、当前播放队列。
+- 自动注入隔离临时 Electron profile，不触碰真实媒体/真实用户数据。
+- 固定生成 1440×900 Music Albums、1440×900 Album Detail、1024×720 Music Tracks + Player。
+- 自动校验 PNG 尺寸、横向溢出、reference markers、Player 尺寸和 Renderer exceptions。
+- Branch Validation 生成并上传 k2-r5-reference-screenshots artifact，保留 14 天。
+- 截图视觉未实际审查前仍禁止把样板批量扩散到 ASMR。
+
 ## 2026-09-26 — CI false-green found and repaired
 
 - 审 v2 artifact 时发现 GitHub 没有任何 artifact，进一步读取 Windows job 日志。

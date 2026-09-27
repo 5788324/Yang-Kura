@@ -57,7 +57,8 @@
     "test:k2-r4": "npm run build:electron --silent && node scripts/test-k2-r4-catalog-query.mjs && node scripts/test-k2-r4-virtual-window.mjs && node scripts/test-k2-r4-primary-read-gate.mjs",
     "test:k2-r4:ipc": "npm run build:electron --silent && node scripts/test-k2-r4-catalog-ipc.mjs",
     "test:k2-r5-shell": "npm run build --silent && node scripts/test-k2-r5-app-shell.mjs",
-    "test:k2-r5-reference": "npm run build --silent && node scripts/test-k2-r5-reference-sample.mjs"
+    "test:k2-r5-reference": "npm run build --silent && node scripts/test-k2-r5-reference-sample.mjs",
+    "capture:k2-r5-reference": "node scripts/capture-k2-r5-reference-screenshots.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.546.0",

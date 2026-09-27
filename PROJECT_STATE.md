@@ -336,3 +336,20 @@ K2-R5 v2 首次 run `36251643994` 暴露 Windows PowerShell 多命令 step 的 f
 - handoff verifier / START_HERE / NEXT prompt 对齐 K2-R5。
 
 只有修复后的下一次 run 才可用于 v2 结论。
+
+## 13. K2-R5 Automated Visual Gate
+
+Reference-derived sample 增加真实 Electron 截图门禁。
+
+固定输出：
+
+- `01-music-albums-1440x900.png`
+- `02-album-detail-1440x900.png`
+- `03-music-tracks-player-1024x720.png`
+- `report.json`
+
+截图使用独立临时用户目录和 synthetic music visual dataset，不访问用户真实媒体库。
+
+门禁同时检查 PNG 实际尺寸、viewport、横向溢出、Music reference marker、Player reference marker 和 Renderer exception。
+
+Branch Validation 将 screenshot artifact 保留 14 天。
