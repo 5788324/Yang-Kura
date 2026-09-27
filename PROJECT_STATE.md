@@ -367,3 +367,18 @@ Branch Validation 将 screenshot artifact 保留 14 天。
 - 新 fixture 同步更新 sortTitle；
 - 新增 rootId 直接查询断言，明确要求只剩 rj-002、不得存在 rj-001；
 - screenshot artifact 只在 capture step 成功时上传，避免前置失败制造噪音。
+
+## 15. K2-R5 Screenshot Visual QA — Pass 1
+
+实际 Electron PNG 已审查。技术布局稳定，但第一版 light-first 样板仍存在模板感和视觉层级过平。
+
+本轮整改：
+- idle TopBar 状态点移除；
+- Sidebar active item 改为轻量 rail accent；
+- Music grid/list 隐藏日常无价值 status badges；
+- TrackRow 去圆角卡片感；
+- Album Detail 收紧 spacing；
+- PlayerBar 从 80px 级别降到约 68–72px；
+- favorite action icon-only。
+
+U28 旧中文文案断言同步改为 DOM semantic state，不再把文案迭代误判为功能回归。

@@ -421,7 +421,17 @@ async function runEmptyAndRestartScenario(root) {
 
   let runtime = await launchApp(fixtureDir, profileDir);
   try {
-    await expectBodyContains(runtime.cdp, '尚未选择资源库');
+    await waitForCondition(
+      runtime.cdp,
+      `document.querySelector('[data-library-state="disconnected"]')`,
+      15_000,
+      'disconnected library state',
+    );
+    await assert.equal(
+      await runtime.cdp.evaluate(`Boolean([...document.querySelectorAll('button')].find((button) => button.offsetParent !== null && button.textContent?.includes('选择资源库')))`),
+      true,
+      '首次启动应提供选择资源库入口',
+    );
     await assertLayout(runtime.cdp, '首次启动');
     await screenshot(runtime.cdp, '01-startup-unselected');
 

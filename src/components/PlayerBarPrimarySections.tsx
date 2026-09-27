@@ -126,7 +126,7 @@ export function PlayerTrackSummary({
         )}
       </div>
 
-      <div className="flex items-center pl-3 border-l border-border-color/80 flex-shrink-0">
+      <div className="k2-ref-player-like flex items-center pl-3 border-l border-border-color/80 flex-shrink-0">
         <button
           type="button"
           onClick={onToggleFavorite}

@@ -230,3 +230,17 @@ Desktop 2.0 稳定前不启动：
 - [x] NEXT_CONVERSATION_PROMPT rewritten for current K2-R5
 - [ ] rerun v2 under trustworthy CI
 - [ ] retrieve and review v2 screenshot artifact
+
+## K2-R5 SCREENSHOT QA PASS 1 — IMPLEMENTED / CI PENDING
+
+Observed from real Electron screenshots:
+- [x] remove idle TopBar orphan status dot
+- [x] reduce Sidebar active-card treatment
+- [x] remove nonessential album/track badges from daily Music visual
+- [x] flatten TrackRow geometry
+- [x] tighten Album Detail vertical rhythm
+- [x] reduce PlayerBar height / visual weight
+- [x] make Player favorite action icon-only
+- [x] update U28 startup assertion to semantic disconnected-state contract
+- [ ] regenerate screenshots
+- [ ] second visual QA

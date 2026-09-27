@@ -1,3 +1,11 @@
+## 2026-09-27 — K2-R5 Screenshot Visual QA Pass 1
+
+- Dedicated Electron screenshot gate PASS and artifact downloaded.
+- Reviewed Music Albums 1440x900, Album Detail 1440x900, Music Tracks + Player 1024x720.
+- Direction is materially more mature than AI-first shell, but still too flat/templated: warm-beige field, active nav card weight, badge clutter, rounded track rows, oversized PlayerBar.
+- Implemented screenshot-derived corrections only; ASMR remains untouched.
+- U28 failure was stale copy assertion ("尚未选择资源库"), replaced with semantic disconnected-state + visible action assertion.
+
 ## 2026-09-27 — K2-R5 Screenshot Driver Selector Fix
 
 - R2 false-positive fix PASS；R2/R3/R4/R5 sample gates all reached PASS.
