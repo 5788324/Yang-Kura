@@ -121,11 +121,12 @@ jobs:
       - name: K2-R5 Reference-derived Desktop Sample
         run: npm run test:k2-r5-reference
       - name: Capture K2-R5 visual screenshots
+        id: k2_r5_capture
         run: npm run capture:k2-r5-reference
       - name: Current Electron journeys
         run: npm run test:u28:electron-e2e && npm run test:u29:electron-e2e && npm run test:u30:ui-matrix && npm run test:u31:importer-transactions && node scripts/test-u32-ui-audit.mjs
       - name: Upload K2-R5 visual screenshots
-        if: always()
+        if: always() && steps.k2_r5_capture.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: k2-r5-reference-screenshots-${{ github.sha }}

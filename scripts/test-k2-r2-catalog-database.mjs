@@ -256,6 +256,7 @@ try {
       ...structuredClone(fixture.collections[0]),
       id: 'rj-002',
       title: '更新后的耳语作品',
+      sortTitle: '更新后的耳语作品',
       trackIds: ['track-rj-2'],
     }],
     tracks: [{
@@ -289,8 +290,19 @@ try {
   if (catalog.searchCollections('更新后的耳语', 10)[0]?.id !== 'rj-002') {
     throw new Error('ASMR root was not atomically replaced');
   }
+  const refreshedAsmrCollections = catalog.queryCollections({
+    rootId: 'root-asmr',
+    limit: 10,
+  });
+  if (
+    refreshedAsmrCollections.length !== 1
+    || refreshedAsmrCollections[0]?.id !== 'rj-002'
+    || refreshedAsmrCollections.some((collection) => collection.id === 'rj-001')
+  ) {
+    throw new Error(`stale ASMR collection survived direct root-scoped replacement: ${JSON.stringify(refreshedAsmrCollections)}`);
+  }
   if (catalog.searchCollections('耳语睡前故事', 10).length !== 0) {
-    throw new Error('stale ASMR collection survived root-scoped replacement');
+    throw new Error('stale ASMR search text survived root-scoped replacement');
   }
 
   const beforeBadImport = catalog.getCounts();

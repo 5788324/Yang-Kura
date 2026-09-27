@@ -353,3 +353,17 @@ Reference-derived sample 增加真实 Electron 截图门禁。
 门禁同时检查 PNG 实际尺寸、viewport、横向溢出、Music reference marker、Player reference marker 和 Renderer exception。
 
 Branch Validation 将 screenshot artifact 保留 14 天。
+
+## 14. K2-R2 Gate False Positive Fix
+
+2026-09-27 screenshot gate run 暴露一个既存 R2 测试假阳性：
+
+- root-scoped replacement 实际已删除旧 collection；
+- 但测试构造新 `rj-002` 时通过 structuredClone 继承了旧 `sortTitle=耳语睡前故事`；
+- CJK trigram 搜索会正确命中新集合的旧 sortTitle；
+- 测试因此错误报告“stale ASMR collection survived”。
+
+修正：
+- 新 fixture 同步更新 sortTitle；
+- 新增 rootId 直接查询断言，明确要求只剩 rj-002、不得存在 rj-001；
+- screenshot artifact 只在 capture step 成功时上传，避免前置失败制造噪音。

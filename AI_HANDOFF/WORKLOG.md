@@ -1,3 +1,10 @@
+## 2026-09-27 — K2-R2 Root-scoped Test False Positive
+
+- Screenshot CI 被既存 K2-R2 catalog test 阻塞；父提交同样失败，确认不是 screenshot 变更引入。
+- 根因：asmrRefresh 从旧 collection clone 后修改 title/id，却保留旧 sortTitle；旧搜索词因此合法命中新 rj-002。
+- 修正 fixture 的 sortTitle，并增加 direct rootId assertion 检查 rj-001 已删除、rj-002 唯一存在。
+- Screenshot artifact upload 改为仅 capture step success 后执行，避免前置门禁失败时出现 secondary failure。
+
 ## 2026-09-27 — K2-R5 Automated Electron Screenshot Gate
 
 - 复用现有 Electron Chromium CDP 测试驱动，不引入 Playwright。
