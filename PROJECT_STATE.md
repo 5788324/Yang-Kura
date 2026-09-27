@@ -382,3 +382,14 @@ Branch Validation 将 screenshot artifact 保留 14 天。
 - favorite action icon-only。
 
 U28 旧中文文案断言同步改为 DOM semantic state，不再把文案迭代误判为功能回归。
+
+## 16. U28 Diagnostics Contract Hardened
+
+K2-R5 light-first UI 已证明旧 U28 仍把完整中文状态句当作契约。
+诊断页已有稳定 DOM IDs，因此 E2E 改为验证：
+- diagnostics status 节点存在且非空；
+- ASMR count = 0；
+- Music count = 0；
+- status 不包含失败。
+
+UI 文案不再属于功能回归门禁。

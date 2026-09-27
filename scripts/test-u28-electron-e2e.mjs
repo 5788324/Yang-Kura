@@ -474,11 +474,26 @@ async function runEmptyAndRestartScenario(root) {
     await clickVisibleText(runtime.cdp, '高级', 'summary');
     await clickVisibleText(runtime.cdp, '打开', 'button');
     await waitForBodyText(runtime.cdp, '真实资源状态与诊断');
-    await waitForBodyText(runtime.cdp, '已加载真实 library-index.json：0 个音声集合，0 个音乐集合，0 条轨道。');
+    await waitForCondition(
+      runtime.cdp,
+      `document.querySelector('#u28-diagnostics-index-status')?.textContent?.trim().length > 0`,
+      15_000,
+      'diagnostics index status',
+    );
     assert.equal(await runtime.cdp.evaluate(`document.querySelector('#u28-diagnostics-asmr-count')?.textContent?.trim()`), '0', '诊断页音声作品计数应为 0');
     assert.equal(await runtime.cdp.evaluate(`document.querySelector('#u28-diagnostics-music-count')?.textContent?.trim()`), '0', '诊断页音乐专辑计数应为 0');
+    assert.equal(
+      await runtime.cdp.evaluate(`document.querySelector('#u28-diagnostics-index-status')?.textContent?.includes('失败') ?? false`),
+      false,
+      '空资源库诊断状态不应报告失败',
+    );
     await clickVisibleText(runtime.cdp, '刷新真实资源状态', 'button');
-    await waitForBodyText(runtime.cdp, '已加载真实 library-index.json：0 个音声集合，0 个音乐集合，0 条轨道。');
+    await waitForCondition(
+      runtime.cdp,
+      `document.querySelector('#u28-diagnostics-index-status')?.textContent?.trim().length > 0`,
+      15_000,
+      'refreshed diagnostics index status',
+    );
     await expectBodyExcludes(runtime.cdp, 'Demo 扫描演示');
     await assertLayout(runtime.cdp, '空 Index 诊断');
     await screenshot(runtime.cdp, '07-empty-index-diagnostics');

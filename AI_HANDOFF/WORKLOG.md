@@ -1,3 +1,10 @@
+## 2026-09-27 — U28 Diagnostics Semantic Assertion
+
+- Screenshot QA pass 1 regenerated successfully.
+- U28 progressed beyond startup assertion, then failed on another exact legacy diagnostics sentence.
+- Replaced exact text dependency with stable diagnostics DOM IDs + zero-count + no-failure semantic assertions.
+- No production UI or behavior change in this fix.
+
 ## 2026-09-27 — K2-R5 Screenshot Visual QA Pass 1
 
 - Dedicated Electron screenshot gate PASS and artifact downloaded.
