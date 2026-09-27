@@ -240,7 +240,7 @@ function readPngDimensions(buffer) {
 async function layoutSnapshot(cdp, name, expectedWidth, expectedHeight) {
   const expression = '(() => {' +
     'const rect=(selector)=>{const e=document.querySelector(selector);if(!e)return null;const b=e.getBoundingClientRect();return {left:b.left,top:b.top,width:b.width,height:b.height,right:b.right,bottom:b.bottom};};' +
-    'return {name:' + JSON.stringify(name) + ',viewport:{width:window.innerWidth,height:window.innerHeight},scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight,sidebar:rect("#app-sidebar"),main:rect("main"),player:rect("#app-player-bar"),music:rect("[data-k2-reference-sample=\"music-library-v1\"]"),playerMarker:document.querySelector("#app-player-bar")?.getAttribute("data-k2-reference-player")??""};' +
+    'return {name:' + JSON.stringify(name) + ',viewport:{width:window.innerWidth,height:window.innerHeight},scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight,sidebar:rect("#app-sidebar"),main:rect("main"),player:rect("#app-player-bar"),music:rect("[data-k2-reference-sample=music-library-v1]"),playerMarker:document.querySelector("#app-player-bar")?.getAttribute("data-k2-reference-player")??""};' +
     '})()';
   const layout = await cdp.evaluate(expression);
   assert.equal(layout.viewport.width, expectedWidth, name + ': viewport width mismatch');

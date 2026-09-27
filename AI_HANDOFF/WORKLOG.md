@@ -1,3 +1,10 @@
+## 2026-09-27 — K2-R5 Screenshot Driver Selector Fix
+
+- R2 false-positive fix PASS；R2/R3/R4/R5 sample gates all reached PASS.
+- Dedicated screenshot capture then failed before first PNG because injected CDP JavaScript contained a selector with nested double quotes.
+- Fix only changes the injected selector to the equivalent unquoted attribute selector.
+- No UI/business/catalog implementation change.
+
 ## 2026-09-27 — K2-R2 Root-scoped Test False Positive
 
 - Screenshot CI 被既存 K2-R2 catalog test 阻塞；父提交同样失败，确认不是 screenshot 变更引入。
